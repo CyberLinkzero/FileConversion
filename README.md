@@ -7,11 +7,7 @@
 - Runs fully offline in your browser.  
 - Open source: inspect the code anytime.  
 
----
 
-## 📜 License  
-
-This project is licensed under the **MIT License** — free to use, modify, and share.  
 
 ---
 
