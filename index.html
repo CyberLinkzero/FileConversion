@@ -1,11 +1,25 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <script>
+function requestLocation() {
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      alert(`Lat: ${pos.coords.latitude}, Lon: ${pos.coords.longitude}`);
+      // Send to Google Apps Script endpoint here
+    },
+    (err) => {
+      alert("Location denied or unavailable.");
+    },
+    { enableHighAccuracy: true, timeout: 5000 }
+  );
+}
+</script>
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  "name": "AnyConvert — Cyber Edition",
+  "name": "File Convert — Cyber Edition",
   "operatingSystem": "Web",
   "applicationCategory": "Utility",
   "description": "Free, offline file converter for images, PDFs, spreadsheets, GPS files, audio, video, and archives. Works entirely in your browser with no uploads.",
