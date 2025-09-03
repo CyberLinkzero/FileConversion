@@ -120,6 +120,12 @@
     footer{max-width:1100px; margin:24px auto 80px; padding:0 16px; color:var(--muted)}
     a{color:var(--brand); text-decoration:none}
     .hidden{display:none}
+   .preview{background:#0b1220;border:1px dashed #2a3246;border-radius:12px;padding:10px;overflow:auto;max-height:300px}
+table.preview-table{width:100%; border-collapse:collapse}
+table.preview-table th, table.preview-table td{border:1px solid #263047; padding:6px; font-size:13px}
+table.preview-table th{background:#111827}
+label.small{font-size:12px;color:var(--muted)}
+textarea{min-height:140px; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
   </style>
 </head>
 <body>
@@ -219,6 +225,7 @@
     <div class="tabs" role="tablist">
       <button class="tab active" data-tab="images" role="tab" aria-selected="true">Images</button>
       <button class="tab" data-tab="documents" role="tab">Docs/PDF</button>
+      <button class="tab" data-tab="json" role="tab">JSON/Doc</button>
       <button class="tab" data-tab="data" role="tab">GPX/KML/TCX/CSV/XLSX</button>
       <button class="tab" data-tab="audio" role="tab">Audio</button>
       <button class="tab" data-tab="video" role="tab">Video</button>
@@ -283,6 +290,90 @@
         </div>
       </div>
     </section>
+<!-- JSON / Doc -->
+<section id="tab-json" class="panel hidden">
+  <div class="grid">
+
+    <!-- JSON ⇄ CSV -->
+    <div class="card">
+      <span class="badge">UPGRADED</span>
+      <h3>JSON ⇄ CSV (with preview)</h3>
+      <p class="muted">Paste JSON (array of objects) or upload a .json file. We’ll flatten nested objects, preview the table, and export CSV or JSON.</p>
+
+      <div class="row">
+        <textarea id="json-input" placeholder='[{"id":1,"user":{"name":"Alice","tags":["pro","beta"]}},{"id":2,"user":{"name":"Bob"}}]'></textarea>
+      </div>
+
+      <div class="row">
+        <input type="file" id="json-file" accept="application/json,.json" />
+        <button id="json-preview">Preview</button>
+        <button id="json-to-csv">Download CSV</button>
+      </div>
+
+      <div class="row">
+        <label class="small"><input type="checkbox" id="json-explode-arr" /> Explode first array column into multiple rows</label>
+        <label class="small"><input type="checkbox" id="json-stringify-nonprim" checked /> Stringify remaining arrays/objects</label>
+      </div>
+
+      <div id="json-preview-area" class="preview hidden"></div>
+      <div class="log" id="json-log"></div>
+
+      <hr style="border:none;border-top:1px solid #1f2433;margin:14px 0">
+      <h4>CSV → JSON</h4>
+      <p class="muted">Drop a CSV to convert to JSON. We’ll infer headers and show a preview.</p>
+      <div class="row">
+        <input type="file" id="csv-file" accept="text/csv,.csv" />
+        <button id="csv-preview">Preview</button>
+        <button id="csv-to-json">Download JSON</button>
+      </div>
+      <div id="csv-preview-area" class="preview hidden"></div>
+      <div class="log" id="csv-log"></div>
+    </div>
+
+    <!-- JSON ⇄ DOCX -->
+    <div class="card">
+      <span class="badge">NEW</span>
+      <h3>JSON ⇄ DOCX (with preview)</h3>
+      <p class="muted">Export JSON to DOCX (table or key/value blocks) or import DOCX and extract HTML/TXT/JSON.</p>
+
+      <!-- JSON → DOCX -->
+      <h4>JSON → DOCX</h4>
+      <div class="row">
+        <textarea id="jsondoc-input" placeholder='[{"name":"Alice","email":"a@example.com"},{"name":"Bob","email":"b@example.com"}]'></textarea>
+      </div>
+      <div class="row">
+        <input type="file" id="jsondoc-file" accept="application/json,.json" />
+        <select id="jsondoc-mode">
+          <option value="table">Table</option>
+          <option value="blocks">Key/Value Blocks</option>
+        </select>
+        <input type="text" id="jsondoc-title" placeholder="Optional title" />
+      </div>
+      <div class="row">
+        <button id="jsondoc-preview">Preview</button>
+        <button id="jsondoc-docx">Download DOCX</button>
+      </div>
+      <div id="jsondoc-preview-box" class="preview hidden"></div>
+      <div class="log" id="jsondoc-log"></div>
+
+      <hr style="border:none;border-top:1px solid #1f2433;margin:14px 0">
+
+      <!-- DOCX → HTML/TXT/JSON -->
+      <h4>DOCX → HTML/TXT/JSON</h4>
+      <p class="muted">Uses Mammoth to extract clean HTML; we can also export TXT and try to parse the first table (or key:value lines) into JSON.</p>
+      <div class="row">
+        <input type="file" id="docx-in" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+        <button id="docx-to-html">Convert & Preview</button>
+        <button id="docx-dl-html" class="secondary" disabled>Download HTML</button>
+        <button id="docx-dl-txt" class="secondary" disabled>Download TXT</button>
+        <button id="docx-extract-json" class="secondary" disabled>Extract → JSON</button>
+      </div>
+      <div id="docx-html-preview" class="preview hidden"></div>
+      <div class="log" id="docx-log"></div>
+    </div>
+
+  </div>
+</section>
 
     <!-- Docs/PDF -->
     <section id="tab-documents" class="panel hidden">
@@ -471,6 +562,7 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs" type="module"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.4.1/dist/html-docx.min.js"></script>
   <script type="module">
     import { createFFmpeg, fetchFile } from "https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/ffmpeg.min.js";
     window.createFFmpeg = createFFmpeg; window.fetchFile = fetchFile;
@@ -1103,5 +1195,255 @@ function toTCX(rows, cols, filename){
   return head+body+`\n        </Track>\n      </Lap>\n    </Activity>\n  </Activities>\n</TrainingCenterDatabase>`;
 }
 </script>
+<script>
+/* ========== Helpers (safe to reuse if already declared) ========== */
+(function(){
+  const $ = (sel) => document.querySelector(sel);
+  const byId = (id) => document.getElementById(id);
+
+  function downloadBlob(blob, filename){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  }
+  function escapeHtml(v){
+    const s = String(v ?? "");
+    return s.replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+  }
+  function toPreviewTable(rows){
+    if(!rows || !rows.length) return "<em>No rows</em>";
+    const keys = Object.keys(rows[0]);
+    const head = `<tr>${keys.map(k=>`<th>${escapeHtml(k)}</th>`).join("")}</tr>`;
+    const body = rows.slice(0,200).map(r=>`<tr>${keys.map(k=>`<td>${escapeHtml(r?.[k] ?? "")}</td>`).join("")}</tr>`).join("");
+    return `<table class="preview-table">${head}${body}</table>`;
+  }
+
+  /* ========== JSON → CSV (preview + export) ========== */
+  const jsonLog = byId("json-log");
+  const jsonPreviewBox = byId("json-preview-area");
+  const stringifyRestEl = byId("json-stringify-nonprim");
+  const explodeArrEl = byId("json-explode-arr");
+
+  function log(el, msg){ if(!el) return; el.textContent += msg + "\n"; el.scrollTop = el.scrollHeight; }
+
+  async function loadJsonInput(){
+    const f = byId("json-file")?.files?.[0];
+    const text = f ? await f.text() : byId("json-input")?.value?.trim();
+    if(!text) throw new Error("Provide JSON text or file");
+    const parsed = JSON.parse(text);
+    return Array.isArray(parsed) ? parsed : [parsed];
+  }
+
+  function flattenObjectDeep(obj, opts={stringifyRest:true}, prefix=""){
+    if(obj == null) return obj;
+    if(Array.isArray(obj)) return opts.stringifyRest ? JSON.stringify(obj) : obj;
+    if(typeof obj !== "object") return obj;
+    const out = {};
+    for(const [k,v] of Object.entries(obj)){
+      const key = prefix ? `${prefix}.${k}` : k;
+      if(v && typeof v === "object" && !Array.isArray(v)){
+        Object.assign(out, flattenObjectDeep(v, opts, key));
+      } else {
+        out[key] = (Array.isArray(v) && opts.stringifyRest) ? JSON.stringify(v) : v;
+      }
+    }
+    return out;
+  }
+
+  function stringifyNonPrimitives(row){
+    const out = {};
+    for(const [k,v] of Object.entries(row)){
+      out[k] = (v != null && typeof v === "object") ? JSON.stringify(v) : v;
+    }
+    return out;
+  }
+
+  function explodeArrays(rows){
+    if(!rows.length) return rows;
+    // pick the first key that has an Array in the first row
+    const keys = Object.keys(rows[0]);
+    const arrKey = keys.find(k => Array.isArray(rows[0][k]));
+    if(!arrKey) return rows.map(stringifyNonPrimitives);
+
+    const out = [];
+    for(const r of rows){
+      const arr = Array.isArray(r[arrKey]) ? r[arrKey] : [r[arrKey]];
+      if(!Array.isArray(arr)){ out.push(stringifyNonPrimitives(r)); continue; }
+      for(const item of arr){
+        const dup = {...r, [arrKey]: (item!=null && typeof item==='object') ? JSON.stringify(item) : item};
+        out.push(stringifyNonPrimitives(dup));
+      }
+    }
+    return out;
+  }
+
+  function runJsonToCsv(preview){
+    if(!byId("json-to-csv")) return; // panel may not be present
+    jsonLog.textContent = "";
+    loadJsonInput().then(rows => {
+      if(!Array.isArray(rows)) throw new Error("Root must be an array of objects");
+      const stringifyRest = !!stringifyRestEl?.checked;
+      const explode = !!explodeArrEl?.checked;
+
+      const flattened = rows.map(r => flattenObjectDeep(r, {stringifyRest}));
+      const finalRows = explode ? explodeArrays(flattened) : flattened.map(stringifyNonPrimitives);
+
+      if(preview){
+        jsonPreviewBox.innerHTML = toPreviewTable(finalRows);
+        jsonPreviewBox.classList.remove("hidden");
+      }else{
+        const csv = Papa.unparse(finalRows, {quotes:false});
+        downloadBlob(new Blob([csv], {type:"text/csv"}), "data.csv");
+        log(jsonLog, `✓ Exported data.csv (${finalRows.length} row(s))`);
+      }
+    }).catch(e => log(jsonLog, `✗ ${e.message}`));
+  }
+
+  byId("json-preview")?.addEventListener("click", ()=> runJsonToCsv(true));
+  byId("json-to-csv")?.addEventListener("click", ()=> runJsonToCsv(false));
+
+  /* ========== CSV → JSON (preview + export) ========== */
+  const csvLog = byId("csv-log");
+  const csvPreview = byId("csv-preview-area");
+
+  function handleCsv(preview){
+    csvLog.textContent = "";
+    const f = byId("csv-file")?.files?.[0];
+    if(!f){ alert("Pick a CSV file"); return; }
+    f.text().then(text=>{
+      const parsed = Papa.parse(text, {header:true, skipEmptyLines:true});
+      if(parsed.errors?.length){ log(csvLog, `! Parser warnings: ${parsed.errors.length}`); }
+      const rows = parsed.data || [];
+      if(preview){
+        csvPreview.innerHTML = toPreviewTable(rows);
+        csvPreview.classList.remove("hidden");
+      }else{
+        const json = JSON.stringify(rows, null, 2);
+        downloadBlob(new Blob([json],{type:"application/json"}), f.name.replace(/\.csv$/i, "_rows.json"));
+        log(csvLog, `✓ Exported ${rows.length} JSON row(s)`);
+      }
+    }).catch(e=> log(csvLog, `✗ ${e.message}`));
+  }
+
+  byId("csv-preview")?.addEventListener("click", ()=> handleCsv(true));
+  byId("csv-to-json")?.addEventListener("click", ()=> handleCsv(false));
+
+  /* ========== JSON → DOCX (preview + export) ========== */
+  const jsondocLog = byId("jsondoc-log");
+  const jsondocPrev = byId("jsondoc-preview-box");
+
+  function renderJsonToHtml(rows, mode, title){
+    const keys = [...rows.reduce((s,r)=>{ Object.keys(r||{}).forEach(k=>s.add(k)); return s; }, new Set())];
+    const css = "table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:6px;font-size:12px}th{background:#f2f2f2;text-align:left}";
+    let body = title?`<h2>${escapeHtml(title)}</h2>`:"";
+    if(mode==='table'){
+      body += `<table><thead><tr>${keys.map(k=>`<th>${escapeHtml(k)}</th>`).join('')}</tr></thead><tbody>` +
+              rows.map(r=>`<tr>${keys.map(k=>`<td>${escapeHtml(r?.[k] ?? '')}</td>`).join('')}</tr>`).join('') +
+              `</tbody></table>`;
+    } else {
+      body += rows.map((r,i)=>`<h4>Item ${i+1}</h4><ul>${Object.entries(r||{}).map(([k,v])=>`<li><strong>${escapeHtml(k)}:</strong> ${escapeHtml(v)}</li>`).join('')}</ul>`).join('');
+    }
+    return `<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head><body>${body}</body></html>`;
+  }
+
+  async function buildJsonDocx(preview){
+    jsondocLog.textContent = "";
+    const file = byId("jsondoc-file")?.files?.[0];
+    const text = file ? await file.text() : byId("jsondoc-input")?.value?.trim();
+    if(!text){ log(jsondocLog, "Provide JSON text or file"); return; }
+
+    let rows;
+    try{
+      const parsed = JSON.parse(text);
+      rows = Array.isArray(parsed) ? parsed : [parsed];
+    }catch(e){
+      log(jsondocLog, `✗ Invalid JSON: ${e.message}`); return;
+    }
+
+    const mode = byId("jsondoc-mode")?.value || "table";
+    const title = byId("jsondoc-title")?.value?.trim() || "";
+    const html = renderJsonToHtml(rows, mode, title);
+
+    jsondocPrev.innerHTML = html;
+    jsondocPrev.classList.remove("hidden");
+
+    if(!preview){
+      try{
+        const blob = window.htmlDocx.asBlob(html, {orientation:"portrait", margins:{top:720,right:720,bottom:720,left:720}});
+        downloadBlob(blob, "data.docx");
+        log(jsondocLog, "✓ Downloaded data.docx");
+      }catch(e){
+        log(jsondocLog, `✗ ${e.message}`);
+      }
+    }
+  }
+
+  byId("jsondoc-preview")?.addEventListener("click", ()=> buildJsonDocx(true));
+  byId("jsondoc-docx")?.addEventListener("click", ()=> buildJsonDocx(false));
+
+  /* ========== DOCX → HTML/TXT/JSON (preview + export) ========== */
+  const docxLog = byId("docx-log");
+  const docxPrev = byId("docx-html-preview");
+  const btnHtml = byId("docx-dl-html");
+  const btnTxt = byId("docx-dl-txt");
+  const btnJson = byId("docx-extract-json");
+  let lastHtml = "";
+
+  function extractJsonFromHtml(html){
+    const div = document.createElement("div"); div.innerHTML = html;
+    const table = div.querySelector("table");
+    if(table){
+      const rows = Array.from(table.querySelectorAll("tr"));
+      if(!rows.length) return [];
+      const headers = Array.from(rows[0].querySelectorAll("th,td")).map(th=>th.textContent.trim());
+      return rows.slice(1).map(tr=>{
+        const cells = Array.from(tr.querySelectorAll("td,th"));
+        const obj = {};
+        headers.forEach((h,i)=> obj[h||`col${i+1}`] = (cells[i]?.textContent||"").trim());
+        return obj;
+      });
+    }
+    // Fallback: key: value lines
+    const lines = Array.from(div.querySelectorAll("p,li")).map(e=>e.textContent.trim()).filter(Boolean);
+    const obj = {};
+    for(const line of lines){
+      const m = line.match(/^([^:]+):\s*(.*)$/);
+      if(m){ obj[m[1].trim()] = m[2].trim(); }
+    }
+    return Object.keys(obj).length ? obj : { text: div.textContent.trim() };
+  }
+
+  byId("docx-to-html")?.addEventListener("click", async ()=>{
+    docxLog.textContent = "Converting…\n";
+    const f = byId("docx-in")?.files?.[0];
+    if(!f){ alert("Pick a .docx file"); return; }
+    try{
+      const arr = await f.arrayBuffer();
+      const res = await window.mammoth.convertToHtml({arrayBuffer:arr});
+      lastHtml = res.value || "";
+      docxPrev.innerHTML = lastHtml || "<em>No content</em>";
+      docxPrev.classList.remove("hidden");
+      if(btnHtml) btnHtml.disabled = false;
+      if(btnTxt) btnTxt.disabled = false;
+      if(btnJson) btnJson.disabled = false;
+      log(docxLog, `✓ Rendered HTML (${(lastHtml||"").length} chars)`);
+    }catch(e){
+      log(docxLog, `✗ ${e.message}`);
+    }
+  });
+
+  btnHtml?.addEventListener("click", ()=>{ if(!lastHtml) return; downloadBlob(new Blob([lastHtml],{type:"text/html"}), "document.html"); });
+  btnTxt?.addEventListener("click", ()=>{ if(!lastHtml) return; const tmp = lastHtml.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(); downloadBlob(new Blob([tmp],{type:"text/plain"}), "document.txt"); });
+  btnJson?.addEventListener("click", ()=>{
+    if(!lastHtml) return;
+    const json = extractJsonFromHtml(lastHtml);
+    downloadBlob(new Blob([JSON.stringify(json, null, 2)],{type:"application/json"}), "document.json");
+    const count = Array.isArray(json) ? json.length : Object.keys(json||{}).length;
+    log(docxLog, `✓ Extracted ${count} item(s) to JSON`);
+  });
+
+})();
+</script>
+
 </body>
 </html>
