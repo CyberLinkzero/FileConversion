@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AnyConvert — Cyber Edition (Ramstead/Knack)</title>
+  <meta name="description" content="Cyber‑themed, client‑side file converter for GitHub Pages. Images, HEIC, PDF tools, CSV/XLSX, audio/video (FFmpeg.wasm), ZIP/UNZIP, and more. All local in your browser." />
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <style>
+    :root{
+      --bg:#0f1117; --card:#151823; --muted:#a0a6b8; --text:#e9ecf1; --brand:#7dd3fc; --accent:#a78bfa; --ok:#34d399; --warn:#fbbf24; --danger:#f87171;
+      --radius:18px;
+    }
+    *,*::before,*::after{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial; background:radial-gradient(1000px 600px at 10% -10%, #1a1f2e 0%, transparent 60%),
+      radial-gradient(800px 500px at 90% -20%, #121827 0%, transparent 60%), var(--bg); color:var(--text)}
+    header{max-width:1100px; margin:32px auto 0; padding:0 16px}
+    .title{display:flex; align-items:center; gap:12px}
+    .logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--accent));display:grid;place-items:center;color:#0b1220;font-weight:800;box-shadow:0 0 30px rgba(125,211,252,.6), inset 0 0 18px rgba(167,139,250,.45)}
+    h1{font-size:clamp(22px,4vw,32px); margin:0}
+    p.sub{color:var(--muted); margin:6px 0 0}
+
+    main{max-width:1100px; margin:22px auto 60px; padding:0 16px}
+    .tabs{display:flex; gap:10px; flex-wrap:wrap; margin:24px 0}
+    .tab{padding:10px 14px;border-radius:999px; background:#111627;border:1px solid #1f2433;color:var(--muted);cursor:pointer}
+    .tab.active{color:#0b1220;background:linear-gradient(135deg,var(--brand),var(--accent)); border-color:transparent}
+
+    .grid{display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01)); border:1px solid #1f2433; border-radius:var(--radius); padding:18px; box-shadow:0 10px 30px rgba(0,0,0,.25); position:relative}
+    .card h3{margin:0 0 8px; font-size:18px}
+    .muted{color:var(--muted)}
+    .drop{border:2px dashed #2a3246; border-radius:14px; padding:18px; text-align:center; color:var(--muted)}
+    .drop.drag{border-color:var(--brand); color:var(--text)}
+    .badge{position:absolute;top:12px;right:12px;background:#0e1422;border:1px solid #243049;border-radius:999px;font-size:11px;padding:3px 8px;color:var(--brand)}
+
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .row > * {flex:1}
+    select,input[type=file],input[type=text],input[type=number]{width:100%;background:#0e1422;color:var(--text); border:1px solid #263047; padding:10px;border-radius:12px}
+    button{background:linear-gradient(135deg,var(--brand),var(--accent)); border:none; color:#0b1220; font-weight:700; padding:10px 14px; border-radius:12px; cursor:pointer}
+    button.secondary{background:#101827; color:var(--text); border:1px solid #243049}
+    .chips{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{padding:6px 10px;border-radius:999px;background:#0e1422;border:1px solid #243049;color:var(--muted);font-size:12px}
+
+    .log{background:#0a0f1c;border:1px solid #1f2433;border-radius:14px; padding:10px; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color:#c9d4ea; height:120px; overflow:auto}
+    footer{max-width:1100px; margin:24px auto 80px; padding:0 16px; color:var(--muted)}
+    a{color:var(--brand); text-decoration:none}
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">
+      <div class="logo">⚡</div>
+      <div>
+        <h1>AnyConvert — Cyber Edition</h1>
+        <p class="sub">Fast, private file conversions in your browser. Branded for <strong>Ramstead Ranch</strong> & <strong>Knack.bz</strong>.</p>
+      </div>
+    </div>
+    <div class="chips" aria-label="Popular conversions">
+      <span class="chip">HEIC → JPG</span>
+      <span class="chip">PNG ↔ JPG</span>
+      <span class="chip">Image → PDF</span>
+      <span class="chip">CSV ↔ XLSX</span>
+      <span class="chip">MP3 ↔ WAV</span>
+      <span class="chip">MP4 ↔ WebM</span>
+      <span class="chip">GIF ↔ MP4</span>
+      <span class="chip">WebP ↔ GIF</span>
+      <span class="chip">Merge/Split PDFs</span>
+      <span class="chip">ZIP/UNZIP</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-tab="images" role="tab" aria-selected="true">Images</button>
+      <button class="tab" data-tab="documents" role="tab">Docs/PDF</button>
+      <button class="tab" data-tab="data" role="tab">CSV/XLSX</button>
+      <button class="tab" data-tab="audio" role="tab">Audio</button>
+      <button class="tab" data-tab="video" role="tab">Video</button>
+      <button class="tab" data-tab="archive" role="tab">Archive</button>
+      <button class="tab" data-tab="about" role="tab">About</button>
+    </div>
+
+    <!-- Images -->
+    <section id="tab-images" class="panel">
+      <div class="grid">
+        <div class="card">
+          <h3>Convert Image</h3>
+          <p class="muted">PNG/JPG/WEBP/HEIC → JPG/PNG/WEBP</p>
+          <div class="drop" id="img-drop">Drop images here or choose…<br><br>
+            <input type="file" id="img-input" accept="image/*,.heic" multiple />
+          </div>
+          <div class="row" style="margin-top:12px">
+            <select id="img-format">
+              <option value="image/jpeg">JPG</option>
+              <option value="image/png">PNG</option>
+              <option value="image/webp">WEBP</option>
+            </select>
+            <input type="number" id="img-quality" min="1" max="100" value="90" title="Quality (JPG/WEBP)" />
+            <button id="img-convert">Convert</button>
+          </div>
+          <div class="log" id="img-log"></div>
+        </div>
+
+        <div class="card">
+          <h3>HEIC → JPG</h3>
+          <p class="muted">iPhone photos to universally compatible JPG.</p>
+          <input type="file" id="heic-input" accept=".heic" multiple />
+          <div class="row" style="margin-top:12px">
+            <button id="heic-convert">Convert</button>
+          </div>
+          <div class="log" id="heic-log"></div>
+        </div>
+
+        <div class="card">
+          <h3>Image → PDF</h3>
+          <p class="muted">Combine images into a single PDF.</p>
+          <input type="file" id="img-pdf-input" accept="image/*" multiple />
+          <div class="row" style="margin-top:12px">
+            <button id="img-pdf-btn">Create PDF</button>
+          </div>
+          <div class="log" id="img-pdf-log"></div>
+        </div>
+
+        <div class="card">
+          <span class="badge">NEW</span>
+          <h3>WebP ↔ GIF</h3>
+          <p class="muted">Use FFmpeg.wasm for single/multi‑frame conversions.</p>
+          <input type="file" id="webp-gif-input" accept="image/webp,image/gif" />
+          <div class="row" style="margin-top:12px">
+            <select id="webp-gif-target">
+              <option value="gif">to GIF</option>
+              <option value="webp">to WebP</option>
+            </select>
+            <button id="webp-gif-btn">Convert</button>
+          </div>
+          <div class="log" id="webp-gif-log"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Docs/PDF -->
+    <section id="tab-documents" class="panel hidden">
+      <div class="grid">
+        <div class="card">
+          <h3>Merge PDFs</h3>
+          <p class="muted">Select multiple PDFs and merge them in order.</p>
+          <input type="file" id="pdf-merge-input" accept="application/pdf" multiple />
+          <div class="row" style="margin-top:12px">
+            <button id="pdf-merge-btn">Merge</button>
+          </div>
+          <div class="log" id="pdf-merge-log"></div>
+        </div>
+
+        <div class="card">
+          <span class="badge">NEW</span>
+          <h3>Split PDF (by pages)</h3>
+          <p class="muted">Enter ranges like <code>1-3,5,7-8</code>.</p>
+          <input type="file" id="pdf-split-input" accept="application/pdf" />
+          <div class="row" style="margin-top:12px">
+            <input type="text" id="pdf-split-ranges" placeholder="1-3,5" />
+            <button id="pdf-split-btn">Split</button>
+          </div>
+          <div class="log" id="pdf-split-log"></div>
+        </div>
+
+        <div class="card">
+          <h3>DOCX → PDF (beta)</h3>
+          <p class="muted">Converts Word to PDF via HTML – great for text; complex layouts may differ.</p>
+          <input type="file" id="docx-input" accept=".docx" />
+          <div class="row" style="margin-top:12px">
+            <button id="docx-btn">Convert</button>
+          </div>
+          <div class="log" id="docx-log"></div>
+        </div>
+
+        <div class="card">
+          <h3>PDF → Images (per page)</h3>
+          <p class="muted">Render each PDF page to a PNG. Useful for previews/thumbnails.</p>
+          <input type="file" id="pdf2img-input" accept="application/pdf" />
+          <div class="row" style="margin-top:12px">
+            <button id="pdf2img-btn">Render</button>
+          </div>
+          <div class="log" id="pdf2img-log"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Data -->
+    <section id="tab-data" class="panel hidden">
+      <div class="grid">
+        <div class="card">
+          <h3>CSV → XLSX</h3>
+          <p class="muted">Convert comma‑separated values to Excel workbook.</p>
+          <input type="file" id="csv-input" accept=".csv,text/csv" />
+          <div class="row" style="margin-top:12px">
+            <button id="csv2xlsx-btn">Convert</button>
+          </div>
+          <div class="log" id="csv-log"></div>
+        </div>
+        <div class="card">
+          <h3>XLSX → CSV</h3>
+          <p class="muted">Export the first worksheet to CSV.</p>
+          <input type="file" id="xlsx-input" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+          <div class="row" style="margin-top:12px">
+            <button id="xlsx2csv-btn">Convert</button>
+          </div>
+          <div class="log" id="xlsx-log"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Audio -->
+    <section id="tab-audio" class="panel hidden">
+      <div class="grid">
+        <div class="card">
+          <h3>MP3 ↔ WAV</h3>
+          <p class="muted">Transcode using FFmpeg.wasm (runs in your browser).</p>
+          <input type="file" id="audio-input" accept="audio/*" />
+          <div class="row" style="margin-top:12px">
+            <select id="audio-target">
+              <option value="mp3">MP3</option>
+              <option value="wav">WAV</option>
+            </select>
+            <button id="audio-btn">Convert</button>
+          </div>
+          <div class="log" id="audio-log"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Video -->
+    <section id="tab-video" class="panel hidden">
+      <div class="grid">
+        <div class="card">
+          <h3>MP4 ↔ WebM</h3>
+          <p class="muted">Browser‑based FFmpeg. Large files may take time & memory.</p>
+          <input type="file" id="video-input" accept="video/*" />
+          <div class="row" style="margin-top:12px">
+            <select id="video-target">
+              <option value="mp4">MP4 (H.264/AAC)</option>
+              <option value="webm">WebM (VP9/Opus)</option>
+            </select>
+            <button id="video-btn">Convert</button>
+          </div>
+          <div class="log" id="video-log"></div>
+        </div>
+
+        <div class="card">
+          <span class="badge">NEW</span>
+          <h3>GIF ↔ MP4</h3>
+          <p class="muted">Transcode animated GIF to MP4 (smaller), or MP4 to GIF.</p>
+          <input type="file" id="gif-mp4-input" accept="image/gif,video/mp4,video/webm" />
+          <div class="row" style="margin-top:12px">
+            <select id="gif-mp4-target">
+              <option value="mp4">GIF → MP4</option>
+              <option value="gif">Video → GIF</option>
+            </select>
+            <button id="gif-mp4-btn">Convert</button>
+          </div>
+          <div class="log" id="gif-mp4-log"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Archive -->
+    <section id="tab-archive" class="panel hidden">
+      <div class="grid">
+        <div class="card">
+          <span class="badge">NEW</span>
+          <h3>ZIP files</h3>
+          <p class="muted">Select multiple files to bundle into a ZIP (client‑side).</p>
+          <input type="file" id="zip-make-input" multiple />
+          <div class="row" style="margin-top:12px">
+            <button id="zip-make-btn">Create ZIP</button>
+          </div>
+          <div class="log" id="zip-make-log"></div>
+        </div>
+        <div class="card">
+          <span class="badge">NEW</span>
+          <h3>Unzip</h3>
+          <p class="muted">Extract a .zip archive and download its contents.</p>
+          <input type="file" id="zip-open-input" accept=".zip,application/zip" />
+          <div class="row" style="margin-top:12px">
+            <button id="zip-open-btn">Unzip</button>
+          </div>
+          <div class="log" id="zip-open-log"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section id="tab-about" class="panel hidden">
+      <div class="grid">
+        <div class="card">
+          <h3>How this works</h3>
+          <p class="muted">Everything runs locally in your browser – no uploads. Uses: <strong>Canvas</strong> & <strong>heic2any</strong> (images), <strong>jsPDF</strong> & <strong>pdf-lib</strong> (PDF), <strong>pdf.js</strong> (render), <strong>SheetJS</strong> (XLSX), <strong>FFmpeg.wasm</strong> (audio/video), <strong>Mammoth</strong> + <strong>html2pdf.js</strong> (DOCX→PDF), <strong>JSZip</strong> (ZIP).</p>
+          <p class="muted">Tip: For big jobs, keep this tab open and focused. Heavy conversions need CPU/RAM.</p>
+        </div>
+        <div class="card">
+          <span class="badge">NEW</span>
+          <h3>Cyber Branding</h3>
+          <p class="muted">Customize brand name & accent colors (saved in your browser).</p>
+          <div class="row" style="margin-top:12px">
+            <input type="text" id="brand-name" placeholder="Brand name (e.g., Ramstead Tools)" />
+            <input type="color" id="brand-primary" value="#7dd3fc" />
+            <input type="color" id="brand-secondary" value="#a78bfa" />
+            <button id="brand-apply">Apply</button>
+          </div>
+          <div class="log" id="brand-log"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© <span id="year"></span> AnyConvert • MIT License • Built for GitHub Pages. <a href="#" id="dl-readme">Download README.md</a></p>
+  </footer>
+
+  <!-- Dependencies (CDNs) -->
+  <script src="https://unpkg.com/heic2any@0.0.5/dist/heic2any.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs" type="module"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script type="module">
+    import { createFFmpeg, fetchFile } from "https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/ffmpeg.min.js";
+    window.createFFmpeg = createFFmpeg; window.fetchFile = fetchFile;
+  </script>
+
+  <script>
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+    const byId = (id) => document.getElementById(id);
+    const log = (el, msg) => { el.textContent += msg + "\n"; el.scrollTop = el.scrollHeight; };
+
+    // Tabs
+    $$(".tab").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        $$(".tab").forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active");
+        const tab = btn.dataset.tab;
+        $$(".panel").forEach(p=>p.classList.add("hidden"));
+        byId(`tab-${tab}`).classList.remove("hidden");
+      })
+    })
+
+    // Year
+    byId("year").textContent = new Date().getFullYear();
+
+    // README download
+    byId("dl-readme").addEventListener("click", (e)=>{
+      e.preventDefault();
+      const md = `# AnyConvert — Cyber Edition (GitHub Pages)\n\nA privacy‑first, client‑side file converter. Runs entirely in your browser — no uploads.\n\n## Supported\n- Images: PNG/JPG/WEBP/HEIC → JPG/PNG/WEBP; WebP ↔ GIF\n- HEIC → JPG\n- Image → PDF (multi‑page)\n- PDF Merge & Split\n- PDF → Images (preview)\n- DOCX → PDF (beta via HTML)\n- CSV ↔ XLSX\n- Audio: MP3 ↔ WAV (FFmpeg.wasm)\n- Video: MP4 ↔ WebM, GIF ↔ MP4 (FFmpeg.wasm)\n- ZIP/UNZIP\n\n## Dev Notes\n- All offline in browser; files > ~200MB may be slow due to memory/CPU.\n- Heavy media uses FFmpeg.wasm; allow time and keep tab focused.\n- License: MIT.\n`;
+      const blob = new Blob([md], {type:"text/markdown"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "README.md"; a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // ---------- Images: generic converter ----------
+    const imgInput = byId("img-input");
+    const imgDrop = byId("img-drop");
+    const imgLog = byId("img-log");
+
+    ["dragenter","dragover"].forEach(ev=>imgDrop.addEventListener(ev,e=>{e.preventDefault(); imgDrop.classList.add("drag");}))
+    ;["dragleave","drop"].forEach(ev=>imgDrop.addEventListener(ev,e=>{e.preventDefault(); imgDrop.classList.remove("drag"); if(ev==="drop"){ handleImgFiles(e.dataTransfer.files); }}))
+    imgInput.addEventListener("change", e=> handleImgFiles(e.target.files));
+
+    let imgFiles = [];
+    function handleImgFiles(files){
+      imgFiles = Array.from(files);
+      log(imgLog, `Loaded ${imgFiles.length} file(s).`);
+    }
+
+    byId("img-convert").addEventListener("click", async ()=>{
+      if(!imgFiles.length) return alert("Choose image files first.");
+      const mime = byId("img-format").value;
+      let quality = +byId("img-quality").value; if(isNaN(quality)) quality = 90;
+
+      for(const file of imgFiles){
+        try{
+          const out = await convertImage(file, mime, quality/100);
+          downloadBlob(out.blob, rename(file.name, out.ext));
+          log(imgLog, `✓ ${file.name} → ${rename(file.name, out.ext)}`);
+        }catch(err){
+          console.error(err); log(imgLog, `✗ ${file.name}: ${err.message}`);
+        }
+      }
+    });
+
+    async function convertImage(file, mime, quality){
+      let srcBlob = file;
+      if(/\.heic$/i.test(file.name)){
+        // Try HEIC via heic2any → PNG, then canvas → target
+        const png = await window.heic2any({ blob:file, toType:"image/png"});
+        srcBlob = png instanceof Blob ? png : png[0];
+      }
+      const img = await blobToImage(srcBlob);
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img,0,0);
+      const blob = await new Promise(res=>canvas.toBlob(res, mime, /jpe?g|webp/.test(mime)?quality:undefined));
+      const ext = mime === "image/png" ? "png" : mime === "image/webp" ? "webp" : "jpg";
+      return {blob, ext};
+    }
+
+    function blobToImage(blob){
+      return new Promise((resolve,reject)=>{
+        const url = URL.createObjectURL(blob);
+        const img = new Image();
+        img.onload = ()=>{URL.revokeObjectURL(url); resolve(img)};
+        img.onerror = (e)=>{URL.revokeObjectURL(url); reject(new Error("Failed to load image"))};
+        img.src = url;
+      })
+    }
+
+    // ---------- HEIC → JPG quick ----------
+    const heicLog = byId("heic-log");
+    byId("heic-convert").addEventListener("click", async ()=>{
+      const files = byId("heic-input").files; if(!files.length) return alert("Pick HEIC file(s)");
+      for(const f of files){
+        try{
+          const jpg = await window.heic2any({ blob:f, toType:"image/jpeg", quality:0.9 });
+          const blob = jpg instanceof Blob ? jpg : jpg[0];
+          downloadBlob(blob, rename(f.name, "jpg"));
+          log(heicLog, `✓ ${f.name} → ${rename(f.name, "jpg")}`);
+        }catch(e){ log(heicLog, `✗ ${f.name}: ${e.message}`)}
+      }
+    });
+
+    // ---------- Image → PDF ----------
+    const imgPdfLog = byId("img-pdf-log");
+    byId("img-pdf-btn").addEventListener("click", async ()=>{
+      const files = Array.from(byId("img-pdf-input").files); if(!files.length) return alert("Pick image(s)");
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({unit:"pt", format:"a4"});
+      imgPdfLog.textContent = "";
+      for(let i=0;i<files.length;i++){
+        const img = await blobToImage(files[i]);
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+        const {w,h,x,y} = fitContain(img.naturalWidth, img.naturalHeight, pageW, pageH);
+        if(i>0) pdf.addPage();
+        pdf.addImage(img, "PNG", x, y, w, h, undefined, "FAST");
+        log(imgPdfLog, `Added ${files[i].name}`);
+      }
+      pdf.save("images.pdf");
+      log(imgPdfLog, "✓ Saved images.pdf");
+    });
+
+    function fitContain(srcW, srcH, maxW, maxH){
+      const r = Math.min(maxW/srcW, maxH/srcH); const w = srcW*r, h = srcH*r; return {w,h,x:(maxW-w)/2,y:(maxH-h)/2};
+    }
+
+    // ---------- PDF Merge ----------
+    const pdfMergeLog = byId("pdf-merge-log");
+    byId("pdf-merge-btn").addEventListener("click", async ()=>{
+      const files = Array.from(byId("pdf-merge-input").files);
+      if(!files.length) return alert("Pick PDF files (order they appear will be merged)");
+      pdfMergeLog.textContent = "Merging…\n";
+      const { PDFDocument } = PDFLib;
+      const outPdf = await PDFDocument.create();
+      for(const f of files){
+        const bytes = new Uint8Array(await f.arrayBuffer());
+        const src = await PDFDocument.load(bytes);
+        const pages = await outPdf.copyPages(src, src.getPageIndices());
+        pages.forEach(p=>outPdf.addPage(p));
+        log(pdfMergeLog, `Added ${f.name} (${pages.length} page(s))`);
+      }
+      const outBytes = await outPdf.save();
+      downloadBlob(new Blob([outBytes],{type:"application/pdf"}), "merged.pdf");
+      log(pdfMergeLog, "✓ merged.pdf ready");
+    });
+
+    // ---------- PDF Split ----------
+    byId("pdf-split-btn").addEventListener("click", async ()=>{
+      const f = byId("pdf-split-input").files[0]; if(!f) return alert("Pick a PDF");
+      const ranges = byId("pdf-split-ranges").value.trim(); if(!ranges) return alert("Enter ranges e.g. 1-3,5");
+      const { PDFDocument } = PDFLib;
+      const srcBytes = new Uint8Array(await f.arrayBuffer());
+      const src = await PDFDocument.load(srcBytes);
+      const groups = parseRanges(ranges, src.getPageCount());
+      let idx = 1;
+      for(const pages of groups){
+        const out = await PDFDocument.create();
+        const copied = await out.copyPages(src, pages.map(p=>p-1));
+        copied.forEach(p=>out.addPage(p));
+        const outBytes = await out.save();
+        downloadBlob(new Blob([outBytes],{type:'application/pdf'}), rename(f.name, `part${idx++}.pdf`));
+      }
+      log(byId("pdf-split-log"), `✓ Split into ${groups.length} file(s)`);
+    });
+
+    function parseRanges(text, max){
+      const arr = [];
+      const parts = text.split(',').map(s=>s.trim()).filter(Boolean);
+      for(const part of parts){
+        if(/^(\d+)-(\d+)$/.test(part)){
+          let [_,a,b] = part.match(/(\d+)-(\d+)/); a=+a; b=+b; if(a>b) [a,b]=[b,a];
+          for(let i=a;i<=Math.min(b,max);i++) arr.push(i);
+        }else if(/^\d+$/.test(part)){
+          const n = +part; if(n>=1 && n<=max) arr.push(n);
+        }
+      }
+      arr.sort((x,y)=>x-y);
+      const groups=[]; if(arr.length){ let cur=[arr[0]]; for(let i=1;i<arr.length;i++){ if(arr[i]===arr[i-1]+1){ cur.push(arr[i]); } else { groups.push(cur); cur=[arr[i]]; } } groups.push(cur);} 
+      return groups;
+    }
+
+    // ---------- DOCX → PDF (Mammoth + html2pdf) ----------
+    const docxLog = byId("docx-log");
+    byId("docx-btn").addEventListener("click", async ()=>{
+      const file = byId("docx-input").files[0]; if(!file) return alert("Pick a .docx file");
+      docxLog.textContent = "Converting…\n";
+      try{
+        if(!window.mammoth){ await new Promise((res)=>{ const s=document.createElement('script'); s.src='https://unpkg.com/mammoth@1.6.0/mammoth.browser.min.js'; s.onload=res; document.body.appendChild(s); }); }
+        if(!window.html2pdf){ await new Promise((res)=>{ const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'; s.onload=res; document.body.appendChild(s); }); }
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await window.mammoth.convertToHtml({arrayBuffer});
+        const container = document.createElement('div');
+        container.style.padding='24px';
+        container.innerHTML = result.value; 
+        await window.html2pdf().from(container).set({filename: rename(file.name,'pdf')}).save();
+        log(docxLog, `✓ ${rename(file.name,'pdf')}`);
+      }catch(e){ log(docxLog, `✗ ${e.message}`); }
+    });
+
+    // ---------- CSV ↔ XLSX ----------
+    const csvLog = byId("csv-log");
+    byId("csv2xlsx-btn").addEventListener("click", async ()=>{
+      const file = byId("csv-input").files[0]; if(!file) return alert("Pick a CSV file");
+      csvLog.textContent = "Parsing…\n";
+      const text = await file.text();
+      const data = Papa.parse(text, {header:false}).data;
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+      const out = XLSX.write(wb, {type:"array", bookType:"xlsx"});
+      downloadBlob(new Blob([out],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}), rename(file.name, "xlsx"));
+      log(csvLog, `✓ ${rename(file.name, 'xlsx')}`);
+    });
+
+    const xlsxLog = byId("xlsx-log");
+    byId("xlsx2csv-btn").addEventListener("click", async ()=>{
+      const file = byId("xlsx-input").files[0]; if(!file) return alert("Pick an XLSX file");
+      xlsxLog.textContent = "Reading…\n";
+      const data = new Uint8Array(await file.arrayBuffer());
+      const wb = XLSX.read(data, {type:"array"});
+      const first = wb.SheetNames[0];
+      const csv = XLSX.utils.sheet_to_csv(wb.Sheets[first]);
+      downloadBlob(new Blob([csv],{type:"text/csv"}), rename(file.name, "csv"));
+      log(xlsxLog, `✓ ${rename(file.name, 'csv')}`);
+    });
+
+    // ---------- Audio / Video via FFmpeg.wasm ----------
+    let ffmpeg; let ffmpegReady = false;
+    async function ensureFFmpeg(logEl){
+      if(ffmpegReady) return;
+      log(logEl, "Loading FFmpeg.wasm… (~20–30MB)");
+      ffmpeg = window.ffmpeg || window.createFFmpeg({ log:true });
+      await ffmpeg.load();
+      ffmpegReady = true;
+      log(logEl, "FFmpeg loaded.");
+    }
+
+    // Audio
+    byId("audio-btn").addEventListener("click", async ()=>{
+      const file = byId("audio-input").files[0]; if(!file) return alert("Pick an audio file");
+      const target = byId("audio-target").value; const logEl = byId("audio-log"); logEl.textContent = "";
+      await ensureFFmpeg(logEl);
+      const inName = `in.${file.name.split('.').pop()}`; const outName = `out.${target}`;
+      await ffmpeg.FS('writeFile', inName, new Uint8Array(await file.arrayBuffer()));
+      const args = target === 'mp3' ? ['-i', inName, '-codec:a', 'libmp3lame', outName] : ['-i', inName, outName];
+      await ffmpeg.run(...args);
+      const data = ffmpeg.FS('readFile', outName);
+      downloadBlob(new Blob([data.buffer],{type: target==='mp3'?'audio/mpeg':'audio/wav'}), rename(file.name, target));
+      log(logEl, `✓ ${rename(file.name, target)}`);
+      ffmpeg.FS('unlink', inName); ffmpeg.FS('unlink', outName);
+    });
+
+    // Video
+    byId("video-btn").addEventListener("click", async ()=>{
+      const file = byId("video-input").files[0]; if(!file) return alert("Pick a video file");
+      const target = byId("video-target").value; const logEl = byId("video-log"); logEl.textContent = "";
+      await ensureFFmpeg(logEl);
+      const inExt = file.name.split('.').pop();
+      const inName = `in.${inExt}`; const outName = target==='mp4' ? 'out.mp4' : 'out.webm';
+      await ffmpeg.FS('writeFile', inName, new Uint8Array(await file.arrayBuffer()));
+      const args = target==='mp4' ? ['-i', inName, '-c:v', 'libx264', '-c:a', 'aac', '-movflags', 'faststart', outName]
+                                  : ['-i', inName, '-c:v', 'libvpx-vp9', '-b:v','0','-crf','32','-c:a','libopus', outName];
+      await ffmpeg.run(...args);
+      const data = ffmpeg.FS('readFile', outName);
+      downloadBlob(new Blob([data.buffer],{type: target==='mp4'?'video/mp4':'video/webm'}), rename(file.name, target));
+      log(logEl, `✓ ${rename(file.name, target)}`);
+      ffmpeg.FS('unlink', inName); ffmpeg.FS('unlink', outName);
+    });
+
+    // WebP ↔ GIF
+    byId("webp-gif-btn").addEventListener("click", async ()=>{
+      const f = byId("webp-gif-input").files[0]; if(!f) return alert("Pick a WebP or GIF");
+      const target = byId("webp-gif-target").value; const logEl = byId("webp-gif-log"); logEl.textContent = "";
+      await ensureFFmpeg(logEl);
+      const inExt = f.name.split('.').pop(); const inName = `img.${inExt}`; const outName = target==='gif' ? 'out.gif' : 'out.webp';
+      await ffmpeg.FS('writeFile', inName, new Uint8Array(await f.arrayBuffer()));
+      const args = target==='gif' ? ['-i', inName, '-vf','fps=12,scale=iw:-2:flags=lanczos', outName]
+                                  : ['-i', inName, '-vf','scale=iw:-2:flags=lanczos', outName];
+      await ffmpeg.run(...args);
+      const data = ffmpeg.FS('readFile', outName);
+      downloadBlob(new Blob([data.buffer],{type: target==='gif'?'image/gif':'image/webp'}), rename(f.name, target));
+      log(logEl, `✓ ${rename(f.name, target)}`);
+      ffmpeg.FS('unlink', inName); ffmpeg.FS('unlink', outName);
+    });
+
+    // GIF ↔ MP4
+    byId("gif-mp4-btn").addEventListener("click", async ()=>{
+      const f = byId("gif-mp4-input").files[0]; if(!f) return alert("Pick a GIF or video");
+      const target = byId("gif-mp4-target").value; const logEl = byId("gif-mp4-log"); logEl.textContent = "";
+      await ensureFFmpeg(logEl);
+      const inExt = f.name.split('.').pop(); const inName = `anim.${inExt}`; const outName = target==='mp4' ? 'out.mp4' : 'out.gif';
+      await ffmpeg.FS('writeFile', inName, new Uint8Array(await f.arrayBuffer()));
+      const args = target==='mp4' ? ['-i', inName, '-movflags','faststart','-c:v','libx264','-pix_fmt','yuv420p','-crf','28', outName]
+                                  : ['-i', inName, '-vf','fps=12,scale=iw:-2:flags=lanczos','-loop','0', outName];
+      await ffmpeg.run(...args);
+      const data = ffmpeg.FS('readFile', outName);
+      downloadBlob(new Blob([data.buffer],{type: target==='mp4'?'video/mp4':'image/gif'}), rename(f.name, target));
+      log(logEl, `✓ ${rename(f.name, target)}`);
+      ffmpeg.FS('unlink', inName); ffmpeg.FS('unlink', outName);
+    });
+
+    // ---------- ZIP ----------
+    byId("zip-make-btn").addEventListener("click", async ()=>{
+      const files = Array.from(byId("zip-make-input").files); if(!files.length) return alert("Pick files");
+      const zip = new JSZip();
+      for(const f of files){ zip.file(f.name, await f.arrayBuffer()); }
+      const blob = await zip.generateAsync({type:"blob"});
+      downloadBlob(blob, `bundle.zip`);
+      log(byId("zip-make-log"), `✓ bundle.zip created (${files.length} file(s))`);
+    });
+
+    byId("zip-open-btn").addEventListener("click", async ()=>{
+      const f = byId("zip-open-input").files[0]; if(!f) return alert("Pick a ZIP file");
+      const zip = await JSZip.loadAsync(await f.arrayBuffer());
+      const logEl = byId("zip-open-log"); logEl.textContent = '';
+      for(const name of Object.keys(zip.files)){
+        const file = zip.files[name]; if(file.dir) continue;
+        const blob = await file.async('blob');
+        downloadBlob(blob, name); log(logEl, `✓ ${name}`);
+      }
+    });
+
+    // ---------- Branding controls ----------
+    const brandNameEl = byId('brand-name');
+    const brandPrimEl = byId('brand-primary');
+    const brandSecEl = byId('brand-secondary');
+    const storeKey = 'anyconvert_brand';
+    const saved = JSON.parse(localStorage.getItem(storeKey) || 'null');
+    if(saved){ brandNameEl.value = saved.name||''; document.querySelector('h1').textContent = saved.name||'AnyConvert — Cyber Edition';
+      document.documentElement.style.setProperty('--brand', saved.primary||'#7dd3fc');
+      document.documentElement.style.setProperty('--accent', saved.secondary||'#a78bfa'); }
+    byId('brand-apply').addEventListener('click', ()=>{
+      const name = brandNameEl.value || 'AnyConvert — Cyber Edition';
+      const primary = brandPrimEl.value; const secondary = brandSecEl.value;
+      document.querySelector('h1').textContent = name;
+      document.documentElement.style.setProperty('--brand', primary);
+      document.documentElement.style.setProperty('--accent', secondary);
+      localStorage.setItem(storeKey, JSON.stringify({name, primary, secondary}));
+      log(byId('brand-log'), `✓ Branding updated to "${name}"`);
+    });
+
+    // ---------- Helpers ----------
+    function rename(name, newExt){ return name.replace(/\.[^.]+$/, '') + '.' + newExt; }
+    function downloadBlob(blob, filename){
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
