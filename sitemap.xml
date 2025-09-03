@@ -1,0 +1,14 @@
+<nav>
+  <ul>
+    <li><a href="#about">About File Converter</a></li>
+    <li><a href="#popular-conversions">Popular Conversions</a></li>
+    <li><a href="#convert-image">Convert Image</a></li>
+    <li><a href="#json-csv">JSON ⇄ CSV</a></li>
+    <li><a href="#json-docx">JSON ⇄ DOCX</a></li>
+    <li><a href="#merge-pdfs">Merge PDFs</a></li>
+    <li><a href="#split-pdf">Split PDF</a></li>
+    <li><a href="#docx-pdf">DOCX → PDF (beta)</a></li>
+    <li><a href="#zip-unzip">Zip / Unzip</a></li>
+    <li><a href="#technical">Technical / How It Works</a></li>
+  </ul>
+</nav>
