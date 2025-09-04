@@ -1,0 +1,32 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Working with GPS Files: GPX vs KML vs TCX (and converting both ways)</title>
+<meta name="description" content="Understand GPX, KML, and TCX; how to turn tracks into tables and back again.">
+<link rel="stylesheet" href="/site.css">
+</head><body>
+<div class="container">
+  <h1>Working with GPS Files: GPX vs KML vs TCX</h1>
+  <div class="card">
+    <h2>Formats in a nutshell</h2>
+    <ul>
+      <li><strong>GPX</strong>: Open XML for tracks/waypoints. Popular with hiking/cycling apps.</li>
+      <li><strong>KML</strong>: Google Earth’s format for map features (points/paths/polygons).</li>
+      <li><strong>TCX</strong>: Garmin’s training format with time/HR/cadence fields.</li>
+    </ul>
+
+    <h2>Convert GPS to tables</h2>
+    <p>Use <a href="/#tab-data">GPS → CSV/XLSX</a> to flatten tracks into rows (lat, lon, elevation, time). Perfect for spreadsheets and analysis.</p>
+
+    <h2>Convert tables back to GPS</h2>
+    <p>Got a CSV with <code>lat/lon</code> (and optional <code>ele/time</code>)? Use <a href="/#tab-data">CSV/XLSX → GPX/KML/TCX</a> to generate clean tracks.</p>
+
+    <h2>Tips</h2>
+    <ul>
+      <li>Normalize timestamps to ISO 8601.</li>
+      <li>Keep sampling intervals consistent to reduce jitter.</li>
+      <li>Validate output by loading in a map viewer before sharing.</li>
+    </ul>
+  </div>
+</div>
+<footer>…use the shared footer snippet…</footer>
+</body></html>
