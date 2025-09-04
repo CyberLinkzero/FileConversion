@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Browser Video Editor – Cuts • Text • Audio • Export</title>
+<style>
+  body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#0b0f14;color:#e6edf3}
+  header{padding:16px 20px;border-bottom:1px solid #1f2a34}
+  main{display:grid;grid-template-columns:320px 1fr;gap:14px;padding:14px}
+  fieldset{border:1px solid #1f2a34;border-radius:12px;padding:12px;margin:0}
+  legend{padding:0 6px;color:#9fb4c7}
+  label{display:block;margin:8px 0 4px;font-size:.9rem;color:#b9c7d5}
+  input,select,button,textarea{width:100%;padding:8px 10px;border-radius:10px;border:1px solid #2b3a47;background:#0f1620;color:#e6edf3}
+  button{cursor:pointer}
+  small{color:#8aa0b3}
+  .row{display:flex;gap:8px}
+  .row > *{flex:1}
+  .stack{display:grid;gap:8px}
+  .pill{display:inline-flex;gap:8px;align-items:center;background:#0f1620;border:1px solid #203040;padding:4px 10px;border-radius:999px}
+  .muted{color:#9fb4c7}
+  .warn{color:#ffd37a}
+  video{width:100%;max-height:60vh;background:#000;border-radius:12px}
+  .mini{font-size:.86rem}
+</style>
+</head>
+<body>
+<header>
+  <div class="pill">
+    <strong>Browser Video Editor</strong>
+    <span class="muted">cuts • text • audio • export</span>
+  </div>
+</header>
+
+<main>
+  <section class="stack">
+    <fieldset>
+      <legend>1) Media</legend>
+      <label>Video files (you can add multiple – order = splice order)
+        <input id="videoFiles" type="file" accept="video/*" multiple />
+      </label>
+      <label>Optional audio track (music / voice-over)
+        <input id="audioFile" type="file" accept="audio/*" />
+      </label>
+      <div class="row mini">
+        <small>Tip: drag multiple clips at once. You can set per-clip in/out below.</small>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>2) Clip Cuts</legend>
+      <div id="clips"></div>
+      <div class="row">
+        <button id="scanClips">Scan durations</button>
+        <button id="addSplit">Add split marker to selected</button>
+      </div>
+      <small class="muted">Use seconds for in/out (e.g. 0, 3.5, 12.2). Leave blank = use whole clip.</small>
+    </fieldset>
+
+    <fieldset>
+      <legend>3) Text Overlays</legend>
+      <div class="stack">
+        <label>Text
+          <input id="txt" placeholder="Your title or caption" />
+        </label>
+        <div class="row">
+          <label>Start (s)<input id="txtStart" type="number" step="0.1" value="0"></label>
+          <label>End (s)<input id="txtEnd" type="number" step="0.1" value="5"></label>
+        </div>
+        <div class="row">
+          <label>Font size (px)<input id="txtSize" type="number" value="64"></label>
+          <label>Position
+            <select id="txtPos">
+              <option value="center">Center</option>
+              <option value="top">Top</option>
+              <option value="bottom">Bottom</option>
+              <option value="custom">Custom (X,Y)</option>
+            </select>
+          </label>
+        </div>
+        <div class="row" id="customXY" style="display:none">
+          <label>X (px)<input id="txtX" type="number" value="40"></label>
+          <label>Y (px)<input id="txtY" type="number" value="60"></label>
+        </div>
+        <label class="mini">Font file (optional; improves drawtext). If omitted, default bundled font is used.
+          <input id="fontFile" type="file" accept=".ttf,.otf,.ttc,.otc" />
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>4) Output</legend>
+      <div class="row">
+        <label>Preset
+          <select id="preset">
+            <option value="orig">Original resolution</option>
+            <option value="1920x1080">1080p (1920×1080)</option>
+            <option value="1280x720">720p (1280×720)</option>
+            <option value="3840x2160">4K (3840×2160)</option>
+          </select>
+        </label>
+        <label>FPS
+          <select id="fps">
+            <option>24</option><option selected>30</option><option>60</option>
+          </select>
+        </label>
+      </div>
+      <div class="row">
+        <label>Format
+          <select id="format">
+            <option value="mp4">MP4 (H.264/AAC)</option>
+            <option value="webm">WebM (VP9/Opus)</option>
+          </select>
+        </label>
+        <label>Audio splice
+          <select id="audioMode">
+            <option value="keep">Keep original (no music)</option>
+            <option value="replace">Replace with music</option>
+            <option value="mix">Mix with music</option>
+            <option value="crossfade">Music with 1s crossfade at joins</option>
+          </select>
+        </label>
+      </div>
+      <button id="export">Export</button>
+      <div id="log" class="mini" style="white-space:pre-wrap;margin-top:8px;color:#9fb4c7"></div>
+      <small class="warn">First export loads ffmpeg.wasm (~few MB). On GitHub Pages it runs single-threaded (okay). For max speed, deploy with COOP/COEP headers (Vercel/Netlify).</small>
+    </fieldset>
+  </section>
+
+  <section>
+    <fieldset>
+      <legend>Preview</legend>
+      <video id="player" controls></video>
+      <div class="row" style="margin-top:8px">
+        <button id="preview">Preview merged cut</button>
+        <button id="thumbs">Make thumbnails</button>
+      </div>
+      <div id="thumbRow" class="row" style="flex-wrap:wrap;margin-top:8px"></div>
+    </fieldset>
+  </section>
+</main>
+
+<script type="module">
+  import { createFFmpeg, fetchFile } from "https://unpkg.com/@ffmpeg/ffmpeg@0.12.8/dist/ffmpeg.min.js";
+
+  const $ = id => document.getElementById(id);
+  const videoFiles = $("videoFiles");
+  const audioFile = $("audioFile");
+  const clipsDiv = $("clips");
+  const txtPos = $("txtPos");
+  const customXY = $("customXY");
+  txtPos.onchange = ()=> customXY.style.display = (txtPos.value==="custom")?"grid":"none";
+
+  let clipList = []; // [{file, name, in, out, dur}]
+  let audioBlob = null;
+  let ffmpeg;
+
+  function log(msg){ $("log").textContent += msg + "\n"; }
+
+  function renderClipRows(){
+    clipsDiv.innerHTML = "";
+    clipList.forEach((c,idx)=>{
+      const wrap = document.createElement("div");
+      wrap.className="stack";
+      wrap.style.border="1px solid #1f2a34"; wrap.style.borderRadius="10px"; wrap.style.padding="8px";
+      wrap.innerHTML = `
+        <div class="row mini"><strong>${idx+1}.</strong> <span>${c.name}</span> <span class="muted">duration: ${c.dur ?? "?"}s</span></div>
+        <div class="row">
+          <label>In (s)<input data-k="in" data-i="${idx}" type="number" step="0.1" value="${c.in ?? ""}"></label>
+          <label>Out (s)<input data-k="out" data-i="${idx}" type="number" step="0.1" value="${c.out ?? ""}"></label>
+        </div>`;
+      clipsDiv.appendChild(wrap);
+    });
+    clipsDiv.querySelectorAll("input[data-k]").forEach(inp=>{
+      inp.oninput = (e)=>{
+        const i = +e.target.dataset.i, k = e.target.dataset.k;
+        const v = e.target.value === "" ? null : parseFloat(e.target.value);
+        clipList[i][k] = v;
+      }
+    });
+  }
+
+  videoFiles.onchange = (e)=>{
+    clipList = [...e.target.files].map(f=>({file:f, name:f.name, in:null, out:null, dur:null}));
+    renderClipRows();
+  };
+  audioFile.onchange = (e)=> audioBlob = e.target.files[0] || null;
+
+  $("scanClips").onclick = async ()=>{
+    if (!clipList.length) return;
+    await ensureFF();
+    for (const [i,c] of clipList.entries()){
+      await ffmpeg.FS("writeFile", `v${i}`, await fetchFile(c.file));
+      const out = await ffmpeg.run("-i", `v${i}`);
+      // ffmpeg.wasm prints to stderr; use ffmpeg?.logs in newer builds; here we parse duration via stderr reader:
+      // (we'll just run ffprobe-ish using ffmpeg -hide_banner -i and pull Duration)
+    }
+    // Quick re-read using a lighter trick: use <video> metadata
+    for (const [i,c] of clipList.entries()){
+      c.dur = await getDuration(c.file);
+    }
+    renderClipRows();
+  };
+
+  function getDuration(file){
+    return new Promise(res=>{
+      const v = document.createElement("video");
+      v.preload="metadata";
+      v.onloadedmetadata = ()=> res(parseFloat(v.duration.toFixed(3)));
+      v.src = URL.createObjectURL(file);
+    });
+  }
+
+  $("addSplit").onclick = ()=> alert("UI note: splits become separate clips. For now, add same file twice with different in/out.");
+
+  $("preview").onclick = async ()=>{
+    if (!clipList.length) return;
+    const url = await buildMerged("preview.webm", {format:"webm", preview:true});
+    $("player").src = url;
+  };
+
+  $("thumbs").onclick = async ()=>{
+    if (!clipList.length) return;
+    const url = await buildMerged("thumbsrc.webm", {format:"webm", preview:true});
+    makeThumbs(url);
+  };
+
+  $("export").onclick = async ()=>{
+    if (!clipList.length) return;
+    const fmt = $("format").value;
+    const fname = `export_${Date.now()}.${fmt}`;
+    const url = await buildMerged(fname, {format:fmt, preview:false});
+    const a = document.createElement("a");
+    a.href = url; a.download = fname; a.click();
+  };
+
+  async function ensureFF(){
+    if (ffmpeg) return;
+    ffmpeg = createFFmpeg({
+      log: true,
+      corePath: "https://unpkg.com/@ffmpeg/core@0.12.8/dist/ffmpeg-core.js"
+    });
+    await ffmpeg.load();
+    log("FFmpeg loaded.");
+  }
+
+  function parseWH(){
+    const p = $("preset").value;
+    if (p==="orig") return null;
+    const [w,h] = p.split("x").map(n=>parseInt(n,10));
+    return {w,h};
+  }
+
+  async function buildMerged(outName, {format, preview}){
+    await ensureFF();
+
+    // 1) write video clips to FS
+    for (const [i,c] of clipList.entries()){
+      ffmpeg.FS("writeFile", `v${i}.mp4`, await fetchFile(c.file));
+    }
+    // 2) optional audio
+    if (audioBlob){
+      ffmpeg.FS("writeFile", `music`, await fetchFile(audioBlob));
+    }
+    // 3) create concat list with trims
+    // We’ll use filter_complex concat to support per-clip trim precisely (audio+video).
+    // Also: text overlay via drawtext (needs font). We provide a tiny default font.
+    const fontFile = $("fontFile").files[0];
+    if (fontFile){
+      ffmpeg.FS("writeFile", "userfont.ttf", await fetchFile(fontFile));
+    } else {
+      // Minimal embedded font as fallback (Tiny TTF ~ few KB). Here we synthesize a 1px font placeholder won’t work.
+      // Instead, we’ll rely on drawtext without explicit fontfile (works in many ffmpeg.wasm builds).
+      // If you see "font not found", provide a font file above.
+    }
+
+    const fps = parseInt($("fps").value,10);
+    const wh = parseWH();
+    const scalePad = wh
+      ? `scale=${wh.w}:${wh.h}:force_original_aspect_ratio=decrease,`+
+        `pad=${wh.w}:${wh.h}:(ow-iw)/2:(oh-ih)/2`
+      : "scale=trunc(iw/2)*2:trunc(ih/2)*2"; // ensure even dims
+
+    // Assemble inputs and trim filters
+    const filters = [];
+    const vlabels = [];
+    const alabels = [];
+    for (let i=0;i<clipList.length;i++){
+      const c = clipList[i];
+      const iv = `[v${i}]`;
+      const ia = `[a${i}]`;
+      const inArg = ["-i", `v${i}.mp4`];
+
+      // We’ll map inputs by order later; here we just plan the filter graph:
+      const tIn = (c.in ?? 0);
+      const tOut = (c.out ?? (c.dur ?? 1e9));
+      // trim / setpts (video), atrim / asetpts (audio)
+      filters.push(
+        `${iv}trim=${tIn}:${tOut},setpts=PTS-STARTPTS,${scalePad},fps=${fps}[v${i}t]`,
+        `${ia}atrim=${tIn}:${tOut},asetpts=PTS-STARTPTS[a${i}t]`
+      );
+      vlabels.push(`[v${i}t]`);
+      alabels.push(`[a${i}t]`);
+    }
+
+    // Concat all trimmed clips
+    filters.push(`${vlabels.join("")}concat=n=${clipList.length}:v=1:a=0[vcat]`);
+    filters.push(`${alabels.join("")}concat=n=${clipList.length}:v=0:a=1[acat]`);
+
+    // Text overlay
+    const txt = $("txt").value.trim();
+    const txtStart = parseFloat($("txtStart").value||0);
+    const txtEnd   = parseFloat($("txtEnd").value||5);
+    const txtSize  = parseInt($("txtSize").value||64,10);
+    let draw = "[vcat]";
+    if (txt){
+      const pos = $("txtPos").value;
+      let x="(w-text_w)/2", y="(h-text_h)/2";
+      if (pos==="top"){ x="(w-text_w)/2"; y="50"; }
+      if (pos==="bottom"){ x="(w-text_w)/2"; y="h-text_h-50"; }
+      if (pos==="custom"){ x=$("txtX").value||"40"; y=$("txtY").value||"60"; }
+      const enable = `between(t\\,${txtStart}\\,${txtEnd})`;
+      const fontopt = $("fontFile").files[0] ? ":fontfile='userfont.ttf'" : "";
+      filters.push(`${draw}drawtext=text='${txt.replace(/:/g,"\\:").replace(/'/g,"\\'")}':fontsize=${txtSize}:fontcolor=white:borderw=2:x=${x}:y=${y}:enable='${enable}'${fontopt}[vtx]`);
+      draw = "[vtx]";
+    }
+
+    // Audio mode
+    const audioMode = $("audioMode").value;
+    let afinal = "[acat]";
+    if (audioBlob){
+      // Decode music
+      filters.push(`[1:a]anull[amusic]`); // note: input indexing depends on how we order -i
+    }
+    // We’re going to rebuild args so inputs are: all videos first, then optional music.
+    // Because of that, the index [1:a] above is wrong if there are many clips.
+    // To keep it robust, we’ll build the filter with labels instead of numeric indices by mapping later.
+
+    // Rebuild with proper input labels using stream specifiers:
+    // We’ll pass inputs: -i v0.mp4 -i v1.mp4 ... (-i music)
+    // So video0: [0:v][0:a], video1: [1:v][1:a], etc. Music (if any) = last index.
+
+    // Build a correct filter now that we know counts:
+    const filterGraph = [];
+    for (let i=0;i<clipList.length;i++){
+      filterGraph.push(
+        `[${i}:v]trim=${clipList[i].in ?? 0}:${clipList[i].out ?? (clipList[i].dur ?? 1e9)},setpts=PTS-STARTPTS,${scalePad},fps=${fps}[v${i}t]`,
+        `[${i}:a]atrim=${clipList[i].in ?? 0}:${clipList[i].out ?? (clipList[i].dur ?? 1e9)},asetpts=PTS-STARTPTS[a${i}t]`
+      );
+    }
+    filterGraph.push(`${Array.from({length:clipList.length},(_,i)=>`[v${i}t]`).join("")}concat=n=${clipList.length}:v=1:a=0[vcat]`);
+    filterGraph.push(`${Array.from({length:clipList.length},(_,i)=>`[a${i}t]`).join("")}concat=n=${clipList.length}:v=0:a=1[acat]`);
+
+    // Text again with proper chain:
+    if (txt){
+      const pos = $("txtPos").value;
+      let x="(w-text_w)/2", y="(h-text_h)/2";
+      if (pos==="top"){ x="(w-text_w)/2"; y="50"; }
+      if (pos==="bottom"){ x="(w-text_w)/2"; y="h-text_h-50"; }
+      if (pos==="custom"){ x=$("txtX").value||"40"; y=$("txtY").value||"60"; }
+      const enable = `between(t\\,${$("txtStart").value||0}\\,${$("txtEnd").value||5})`;
+      const fontopt = $("fontFile").files[0] ? ":fontfile='userfont.ttf'" : "";
+      filterGraph.push(`[vcat]drawtext=text='${$("txt").value.replace(/:/g,"\\:").replace(/'/g,"\\'")}':fontsize=${$("txtSize").value||64}:fontcolor=white:borderw=2:x=${x}:y=${y}:enable='${enable}'${fontopt}[vtx]`);
+      draw = "[vtx]";
+    } else {
+      draw = "[vcat]";
+    }
+
+    // Audio handling
+    const inputs = [];
+    for (let i=0;i<clipList.length;i++){ inputs.push("-i", `v${i}.mp4`); }
+    const hasMusic = !!audioBlob;
+    if (hasMusic) inputs.push("-i","music");
+
+    let amixOut = "[acat]";
+    if (hasMusic){
+      if ($("audioMode").value==="replace"){
+        amixOut = "[amusic]";
+        filterGraph.push(`[${clipList.length}:a]anull[amusic]`);
+      } else if ($("audioMode").value==="mix"){
+        filterGraph.push(`[acat][${clipList.length}:a]amix=inputs=2:dropout_transition=2[amix]`);
+        amixOut = "[amix]";
+      } else if ($("audioMode").value==="crossfade"){
+        // Simple 1s fade at start/end of music; or acrossfade two sources:
+        filterGraph.push(`[${clipList.length}:a]afade=t=in:ss=0:d=1,afade=t=out:st=10:d=1[amusicf]`);
+        filterGraph.push(`[acat][amusicf]amix=inputs=2:dropout_transition=2[amix]`);
+        amixOut = "[amix]";
+      }
+    }
+
+    // Final map
+    const vmap = draw;
+    const amap = amixOut;
+
+    // Choose codec
+    const args = [
+      ...inputs,
+      "-filter_complex", filterGraph.join(";"),
+      "-map", vmap,
+      "-map", amap,
+      "-r", String(fps)
+    ];
+
+    if (format==="mp4"){
+      args.push(
+        "-c:v","libx264","-pix_fmt","yuv420p",
+        "-c:a","aac","-b:a","192k",
+        "-movflags","+faststart",
+        outName
+      );
+    } else {
+      args.push(
+        "-c:v","libvpx-vp9","-b:v","0","-crf","32",
+        "-c:a","libopus","-b:a","128k",
+        outName
+      );
+    }
+
+    log("Rendering…");
+    await ffmpeg.run(...args);
+    const data = ffmpeg.FS("readFile", outName);
+    const blob = new Blob([data.buffer], { type: (format==="mp4"?"video/mp4":"video/webm") });
+    const url = URL.createObjectURL(blob);
+    if (preview) $("player").src = url;
+    log(`Done: ${outName} (${(data.length/1e6).toFixed(2)} MB)`);
+    return url;
+  }
+
+  async function makeThumbs(videoUrl){
+    const v = document.createElement("video");
+    v.src = videoUrl; v.muted = true;
+    await v.play().catch(()=>{});
+    const canvas = document.createElement("canvas");
+    canvas.width = 320; canvas.height = 180;
+    const ctx = canvas.getContext("2d");
+    $("thumbRow").innerHTML = "";
+    const points = [0, 1, 2, 3, 4];
+    for (const p of points){
+      v.currentTime = p * 2;
+      await new Promise(r=> v.onseeked = ()=> r());
+      ctx.drawImage(v,0,0,canvas.width,canvas.height);
+      const img = new Image();
+      img.src = canvas.toDataURL("image/jpeg", .8);
+      img.style.width="160px"; img.style.borderRadius="8px";
+      $("thumbRow").appendChild(img);
+    }
+    v.pause();
+  }
+</script>
+</body>
+</html>
