@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>GPS Files: A Field Guide — Story Blog</title>
+  <meta name="description" content="A story-driven guide to GPX, TCX, KML, CSV/XLSX — what they are, how to convert them, and how to use the GPS tool with mapping, stats, and splits.">
+  <link rel="stylesheet" href="site.css">
+  <style>
+    .prose p { margin: .7rem 0 }
+    .prose h2, .prose h3 { margin-top: 1.4rem }
+    .callout { border:1px dashed var(--line); background:#0c1320; padding:12px; border-radius:12px }
+    .mini { font-size:.9rem; color:var(--muted) }
+    code,kbd,pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace }
+    pre { background:#0c1624; border:1px solid var(--line); border-radius:10px; padding:10px; overflow:auto }
+    .grid-2 { display:grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap:12px }
+    .muted { color: var(--muted) }
+  </style>
+</head>
+<body>
+<header>
+  <div class="title">
+    <div class="logo">⚡</div>
+    <div>
+      <h1>GPS Files: A Field Guide</h1>
+      <p class="sub">A story about tracks, timestamps, and turning messy data into clean routes.</p>
+    </div>
+  </div>
+  <nav class="tabs">
+  <a class="tab" href="index.html">Home</a>
+  <a class="tab" href="index.html#audio">Audio</a>
+  <a class="tab" href="index.html#video">Video</a>
+  <a class="tab" href="index.html#images">Images</a>
+  <a class="tab" href="index.html#pdf">PDF</a>
+  <a class="tab" href="index.html#data">Data</a>
+  <a class="tab" href="index.html#archive">Archive</a>
+  <a class="tab" href="index.html#docx">DOCX</a>
+  <a class="tab" href="gps.html">GPS</a>
+  <a class="tab active" href="gps-file-guide.html">GPS Guide</a>
+  <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
+  <a class="tab" href="image-file-guide.html">Image Guide</a>
+  <a class="tab" href="audio-file-guide.html">Audio Guide</a>
+  <a class="tab" href="video-file-guide.html">Video Guide</a>
+</nav>
+</header>
+
+<main class="prose">
+  <section class="panel">
+    <div class="grid">
+      <article class="card">
+        <p class="mini">Published 2025-09-05 • Reading time ~10–12 min</p>
+
+        <h2 id="prologue">Prologue: the trail in your pocket</h2>
+        <p>Every run, ride, hike, and flight leaves breadcrumbs: latitude, longitude, sometimes elevation, often time. 
+        Different apps write those breadcrumbs in different diaries: <strong>GPX</strong>, <strong>TCX</strong>, <strong>KML</strong>, or humble <strong>CSV/XLSX</strong>. 
+        The problem isn’t the data — it’s the dialect. This guide shows what each format means, how to translate between them, and how to use the GPS tool’s map, stats, and splits like a pro.</p>
+
+        <h2 id="formats">The formats, as travelers</h2>
+        <div class="grid-2">
+          <div class="callout">
+            <h3>GPX (the hiker)</h3>
+            <p><em>XML for tracks.</em> A GPX track is a list of points: <code>&lt;trkpt lat="…" lon="…"&gt;&lt;ele/&gt;&lt;time/&gt;&lt;/trkpt&gt;</code>. 
+            Simple, portable, understood by most devices and apps.</p>
+          </div>
+          <div class="callout">
+            <h3>TCX (the coach)</h3>
+            <p><em>Garmin’s training schema.</em> Adds structure (laps, activities). Points live in <code>&lt;Trackpoint&gt;</code> with 
+            <code>LatitudeDegrees</code>, <code>LongitudeDegrees</code>, <code>AltitudeMeters</code>, and <code>Time</code>.</p>
+          </div>
+          <div class="callout">
+            <h3>KML (the mapmaker)</h3>
+            <p><em>Google Earth’s language.</em> Routes often appear as <code>&lt;LineString&gt;&lt;coordinates&gt;lon,lat,ele …&lt;/coordinates&gt;</code>, 
+            or as <code>gx:Track</code> with timestamps.</p>
+          </div>
+          <div class="callout">
+            <h3>CSV / XLSX (the spreadsheet)</h3>
+            <p><em>Tables of points.</em> Flexible but ambiguous until you map columns: <strong>lat</strong>, <strong>lon</strong>, <strong>ele</strong>, <strong>time</strong>.</p>
+          </div>
+        </div>
+
+        <h2 id="anatomy">Anatomy of a point</h2>
+        <ul>
+          <li><strong>lat</strong> — latitude, degrees north/south of the equator.</li>
+          <li><strong>lon</strong> — longitude, degrees east/west of Greenwich.</li>
+          <li><strong>ele</strong> — elevation in meters (optional).</li>
+          <li><strong>time</strong> — timestamp; ISO 8601 (<code>2025-01-01T10:00:00Z</code>) is the cleanest. Unix seconds/ms and Excel serial dates also work.</li>
+        </ul>
+        <p>Distance between points is computed with the <em>haversine</em> formula over a spherical Earth (we use 6,371,000 m). 
+        Elevation <em>gain</em> and <em>loss</em> are the sum of positive/negative elevation differences. 
+        From distance and elapsed time we compute <strong>speed</strong> and <strong>pace</strong> (e.g., <code>5:30 / km</code>).</p>
+
+        <h2 id="tool">Using the GPS tool (step by step)</h2>
+        <ol>
+          <li><strong>Load data</strong> — click <em>Load GPS Data</em> and choose a <code>.gpx</code>, <code>.tcx</code>, <code>.kml</code>, <code>.csv</code>, or <code>.xlsx</code>, 
+          or paste the raw text.</li>
+          <li><strong>Field Mapping</strong> (CSV/XLSX) — the tool guesses columns, you can correct them. 
+          Time formats: Auto/ISO, Unix seconds, Unix ms, Excel serial.</li>
+          <li><strong>Parse</strong> — the preview table appears; the map draws your route with start/end markers.</li>
+          <li><strong>Map</strong> — pick a base map (OpenStreetMap, Satellite, Toner). Use <em>Fit to Track</em> to zoom to your route. 
+          Hover the map to see the nearest point’s distance, elevation, and time.</li>
+          <li><strong>Stats</strong> — choose units (km/mi). See total distance, elapsed time, avg speed, elevation gain/loss, min/max.</li>
+          <li><strong>Splits</strong> — choose “Split every” (e.g., 1 km or 1 mi) and click <em>Recompute</em>. Each split shows distance, time, pace.</li>
+          <li><strong>Export</strong> — select GPX/TCX/KML/CSV/XLSX and download a clean file.</li>
+        </ol>
+
+        <h2 id="examples">Mini examples</h2>
+        <div class="grid-2">
+          <div>
+            <h3>CSV → GPX</h3>
+            <pre>lat,lon,ele,time
+37.7749,-122.4194,12,2024-01-01T10:00:00Z
+37.7755,-122.4188,13,2024-01-01T10:05:00Z</pre>
+            <p>Load the CSV, map columns if needed, parse, then export as GPX.</p>
+          </div>
+          <div>
+            <h3>KML → TCX</h3>
+            <pre>&lt;LineString&gt;
+  &lt;coordinates&gt;-122.4194,37.7749,12 -122.4188,37.7755,13&lt;/coordinates&gt;
+&lt;/LineString&gt;</pre>
+            <p>Paste KML, parse, export as TCX for training platforms that prefer it.</p>
+          </div>
+        </div>
+
+        <h2 id="terms">Terms decoded</h2>
+        <ul>
+          <li><strong>Waypoint / Route / Track</strong> — single points (WPT), planned path (RTE), recorded path (TRK).</li>
+          <li><strong>CRS/Projection</strong> — we assume WGS84 lat/lon (EPSG:4326). Don’t feed projected coordinates into lat/lon.</li>
+          <li><strong>Time zone</strong> — timestamps are stored as absolute times (UTC in ISO with <code>Z</code>); local display depends on your device.</li>
+          <li><strong>Smoothing</strong> — jittery elevation or GPS noise can inflate gain; basic smoothing helps (planned future toggle).</li>
+        </ul>
+
+        <h2 id="troubleshooting">Troubleshooting</h2>
+        <ul>
+          <li><strong>Nothing draws on the map:</strong> Check lat/lon columns (CSV/XLSX) and that values are numeric.</li>
+          <li><strong>Distance is zero:</strong> You may have identical points or swapped lat/lon. Ensure <code>lat</code> is latitude (−90…90) and <code>lon</code> is longitude (−180…180).</li>
+          <li><strong>Times look wrong:</strong> Make sure the time format matches (Auto/ISO, Unix, Excel). Excel serial dates need the “Excel” option.</li>
+          <li><strong>KML without times:</strong> We compute distance/speed anyway; splits with pace require timestamps.</li>
+        </ul>
+
+        <div class="callout">
+          <strong>Pro tip:</strong> Keep your raw files (original GPX/TCX/KML) as a backup. Convert and share CSV/XLSX for analysis, GPX/TCX for fitness apps, and KML for map viewers.
+        </div>
+      </article>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>© <span id="year"></span> AnyConvert+</p>
+</footer>
+<script>
+  (function(){ var y=document.getElementById('year'); if(y) y.textContent=new Date().getFullYear(); })();
+</script>
+</body>
+</html>

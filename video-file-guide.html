@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Video Files: A Practical Guide — Guide</title>
+  <meta name="description" content="MP4 vs WebM vs MOV, and how to choose encoder settings.">
+  <link rel="stylesheet" href="site.css">
+  <style>
+    .prose p{margin:.7rem 0}
+    .prose h2,.prose h3{margin-top:1.4rem}
+    .callout{border:1px dashed var(--line);background:#0c1320;padding:12px;border-radius:12px}
+    .mini{font-size:.9rem;color:var(--muted)}
+    code,kbd,pre{font-family:ui-monospace,Consolas,monospace}
+    pre{background:#0c1624;border:1px solid var(--line);border-radius:10px;padding:10px;overflow:auto}
+    .grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+    .muted{color:var(--muted)}
+  </style>
+</head>
+<body>
+<header>
+  <div class="title">
+    <div class="logo">⚡</div>
+    <div>
+      <h1>Video Files: A Practical Guide</h1>
+      <p class="sub">MP4 vs WebM vs MOV, and how to choose encoder settings.</p>
+    </div>
+  </div>
+  <nav class="tabs">
+  <a class="tab" href="index.html">Home</a>
+  <a class="tab" href="index.html#audio">Audio</a>
+  <a class="tab" href="index.html#video">Video</a>
+  <a class="tab" href="index.html#images">Images</a>
+  <a class="tab" href="index.html#pdf">PDF</a>
+  <a class="tab" href="index.html#data">Data</a>
+  <a class="tab" href="index.html#archive">Archive</a>
+  <a class="tab" href="index.html#docx">DOCX</a>
+  <a class="tab" href="gps.html">GPS</a>
+  <a class="tab" href="gps-file-guide.html">GPS Guide</a>
+  <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
+  <a class="tab" href="image-file-guide.html">Image Guide</a>
+  <a class="tab" href="audio-file-guide.html">Audio Guide</a>
+  <a class="tab active" href="video-file-guide.html">Video Guide</a>
+</nav>
+</header>
+
+<main class="prose">
+  <section class="panel">
+    <div class="grid">
+      <article class="card">
+        <p class="mini">Published 2025-09-05 • Reading time ~8–12 min</p>
+        
+<h2>Picking a Video Format</h2>
+<div class="grid-2">
+  <div class="callout">
+    <strong>Use this:</strong>
+    <ul>
+      <li><strong>Universal playback:</strong> MP4 (H.264 + AAC)</li>
+      <li><strong>Smaller web files:</strong> WebM (VP9/AV1 + Opus)</li>
+      <li><strong>Editing intermediates:</strong> MOV/ProRes</li>
+    </ul>
+  </div>
+  <div class="callout">
+    <strong>Tuning tips:</strong>
+    <ul>
+      <li>CRF ~23 (H.264) for balanced quality; lower = better.</li>
+      <li>Preset “fast/faster” for speed vs. size trade-off.</li>
+      <li>Use <code>yuv420p</code> for broad compatibility.</li>
+    </ul>
+  </div>
+</div>
+<h2>Using the Video Converter</h2>
+<ol>
+  <li>Load a video. Choose MP4/WebM.</li>
+  <li>Set resolution/FPS, CRF, preset, and audio options.</li>
+  <li>Optionally trim start/duration or rotate.</li>
+  <li>Convert and download. Progress updates during transcode.</li>
+</ol>
+
+      </article>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>© <span id="year"></span> AnyConvert+</p>
+</footer>
+<script>(function(){var y=document.getElementById('year');if(y) y.textContent=new Date().getFullYear();})();</script>
+</body>
+</html>

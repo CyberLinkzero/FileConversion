@@ -8,19 +8,32 @@
     <div><h1>AnyConvert+</h1><p class="sub">All-in-browser converters with advanced options.</p></div>
   </div>
   <nav class="tabs">
-    <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
-    <a class="tab" href="gps.html">GPS</a>
-    <a class="tab" href="images.html">Images</a>
-    <a class="tab" href="documents.html">Documents / PDF</a>
-    <a class="tab" href="data.html">Data (CSV/JSON/XLSX)</a>
-    <a class="tab" href="audio.html">Audio</a>
-    <a class="tab" href="video.html">Video</a>
-    <a class="tab" href="archive.html">Archive</a>
-  </nav>
+  <a class="tab active" href="index.html">Home</a>
+  <a class="tab" href="index.html#audio">Audio</a>
+  <a class="tab" href="index.html#video">Video</a>
+  <a class="tab" href="index.html#images">Images</a>
+  <a class="tab" href="index.html#pdf">PDF</a>
+  <a class="tab" href="index.html#data">Data</a>
+  <a class="tab" href="index.html#archive">Archive</a>
+  <a class="tab" href="index.html#docx">DOCX</a>
+  <a class="tab" href="gps.html">GPS</a>
+  <a class="tab" href="gps-file-guide.html">GPS Guide</a>
+  <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
+  <a class="tab" href="image-file-guide.html">Image Guide</a>
+  <a class="tab" href="audio-file-guide.html">Audio Guide</a>
+  <a class="tab" href="video-file-guide.html">Video Guide</a>
+</nav>
 </header>
-<main><section class="panel"><div class="grid">
+<main
+  id="audio"><section class="panel"><div class="grid">
   <div class="card"><h3>Welcome</h3><p>Pick a tool above. Everything runs locally in your browser. For best performance, host <code>libs/</code> locally (see README) or let the CDN fallbacks load.</p></div>
-</div></section></main>
+</div></section><div id="video" style="height:1px;overflow:hidden"></div>
+<div id="images" style="height:1px;overflow:hidden"></div>
+<div id="pdf" style="height:1px;overflow:hidden"></div>
+<div id="data" style="height:1px;overflow:hidden"></div>
+<div id="archive" style="height:1px;overflow:hidden"></div>
+<div id="docx" style="height:1px;overflow:hidden"></div>
+</main>
 <footer>© <span id="year"></span> AnyConvert+</footer>
 <script src="js/utils.js"></script>
 </body></html>
