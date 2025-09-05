@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>JSON → DOC — AnyConvert+</title>
+  <title>JSON · CSV · XLSX · DOC — AnyConvert+</title>
   <link rel="stylesheet" href="site.css" />
 </head>
 <body>
@@ -11,19 +11,19 @@
   <div class="title">
     <div class="logo">⚡</div>
     <div>
-      <h1>JSON → DOC</h1>
-      <p class="sub">Turn JSON into a simple .doc file that opens in Word (no DOCX library required).</p>
+      <h1>JSON · CSV · XLSX · DOC</h1>
+      <p class="sub">Convert between CSV/JSON/XLSX and export JSON to a simple .doc file.</p>
     </div>
   </div>
 
-  <!-- NAV: link to real pages (not #anchors) -->
+  <!-- Real-page nav (no #anchors) -->
   <nav class="tabs">
     <a class="tab" href="index.html">Home</a>
     <a class="tab" href="audio.html">Audio</a>
     <a class="tab" href="video.html">Video</a>
     <a class="tab" href="images.html">Images</a>
     <a class="tab" href="pdf.html">PDF</a>
-    <a class="tab" href="data.html">Data</a>
+    <a class="tab active" href="json.html">Data</a>
     <a class="tab" href="archive.html">Archive</a>
     <a class="tab" href="docx.html">DOCX</a>
     <a class="tab" href="gps.html">GPS</a>
@@ -32,39 +32,69 @@
     <a class="tab" href="image-file-guide.html">Image Guide</a>
     <a class="tab" href="audio-file-guide.html">Audio Guide</a>
     <a class="tab" href="video-file-guide.html">Video Guide</a>
-    <a class="tab active" href="json.html">JSON → DOC</a>
   </nav>
 </header>
 
 <main class="panel">
   <div class="grid">
+
+    <!-- DATA CONVERTER: CSV ⇄ JSON ⇄ XLSX -->
     <div class="card">
-      <h3>Input</h3>
+      <h3>Data Converter (CSV ⇄ JSON ⇄ XLSX)</h3>
+      <div class="row">
+        <input type="file" id="data-file"
+               accept=".csv,.json,.xlsx,application/json,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+        <input type="text" id="data-name" placeholder="Base file name" value="data" />
+        <button id="btn-clear">Clear</button>
+      </div>
+
+      <textarea id="data-text" placeholder="Or paste CSV or JSON here"></textarea>
+
+      <div class="row">
+        <label>To
+          <select id="data-out">
+            <option value="csv">CSV</option>
+            <option value="json">JSON</option>
+            <option value="xlsx">XLSX</option>
+          </select>
+        </label>
+        <label><input type="checkbox" id="csv-bom" checked> CSV: Add UTF-8 BOM</label>
+        <label><input type="checkbox" id="json-pretty" checked> JSON: Pretty print</label>
+        <button id="btn-parse">Parse / Preview</button>
+        <button id="btn-convert">Convert & Download</button>
+        <button id="btn-template">Download CSV Template</button>
+      </div>
+
+      <div class="preview" id="data-preview"></div>
+      <div class="log" id="data-log"></div>
+    </div>
+
+    <!-- JSON → DOC (plain .doc via HTML) -->
+    <div class="card">
+      <h3>JSON → DOC (Plain Word Doc)</h3>
       <div class="row">
         <input type="file" id="json-file" accept=".json,application/json" />
         <input type="text" id="doc-name" placeholder="File name (no extension)" value="document" />
       </div>
-      <textarea id="json-text" placeholder='Paste JSON here or choose a .json file'></textarea>
+      <textarea id="json-text" placeholder='Paste JSON here or choose a .json file (you can reuse the parsed data from the left card too)'></textarea>
       <div class="row">
         <label>Render as
           <select id="render-mode">
-            <option value="auto" selected>Auto (table if array of objects, else pretty text)</option>
+            <option value="auto" selected>Auto (table for array-of-objects, else preformatted)</option>
             <option value="table">Table (array of objects)</option>
             <option value="pre">Preformatted text</option>
             <option value="plain">Plain paragraphs (clear formatting)</option>
           </select>
         </label>
         <label>Title <input type="text" id="title" placeholder="Optional document title" /></label>
-        <button id="btn-preview">Preview</button>
-        <button id="btn-download">Download .doc</button>
+        <button id="btn-preview-doc">Preview</button>
+        <button id="btn-download-doc">Download .doc</button>
       </div>
+
+      <div class="preview" id="doc-preview"></div>
+      <div class="log" id="doc-log"></div>
     </div>
 
-    <div class="card">
-      <h3>Preview</h3>
-      <div class="preview" id="preview"></div>
-      <div class="log" id="log"></div>
-    </div>
   </div>
 </main>
 
@@ -72,41 +102,148 @@
   © <span id="year"></span> AnyConvert+
 </footer>
 
-<script>
-  // minor helpers
-  const $ = (id) => document.getElementById(id);
-  const log = (msg) => { const el = $('log'); el.textContent += msg + '\\n'; el.scrollTop = el.scrollHeight; };
-  document.getElementById('year').textContent = new Date().getFullYear();
+<!-- libs for data conversion -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-  // read file into textarea
+<script>
+  // year
+  document.getElementById('year').textContent = new Date().getFullYear();
+  const $ = (id) => document.getElementById(id);
+  const logData = (m)=>{ const el=$('data-log'); el.textContent += m+'\\n'; el.scrollTop = el.scrollHeight; };
+  const logDoc  = (m)=>{ const el=$('doc-log');  el.textContent += m+'\\n'; el.scrollTop = el.scrollHeight; };
+
+  // ---------- DATA CONVERTER ----------
+  let parsedRows = []; // array of objects
+
+  function previewTable(rows){
+    if (!rows || !rows.length) return '<span class="small">No rows to preview.</span>';
+    const cols = Array.from(rows.reduce((s,r)=>{ Object.keys(r).forEach(k=>s.add(k)); return s;}, new Set()));
+    const head = '<tr>' + cols.map(c=>`<th style="text-align:left;border:1px solid var(--line)">${escapeHtml(c)}</th>`).join('') + '</tr>';
+    const body = rows.slice(0, 100).map(r =>
+      '<tr>' + cols.map(c=>`<td style="border:1px solid var(--line);vertical-align:top;white-space:pre-wrap">${escapeHtml(toCell(r[c]))}</td>`).join('') + '</tr>'
+    ).join('');
+    const more = rows.length > 100 ? `<div class="small">Showing first 100 of ${rows.length} rows.</div>` : '';
+    return `<div style="overflow:auto"><table style="border-collapse:collapse;width:100%">${head}${body}</table></div>${more}`;
+  }
+  function toCell(v){ return (v==null ? '' : (typeof v==='object' ? JSON.stringify(v) : String(v))); }
+  function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  $('btn-clear').addEventListener('click', ()=>{
+    $('data-file').value = '';
+    $('data-text').value = '';
+    $('data-preview').innerHTML = '';
+    $('data-log').textContent = '';
+    parsedRows = [];
+  });
+
+  $('data-file').addEventListener('change', async (e)=>{
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    $('data-name').value = f.name.replace(/\.[^.]+$/, '') || 'data';
+    // If CSV/XLSX, we don't auto-parse here; user hits "Parse / Preview"
+    if (/\.json$/i.test(f.name)) {
+      $('data-text').value = await f.text();
+    } else {
+      $('data-text').value = ''; // ignore text box for non-JSON file
+    }
+  });
+
+  $('btn-parse').addEventListener('click', async ()=>{
+    $('data-log').textContent = '';
+    const f = $('data-file').files[0] || null;
+    const pasted = $('data-text').value.trim();
+    try{
+      if (f){
+        if (/\.xlsx?$/i.test(f.name)){
+          const wb = XLSX.read(await f.arrayBuffer());
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          parsedRows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+          logData(`Parsed XLSX: ${parsedRows.length} rows`);
+        } else if (/\.csv$/i.test(f.name)){
+          const text = await f.text();
+          const res = Papa.parse(text, { header:true, skipEmptyLines:true });
+          parsedRows = res.data;
+          logData(`Parsed CSV: ${parsedRows.length} rows`);
+        } else if (/\.json$/i.test(f.name)){
+          parsedRows = normalizeJson(JSON.parse(await f.text()));
+          logData(`Parsed JSON: ${parsedRows.length} rows`);
+        } else {
+          throw new Error('Unsupported file');
+        }
+      } else if (pasted){
+        // detect JSON or CSV
+        try{
+          const obj = JSON.parse(pasted);
+          parsedRows = normalizeJson(obj);
+          logData(`Parsed JSON: ${parsedRows.length} rows`);
+        }catch{
+          const res = Papa.parse(pasted, { header:true, skipEmptyLines:true });
+          parsedRows = res.data;
+          logData(`Parsed CSV: ${parsedRows.length} rows`);
+        }
+      } else {
+        throw new Error('Provide a file or paste CSV/JSON');
+      }
+      $('data-preview').innerHTML = previewTable(parsedRows);
+    }catch(e){
+      logData('Error: '+ (e?.message || e));
+      $('data-preview').innerHTML = '<span class="small">Parse failed.</span>';
+    }
+  });
+
+  $('btn-convert').addEventListener('click', async ()=>{
+    if (!parsedRows.length) return alert('Parse something first.');
+    const base = ($('data-name').value || 'data').replace(/\.(csv|json|xlsx)$/i, '');
+    const kind = $('data-out').value;
+    try{
+      if (kind==='csv'){
+        const csv = Papa.unparse(parsedRows);
+        const bom = $('csv-bom').checked ? '\\ufeff' : '';
+        download(`${base}.csv`, new Blob([bom + csv], { type: 'text/csv' }));
+      } else if (kind==='json'){
+        const pretty = $('json-pretty').checked ? 2 : 0;
+        download(`${base}.json`, new Blob([JSON.stringify(parsedRows, null, pretty)], { type: 'application/json' }));
+      } else if (kind==='xlsx'){
+        const ws = XLSX.utils.json_to_sheet(parsedRows);
+        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+        const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        download(`${base}.xlsx`, new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+      }
+      logData('Done.');
+    }catch(e){
+      logData('Convert error: '+(e?.message||e));
+    }
+  });
+
+  $('btn-template').addEventListener('click', ()=>{
+    const csv = 'id,name,value\\n1,alpha,10\\n2,beta,20\\n3,gamma,30\\n';
+    download('template.csv', new Blob(['\\ufeff'+csv], { type:'text/csv' }));
+  });
+
+  function normalizeJson(obj){
+    if (Array.isArray(obj)) return obj.map(row => (row && typeof row==='object' && !Array.isArray(row)) ? row : { value: row });
+    if (obj && typeof obj==='object') return [obj];
+    return [{ value: obj }];
+  }
+  function download(name, blob){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
+
+  // ---------- JSON → DOC ----------
+  const log = (msg)=>{ logDoc(msg); };
+
   $('json-file').addEventListener('change', async (e)=>{
     const f = e.target.files && e.target.files[0];
     if (!f) return;
     $('doc-name').value = f.name.replace(/\\.json$/i, '') || 'document';
-    const text = await f.text();
-    $('json-text').value = text;
+    $('json-text').value = await f.text();
   });
 
   function toPretty(value){
-    try { return JSON.stringify(value, null, 2); }
-    catch { return String(value); }
+    try { return JSON.stringify(value, null, 2); } catch { return String(value); }
   }
-
-  function isArrayOfObjects(v){
-    return Array.isArray(v) && v.length && v.every(x => x && typeof x === 'object' && !Array.isArray(x));
-  }
-
-  function uniqueKeys(rows){
-    const set = new Set();
-    rows.forEach(r => Object.keys(r).forEach(k => set.add(k)));
-    return Array.from(set);
-  }
-
-  function escapeHtml(s){
-    return String(s)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
+  function isArrayOfObjects(v){ return Array.isArray(v) && v.length && v.every(x => x && typeof x === 'object' && !Array.isArray(x)); }
+  function uniqueKeys(rows){ const set = new Set(); rows.forEach(r => Object.keys(r).forEach(k => set.add(k))); return Array.from(set); }
+  function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   function renderTable(rows){
     const cols = uniqueKeys(rows);
@@ -124,38 +261,21 @@
     html += '</tbody></table>';
     return html;
   }
-
-  function renderPre(obj){
-    return `<pre style="white-space:pre-wrap">${escapeHtml(toPretty(obj))}</pre>`;
-  }
-
+  function renderPre(obj){ return `<pre style="white-space:pre-wrap">${escapeHtml(toPretty(obj))}</pre>`; }
   function renderPlain(obj){
-    // Clear formatting: turn JSON into simple "Key: Value" lines / paragraphs
     let text = '';
-    function walk(prefix, v){
-      if (Array.isArray(v)){
-        v.forEach((item, i)=> walk(`${prefix}[${i}]`, item));
-      } else if (v && typeof v === 'object'){
-        for (const k of Object.keys(v)){
-          walk(prefix ? `${prefix}.${k}` : k, v[k]);
-        }
-      } else {
-        text += (prefix ? `${prefix}: ` : '') + String(v) + '\\n';
-      }
-    }
-    walk('', obj);
-    const paras = text.trim().split(/\\n+/).map(line=>`<p>${escapeHtml(line)}</p>`).join('\\n');
-    return paras || '<p></p>';
+    (function walk(prefix, v){
+      if (Array.isArray(v)){ v.forEach((it,i)=>walk(`${prefix}[${i}]`, it)); }
+      else if (v && typeof v==='object'){ for (const k of Object.keys(v)) walk(prefix?`${prefix}.${k}`:k, v[k]); }
+      else { text += (prefix?`${prefix}: `:'') + String(v) + '\\n'; }
+    })('', obj);
+    return text.trim().split(/\\n+/).map(line=>`<p>${escapeHtml(line)}</p>`).join('\\n') || '<p></p>';
   }
 
   function buildBodyHTML(jsonText, renderMode){
     let data;
-    try {
-      data = JSON.parse(jsonText);
-    } catch (e){
-      // if not valid JSON, treat as plain text
-      return `<pre style="white-space:pre-wrap">${escapeHtml(jsonText)}</pre>`;
-    }
+    try { data = JSON.parse(jsonText); }
+    catch { return `<pre style="white-space:pre-wrap">${escapeHtml(jsonText)}</pre>`; }
     if (renderMode === 'plain') return renderPlain(data);
     if (renderMode === 'table'){
       if (!isArrayOfObjects(data)) return '<p><em>Table mode expects an array of objects.</em></p>' + renderPre(data);
@@ -169,7 +289,6 @@
 
   function wrapDocHTML(title, bodyInner){
     const docTitle = escapeHtml(title || 'Document');
-    // Word happily opens HTML as .doc when served with application/msword
     return `<!doctype html>
 <html>
 <head>
@@ -191,37 +310,28 @@
 </html>`;
   }
 
-  function updatePreview(){
-    $('log').textContent = '';
+  $('btn-preview-doc').addEventListener('click', ()=>{
+    $('doc-log').textContent = '';
     const src = $('json-text').value.trim();
-    if (!src){ $('preview').innerHTML = '<span class="small">No input yet.</span>'; return; }
-    const mode = $('render-mode').value;
-    const body = buildBodyHTML(src, mode);
-    // show preview using an iframe to mimic Word's rendering more closely
-    const html = wrapDocHTML($('title').value.trim(), body);
+    if (!src){ $('doc-preview').innerHTML = '<span class="small">No input yet.</span>'; return; }
+    const html = wrapDocHTML($('title').value.trim(), buildBodyHTML(src, $('render-mode').value));
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
-    $('preview').innerHTML = `<iframe style="width:100%;height:300px;border:1px solid var(--line);border-radius:8px;background:#fff" src="${url}"></iframe>`;
-  }
+    $('doc-preview').innerHTML = `<iframe style="width:100%;height:300px;border:1px solid var(--line);border-radius:8px;background:#fff" src="${url}"></iframe>`;
+  });
 
-  function downloadDoc(){
-    $('log').textContent = '';
+  $('btn-download-doc').addEventListener('click', ()=>{
+    $('doc-log').textContent = '';
     const src = $('json-text').value.trim();
     if (!src){ alert('Paste JSON or choose a file first.'); return; }
-    const mode = $('render-mode').value;
-    const body = buildBodyHTML(src, mode);
-    const name = ($('doc-name').value || 'document').replace(/\\.(docx|doc)$/i,'');
-    const html = wrapDocHTML($('title').value.trim(), body);
-    // BOM helps some Windows+Word combos read UTF-8
-    const blob = new Blob(['\\ufeff', html], { type: 'application/msword' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = name + '.doc';
-    a.click();
-  }
+    const html = wrapDocHTML($('title').value.trim(), buildBodyHTML(src, $('render-mode').value));
+    const name = ($('doc-name').value || 'document').replace(/\.(docx|doc)$/i,'');
+    const blob = new Blob(['\\ufeff', html], { type: 'application/msword' }); // .doc via HTML
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name + '.doc'; a.click();
+  });
 
-  $('btn-preview').addEventListener('click', updatePreview);
-  $('btn-download').addEventListener('click', downloadDoc);
+  // Utilities reused
+  function toPretty(v){ try{ return JSON.stringify(v,null,2);}catch{return String(v);} }
 </script>
 </body>
 </html>
