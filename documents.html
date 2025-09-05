@@ -63,8 +63,6 @@
 
 </div></section></main>
 <footer><p>© <span id="year"></span> File Converter — Cyber Edition</p></footer>
-<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs" type="module"></script>
 <script src="js/utils.js"></script>
 <script>
   window.ensureMammoth = () => new Promise(res=>{
@@ -76,5 +74,7 @@
     const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'; s.onload=res; document.body.appendChild(s);
   });
 </script>
-<script src="js/documents.js"></script>
-</body></html>
+<script src="js/utils.js"></script>
+<script src="js/boot.js"></script>
+<script src="js/boot-documents.js"></script>
+<script src="js/documents.js"></script></body></html>
