@@ -1,38 +1,42 @@
-<!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Audio — AnyConvert</title>
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Audio — AnyConvert+</title>
 <link rel="stylesheet" href="site.css">
 </head><body>
-<header>
-  <div class="title"><div class="logo">⚡</div><h1>Audio</h1></div>
-  <nav class="tabs">
-    <a class="tab" href="images.html">Images</a>
-    <a class="tab" href="documents.html">Docs/PDF</a>
-    <a class="tab" href="json.html">JSON/Doc/CSV</a>
-    <a class="tab" href="data.html">Data</a>
-    <a class="tab active" href="audio.html">Audio</a>
-    <a class="tab" href="video.html">Video</a>
-    <a class="tab" href="archive.html">Archive</a>
-    <a class="tab" href="about.html">About</a>
-  </nav>
-</header>
-<main><section id="tab-audio" class="panel"><div class="grid">
+<header><div class="title"><div class="logo">⚡</div><h1>Audio</h1></div>
+<nav class="tabs">
+  <a class="tab active" href="audio.html">Audio</a>
+  <a class="tab" href="index.html">Home</a>
+</nav></header>
+<main><section class="panel"><div class="grid">
   <div class="card">
-    <h3>MP3 ↔ WAV</h3>
-    <input type="file" id="audio-input" accept="audio/*" />
-    <div class="row" style="margin-top:12px">
-      <select id="audio-target"><option value="mp3">MP3</option><option value="wav">WAV</option></select>
-      <button id="audio-btn">Convert</button>
+    <h3>Audio Convert</h3>
+    <input type="file" id="aud-file" accept="audio/*,video/*"/>
+    <div class="row" style="margin-top:8px">
+      <label>Output
+        <select id="aud-out"><option>mp3</option><option>wav</option><option>m4a</option></select>
+      </label>
+      <label>Bitrate
+        <select id="aud-bitrate"><option value="">Auto</option><option>96k</option><option>128k</option><option>160k</option><option>192k</option><option>256k</option><option>320k</option></select>
+      </label>
+      <label>Sample rate
+        <select id="aud-sr"><option value="">Source</option><option>44100</option><option>48000</option></select>
+      </label>
+      <label>Channels
+        <select id="aud-ch"><option value="">Source</option><option value="1">Mono</option><option value="2" selected>Stereo</option></select>
+      </label>
+      <label>Start <input id="aud-ss" type="text" placeholder="00:00:00"></label>
+      <label>Duration <input id="aud-t" type="text" placeholder="00:00:10"></label>
+      <label>Volume
+        <select id="aud-vol"><option value="">0 dB</option><option>-10</option><option>-6</option><option>-3</option><option>+3</option><option>+6</option><option>+10</option></select>
+      </label>
+      <button id="aud-convert">Convert</button>
     </div>
-    <div id="audio-progress" class="progress"><div class="bar"></div></div>
-    <div class="progress-label" id="audio-progress-label">Idle</div>
-    <div class="log" id="audio-log"></div>
+    <div class="log" id="aud-log"></div>
   </div>
 </div></section></main>
-<footer><p>© <span id="year"></span> File Converter — Cyber Edition</p></footer>
-<script src="js/utils.js"></script>
+<footer>© <span id="year"></span> AnyConvert+</footer>
 <script src="js/utils.js"></script>
 <script src="js/boot.js"></script>
-<script src="js/boot-audio.js"></script>
-<script src="js/audio.js"></script></body></html>
+<script src="js/audio.js"></script>
+</body></html>

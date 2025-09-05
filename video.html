@@ -1,50 +1,48 @@
-<!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Video — AnyConvert</title>
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Video — AnyConvert+</title>
 <link rel="stylesheet" href="site.css">
 </head><body>
-<header>
-  <div class="title"><div class="logo">⚡</div><h1>Video</h1></div>
-  <nav class="tabs">
-    <a class="tab" href="images.html">Images</a>
-    <a class="tab" href="documents.html">Docs/PDF</a>
-    <a class="tab" href="json.html">JSON/Doc/CSV</a>
-    <a class="tab" href="data.html">Data</a>
-    <a class="tab" href="audio.html">Audio</a>
-    <a class="tab active" href="video.html">Video</a>
-    <a class="tab" href="archive.html">Archive</a>
-    <a class="tab" href="about.html">About</a>
-  </nav>
-</header>
-<main>
-<section id="tab-video" class="panel">
-  <div class="grid">
-    <div class="card">
-      <h3>MP4 ↔ WebM</h3>
-      <input type="file" id="video-input" accept="video/*" />
-      <div class="row" style="margin-top:12px">
-        <select id="video-target"><option value="mp4">MP4 (H.264/AAC)</option><option value="webm">WebM (VP9/Opus)</option></select>
-        <button id="video-btn">Convert</button>
-      </div>
-      <div class="log" id="video-log"></div>
+<header><div class="title"><div class="logo">⚡</div><h1>Video</h1></div>
+<nav class="tabs">
+  <a class="tab active" href="video.html">Video</a>
+  <a class="tab" href="index.html">Home</a>
+</nav></header>
+<main><section class="panel"><div class="grid">
+  <div class="card">
+    <h3>Video Convert</h3>
+    <input type="file" id="vid-file" accept="video/*,image/gif"/>
+    <div class="row" style="margin-top:8px">
+      <label>Output
+        <select id="vid-out"><option value="mp4">MP4 (H.264 + AAC)</option><option value="webm">WebM (VP8 + Vorbis)</option></select>
+      </label>
+      <label>Resolution
+        <select id="vid-res"><option value="">Source</option><option>1080</option><option selected>720</option><option>480</option></select>
+      </label>
+      <label>Frame rate
+        <select id="vid-fps"><option value="">Source</option><option>24</option><option>30</option><option>60</option></select>
+      </label>
+      <label>CRF
+        <select id="vid-crf"><option>18</option><option selected>23</option><option>28</option></select>
+      </label>
+      <label>Preset
+        <select id="vid-preset"><option>ultrafast</option><option>veryfast</option><option selected>faster</option><option>fast</option><option>medium</option></select>
+      </label>
+      <label>Audio
+        <select id="vid-abr"><option>128k</option><option selected>192k</option><option>256k</option><option value="mute">Mute</option></select>
+      </label>
+      <label>Start <input id="vid-ss" type="text" placeholder="00:00:00"></label>
+      <label>Duration <input id="vid-t" type="text" placeholder="00:00:05"></label>
+      <label>Rotate
+        <select id="vid-rot"><option value="">0°</option><option value="clock">90°</option><option value="cclock">-90°</option><option value="180">180°</option></select>
+      </label>
+      <button id="vid-convert">Convert</button>
     </div>
-    <div class="card">
-      <span class="badge">NEW</span>
-      <h3>GIF ↔ MP4</h3>
-      <input type="file" id="gif-mp4-input" accept="image/gif,video/mp4,video/webm" />
-      <div class="row" style="margin-top:12px">
-        <select id="gif-mp4-target"><option value="mp4">GIF → MP4</option><option value="gif">Video → GIF</option></select>
-        <button id="gif-mp4-btn">Convert</button>
-      </div>
-      <div class="log" id="gif-mp4-log"></div>
-    </div>
+    <div class="log" id="vid-log"></div>
   </div>
-</section>
-</main>
-<footer><p>© <span id="year"></span> File Converter — Cyber Edition</p></footer>
-<script src="js/utils.js"></script>
+</div></section></main>
+<footer>© <span id="year"></span> AnyConvert+</footer>
 <script src="js/utils.js"></script>
 <script src="js/boot.js"></script>
-<script src="js/boot-video.js"></script>
-<script src="js/video.js"></script></body></html>
+<script src="js/video.js"></script>
+</body></html>

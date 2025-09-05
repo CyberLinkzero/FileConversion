@@ -1,67 +1,59 @@
-<!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Data — AnyConvert</title>
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Data (CSV/JSON/XLSX) — AnyConvert+</title>
 <link rel="stylesheet" href="site.css">
 </head><body>
-<header>
-  <div class="title"><div class="logo">⚡</div><h1>Data</h1></div>
-  <nav class="tabs">
-    <a class="tab" href="images.html">Images</a>
-    <a class="tab" href="documents.html">Docs/PDF</a>
-    <a class="tab" href="json.html">JSON/Doc/CSV</a>
-    <a class="tab active" href="data.html">Data</a>
-    <a class="tab" href="audio.html">Audio</a>
-    <a class="tab" href="video.html">Video</a>
-    <a class="tab" href="archive.html">Archive</a>
-    <a class="tab" href="about.html">About</a>
-  </nav>
-</header>
-<main>
-<section class="panel">
-  <div class="grid">
-    <div class="card">
-      <h3>CSV → XLSX</h3>
-      <input type="file" id="csv-input" accept=".csv,text/csv" />
-      <div class="row" style="margin-top:12px"><button id="csv2xlsx-btn">Convert</button></div>
-      <div class="log" id="csv-log"></div>
+<header><div class="title"><div class="logo">⚡</div><h1>Data</h1></div>
+<nav class="tabs">
+  <a class="tab active" href="data.html">Data</a>
+  <a class="tab" href="index.html">Home</a>
+</nav></header>
+<main><section class="panel"><div class="grid">
+
+  <div class="card">
+    <h3>CSV ↔ JSON</h3>
+    <input type="file" id="csv-file" accept=".csv,text/csv"/>
+    <textarea id="json-input" placeholder="Paste JSON here"></textarea>
+    <div class="row" style="margin-top:8px">
+      <label>Delimiter <select id="csv-delim"><option>,</option><option>;</option><option>\t</option><option>|</option></select></label>
+      <label>Header <select id="csv-header"><option value="true">Yes</option><option value="false">No</option></select></label>
+      <button id="csv-to-json">CSV → JSON</button>
+      <button id="json-to-csv">JSON → CSV</button>
     </div>
-    <div class="card">
-      <h3>XLSX → CSV</h3>
-      <input type="file" id="xlsx-input" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
-      <div class="row" style="margin-top:12px"><button id="xlsx2csv-btn">Convert</button></div>
-      <div class="log" id="xlsx-log"></div>
-    </div>
-    <div class="card">
-      <span class="badge">NEW</span>
-      <h3>GPS → CSV/XLSX</h3>
-      <input type="file" id="gps-input" accept=".gpx,.kml,.tcx,.fit,application/gpx+xml,application/vnd.google-earth.kml+xml" multiple />
-      <div class="row" style="margin-top:12px">
-        <button id="gps-to-csv">Export CSV</button>
-        <button id="gps-to-xlsx">Export XLSX</button>
-      </div>
-      <div class="log" id="gps-log"></div>
-    </div>
-    <div class="card">
-      <span class="badge">NEW</span>
-      <h3>CSV/XLSX → GPX/KML/TCX</h3>
-      <input type="file" id="tabular-input" accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" />
-      <div class="row" style="margin-top:12px">
-        <select id="tabular-target">
-          <option value="gpx">GPX (track)</option>
-          <option value="kml">KML (LineString + points)</option>
-          <option value="tcx">TCX (track)</option>
-        </select>
-        <button id="tabular-export">Export</button>
-      </div>
-      <div class="log" id="tabular-log"></div>
-    </div>
+    <div class="log" id="data-log"></div>
   </div>
-</section>
-</main>
-<footer><p>© <span id="year"></span> File Converter — Cyber Edition</p></footer>
-<script src="js/utils.js"></script>
+
+  <div class="card">
+    <h3>XLSX → CSV/JSON</h3>
+    <input type="file" id="xlsx-file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"/>
+    <div class="row" style="margin-top:8px">
+      <label>Sheet <select id="xlsx-sheet"></select></label>
+      <label>Dates <select id="xlsx-dates"><option value="true">Date objects</option><option value="false">Text</option></select></label>
+      <button id="xlsx-load">Load Sheets</button>
+      <button id="xlsx-to-json">Sheet → JSON</button>
+      <button id="xlsx-to-csv">Sheet → CSV</button>
+    </div>
+    <div class="log" id="xlsx-log"></div>
+  </div>
+
+  <div class="card">
+    <h3>JSON → DOC (plain option)</h3>
+    <input type="file" id="jsondoc-file" accept=".json,application/json"/>
+    <textarea id="jsondoc-input" placeholder="Paste JSON here"></textarea>
+    <div class="row" style="margin-top:8px">
+      <input type="text" id="jsondoc-title" placeholder="Title (optional)"/>
+      <label><input type="checkbox" id="jsondoc-plain"> Clear formatting</label>
+      <button id="jsondoc-preview">Preview</button>
+      <button id="jsondoc-doc">Download .DOC</button>
+      <button class="secondary" id="jsondoc-dl-html" disabled>Download HTML used</button>
+    </div>
+    <div class="preview hidden" id="jsondoc-preview-box"></div>
+    <div class="log" id="jsondoc-log"></div>
+  </div>
+
+</div></section></main>
+<footer>© <span id="year"></span> AnyConvert+</footer>
 <script src="js/utils.js"></script>
 <script src="js/boot.js"></script>
-<script src="js/boot-data.js"></script>
-<script src="js/data.js"></script></body></html>
+<script src="js/data.js"></script>
+</body></html>
