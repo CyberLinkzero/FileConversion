@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Images — AnyConvert</title>
+<link rel="stylesheet" href="site.css">
+<script src="https://unpkg.com/heic2any@0.0.5/dist/heic2any.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+</head><body>
+<header>
+  <div class="title"><div class="logo">⚡</div><h1>Images</h1></div>
+  <nav class="tabs">
+    <a class="tab active" href="images.html">Images</a>
+    <a class="tab" href="documents.html">Docs/PDF</a>
+    <a class="tab" href="json.html">JSON/Doc/CSV</a>
+    <a class="tab" href="data.html">Data</a>
+    <a class="tab" href="audio.html">Audio</a>
+    <a class="tab" href="video.html">Video</a>
+    <a class="tab" href="archive.html">Archive</a>
+    <a class="tab" href="about.html">About</a>
+  </nav>
+</header>
+<main>
+<section class="panel">
+  <div class="grid">
+    <div class="card">
+      <h3>Convert Image</h3>
+      <p class="muted">PNG/JPG/WEBP/HEIC → JPG/PNG/WEBP</p>
+      <div class="drop" id="img-drop">Drop images here or choose…<br><br>
+        <input type="file" id="img-input" accept="image/*,.heic" multiple />
+      </div>
+      <div class="row" style="margin-top:12px">
+        <select id="img-format">
+          <option value="image/jpeg">JPG</option>
+          <option value="image/png">PNG</option>
+          <option value="image/webp">WEBP</option>
+        </select>
+        <input type="number" id="img-quality" min="1" max="100" value="90" />
+        <button id="img-convert">Convert</button>
+      </div>
+      <div class="log" id="img-log"></div>
+    </div>
+    <div class="card">
+      <h3>HEIC → JPG</h3>
+      <input type="file" id="heic-input" accept=".heic" multiple />
+      <div class="row" style="margin-top:12px"><button id="heic-convert">Convert</button></div>
+      <div class="log" id="heic-log"></div>
+    </div>
+    <div class="card">
+      <h3>Image → PDF</h3>
+      <input type="file" id="img-pdf-input" accept="image/*" multiple />
+      <div class="row" style="margin-top:12px"><button id="img-pdf-btn">Create PDF</button></div>
+      <div class="log" id="img-pdf-log"></div>
+    </div>
+    <div class="card">
+      <span class="badge">NEW</span>
+      <h3>WebP ↔ GIF</h3>
+      <input type="file" id="webp-gif-input" accept="image/webp,image/gif" />
+      <div class="row" style="margin-top:12px">
+        <select id="webp-gif-target"><option value="gif">to GIF</option><option value="webp">to WebP</option></select>
+        <button id="webp-gif-btn">Convert</button>
+      </div>
+      <div class="log" id="webp-gif-log"></div>
+    </div>
+  </div>
+</section>
+</main>
+<footer><p>© <span id="year"></span> File Converter — Cyber Edition</p></footer>
+<script src="js/utils.js"></script>
+<script type="module">
+  import { createFFmpeg, fetchFile } from "https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/ffmpeg.min.js";
+  window.createFFmpeg = createFFmpeg; window.fetchFile = fetchFile;
+</script>
+<script src="js/images.js"></script>
+</body></html>

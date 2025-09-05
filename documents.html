@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Docs & PDF — AnyConvert</title>
+<link rel="stylesheet" href="site.css">
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs" type="module"></script>
+</head><body>
+<header>
+  <div class="title"><div class="logo">⚡</div><h1>Docs / PDF</h1></div>
+  <nav class="tabs">
+    <a class="tab" href="images.html">Images</a>
+    <a class="tab active" href="documents.html">Docs/PDF</a>
+    <a class="tab" href="json.html">JSON/Doc/CSV</a>
+    <a class="tab" href="data.html">Data</a>
+    <a class="tab" href="audio.html">Audio</a>
+    <a class="tab" href="video.html">Video</a>
+    <a class="tab" href="archive.html">Archive</a>
+    <a class="tab" href="about.html">About</a>
+  </nav>
+</header>
+<main>
+<section id="tab-documents" class="panel">
+  <div class="grid">
+    <div class="card">
+      <h3>Merge PDFs</h3>
+      <input type="file" id="pdf-merge-input" accept="application/pdf" multiple />
+      <div class="row" style="margin-top:12px"><button id="pdf-merge-btn">Merge</button></div>
+      <div class="log" id="pdf-merge-log"></div>
+    </div>
+    <div class="card">
+      <span class="badge">NEW</span>
+      <h3>Split PDF (by pages)</h3>
+      <p class="muted">Ranges like <code>1-3,5,7-8</code></p>
+      <input type="file" id="pdf-split-input" accept="application/pdf" />
+      <div class="row" style="margin-top:12px">
+        <input type="text" id="pdf-split-ranges" placeholder="1-3,5" />
+        <button id="pdf-split-btn">Split</button>
+      </div>
+      <div class="log" id="pdf-split-log"></div>
+    </div>
+    <div class="card">
+      <h3>DOCX → PDF</h3>
+      <input type="file" id="docx-input" accept=".docx" />
+      <div class="row" style="margin-top:12px"><button id="docx-btn">Convert</button></div>
+      <div class="log" id="docx-log"></div>
+    </div>
+    <div class="card">
+      <h3>PDF → Images</h3>
+      <input type="file" id="pdf2img-input" accept="application/pdf" />
+      <div class="row" style="margin-top:12px"><button id="pdf2img-btn">Render</button></div>
+      <div class="log" id="pdf2img-log"></div>
+      <div id="pdf2img-out" class="preview hidden"></div>
+    </div>
+  </div>
+</section>
+</main>
+<footer><p>© <span id="year"></span> File Converter — Cyber Edition</p></footer>
+<script src="js/utils.js"></script>
+<script>
+  window.ensureMammoth = () => new Promise(res=>{
+    if (window.mammoth) return res();
+    const s=document.createElement('script'); s.src='https://unpkg.com/mammoth@1.6.0/mammoth.browser.min.js'; s.onload=res; document.body.appendChild(s);
+  });
+  window.ensureHtml2Pdf = () => new Promise(res=>{
+    if (window.html2pdf) return res();
+    const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'; s.onload=res; document.body.appendChild(s);
+  });
+</script>
+<script src="js/documents.js"></script>
+</body></html>

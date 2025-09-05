@@ -1,44 +1,55 @@
-<!doctype html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>About | File Converter — Cyber Edition</title>
-<meta name="description" content="Why this file converter exists, how it keeps your files private, and what it can do. 100% client-side conversions.">
-<link rel="stylesheet" href="/site.css">
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>About — AnyConvert</title>
+<link rel="stylesheet" href="site.css">
 </head><body>
-<div class="container">
-  <h1>About File Converter — Cyber Edition</h1>
-  <div class="card">
-    <p><strong>File Converter — Cyber Edition</strong> is a privacy-first, open web app for everyday conversions: images, PDFs, spreadsheets (CSV/XLSX/JSON), GPS files (GPX/KML/TCX/FIT), audio/video, and ZIP. Everything runs <em>locally</em> in your browser — no uploads, no accounts, no paywalls.</p>
-    <h2>What makes it different?</h2>
-    <ul>
-      <li><strong>100% Local</strong>: Processing happens in-browser using Web APIs and WebAssembly (e.g., FFmpeg.wasm). Your files never leave your device.</li>
-      <li><strong>Fast & Simple</strong>: Drag-and-drop and go. No watermarking, no email capture.</li>
-      <li><strong>Versatile</strong>: Images ↔ formats, PDF merge/split, CSV/XLSX/JSON, GPX/KML/TCX, MP3/WAV, MP4/WebM, ZIP—more coming.</li>
-      <li><strong>Open</strong>: Built for GitHub Pages; MIT-licensed where possible.</li>
-    </ul>
-    <h2>Use cases</h2>
-    <ul>
-      <li>Create a multi-page PDF from photos.</li>
-      <li>Turn a GPX hike into a clean CSV table—or export CSV back to GPX/KML/TCX.</li>
-      <li>Transcode a large MP4 to WebM for smaller embeds.</li>
-      <li>Convert CSV/XLSX to JSON for quick prototyping.</li>
-    </ul>
-    <p class="notice">Tip: For heavy video/audio conversions, keep the tab in focus so the browser doesn’t throttle compute.</p>
+<header>
+  <div class="title"><div class="logo">⚡</div><h1>About</h1></div>
+  <nav class="tabs">
+    <a class="tab" href="images.html">Images</a>
+    <a class="tab" href="documents.html">Docs/PDF</a>
+    <a class="tab" href="json.html">JSON/Doc/CSV</a>
+    <a class="tab" href="data.html">Data</a>
+    <a class="tab" href="audio.html">Audio</a>
+    <a class="tab" href="video.html">Video</a>
+    <a class="tab" href="archive.html">Archive</a>
+    <a class="tab active" href="about.html">About</a>
+  </nav>
+</header>
+<main>
+<section id="tab-about" class="panel">
+  <div class="grid">
+    <div class="card">
+      <h3>How this works</h3>
+      <p class="muted">All conversions run locally in your browser. Libraries: Canvas/heic2any (images), jsPDF/pdf-lib/pdf.js (PDF), SheetJS (XLSX), FFmpeg.wasm (audio/video), Mammoth+html2pdf (DOCX), JSZip (ZIP).</p>
+    </div>
+    <div class="card">
+      <span class="badge">NEW</span>
+      <h3>Cyber Branding</h3>
+      <div class="row" style="margin-top:12px">
+        <input type="text" id="brand-name" placeholder="Brand name" />
+        <input type="color" id="brand-primary" value="#7dd3fc" />
+        <input type="color" id="brand-secondary" value="#a78bfa" />
+        <button id="brand-apply">Apply</button>
+      </div>
+      <div class="log" id="brand-log"></div>
+    </div>
   </div>
-</div>
-<!-- footer -->
-<footer>
-  <div class="container">
-    <nav class="nav" aria-label="Footer">
-      <a href="about.html">About</a>
-      <a href="tools.html">Tools</a>
-      <a href="faq.html">FAQ</a>
-      <a href="blog/">Blog</a>
-      <a href="contact.html">Contact</a>
-      <a href="privacy-policy.html">Privacy</a>
-      <a href="terms.html">Terms</a>
-    </nav>
-    <p>© <span id="y"></span> File Converter — Cyber Edition</p>
-  </div>
-  <script>document.getElementById('y').textContent=new Date().getFullYear();</script>
-</footer>
+</section>
+</main>
+<footer><p>© <span id="year"></span> File Converter — Cyber Edition</p></footer>
+<script src="js/utils.js"></script>
+<script>
+  byId('brand-apply').addEventListener('click', ()=>{
+    const name = byId('brand-name').value || 'AnyConvert — Cyber Edition';
+    const primary = byId('brand-primary').value;
+    const secondary = byId('brand-secondary').value;
+    document.querySelector('h1').textContent = name;
+    document.documentElement.style.setProperty('--brand', primary);
+    document.documentElement.style.setProperty('--accent', secondary);
+    localStorage.setItem('anyconvert_brand', JSON.stringify({name, primary, secondary}));
+    log(byId('brand-log'), `✓ Branding updated to "${name}"`);
+  });
+</script>
 </body></html>
