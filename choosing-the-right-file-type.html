@@ -3,20 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Choosing the Right File Type — Blog</title>
-  <meta name="description" content="A practical, story-driven guide to image, audio, video, document, data, and archive file formats — how they work, when to use them, and what to avoid.">
+  <title>Choosing the Right File Type — Guide</title>
+  <meta name="description" content="A story-driven field guide to picking the best file format for images, audio, video, documents, data, and archives.">
   <link rel="stylesheet" href="site.css">
   <style>
-    /* Optional tiny helpers (safe with your site.css) */
     .prose p{margin:0.6rem 0}
     .prose h2,.prose h3{margin-top:1.4rem}
     .callout{border:1px dashed var(--line); background:#0c1320; padding:12px; border-radius:12px}
     .toc a{color:var(--muted); text-decoration:none}
-    .badge-tip{display:inline-block;background:var(--brand);color:#0b0f14;border-radius:999px;padding:2px 8px;font-weight:700;font-size:.75rem;margin-right:.5rem}
-    .badge-gotcha{display:inline-block;background:#fca5a5;color:#0b0f14;border-radius:999px;padding:2px 8px;font-weight:700;font-size:.75rem;margin-right:.5rem}
     .grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
-    .muted{color:var(--muted)}
-    .kbd{font-family:ui-monospace,Consolas,monospace;background:#0c1624;border:1px solid var(--line);padding:1px 6px;border-radius:6px}
     .mini{font-size:.9rem;color:var(--muted)}
     article a{color:var(--brand); text-decoration:none}
     article a:hover{text-decoration:underline}
@@ -28,12 +23,13 @@
     <div class="logo">⚡</div>
     <div>
       <h1>Choosing the Right File Type</h1>
-      <p class="sub">A story‑driven field guide to images, audio, video, documents, data, and more.</p>
+      <p class="sub">A story-driven field guide to images, audio, video, documents, data, and more.</p>
     </div>
   </div>
   <nav class="tabs">
     <a class="tab" href="index.html">Home</a>
-    <a class="tab active" href="#">Blog</a>
+    <a class="tab" href="gps.html">GPS</a>
+    <a class="tab active" href="choosing-the-right-file-type.html"Pick the Right File</a>
   </nav>
 </header>
 
@@ -60,18 +56,12 @@
         </div>
 
         <h2 id="why">The two rules that explain most file behavior</h2>
-        <p>Welcome to a short walking tour. Before we step into the galleries, two spells run this whole museum:</p>
-        <ol>
-          <li><strong>Lossy vs. lossless.</strong> Lossy formats (like JPG, MP3, most video) throw away details human senses notice least so files get smaller. You can’t get that detail back. Lossless formats (like PNG, FLAC, ZIP) squeeze without deleting—unpack and you get the exact original.</li>
-          <li><strong>Transparency (alpha).</strong> Some image formats can store see‑through pixels. <em>JPEG cannot.</em> If you save a transparent logo as JPG, the “empty” pixels fill with a color (usually white). That’s why you see a white box or pale halo when you place it on a dark background. Use PNG, WebP, or AVIF when you need transparency.</li>
-        </ol>
+        <p>Two forces shape how files behave: <strong>lossy vs. lossless compression</strong>, and whether a format supports <strong>transparency</strong> (alpha). JPEG is lossy and has no alpha, which is why “transparent JPGs” show a white box or halo. PNG/WebP/AVIF support alpha and are ideal for logos and UI with clean edges.</p>
 
         <h2 id="images">Images</h2>
-        <p>Photos are made of pixels (raster). Logos and icons can also be vectors (math paths) that scale forever. Here’s how to choose.</p>
-
         <div class="grid-2">
           <div class="callout">
-            <span class="badge-tip">Best for</span> quick picks
+            <strong>Best for</strong>
             <ul>
               <li><strong>Photos (no transparency):</strong> JPG, WebP, AVIF</li>
               <li><strong>Graphics/UI, needs crisp edges or transparency:</strong> PNG, SVG, WebP/AVIF</li>
@@ -79,208 +69,62 @@
             </ul>
           </div>
           <div class="callout">
-            <span class="badge-gotcha">Gotchas</span>
+            <strong>Gotchas</strong>
             <ul>
-              <li>JPG has <em>no</em> transparency → white boxes/halos on cut‑outs.</li>
-              <li>PNG is lossless—great for logos, <em>big</em> for photos.</li>
+              <li>JPG has no transparency → white boxes/halos on cut-outs.</li>
+              <li>PNG is lossless—great for logos, big for photos.</li>
               <li>AVIF is tiny but slower to encode; keep a fallback if compatibility matters.</li>
             </ul>
           </div>
         </div>
-
-        <h3>JPEG / JPG</h3>
-        <p><strong>Use for:</strong> photographs and complex scenes when you don’t need transparency.</p>
-        <p><strong>Why it’s good:</strong> small files; universal support.</p>
-        <p><strong>Trade‑offs:</strong> blocky/ringy artifacts at low quality; no alpha; white halos on cut‑outs.</p>
-        <p><strong>Settings tip:</strong> quality ~75–85 for web; avoid re‑saving lossy files repeatedly.</p>
-
-        <h3>PNG</h3>
-        <p><strong>Use for:</strong> logos, UI, screenshots, line art, anything needing <em>true</em> transparency.</p>
-        <p><strong>Why it’s good:</strong> lossless; sharp edges; alpha channel.</p>
-        <p><strong>Trade‑offs:</strong> often much larger than JPG for photos.</p>
-
-        <h3>WebP</h3>
-        <p><strong>Use for:</strong> modern web images (both photos and graphics), including transparency and animation.</p>
-        <p><strong>Why it’s good:</strong> smaller than JPG/PNG at similar quality; flexible.</p>
-        <p><strong>Trade‑offs:</strong> encoding can be slower; older tools may lag.</p>
-
-        <h3>AVIF</h3>
-        <p><strong>Use for:</strong> smallest high‑quality photos; supports transparency.</p>
-        <p><strong>Why it’s good:</strong> excellent compression; great gradients with 10‑bit color.</p>
-        <p><strong>Trade‑offs:</strong> slower to encode; ensure your audience/apps can open it (keep a fallback if needed).</p>
-
-        <h3>GIF, APNG, Animated WebP</h3>
-        <ul>
-          <li><strong>GIF:</strong> 256‑color limit; big files for real‑world footage; universal nostalgia.</li>
-          <li><strong>APNG:</strong> full color + transparency; great for UI/illustrations.</li>
-          <li><strong>Animated WebP:</strong> often the best size/quality for the web.</li>
-        </ul>
-
-        <h3>SVG (vector)</h3>
-        <p><strong>Use for:</strong> logos, icons, diagrams that must scale perfectly.</p>
-        <p><strong>Why it’s good:</strong> tiny for simple art; infinite resolution; can be styled.</p>
-        <p><strong>Trade‑offs:</strong> heavy filters/embeds can bloat; not for photos.</p>
-
-        <h3>TIFF & RAW</h3>
-        <p><strong>Use for:</strong> archiving and editing workflows; print‑ready masters.</p>
+        <h3>JPEG / JPG</h3><p>Small, universal for photos; no alpha; artifacts if compressed hard.</p>
+        <h3>PNG</h3><p>Lossless, sharp, true transparency; large for photos.</p>
+        <h3>WebP</h3><p>Modern, smaller than JPG/PNG; supports transparency & animation.</p>
+        <h3>AVIF</h3><p>Often the smallest at high quality; supports alpha; encoding slower.</p>
+        <h3>GIF/APNG/Animated WebP</h3><p>Prefer APNG/animated WebP for quality and size; use GIF for retro/simple loops.</p>
+        <h3>SVG</h3><p>Vector; scales perfectly; ideal for logos/icons.</p>
+        <h3>TIFF/RAW</h3><p>Masters for editing and archive; not for web delivery.</p>
 
         <h2 id="audio">Audio</h2>
-        <div class="grid-2">
-          <div class="callout">
-            <span class="badge-tip">Quick picks</span>
-            <ul>
-              <li><strong>Universal sharing:</strong> MP3</li>
-              <li><strong>Video soundtracks / streaming:</strong> AAC (M4A)</li>
-              <li><strong>Speech at low bitrates:</strong> Opus</li>
-              <li><strong>Editing / archive:</strong> WAV (PCM) or FLAC</li>
-            </ul>
-          </div>
-          <div class="callout">
-            <span class="badge-gotcha">Watch‑outs</span>
-            <ul>
-              <li>Lossy (MP3/AAC/Opus) is not for re‑editing repeatedly.</li>
-              <li>WAV is huge; save it for masters/DAWs.</li>
-            </ul>
-          </div>
-        </div>
-        <p><strong>MP3</strong> plays everywhere; 128–192 kbps covers most needs. <strong>AAC/M4A</strong> is more efficient, great for video. <strong>Opus</strong> shines for voice and streaming. <strong>WAV/AIFF</strong> are raw PCM for editing; <strong>FLAC/ALAC</strong> are lossless but smaller than WAV.</p>
+        <p><strong>MP3</strong> (plays everywhere), <strong>AAC/M4A</strong> (more efficient), <strong>Opus</strong> (great at low bitrates), <strong>WAV/AIFF</strong> (editing), <strong>FLAC/ALAC</strong> (lossless archive).</p>
 
         <h2 id="video">Video</h2>
-        <div class="grid-2">
-          <div class="callout">
-            <span class="badge-tip">Quick picks</span>
-            <ul>
-              <li><strong>Plays almost anywhere:</strong> MP4 (H.264 + AAC)</li>
-              <li><strong>Smaller web files:</strong> WebM (VP9/AV1 + Opus)</li>
-              <li><strong>Editing intermediates:</strong> MOV (ProRes), high‑bitrate MP4</li>
-            </ul>
-          </div>
-          <div class="callout">
-            <span class="badge-gotcha">Watch‑outs</span>
-            <ul>
-              <li>Use <span class="kbd">yuv420p</span> for compatibility.</li>
-              <li>AV1 is efficient but slower to encode; ensure playback support.</li>
-            </ul>
-          </div>
-        </div>
-        <p><strong>Containers</strong> (MP4, MKV, MOV, WebM) are boxes; <strong>codecs</strong> (H.264, VP9, AV1; AAC, Opus) are how content is compressed. For MP4/H.264, a good starting point is CRF ~23 and preset “faster/fast.” For WebM, VP9 is mature; AV1 is smallest at the cost of time.</p>
+        <p><strong>MP4 (H.264 + AAC)</strong> for universal playback; <strong>WebM (VP9/AV1 + Opus)</strong> for smaller web files; <strong>MOV/ProRes</strong> for editing.</p>
 
         <h2 id="docs">Documents</h2>
-        <div class="grid-2">
-          <div class="callout">
-            <span class="badge-tip">Choose this</span>
-            <ul>
-              <li><strong>To edit together:</strong> DOCX</li>
-              <li><strong>To share & print exactly:</strong> PDF</li>
-              <li><strong>To publish on the web:</strong> HTML / Markdown</li>
-              <li><strong>To read like a book:</strong> EPUB</li>
-            </ul>
-          </div>
-          <div class="callout">
-            <span class="badge-gotcha">Notes</span>
-            <ul>
-              <li>PDF accessibility depends on proper tagging and real text.</li>
-              <li>DOCX layout can shift across systems; embed fonts if needed.</li>
-            </ul>
-          </div>
-        </div>
+        <p><strong>DOCX</strong> for editing/collab; <strong>PDF</strong> to freeze layout; <strong>HTML/Markdown</strong> to publish; <strong>EPUB</strong> for ebooks.</p>
 
         <h2 id="data">Data</h2>
-        <div class="grid-2">
-          <div class="callout">
-            <span class="badge-tip">Use this</span>
-            <ul>
-              <li><strong>Simple tables:</strong> CSV</li>
-              <li><strong>APIs/configs:</strong> JSON</li>
-              <li><strong>Spreadsheets:</strong> XLSX</li>
-              <li><strong>Analytics:</strong> Parquet / Arrow</li>
-            </ul>
-          </div>
-          <div class="callout">
-            <span class="badge-gotcha">Pitfalls</span>
-            <ul>
-              <li>CSV has no schema → commas/newlines/encodings can break things.</li>
-              <li>JSON is verbose; agree on a schema and field names.</li>
-            </ul>
-          </div>
-        </div>
+        <p><strong>CSV</strong> for simple tables, <strong>JSON</strong> for APIs/configs, <strong>XLSX</strong> for spreadsheets, <strong>Parquet/Arrow</strong> for analytics.</p>
 
         <h2 id="archives">Archives</h2>
-        <p><strong>ZIP</strong> is the default everyone can open. <strong>7z</strong> squeezes smaller but needs a helper app on some systems. <strong>TAR.GZ/XZ</strong> are common on Unix for packaging + compression.</p>
+        <p><strong>ZIP</strong> is default; <strong>7z</strong> for max compression; <strong>TAR.GZ/XZ</strong> for Unix workflows.</p>
 
         <h2 id="decisions">Quick decision trees</h2>
         <div class="grid-2">
-          <div class="card">
-            <h3>Images</h3>
-            <ul>
-              <li>Need transparency or razor‑sharp edges? → <strong>PNG/SVG</strong> (or WebP/AVIF with alpha)</li>
-              <li>Photo, no transparency? → <strong>JPG</strong> (fallback) or <strong>WebP/AVIF</strong> (smaller)</li>
-              <li>Animation? → <strong>Animated WebP/APNG</strong> (avoid big GIFs)</li>
-            </ul>
-          </div>
-          <div class="card">
-            <h3>Audio</h3>
-            <ul>
-              <li>Share anywhere? → <strong>MP3</strong></li>
-              <li>For video/streaming? → <strong>AAC (M4A)</strong></li>
-              <li>Edit/archive? → <strong>WAV/FLAC</strong></li>
-            </ul>
-          </div>
-          <div class="card">
-            <h3>Video</h3>
-            <ul>
-              <li>Universal? → <strong>MP4 (H.264 + AAC)</strong></li>
-              <li>Smaller web? → <strong>WebM (VP9/AV1)</strong></li>
-              <li>Editing? → <strong>MOV/ProRes</strong></li>
-            </ul>
-          </div>
-          <div class="card">
-            <h3>Documents</h3>
-            <ul>
-              <li>Editable? → <strong>DOCX</strong></li>
-              <li>Final/share/print? → <strong>PDF</strong></li>
-            </ul>
-          </div>
+          <div class="card"><h3>Images</h3><ul><li>Need transparency? → PNG/SVG/WebP/AVIF</li><li>Photo only? → JPG or WebP/AVIF</li><li>Animation? → Animated WebP/APNG</li></ul></div>
+          <div class="card"><h3>Audio</h3><ul><li>Share anywhere? → MP3</li><li>For video? → AAC</li><li>Edit/archive? → WAV/FLAC</li></ul></div>
+          <div class="card"><h3>Video</h3><ul><li>Universal? → MP4 (H.264 + AAC)</li><li>Smaller web? → WebM (VP9/AV1)</li><li>Editing? → MOV/ProRes</li></ul></div>
+          <div class="card"><h3>Documents</h3><ul><li>Editable? → DOCX</li><li>Final/share/print? → PDF</li></ul></div>
         </div>
 
-        <h2 id="troubleshoot">Troubleshooting (fast fixes)</h2>
+        <h2 id="troubleshoot">Troubleshooting</h2>
         <ul>
-          <li><strong>Logo shows a white box:</strong> Export as PNG/WebP/AVIF with transparency; don’t use JPG.</li>
-          <li><strong>Animated image is huge:</strong> Use animated WebP or APNG instead of GIF.</li>
-          <li><strong>Screenshot looks blurry:</strong> Save as PNG (JPG compression and chroma subsampling blur UI text).</li>
-          <li><strong>Colors shift in print:</strong> Convert to the print shop’s profile; proof before mass print.</li>
-          <li><strong>Excel ate leading zeros:</strong> That’s CSV. Quote fields or ship JSON/XLSX.</li>
+          <li><strong>Logo has a white box:</strong> Export PNG/WebP/AVIF with transparency.</li>
+          <li><strong>Animated GIF is huge:</strong> Use animated WebP/APNG.</li>
+          <li><strong>Screenshot is blurry:</strong> Save as PNG (JPG blurs UI text).</li>
+          <li><strong>Colors shift in print:</strong> Convert to the print profile; proof first.</li>
+          <li><strong>CSV lost leading zeros:</strong> Quote fields or use JSON/XLSX.</li>
         </ul>
-
-        <h2 id="glossary">Glossary</h2>
-        <ul>
-          <li><strong>Alpha:</strong> the transparency channel in images.</li>
-          <li><strong>Container vs. Codec:</strong> the box vs. the compression method (for video/audio).</li>
-          <li><strong>CRF:</strong> “constant rate factor,” a quality slider for many video encoders.</li>
-          <li><strong>Chroma subsampling:</strong> storing color at lower resolution than brightness to save space.</li>
-          <li><strong>Lossless vs. Lossy:</strong> whether compression deletes detail or not.</li>
-        </ul>
-
-        <div class="callout">
-          <strong>Remember the three questions:</strong>
-          <ol>
-            <li>Do you need <em>transparency</em> or perfect edges?</li>
-            <li>Do you want something <em>editable</em> or a <em>final</em> share?</li>
-            <li>Who needs to open it, and on what devices?</li>
-          </ol>
-        </div>
-
       </article>
     </div>
   </section>
 </main>
 
 <footer>
-  <p>© <span id="year"></span> Your Site — Blog</p>
+  <p>© <span id="year"></span> AnyConvert+</p>
 </footer>
-
 <script>
-  // tiny helper to update year if your site.js isn't present
   (function(){ var y=document.getElementById('year'); if(y){ y.textContent = new Date().getFullYear(); } })();
 </script>
 </body>
