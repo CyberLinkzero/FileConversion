@@ -1,33 +1,68 @@
 <!doctype html>
 <html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Data — AnyConvert+</title>
-<meta http-equiv="refresh" content="0; url=index.html#data">
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Data — AnyConvert</title>
 <link rel="stylesheet" href="site.css">
-<script>window.location.replace('index.html#data');</script>
-</head>
-<body>
-<header><div class="title"><div class="logo">⚡</div><div><h1>Data</h1><p class="sub">Forwarding to the Data tools on Home…</p></div></div>
-<nav class="tabs">
-  <a class="tab" href="index.html">Home</a>
-  <a class="tab" href="audio.html">Audio</a>
-  <a class="tab" href="video.html">Video</a>
-  <a class="tab" href="images.html">Images</a>
-  <a class="tab" href="pdf.html">PDF</a>
-  <a class="tab active" href="data.html">Data</a>
-  <a class="tab" href="archive.html">Archive</a>
-  <a class="tab" href="docx.html">DOCX</a>
-  <a class="tab" href="gps.html">GPS</a>
-  <a class="tab" href="gps-file-guide.html">GPS Guide</a>
-  <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
-  <a class="tab" href="image-file-guide.html">Image Guide</a>
-  <a class="tab" href="audio-file-guide.html">Audio Guide</a>
-  <a class="tab" href="video-file-guide.html">Video Guide</a>
-</nav></header>
-<main class="panel"><div class="grid"><div class="card">
-<p>If you are not redirected automatically, <a href="index.html#data">click here</a>.</p>
-</div></div></main>
-<footer>© <span id="year"></span> AnyConvert+</footer>
-<script>(function(){var y=document.getElementById('year');if(y) y.textContent=new Date().getFullYear();})();</script>
-<script src="js/nav_active.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://unpkg.com/fit-file-parser@1.11.0/dist/fit-file-parser.min.js"></script>
+</head><body>
+<header>
+  <div class="title"><div class="logo">⚡</div><h1>Data</h1></div>
+  <nav class="tabs">
+    <a class="tab" href="images.html">Images</a>
+    <a class="tab" href="documents.html">Docs/PDF</a>
+    <a class="tab" href="json.html">JSON/Doc/CSV</a>
+    <a class="tab active" href="data.html">Data</a>
+    <a class="tab" href="audio.html">Audio</a>
+    <a class="tab" href="video.html">Video</a>
+    <a class="tab" href="archive.html">Archive</a>
+    <a class="tab" href="about.html">About</a>
+  </nav>
+</header>
+<main>
+<section class="panel">
+  <div class="grid">
+    <div class="card">
+      <h3>CSV → XLSX</h3>
+      <input type="file" id="csv-input" accept=".csv,text/csv" />
+      <div class="row" style="margin-top:12px"><button id="csv2xlsx-btn">Convert</button></div>
+      <div class="log" id="csv-log"></div>
+    </div>
+    <div class="card">
+      <h3>XLSX → CSV</h3>
+      <input type="file" id="xlsx-input" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+      <div class="row" style="margin-top:12px"><button id="xlsx2csv-btn">Convert</button></div>
+      <div class="log" id="xlsx-log"></div>
+    </div>
+    <div class="card">
+      <span class="badge">NEW</span>
+      <h3>GPS → CSV/XLSX</h3>
+      <input type="file" id="gps-input" accept=".gpx,.kml,.tcx,.fit,application/gpx+xml,application/vnd.google-earth.kml+xml" multiple />
+      <div class="row" style="margin-top:12px">
+        <button id="gps-to-csv">Export CSV</button>
+        <button id="gps-to-xlsx">Export XLSX</button>
+      </div>
+      <div class="log" id="gps-log"></div>
+    </div>
+    <div class="card">
+      <span class="badge">NEW</span>
+      <h3>CSV/XLSX → GPX/KML/TCX</h3>
+      <input type="file" id="tabular-input" accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" />
+      <div class="row" style="margin-top:12px">
+        <select id="tabular-target">
+          <option value="gpx">GPX (track)</option>
+          <option value="kml">KML (LineString + points)</option>
+          <option value="tcx">TCX (track)</option>
+        </select>
+        <button id="tabular-export">Export</button>
+      </div>
+      <div class="log" id="tabular-log"></div>
+    </div>
+  </div>
+</section>
+</main>
+<footer><p>© <span id="year"></span> File Converter — Cyber Edition</p></footer>
+<script src="js/utils.js"></script>
+<script src="js/data.js"></script>
 </body></html>

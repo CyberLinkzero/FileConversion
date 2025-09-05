@@ -1,178 +1,93 @@
 <!doctype html>
 <html lang="en"><head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>JSON / DOC — AnyConvert</title>
-  <link rel="stylesheet" href="site.css">
-</head>
-<body>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>JSON / DOCX / CSV — AnyConvert</title>
+<link rel="stylesheet" href="site.css">
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.4.1/dist/html-docx.min.js"></script>
+</head><body>
 <header>
-  <div class="title">
-    <div class="logo">⚡</div>
-    <h1>JSON / DOC</h1>
-  </div>
+  <div class="title"><div class="logo">⚡</div><h1>JSON / DOCX / CSV</h1></div>
   <nav class="tabs">
-    <a class="tab active" href="json.html">JSON / DOC</a>
-    <a class="tab" href="index.html">Home</a>
+    <a class="tab" href="images.html">Images</a>
+    <a class="tab" href="documents.html">Docs/PDF</a>
+    <a class="tab active" href="json.html">JSON/Doc/CSV</a>
+    <a class="tab" href="data.html">Data</a>
+    <a class="tab" href="audio.html">Audio</a>
+    <a class="tab" href="video.html">Video</a>
+    <a class="tab" href="archive.html">Archive</a>
+    <a class="tab" href="about.html">About</a>
   </nav>
 </header>
-
 <main>
-<section class="panel">
+<section id="tab-json" class="panel">
   <div class="grid">
-
-    <!-- JSON preview / CSV -->
     <div class="card">
-      <h3>Preview JSON</h3>
-      <input type="file" id="json-file" accept=".json,application/json" />
-      <textarea id="json-input" placeholder='Paste JSON here (array or object)'></textarea>
-      <div class="row" style="margin-top:8px">
-        <label><input type="checkbox" id="json-stringify-nonprim"> stringify objects</label>
-        <label><input type="checkbox" id="json-explode-arr"> explode first array column</label>
+      <span class="badge">UPGRADED</span>
+      <h3>JSON ⇄ CSV (with preview)</h3>
+      <div class="row"><textarea id="json-input" placeholder='[{"id":1,"user":{"name":"Alice","tags":["pro","beta"]}},{"id":2,"user":{"name":"Bob"}}]'></textarea></div>
+      <div class="row">
+        <input type="file" id="json-file" accept="application/json,.json" />
         <button id="json-preview">Preview</button>
         <button id="json-to-csv">Download CSV</button>
       </div>
-      <div class="preview hidden" id="json-preview-area"></div>
-      <div class="log" id="json-log"></div>
-    </div>
-
-    <!-- JSON → DOC -->
-    <div class="card">
-      <h3>JSON → DOC</h3>
-      <input type="file" id="jsondoc-file" accept=".json,application/json" />
-      <textarea id="jsondoc-input" placeholder='Paste JSON here (array or object)'></textarea>
-      <div class="row" style="margin-top:8px">
-        <input type="text" id="jsondoc-title" placeholder="Title (optional)" />
-        <select id="jsondoc-mode">
-          <option value="table">Table</option>
-          <option value="cards">Cards</option>
-        </select>
-        <button id="jsondoc-preview">Preview</button>
-        <button id="jsondoc-doc">Download .DOC</button>
-        <button class="secondary" id="jsondoc-dl-html" disabled>Download HTML used</button>
+      <div class="row">
+        <label class="small"><input type="checkbox" id="json-explode-arr" /> Explode first array column</label>
+        <label class="small"><input type="checkbox" id="json-stringify-nonprim" checked /> Stringify non-primitives</label>
       </div>
-      <div class="preview hidden" id="jsondoc-preview-box"></div>
-      <div class="log" id="jsondoc-log"></div>
+      <div id="json-preview-area" class="preview hidden"></div>
+      <div class="log" id="json-log"></div>
+      <hr style="border:none;border-top:1px solid #1f2433;margin:14px 0">
+      <h4>CSV → JSON</h4>
+      <div class="row">
+        <input type="file" id="csv-file" accept="text/csv,.csv" />
+        <button id="csv-preview">Preview</button>
+        <button id="csv-to-json">Download JSON</button>
+      </div>
+      <div id="csv-preview-area" class="preview hidden"></div>
+      <div class="log" id="csv-log"></div>
     </div>
 
+    <div class="card">
+      <span class="badge">NEW</span>
+      <h3>JSON ⇄ DOCX (with preview)</h3>
+      <h4>JSON → DOCX</h4>
+      <div class="row"><textarea id="jsondoc-input" placeholder='[{"name":"Alice","email":"a@example.com"},{"name":"Bob","email":"b@example.com"}]'></textarea></div>
+      <div class="row">
+        <input type="file" id="jsondoc-file" accept="application/json,.json" />
+        <select id="jsondoc-mode"><option value="table">Table</option><option value="blocks">Key/Value Blocks</option></select>
+        <input type="text" id="jsondoc-title" placeholder="Optional title" />
+      </div>
+      <div class="row">
+        <button id="jsondoc-preview">Preview</button>
+        <button id="jsondoc-docx">Download DOCX</button>
+      </div>
+      <div id="jsondoc-preview-box" class="preview hidden"></div>
+      <div class="log" id="jsondoc-log"></div>
+
+      <hr style="border:none;border-top:1px solid #1f2433;margin:14px 0">
+      <h4>DOCX → HTML/TXT/JSON</h4>
+      <div class="row">
+        <input type="file" id="docx-in" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+        <button id="docx-to-html">Convert & Preview</button>
+        <button id="docx-dl-html" class="secondary" disabled>Download HTML</button>
+        <button id="docx-dl-txt" class="secondary" disabled>Download TXT</button>
+        <button id="docx-extract-json" class="secondary" disabled>Extract → JSON</button>
+      </div>
+      <div id="docx-html-preview" class="preview hidden"></div>
+      <div class="log" id="docx-log"></div>
+    </div>
   </div>
 </section>
 </main>
-
 <footer><p>© <span id="year"></span> File Converter — Cyber Edition</p></footer>
-
-<!-- keep your existing loaders -->
 <script src="js/utils.js"></script>
-<script src="js/boot.js"></script>
-<script src="js/boot-json.js"></script>
-<script src="js/json.js"></script>
-
-<!-- Minimal inline patch for .DOC export -->
 <script>
-(function(){
-  // Fallbacks in case json.js didn't define these
-  if (typeof window.byId !== 'function') window.byId = (id)=>document.getElementById(id);
-  if (typeof window.downloadBlob !== 'function') {
-    window.downloadBlob = (blob, filename)=>{
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = filename || 'download';
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(()=> URL.revokeObjectURL(url), 0);
-    };
-  }
-
-  // Small helpers used by preview/CSV in case json.js is different
-  function flatten(obj, prefix='', res={}) {
-    for (const [k,v] of Object.entries(obj||{})) {
-      const key = prefix ? `${prefix}.${k}` : k;
-      if (v && typeof v==='object' && !Array.isArray(v)) flatten(v, key, res);
-      else res[key] = v;
-    }
-    return res;
-  }
-  function tableFromArray(arr) {
-    const cols = Array.from(arr.reduce((s,o)=>{Object.keys(o||{}).forEach(k=>s.add(k)); return s;}, new Set()));
-    const head = '<tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr>';
-    const rows = arr.map(o=>'<tr>'+cols.map(c=>`<td>${(o||{})[c] ?? ''}</td>`).join('')+'</tr>').join('');
-    return `<table style="border-collapse:collapse;width:100%"><thead>${head}</thead><tbody>${rows}</tbody></table>`;
-  }
-
-  // Generate HTML fragment + full page
-  function renderJsonToHtml(rows, mode, title){
-    let body = '';
-    if (mode === 'table') {
-      body = tableFromArray(rows);
-    } else {
-      body = rows.map((row)=>'<div style="padding:8px;border:1px solid #ccc;margin-bottom:8px">'
-        + Object.entries(row||{}).map(([k,v])=>`<div><strong>${k}:</strong> ${typeof v==='object'?JSON.stringify(v):(v??'')}</div>`).join('')
-        + '</div>').join('');
-    }
-    const fragment =
-      (title ? `<h1>${title}</h1>` : '') + body +
-      `<style>
-        body{font-family:Segoe UI,Arial,sans-serif}
-        table{border-collapse:collapse;width:100%}
-        td,th{border:1px solid #999;padding:6px}
-        h1{margin:0 0 12px 0}
-      </style>`;
-    const page =
-      `<!DOCTYPE html><html><head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-        <!--[if gte mso 9]><xml>
-          <w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument>
-        </xml><![endif]-->
-        <title>${title||'Document'}</title>
-      </head><body>${fragment}</body></html>`;
-    return { fragment, page };
-  }
-  window.renderJsonToHtml = renderJsonToHtml; // expose if json.js wants it
-
-  async function readJsonDocInput(){
-    const ta = byId('jsondoc-input');
-    const fi = byId('jsondoc-file');
-    const txt = (ta && ta.value.trim()) || (fi && fi.files && fi.files[0] ? await fi.files[0].text() : '[]');
-    let data = JSON.parse(txt);
-    if (!Array.isArray(data)) data = [data];
-    return data.map(x=>flatten(x)); // flatten for nicer tables
-  }
-
-  function replaceHandlers(id, handler){
-    const oldEl = byId(id); if(!oldEl) return;
-    const newEl = oldEl.cloneNode(true);
-    oldEl.replaceWith(newEl);
-    newEl.addEventListener('click', handler);
-  }
-
-  // Preview
-  replaceHandlers('jsondoc-preview', async ()=>{
-    const data = await readJsonDocInput();
-    const mode = byId('jsondoc-mode').value;
-    const title = byId('jsondoc-title').value.trim();
-    const html = renderJsonToHtml(data, mode, title);
-    const box = byId('jsondoc-preview-box');
-    box.classList.add('hidden');
-    box.innerHTML = html.page;
-    box.classList.remove('hidden');
-    const b = byId('jsondoc-dl-html'); if (b) { b.disabled = false; b.onclick = ()=> downloadBlob(new Blob([html.fragment],{type:'text/html'}), 'doc-source.html'); }
+  window.ensureMammoth = () => new Promise(res=>{
+    if (window.mammoth) return res();
+    const s=document.createElement('script'); s.src='https://unpkg.com/mammoth@1.6.0/mammoth.browser.min.js'; s.onload=res; document.body.appendChild(s);
   });
-
-  // Download .DOC (HTML-based)
-  replaceHandlers('jsondoc-doc', async ()=>{
-    try{
-      const data = await readJsonDocInput();
-      const mode = byId('jsondoc-mode').value;
-      const title = byId('jsondoc-title').value.trim();
-      const html = renderJsonToHtml(data, mode, title);
-      // Save as .doc (Word opens HTML with .doc extension)
-      const blob = new Blob([html.page], { type: 'application/msword' });
-      downloadBlob(blob, 'data.doc');
-      const logEl = byId('jsondoc-log'); if (logEl) logEl.textContent = '✓ Saved data.doc';
-    }catch(e){
-      const logEl = byId('jsondoc-log'); if (logEl) logEl.textContent = 'Error: ' + (e?.message || e);
-      console.error(e);
-    }
-  });
-})();
 </script>
-
+<script src="js/json.js"></script>
 </body></html>
