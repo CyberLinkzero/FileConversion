@@ -1,87 +1,224 @@
 <!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Images — AnyConvert</title>
-<link rel="stylesheet" href="site.css">
-</head><body>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Image Tools — AnyConvert+</title>
+  <link rel="stylesheet" href="site.css" />
+</head>
+<body>
 <header>
-  <div class="title"><div class="logo">⚡</div><h1>Images</h1></div>
+  <div class="title">
+    <div class="logo">⚡</div>
+    <div>
+      <h1>Image Tools</h1>
+      <p class="sub">Convert images (incl. HEIC → PNG/JPEG), resize, and keep transparency.</p>
+    </div>
+  </div>
+
+  <!-- Real-page navbar -->
   <nav class="tabs">
-  <a class="tab" href="index.html">Home</a>
-
-  <!-- Converters -->
-  <a class="tab" href="audio.html">Audio</a>
-  <a class="tab" href="video.html">Video</a>
-  <a class="tab" href="images.html">Images</a>
-  <a class="tab" href="pdf.html">PDF</a>
-  <a class="tab" href="data.html">Data</a>
-  <a class="tab" href="json.html">JSON</a>
-  <a class="tab" href="archive.html">Archive</a>
-  <a class="tab" href="docx.html">DOCX</a>
-
-  <!-- GPS tools -->
-  <a class="tab" href="gps.html">GPS</a>
-  <a class="tab" href="gps-file-guide.html">GPS Guide</a>
-
-  <!-- Blogs / Guides -->
-  <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
-  <a class="tab" href="image-file-guide.html">Image Guide</a>
-  <a class="tab" href="audio-file-guide.html">Audio Guide</a>
-  <a class="tab" href="video-file-guide.html">Video Guide</a>
-</nav>
-
+    <a class="tab" href="index.html">Home</a>
+    <a class="tab" href="audio.html">Audio</a>
+    <a class="tab" href="video.html">Video</a>
+    <a class="tab active" href="images.html">Images</a>
+    <a class="tab" href="pdf.html">PDF</a>
+    <a class="tab" href="data.html">Data</a>
+    <a class="tab" href="json.html">JSON</a>
+    <a class="tab" href="archive.html">Archive</a>
+    <a class="tab" href="docx.html">DOCX</a>
+    <a class="tab" href="gps.html">GPS</a>
+    <a class="tab" href="gps-file-guide.html">GPS Guide</a>
+    <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
+    <a class="tab" href="image-file-guide.html">Image Guide</a>
+    <a class="tab" href="audio-file-guide.html">Audio Guide</a>
+    <a class="tab" href="video-file-guide.html">Video Guide</a>
+  </nav>
 </header>
-<main><section class="panel"><div class="grid">
 
-  <div class="card">
-    <h3>Convert Image</h3>
-    <p class="muted">PNG/JPG/WEBP/HEIC → JPG/PNG/WEBP</p>
-    <div class="drop" id="img-drop">Drop images here or choose…<br><br><input type="file" id="img-input" accept="image/*,.heic" multiple /></div>
-    <div class="row" style="margin-top:12px">
-      <select id="img-format"><option value="image/jpeg">JPG</option><option value="image/png">PNG</option><option value="image/webp">WEBP</option></select>
-      <input type="number" id="img-quality" min="1" max="100" value="90" />
-      <button id="img-convert">Convert</button>
+<main class="panel">
+  <div class="grid">
+
+    <div class="card">
+      <h3>Convert / Resize</h3>
+      <input type="file" id="img-file" accept="image/*,.heic,.heif" />
+      <div class="row">
+        <label>Output
+          <select id="img-format">
+            <option value="png" selected>PNG (keeps transparency)</option>
+            <option value="jpeg">JPEG</option>
+            <option value="webp">WebP</option>
+          </select>
+        </label>
+
+        <label>Quality
+          <input type="number" id="img-quality" value="0.85" step="0.05" min="0.1" max="1">
+        </label>
+
+        <label>Max width
+          <input type="number" id="img-w" placeholder="e.g. 1600">
+        </label>
+
+        <label>Max height
+          <input type="number" id="img-h" placeholder="e.g. 1200">
+        </label>
+
+        <label>Background (for JPEG)
+          <input type="color" id="img-bg" value="#ffffff">
+        </label>
+
+        <button id="img-convert">Convert</button>
+      </div>
+
+      <div class="small" style="margin-top:6px">
+        Tip: For iPhone photos (<code>.heic</code>), choose <strong>PNG</strong> or <strong>JPEG</strong>.
+        PNG preserves alpha; JPEG fills transparent areas with your background color.
+      </div>
+
+      <div class="preview" id="img-preview" style="margin-top:10px"></div>
+      <div class="log" id="img-log"></div>
     </div>
-    <div id="img-progress" class="progress"><div class="bar"></div></div>
-    <div class="progress-label" id="img-progress-label">Idle</div>
-    <div class="log" id="img-log"></div>
-  </div>
 
-  <div class="card">
-    <h3>HEIC → JPG</h3>
-    <input type="file" id="heic-input" accept=".heic" multiple />
-    <div class="row" style="margin-top:12px"><button id="heic-convert">Convert</button></div>
-    <div class="log" id="heic-log"></div>
   </div>
+</main>
 
-  <div class="card">
-    <h3>Image → PDF</h3>
-    <input type="file" id="img-pdf-input" accept="image/*" multiple />
-    <div class="row" style="margin-top:12px"><button id="img-pdf-btn">Create PDF</button></div>
-    <div class="log" id="img-pdf-log"></div>
-  </div>
+<footer>
+  © <span id="year"></span> AnyConvert+
+</footer>
 
-  <div class="card">
-    <span class="badge">NEW</span>
-    <h3>WebP ↔ GIF</h3>
-    <input type="file" id="webp-gif-input" accept="image/webp,image/gif" />
-    <div class="row" style="margin-top:12px">
-      <select id="webp-gif-target"><option value="gif">to GIF</option><option value="webp">to WebP</option></select>
-      <button id="webp-gif-btn">Convert</button>
-    </div>
-    <div id="webp-gif-progress" class="progress"><div class="bar"></div></div>
-    <div class="progress-label" id="webp-gif-progress-label">Idle</div>
-    <div class="log" id="webp-gif-log"></div>
-  </div>
+<script>
+  // Year + active tab highlight
+  document.getElementById('year').textContent = new Date().getFullYear();
+  (function(){
+    var here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+    document.querySelectorAll('nav.tabs a').forEach(function(a){
+      a.classList.toggle('active', (a.getAttribute('href')||'').toLowerCase() === here);
+    });
+  })();
 
-</div></section></main>
-<footer><p>© <span id="year"></span> File Converter — Cyber Edition</p></footer>
-<script src="https://unpkg.com/heic2any@0.0.5/dist/heic2any.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="js/utils.js"></script>
-<script type="module">
-  import { createFFmpeg, fetchFile } from "https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/ffmpeg.min.js";
-  window.createFFmpeg = createFFmpeg; window.fetchFile = fetchFile;
+  // Load heic2any: local-first, then cdnjs fallback
+  (function(){
+    function load(url){
+      return new Promise(function(res, rej){
+        var s = document.createElement('script');
+        s.src = url; s.onload = res; s.onerror = function(){ rej(new Error('Failed '+url)); };
+        document.head.appendChild(s);
+      });
+    }
+    if (!window.heic2any) {
+      load('libs/heic2any/heic2any.min.js')
+        .catch(function(){ return load('https://cdnjs.cloudflare.com/ajax/libs/heic2any/0.0.1/index.min.js'); })
+        .catch(function(){ console.warn('heic2any not available — HEIC decode will fail.'); });
+    }
+  })();
+
+  // UI logic
+  (function(){
+    var $ = function(id){ return document.getElementById(id); };
+    var logEl = $('img-log');
+    function log(msg){ logEl.textContent += msg + '\\n'; logEl.scrollTop = logEl.scrollHeight; }
+
+    function isHeic(file){
+      return /\.hei[c|f]$/i.test(file.name) ||
+             /image\/hei(c|f)/i.test(file.type || '');
+    }
+
+    function fitSize(w, h, maxW, maxH){
+      if (!maxW && !maxH) return {w, h};
+      var rw = maxW ? (maxW / w) : 1;
+      var rh = maxH ? (maxH / h) : 1;
+      var r = Math.min(rw || 1, rh || 1);
+      if (r >= 1) return {w, h};
+      return { w: Math.floor(w * r), h: Math.floor(h * r) };
+    }
+
+    function blobToBitmap(blob){
+      // Prefer createImageBitmap if available; fallback to HTMLImageElement
+      if (window.createImageBitmap) return createImageBitmap(blob);
+      return new Promise(function(resolve, reject){
+        var img = new Image();
+        img.onload = function(){ resolve(img); };
+        img.onerror = reject;
+        img.src = URL.createObjectURL(blob);
+      });
+    }
+
+    async function decodeToBitmap(file, targetMime){
+      // If HEIC/HEIF → use heic2any when available
+      if (isHeic(file)) {
+        if (!window.heic2any) throw new Error('HEIC support not loaded');
+        var outType = (targetMime === 'image/jpeg') ? 'image/jpeg' : 'image/png';
+        var heicBlob = await window.heic2any({ blob: file, toType: outType });
+        return await blobToBitmap(heicBlob);
+      }
+      // Non-HEIC paths
+      return await blobToBitmap(file);
+    }
+
+    $('img-convert').addEventListener('click', async function(){
+      var f = $('img-file').files && $('img-file').files[0];
+      if (!f) return alert('Pick an image file first');
+
+      var fmt = $('img-format').value;               // png | jpeg | webp
+      var quality = parseFloat($('img-quality').value || '0.85');
+      var maxW = parseInt($('img-w').value || '0', 10) || 0;
+      var maxH = parseInt($('img-h').value || '0', 10) || 0;
+      var bg    = $('img-bg').value || '#ffffff';
+
+      var outMime = (fmt === 'png')  ? 'image/png'
+                 : (fmt === 'jpeg') ? 'image/jpeg'
+                 :                     'image/webp';
+
+      try{
+        logEl.textContent = '';
+        log('Decoding…');
+
+        // Decode original (handles HEIC via heic2any → PNG/JPEG first)
+        var bmp = await decodeToBitmap(f, outMime);
+
+        // Resize as requested
+        var size = fitSize(bmp.width, bmp.height, maxW, maxH);
+        var canvas = document.createElement('canvas');
+        canvas.width = size.w; canvas.height = size.h;
+        var ctx = canvas.getContext('2d');
+
+        // For JPEG, fill background so alpha → solid color
+        if (outMime === 'image/jpeg') { ctx.fillStyle = bg; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+        ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+
+        log('Encoding…');
+
+        // toBlob options
+        var blob = await new Promise(function(res){ 
+          if (outMime === 'image/png') return canvas.toBlob(res, 'image/png');
+          if (outMime === 'image/webp') return canvas.toBlob(res, 'image/webp', quality);
+          return canvas.toBlob(res, 'image/jpeg', quality);
+        });
+
+        // Preview
+        var prev = $('img-preview'); prev.innerHTML = '';
+        var img = document.createElement('img'); img.src = URL.createObjectURL(blob);
+        img.style.maxWidth = '100%'; img.style.display = 'block';
+        prev.appendChild(img);
+
+        // Download
+        var a = document.createElement('a');
+        a.href = img.src;
+        a.download = f.name.replace(/\.[^.]+$/, '') + (fmt === 'jpeg' ? '.jpg' : '.' + fmt);
+        var btn = document.createElement('button'); btn.textContent = 'Download ' + a.download;
+        btn.addEventListener('click', function(){ a.click(); });
+        prev.appendChild(btn);
+
+        log('Done.');
+      }catch(err){
+        console.error(err);
+        log('Error: ' + (err && err.message ? err.message : err));
+        if (isHeic(f) && !window.heic2any){
+          log('Tip: Add the library at libs/heic2any/heic2any.min.js or ensure cdnjs is reachable.');
+        }
+      }
+    });
+  })();
 </script>
-<script src="js/images.js"></script>
-</body></html>
+</body>
+</html>
