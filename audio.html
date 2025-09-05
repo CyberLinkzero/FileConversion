@@ -17,21 +17,19 @@
     <a class="tab" href="about.html">About</a>
   </nav>
 </header>
-<main>
-<section id="tab-audio" class="panel">
-  <div class="grid">
-    <div class="card">
-      <h3>MP3 ↔ WAV</h3>
-      <input type="file" id="audio-input" accept="audio/*" />
-      <div class="row" style="margin-top:12px">
-        <select id="audio-target"><option value="mp3">MP3</option><option value="wav">WAV</option></select>
-        <button id="audio-btn">Convert</button>
-      </div>
-      <div class="log" id="audio-log"></div>
+<main><section id="tab-audio" class="panel"><div class="grid">
+  <div class="card">
+    <h3>MP3 ↔ WAV</h3>
+    <input type="file" id="audio-input" accept="audio/*" />
+    <div class="row" style="margin-top:12px">
+      <select id="audio-target"><option value="mp3">MP3</option><option value="wav">WAV</option></select>
+      <button id="audio-btn">Convert</button>
     </div>
+    <div id="audio-progress" class="progress"><div class="bar"></div></div>
+    <div class="progress-label" id="audio-progress-label">Idle</div>
+    <div class="log" id="audio-log"></div>
   </div>
-</section>
-</main>
+</div></section></main>
 <footer><p>© <span id="year"></span> File Converter — Cyber Edition</p></footer>
 <script src="js/utils.js"></script>
 <script type="module">
