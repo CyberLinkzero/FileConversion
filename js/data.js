@@ -1,145 +1,120 @@
-// ---- CSV → XLSX ----
-byId("csv2xlsx-btn")?.addEventListener("click", async ()=>{
-  const f = (byId("csv-input").files||[])[0]; const logEl = byId("csv-log"); logEl.textContent="";
-  if(!f) return alert("Pick a CSV");
-  const text = await f.text();
-  const rows = Papa.parse(text, {header:true}).data;
-  const ws = XLSX.utils.json_to_sheet(rows);
-  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-  const out = XLSX.write(wb, {bookType:"xlsx", type:"array"});
-  downloadBlob(new Blob([out],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}), "data.xlsx");
-  log(logEl, "✓ Saved data.xlsx");
-});
+(async function(){
+  // load libs
+  await __boot.loadFirst(['libs/papaparse/papaparse.min.js','https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js']);
+  await __boot.loadFirst(['libs/xlsx/xlsx.full.min.js','https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js']);
 
-// ---- XLSX → CSV ----
-byId("xlsx2csv-btn")?.addEventListener("click", async ()=>{
-  const f = (byId("xlsx-input").files||[])[0]; const logEl = byId("xlsx-log"); logEl.textContent="";
-  if(!f) return alert("Pick an .xlsx");
-  const data = new Uint8Array(await f.arrayBuffer());
-  const wb = XLSX.read(data, {type:"array"});
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json(ws, {defval:""});
-  const csv = Papa.unparse(rows);
-  downloadBlob(new Blob([csv],{type:"text/csv"}), "data.csv");
-  log(logEl, "✓ Saved data.csv");
-});
-
-// ---- GPS → CSV/XLSX (basic GPX/KML/TCX/FIT parsing) ----
-function parseXml(text){
-  const p = new DOMParser(); return p.parseFromString(text, "application/xml");
-}
-function collectPointsFromGpx(doc){
-  return Array.from(doc.querySelectorAll("trkpt, rtept, wpt")).map((pt,i)=>({
-    idx:i+1,
-    lat:+pt.getAttribute("lat"), lon:+pt.getAttribute("lon"),
-    ele:+(pt.querySelector("ele")?.textContent||0),
-    time: pt.querySelector("time")?.textContent||""
-  }));
-}
-function collectPointsFromKml(doc){
-  const coords = Array.from(doc.querySelectorAll("coordinates")).map(c=>c.textContent.trim()).join(" ").split(/\\s+/);
-  const rows=[]; let i=1;
-  for(const c of coords){
-    const [lon,lat,ele] = c.split(",").map(Number);
-    if(!isNaN(lat)&&!isNaN(lon)) rows.push({idx:i++, lat, lon, ele:ele||0, time:""});
+  const byId=(id)=>document.getElementById(id);
+  const log=(id,msg)=>{ const el=byId(id); if(el){ el.textContent += msg+'\n'; el.scrollTop = el.scrollHeight; } };
+  function flatten(obj,prefix='',res={}){ for(const [k,v] of Object.entries(obj||{})){ const key=prefix?`${prefix}.${k}`:k; if(v && typeof v==='object' && !Array.isArray(v)) flatten(v,key,res); else res[key]=v; } return res; }
+  function tableFromArray(arr){
+    const cols = Array.from(arr.reduce((s,o)=>{Object.keys(o||{}).forEach(k=>s.add(k));return s;}, new Set()));
+    const header = '<tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr>';
+    const rows = arr.map(o=>'<tr>'+cols.map(c=>`<td>${(o||{})[c]??''}</td>`).join('')+'</tr>').join('');
+    return `<table style="border-collapse:collapse;width:100%"><thead>${header}</thead><tbody>${rows}</tbody></table>`;
   }
-  return rows;
-}
-function collectPointsFromTcx(doc){
-  const pts = Array.from(doc.querySelectorAll("Trackpoint"));
-  return pts.map((tp,i)=>({
-    idx:i+1,
-    lat:+(tp.querySelector("Position > LatitudeDegrees")?.textContent||0),
-    lon:+(tp.querySelector("Position > LongitudeDegrees")?.textContent||0),
-    ele:+(tp.querySelector("AltitudeMeters")?.textContent||0),
-    time: tp.querySelector("Time")?.textContent||""
-  }));
-}
-async function collectFromFit(file){
-  return await new Promise((resolve,reject)=>{
-    const parser = new window.FITParser({ force:true, speedUnit:'m/s', lengthUnit:'m', elapsedRecordField:true });
-    const reader = new FileReader();
-    reader.onload = ()=>{
-      parser.parse(reader.result, (err, data)=>{
-        if(err) return reject(err);
-        const rec = data.activity?.sessions?.[0]?.laps?.flatMap(l=>l.records)||[];
-        const rows = (rec||[]).map((r,i)=>({
-          idx:i+1, lat:+(r.position_lat||0), lon:+(r.position_long||0),
-          ele:+(r.altitude||0), time:r.timestamp?new Date(r.timestamp*1000).toISOString():""
-        }));
-        resolve(rows);
-      });
-    };
-    reader.onerror = reject;
-    reader.readAsArrayBuffer(file);
-  });
-}
 
-byId("gps-to-csv")?.addEventListener("click", ()=> exportGps("csv"));
-byId("gps-to-xlsx")?.addEventListener("click", ()=> exportGps("xlsx"));
+  // CSV -> JSON
+  byId('csv-to-json').onclick = async ()=>{
+    const f = byId('csv-file').files[0]; if(!f) return alert('Pick a CSV');
+    const delim = byId('csv-delim').value.replace('\\t','\t'); const header = byId('csv-header').value==='true';
+    const text = await f.text();
+    const parsed = Papa.parse(text, { header, delimiter: delim });
+    const json = JSON.stringify(parsed.data, null, 2);
+    downloadBlob(new Blob([json],{type:'application/json'}), f.name.replace(/\.csv$/i,'')+'.json');
+    log('data-log','✓ CSV → JSON');
+  };
 
-async function exportGps(kind){
-  const files = Array.from(byId("gps-input").files||[]); const logEl = byId("gps-log"); logEl.textContent="";
-  if(!files.length) return alert("Pick GPX/KML/TCX/FIT");
-  let rows=[];
-  for(const f of files){
+  // JSON -> CSV
+  byId('json-to-csv').onclick = async ()=>{
+    const text = byId('json-input').value.trim(); if(!text) return alert('Paste JSON');
+    let data = JSON.parse(text); if(!Array.isArray(data)) data=[data];
+    const csv = Papa.unparse(data.map(x=>flatten(x)));
+    downloadBlob(new Blob([csv],{type:'text/csv'}),'data.csv');
+    log('data-log','✓ JSON → CSV');
+  };
+
+  // XLSX load sheets
+  byId('xlsx-load').onclick = async ()=>{
+    const f = byId('xlsx-file').files[0]; if(!f) return alert('Pick XLSX');
+    const wb = XLSX.read(await f.arrayBuffer());
+    const sel = byId('xlsx-sheet'); sel.innerHTML = wb.SheetNames.map(n=>`<option>${n}</option>`).join('');
+    log('xlsx-log', `Loaded ${wb.SheetNames.length} sheet(s)`);
+    sel.dataset._wb = f.name; window._wb = wb;
+  };
+
+  // XLSX -> JSON
+  byId('xlsx-to-json').onclick = async ()=>{
+    if(!window._wb) return alert('Load sheets first');
+    const sheet = byId('xlsx-sheet').value;
+    const dates = byId('xlsx-dates').value==='true';
+    const ws = window._wb.Sheets[sheet];
+    const json = XLSX.utils.sheet_to_json(ws, { raw: dates, defval: '' });
+    downloadBlob(new Blob([JSON.stringify(json,null,2)],{type:'application/json'}), sheet+'.json');
+    log('xlsx-log','✓ Sheet → JSON');
+  };
+
+  // XLSX -> CSV
+  byId('xlsx-to-csv').onclick = async ()=>{
+    if(!window._wb) return alert('Load sheets first');
+    const sheet = byId('xlsx-sheet').value;
+    const ws = window._wb.Sheets[sheet];
+    const csv = XLSX.utils.sheet_to_csv(ws);
+    downloadBlob(new Blob([csv],{type:'text/csv'}), sheet+'.csv');
+    log('xlsx-log','✓ Sheet → CSV');
+  };
+
+  // JSON -> DOC (.doc via HTML)
+  function escapeHtml(s){ return (s+'').replace(/[&<>]/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;' }[m])); }
+  function rowsToPlainText(rows){
+    const out=[]; rows.forEach((row,i)=>{ const flat=flatten(row||{}); for(const [k,v] of Object.entries(flat)) out.push(`${k}: ${typeof v==='object'?JSON.stringify(v):(v??'')}`); if(i<rows.length-1) out.push(''); });
+    return out.join('\n');
+  }
+  function renderJsonToHtml(rows, title){
+    const flat = rows.map(x=>flatten(x));
+    const html = tableFromArray(flat);
+    const fragment = (title?`<h1>${title}</h1>`:'') + html + `<style>body{font-family:Segoe UI,Arial,sans-serif}td,th{border:1px solid #999;padding:6px}</style>`;
+    const page = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title||'Document'}</title></head><body>${fragment}</body></html>`;
+    return { fragment, page };
+  }
+  async function readJsonDocInput(){
+    const ta = byId('jsondoc-input'); const fi = byId('jsondoc-file');
+    const txt = (ta && ta.value.trim()) || (fi && fi.files && fi.files[0]? await fi.files[0].text() : '[]');
+    let data = JSON.parse(txt); if(!Array.isArray(data)) data=[data]; return data;
+  }
+  byId('jsondoc-preview').onclick = async ()=>{
+    const data = await readJsonDocInput();
+    const title = byId('jsondoc-title').value.trim();
+    const plain = byId('jsondoc-plain').checked;
+    const box = byId('jsondoc-preview-box'); box.classList.add('hidden'); box.innerHTML=''; box.style.whiteSpace='';
+    if (plain){
+      const txt = (title? title + '\n\n' : '') + rowsToPlainText(data);
+      box.textContent = txt; box.style.whiteSpace='pre-wrap';
+    } else {
+      const html = renderJsonToHtml(data, title);
+      box.innerHTML = html.page;
+      const b = byId('jsondoc-dl-html'); b.disabled=false; b.onclick=()=> downloadBlob(new Blob([html.fragment],{type:'text/html'}),'doc-source.html');
+    }
+    box.classList.remove('hidden');
+  };
+  byId('jsondoc-doc').onclick = async ()=>{
     try{
-      if(/\\.fit$/i.test(f.name)) rows = rows.concat(await collectFromFit(f));
-      else{
-        const txt = await f.text(); const doc = parseXml(txt);
-        if(doc.querySelector("gpx")) rows = rows.concat(collectPointsFromGpx(doc));
-        else if(doc.querySelector("kml")) rows = rows.concat(collectPointsFromKml(doc));
-        else if(doc.querySelector("TrainingCenterDatabase")) rows = rows.concat(collectPointsFromTcx(doc));
+      const data = await readJsonDocInput();
+      const title = byId('jsondoc-title').value.trim();
+      const plain = byId('jsondoc-plain').checked;
+      let blob, name='data.doc';
+      if (plain){
+        const txt = (title? title + '\n\n' : '') + rowsToPlainText(data);
+        const page = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title||'Document'}</title></head><body><pre>${escapeHtml(txt)}</pre></body></html>`;
+        blob = new Blob([page], { type: 'application/msword' }); name='data_plain.doc';
+      } else {
+        const html = renderJsonToHtml(data, title);
+        blob = new Blob([html.page], { type: 'application/msword' });
       }
-      log(logEl, `Parsed ${f.name}`);
-    }catch(e){ log(logEl, `✗ ${f.name}: ${e.message}`); }
-  }
-  if(!rows.length) return log(logEl, "No points found.");
-  if(kind==="csv"){
-    const csv = Papa.unparse(rows);
-    downloadBlob(new Blob([csv],{type:"text/csv"}), "gps.csv");
-  }else{
-    const ws = XLSX.utils.json_to_sheet(rows);
-    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "GPS");
-    const out = XLSX.write(wb, {bookType:"xlsx", type:"array"});
-    downloadBlob(new Blob([out],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}), "gps.xlsx");
-  }
-  log(logEl, `✓ Saved gps.${kind}`);
-}
-
-// ---- CSV/XLSX → GPX/KML/TCX ----
-byId("tabular-export")?.addEventListener("click", async ()=>{
-  const f = (byId("tabular-input").files||[])[0]; const t = byId("tabular-target").value; const logEl = byId("tabular-log"); logEl.textContent="";
-  if(!f) return alert("Pick CSV/XLSX");
-  let rows=[];
-  if(/\\.xlsx$/i.test(f.name)){
-    const wb = XLSX.read(new Uint8Array(await f.arrayBuffer()), {type:"array"});
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    rows = XLSX.utils.sheet_to_json(ws, {defval:""});
-  }else{
-    rows = Papa.parse(await f.text(), {header:true}).data;
-  }
-  // Expect lat/lon columns (case-insensitive)
-  const norm = rows.map(r=>{
-    const obj = {}; for(const [k,v] of Object.entries(r)) obj[k.toLowerCase()] = v;
-    return {lat:+obj.lat||+obj.latitude||0, lon:+obj.lon||+obj.longitude||0, ele:+obj.ele||+obj.elevation||0, time:obj.time||obj.timestamp||"" , name: obj.name||""};
-  }).filter(r=>!isNaN(r.lat)&&!isNaN(r.lon) && (r.lat||r.lon));
-  let out = "";
-  if(t==="gpx"){
-    out = `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="AnyConvert"><trk><name>Track</name><trkseg>`+
-      norm.map(p=>`<trkpt lat="${p.lat}" lon="${p.lon}">${p.ele?`<ele>${p.ele}</ele>`:''}${p.time?`<time>${p.time}</time>`:''}${p.name?`<name>${p.name}</name>`:''}</trkpt>`).join("")+
-      `</trkseg></trk></gpx>`;
-    downloadBlob(new Blob([out],{type:"application/gpx+xml"}), "track.gpx");
-  }else if(t==="kml"){
-    out = `<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document><Placemark><name>Path</name><LineString><coordinates>`+
-      norm.map(p=>`${p.lon},${p.lat},${p.ele||0}`).join(" ")+
-      `</coordinates></LineString></Placemark></Document></kml>`;
-    downloadBlob(new Blob([out],{type:"application/vnd.google-earth.kml+xml"}), "track.kml");
-  }else{ // tcx
-    out = `<?xml version="1.0" encoding="UTF-8"?><TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2"><Activities><Activity Sport="Other"><Id>${new Date().toISOString()}</Id><Lap StartTime="${new Date().toISOString()}"><Track>`+
-      norm.map(p=>`<Trackpoint>${p.time?`<Time>${p.time}</Time>`:''}<Position><LatitudeDegrees>${p.lat}</LatitudeDegrees><LongitudeDegrees>${p.lon}</LongitudeDegrees></Position>${p.ele?`<AltitudeMeters>${p.ele}</AltitudeMeters>`:''}</Trackpoint>`).join("")+
-      `</Track></Lap></Activity></Activities></TrainingCenterDatabase>`;
-    downloadBlob(new Blob([out],{type:"application/xml"}), "track.tcx");
-  }
-  log(logEl, "✓ Export complete");
-});
+      downloadBlob(blob, name);
+      const logEl = byId('jsondoc-log'); if (logEl) logEl.textContent = '✓ Saved ' + name;
+    }catch(e){
+      const logEl = byId('jsondoc-log'); if (logEl) logEl.textContent = 'Error: ' + (e?.message||e);
+      console.error(e);
+    }
+  };
+})();

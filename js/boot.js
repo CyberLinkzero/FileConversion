@@ -1,40 +1,26 @@
-// Shared boot utilities (local-first with CDN fallback)
+// Local-first loader with CDN fallback
 window.__boot = (function(){
   function loadScript(url){
     return new Promise((res, rej)=>{
       const s = document.createElement('script');
       s.src = url; s.async = false;
-      s.onload = ()=>res(url);
-      s.onerror = ()=>rej(new Error('Failed to load ' + url));
+      s.onload = ()=>res(url); s.onerror = ()=>rej(new Error('Failed to load ' + url));
       document.head.appendChild(s);
     });
   }
-  async function loadModule(url){
-    // dynamic import for ESM (pdf.js, ffmpeg)
-    try{
-      await import(url);
-      return url;
-    }catch(e){
-      throw new Error('Failed to import ' + url + ': ' + (e?.message||e));
-    }
-  }
-  async function loadFirst(urls, isModule=false){
+  async function loadFirst(urls){
     let lastErr;
     for(const u of urls){
-      try{
-        if(isModule) return await loadModule(u);
-        else return await loadScript(u);
-      }catch(e){ console.warn('load failed', u, e); lastErr = e; }
+      try{ return await loadScript(u); }catch(e){ console.warn('load failed', u, e); lastErr = e; }
     }
     throw lastErr || new Error('All sources failed');
   }
-  function deferPageScript(src){
-    return new Promise((res, rej)=>{
-      const s = document.createElement('script');
-      s.src = src; s.async = false;
-      s.onload = res; s.onerror = rej;
-      document.head.appendChild(s);
-    });
+  async function loadModuleFirst(urls){
+    let lastErr;
+    for(const u of urls){
+      try{ return await import(u); }catch(e){ console.warn('module import failed', u, e); lastErr = e; }
+    }
+    throw lastErr || new Error('All module sources failed');
   }
-  return { loadFirst, deferPageScript };
+  return { loadFirst, loadModuleFirst };
 })();
