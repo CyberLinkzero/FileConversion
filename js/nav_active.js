@@ -1,0 +1,1 @@
+(function(){function setActive(){var links=document.querySelectorAll('nav.tabs a');var here=(location.pathname.split('/').pop()||'index.html').toLowerCase();links.forEach(function(a){var href=a.getAttribute('href')||'';a.classList.toggle('active', href.toLowerCase()===here);});}document.addEventListener('DOMContentLoaded',setActive);})();
