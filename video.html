@@ -1,18 +1,22 @@
-<!doctype html><html lang="en"><head>
+<!doctype html>
+<html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Video — AnyConvert+</title>
+<meta http-equiv="refresh" content="0; url=index.html#video">
 <link rel="stylesheet" href="site.css">
-</head><body>
-<header><div class="title"><div class="logo">⚡</div><h1>Video</h1></div>
+<script>window.location.replace('index.html#video');</script>
+</head>
+<body>
+<header><div class="title"><div class="logo">⚡</div><div><h1>Video</h1><p class="sub">Forwarding to the Video tools on Home…</p></div></div>
 <nav class="tabs">
   <a class="tab" href="index.html">Home</a>
-  <a class="tab" href="index.html#audio">Audio</a>
-  <a class="tab" href="index.html#video">Video</a>
-  <a class="tab" href="index.html#images">Images</a>
-  <a class="tab" href="index.html#pdf">PDF</a>
-  <a class="tab" href="index.html#data">Data</a>
-  <a class="tab" href="index.html#archive">Archive</a>
-  <a class="tab" href="index.html#docx">DOCX</a>
+  <a class="tab" href="audio.html">Audio</a>
+  <a class="tab active" href="video.html">Video</a>
+  <a class="tab" href="images.html">Images</a>
+  <a class="tab" href="pdf.html">PDF</a>
+  <a class="tab" href="data.html">Data</a>
+  <a class="tab" href="archive.html">Archive</a>
+  <a class="tab" href="docx.html">DOCX</a>
   <a class="tab" href="gps.html">GPS</a>
   <a class="tab" href="gps-file-guide.html">GPS Guide</a>
   <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
@@ -20,41 +24,10 @@
   <a class="tab" href="audio-file-guide.html">Audio Guide</a>
   <a class="tab" href="video-file-guide.html">Video Guide</a>
 </nav></header>
-<main><section class="panel"><div class="grid">
-  <div class="card">
-    <h3>Video Convert</h3>
-    <input type="file" id="vid-file" accept="video/*,image/gif"/>
-    <div class="row" style="margin-top:8px">
-      <label>Output
-        <select id="vid-out"><option value="mp4">MP4 (H.264 + AAC)</option><option value="webm">WebM (VP8 + Vorbis)</option></select>
-      </label>
-      <label>Resolution
-        <select id="vid-res"><option value="">Source</option><option>1080</option><option selected>720</option><option>480</option></select>
-      </label>
-      <label>Frame rate
-        <select id="vid-fps"><option value="">Source</option><option>24</option><option>30</option><option>60</option></select>
-      </label>
-      <label>CRF
-        <select id="vid-crf"><option>18</option><option selected>23</option><option>28</option></select>
-      </label>
-      <label>Preset
-        <select id="vid-preset"><option>ultrafast</option><option>veryfast</option><option selected>faster</option><option>fast</option><option>medium</option></select>
-      </label>
-      <label>Audio
-        <select id="vid-abr"><option>128k</option><option selected>192k</option><option>256k</option><option value="mute">Mute</option></select>
-      </label>
-      <label>Start <input id="vid-ss" type="text" placeholder="00:00:00"></label>
-      <label>Duration <input id="vid-t" type="text" placeholder="00:00:05"></label>
-      <label>Rotate
-        <select id="vid-rot"><option value="">0°</option><option value="clock">90°</option><option value="cclock">-90°</option><option value="180">180°</option></select>
-      </label>
-      <button id="vid-convert">Convert</button>
-    </div>
-    <div class="log" id="vid-log"></div>
-  </div>
-</div></section></main>
+<main class="panel"><div class="grid"><div class="card">
+<p>If you are not redirected automatically, <a href="index.html#video">click here</a>.</p>
+</div></div></main>
 <footer>© <span id="year"></span> AnyConvert+</footer>
-<script src="js/utils.js"></script>
-<script src="js/boot.js"></script>
-<script src="js/video.js"></script>
+<script>(function(){var y=document.getElementById('year');if(y) y.textContent=new Date().getFullYear();})();</script>
+<script src="js/nav_active.js"></script>
 </body></html>
