@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Image Tools — AnyConvert+</title>
   <link rel="stylesheet" href="site.css" />
+  <style>
+    .thumb { display:inline-block; margin:8px; text-align:center }
+    .thumb img { max-width:220px; border-radius:8px; display:block; margin:0 auto 6px }
+    .muted { color: var(--muted) }
+  </style>
 </head>
 <body>
 <header>
@@ -12,7 +17,7 @@
     <div class="logo">⚡</div>
     <div>
       <h1>Image Tools</h1>
-      <p class="sub">Convert images (incl. HEIC → PNG/JPEG), resize, and keep transparency.</p>
+      <p class="sub">Convert HEIC/HEIF, TIFF, SVG, GIF, BMP, WebP, AVIF → PNG/JPEG/WebP. Resize, set quality, and keep transparency.</p>
     </div>
   </div>
 
@@ -21,7 +26,7 @@
     <a class="tab" href="index.html">Home</a>
     <a class="tab" href="audio.html">Audio</a>
     <a class="tab" href="video.html">Video</a>
-    <a class="tab active" href="images.html">Images</a>
+    <a class="tab active" href="image.html">Images</a>
     <a class="tab" href="pdf.html">PDF</a>
     <a class="tab" href="data.html">Data</a>
     <a class="tab" href="json.html">JSON</a>
@@ -40,43 +45,53 @@
   <div class="grid">
 
     <div class="card">
-      <h3>Convert / Resize</h3>
-      <input type="file" id="img-file" accept="image/*,.heic,.heif" />
+      <h3>Convert / Resize (Batch Supported)</h3>
+
       <div class="row">
+        <input type="file" id="img-files" multiple
+          accept="image/*,.heic,.heif,.tif,.tiff,.bmp,.svg,.webp,.avif,.gif" />
         <label>Output
-          <select id="img-format">
+          <select id="out-format">
             <option value="png" selected>PNG (keeps transparency)</option>
             <option value="jpeg">JPEG</option>
             <option value="webp">WebP</option>
           </select>
         </label>
-
         <label>Quality
-          <input type="number" id="img-quality" value="0.85" step="0.05" min="0.1" max="1">
+          <input type="number" id="quality" value="0.85" step="0.05" min="0.1" max="1">
         </label>
-
         <label>Max width
-          <input type="number" id="img-w" placeholder="e.g. 1600">
+          <input type="number" id="maxw" placeholder="e.g. 1600">
         </label>
-
         <label>Max height
-          <input type="number" id="img-h" placeholder="e.g. 1200">
+          <input type="number" id="maxh" placeholder="e.g. 1200">
         </label>
-
-        <label>Background (for JPEG)
-          <input type="color" id="img-bg" value="#ffffff">
+        <label>JPEG background
+          <input type="color" id="bg" value="#ffffff">
         </label>
-
-        <button id="img-convert">Convert</button>
       </div>
 
-      <div class="small" style="margin-top:6px">
-        Tip: For iPhone photos (<code>.heic</code>), choose <strong>PNG</strong> or <strong>JPEG</strong>.
-        PNG preserves alpha; JPEG fills transparent areas with your background color.
+      <div class="row">
+        <label>TIFF page
+          <input type="number" id="tiff-page" value="1" min="1" style="width:80px">
+        </label>
+        <label><input type="checkbox" id="tiff-all"> Convert all TIFF pages</label>
       </div>
 
-      <div class="preview" id="img-preview" style="margin-top:10px"></div>
-      <div class="log" id="img-log"></div>
+      <div class="row">
+        <button id="btn-convert">Convert Selected</button>
+        <button id="btn-clear">Clear</button>
+      </div>
+
+      <div class="small muted" style="margin-top:8px">
+        Notes: HEIC/HEIF needs the decoder below. Animated GIF converts the first frame. AVIF/WebP output depends on your browser’s support.
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Results</h3>
+      <div id="results"></div>
+      <div class="log" id="log"></div>
     </div>
 
   </div>
@@ -86,8 +101,9 @@
   © <span id="year"></span> AnyConvert+
 </footer>
 
+<!-- Optional local-first decoders (fallback to CDNs) -->
 <script>
-  // Year + active tab highlight
+  // Active tab + year
   document.getElementById('year').textContent = new Date().getFullYear();
   (function(){
     var here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
@@ -96,129 +112,231 @@
     });
   })();
 
-  // Load heic2any: local-first, then cdnjs fallback
-  (function(){
-    function load(url){
-      return new Promise(function(res, rej){
-        var s = document.createElement('script');
-        s.src = url; s.onload = res; s.onerror = function(){ rej(new Error('Failed '+url)); };
-        document.head.appendChild(s);
-      });
-    }
+  // Load libs: try local, then CDN
+  function loadScript(url){
+    return new Promise(function(resolve, reject){
+      var s = document.createElement('script');
+      s.src = url; s.onload = resolve; s.onerror = function(){ reject(new Error('Load failed: '+url)); };
+      document.head.appendChild(s);
+    });
+  }
+  (async function(){
+    // HEIC/HEIF decoder (heic2any) — local then cdnjs
     if (!window.heic2any) {
-      load('libs/heic2any/heic2any.min.js')
-        .catch(function(){ return load('https://cdnjs.cloudflare.com/ajax/libs/heic2any/0.0.1/index.min.js'); })
-        .catch(function(){ console.warn('heic2any not available — HEIC decode will fail.'); });
+      try { await loadScript('libs/heic2any/heic2any.min.js'); }
+      catch { try { await loadScript('https://cdnjs.cloudflare.com/ajax/libs/heic2any/0.0.1/index.min.js'); } catch(e){ console.warn('heic2any unavailable'); } }
+    }
+    // TIFF decoder (UTIF) — local then jsDelivr
+    if (!window.UTIF) {
+      try { await loadScript('libs/utif/UTIF.min.js'); }
+      catch { try { await loadScript('https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.min.js'); } catch(e){ console.warn('UTIF unavailable'); } }
     }
   })();
+</script>
 
-  // UI logic
-  (function(){
-    var $ = function(id){ return document.getElementById(id); };
-    var logEl = $('img-log');
-    function log(msg){ logEl.textContent += msg + '\\n'; logEl.scrollTop = logEl.scrollHeight; }
+<script>
+(function(){
+  const $ = (id)=>document.getElementById(id);
+  const results = $('results');
+  const logEl = $('log');
+  const log = (m)=>{ logEl.textContent += m + '\\n'; logEl.scrollTop = logEl.scrollHeight; };
 
-    function isHeic(file){
-      return /\.hei[c|f]$/i.test(file.name) ||
-             /image\/hei(c|f)/i.test(file.type || '');
+  function isHeic(file){
+    return /\.hei[cf]$/i.test(file.name) || /image\/hei(f|c)/i.test(file.type||'');
+  }
+  function isTiff(file){
+    return /\.tiff?$/i.test(file.name) || /image\/tiff/i.test(file.type||'');
+  }
+  function isSvg(file){
+    return /\.svg$/i.test(file.name) || /image\/svg\+xml/i.test(file.type||'');
+  }
+
+  function fitSize(w, h, maxW, maxH){
+    if (!maxW && !maxH) return { w, h };
+    const rw = maxW ? maxW / w : 1;
+    const rh = maxH ? maxH / h : 1;
+    const r = Math.min(rw || 1, rh || 1);
+    if (r >= 1) return { w, h };
+    return { w: Math.max(1, Math.floor(w*r)), h: Math.max(1, Math.floor(h*r)) };
+  }
+
+  function blobToBitmapOrImage(blob){
+    if (window.createImageBitmap) return createImageBitmap(blob);
+    return new Promise((res, rej)=>{
+      const img = new Image();
+      img.onload = ()=>res(img);
+      img.onerror = rej;
+      img.src = URL.createObjectURL(blob);
+    });
+  }
+
+  function fileToText(file){
+    return new Promise((res, rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsText(file); });
+  }
+  function fileToArrayBuffer(file){
+    return new Promise((res, rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsArrayBuffer(file); });
+  }
+
+  async function decodeHEICtoBitmap(file, outMime){
+    if (!window.heic2any) throw new Error('HEIC/HEIF decoder not loaded');
+    const toType = (outMime === 'image/jpeg') ? 'image/jpeg' : 'image/png';
+    const blob = await window.heic2any({ blob:file, toType });
+    return await blobToBitmapOrImage(blob);
+  }
+
+  async function decodeSVGtoBitmap(file){
+    // Draw SVG into canvas via blob URL
+    const txt = await fileToText(file);
+    const blob = new Blob([txt], { type: 'image/svg+xml' });
+    return await blobToBitmapOrImage(blob);
+  }
+
+  async function decodeTIFFtoCanvases(file){
+    if (!window.UTIF) throw new Error('TIFF decoder not loaded');
+    const buf = new Uint8Array(await fileToArrayBuffer(file));
+    const ifds = UTIF.decode(buf);
+    if (!ifds || !ifds.length) throw new Error('No TIFF pages found');
+    const canvases = [];
+    for (let i=0; i<ifds.length; i++){
+      UTIF.decodeImage(buf, ifds[i]);
+      const rgba = UTIF.toRGBA8(ifds[i]); // Uint8Array
+      const w = ifds[i].width, h = ifds[i].height;
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      const imgData = ctx.createImageData(w,h);
+      imgData.data.set(rgba);
+      ctx.putImageData(imgData, 0, 0);
+      canvases.push(canvas);
     }
+    return canvases;
+  }
 
-    function fitSize(w, h, maxW, maxH){
-      if (!maxW && !maxH) return {w, h};
-      var rw = maxW ? (maxW / w) : 1;
-      var rh = maxH ? (maxH / h) : 1;
-      var r = Math.min(rw || 1, rh || 1);
-      if (r >= 1) return {w, h};
-      return { w: Math.floor(w * r), h: Math.floor(h * r) };
+  async function decodeGenericToBitmap(file){
+    // For PNG/JPEG/WebP/GIF/BMP/AVIF (if supported by browser)
+    if (window.createImageBitmap) return await createImageBitmap(file);
+    return await blobToBitmapOrImage(file);
+  }
+
+  function drawToCanvas(bmpOrCanvas, targetW, targetH, outMime, bg){
+    const isCanvas = bmpOrCanvas instanceof HTMLCanvasElement;
+    const srcW = isCanvas ? bmpOrCanvas.width : bmpOrCanvas.width;
+    const srcH = isCanvas ? bmpOrCanvas.height : bmpOrCanvas.height;
+    const { w, h } = fitSize(srcW, srcH, targetW, targetH);
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (outMime === 'image/jpeg'){ ctx.fillStyle = bg || '#ffffff'; ctx.fillRect(0,0,w,h); }
+    if (isCanvas){
+      ctx.drawImage(bmpOrCanvas, 0,0, srcW, srcH, 0,0, w,h);
+    } else {
+      ctx.drawImage(bmpOrCanvas, 0,0, w,h);
     }
+    return canvas;
+  }
 
-    function blobToBitmap(blob){
-      // Prefer createImageBitmap if available; fallback to HTMLImageElement
-      if (window.createImageBitmap) return createImageBitmap(blob);
-      return new Promise(function(resolve, reject){
-        var img = new Image();
-        img.onload = function(){ resolve(img); };
-        img.onerror = reject;
-        img.src = URL.createObjectURL(blob);
-      });
-    }
+  function toBlob(canvas, outMime, quality){
+    return new Promise(res=>{
+      if (outMime === 'image/png') return canvas.toBlob(res, 'image/png');
+      if (outMime === 'image/webp') return canvas.toBlob(res, 'image/webp', quality);
+      return canvas.toBlob(res, 'image/jpeg', quality);
+    });
+  }
 
-    async function decodeToBitmap(file, targetMime){
-      // If HEIC/HEIF → use heic2any when available
-      if (isHeic(file)) {
-        if (!window.heic2any) throw new Error('HEIC support not loaded');
-        var outType = (targetMime === 'image/jpeg') ? 'image/jpeg' : 'image/png';
-        var heicBlob = await window.heic2any({ blob: file, toType: outType });
-        return await blobToBitmap(heicBlob);
-      }
-      // Non-HEIC paths
-      return await blobToBitmap(file);
-    }
+  function makeThumb(filename, blob){
+    const url = URL.createObjectURL(blob);
+    const wrap = document.createElement('div'); wrap.className = 'thumb';
+    const img = document.createElement('img'); img.src = url;
+    const btn = document.createElement('button'); btn.textContent = 'Download';
+    btn.onclick = ()=>{ const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); };
+    const cap = document.createElement('div'); cap.textContent = filename; cap.className = 'small';
+    wrap.appendChild(img); wrap.appendChild(btn); wrap.appendChild(cap);
+    return wrap;
+  }
 
-    $('img-convert').addEventListener('click', async function(){
-      var f = $('img-file').files && $('img-file').files[0];
-      if (!f) return alert('Pick an image file first');
+  $('btn-clear').addEventListener('click', ()=>{
+    $('img-files').value = '';
+    results.innerHTML = '';
+    logEl.textContent = '';
+  });
 
-      var fmt = $('img-format').value;               // png | jpeg | webp
-      var quality = parseFloat($('img-quality').value || '0.85');
-      var maxW = parseInt($('img-w').value || '0', 10) || 0;
-      var maxH = parseInt($('img-h').value || '0', 10) || 0;
-      var bg    = $('img-bg').value || '#ffffff';
+  $('btn-convert').addEventListener('click', async ()=>{
+    const files = Array.from($('img-files').files||[]);
+    if (!files.length) { alert('Pick one or more images first'); return; }
 
-      var outMime = (fmt === 'png')  ? 'image/png'
-                 : (fmt === 'jpeg') ? 'image/jpeg'
-                 :                     'image/webp';
+    const fmt = $('out-format').value; // png | jpeg | webp
+    const outMime = fmt==='png' ? 'image/png' : (fmt==='webp' ? 'image/webp' : 'image/jpeg');
+    const q = parseFloat($('quality').value || '0.85');
+    const maxw = parseInt($('maxw').value || '0', 10) || 0;
+    const maxh = parseInt($('maxh').value || '0', 10) || 0;
+    const bg   = $('bg').value || '#ffffff';
+    const tiffAll = $('tiff-all').checked;
+    const tiffPage = Math.max(1, parseInt($('tiff-page').value || '1', 10));
 
+    results.innerHTML = '';
+    logEl.textContent = '';
+
+    for (const f of files){
       try{
-        logEl.textContent = '';
-        log('Decoding…');
+        log('Reading: ' + f.name);
 
-        // Decode original (handles HEIC via heic2any → PNG/JPEG first)
-        var bmp = await decodeToBitmap(f, outMime);
+        // HEIC/HEIF
+        if (isHeic(f)){
+          const bmp = await decodeHEICtoBitmap(f, outMime);
+          const canvas = drawToCanvas(bmp, maxw, maxh, outMime, bg);
+          const blob = await toBlob(canvas, outMime, q);
+          const name = f.name.replace(/\.[^.]+$/, '') + (fmt==='jpeg'?'.jpg':'.'+fmt);
+          results.appendChild(makeThumb(name, blob));
+          continue;
+        }
 
-        // Resize as requested
-        var size = fitSize(bmp.width, bmp.height, maxW, maxH);
-        var canvas = document.createElement('canvas');
-        canvas.width = size.w; canvas.height = size.h;
-        var ctx = canvas.getContext('2d');
+        // TIFF (single or all pages)
+        if (isTiff(f)){
+          const canvases = await decodeTIFFtoCanvases(f); // array
+          const pageList = tiffAll ? canvases.map((_,i)=>i+1) : [tiffPage];
+          for (const p of pageList){
+            const src = canvases[p-1];
+            if (!src) { log(`Skipping missing TIFF page ${p} for ${f.name}`); continue; }
+            const canvas = drawToCanvas(src, maxw, maxh, outMime, bg);
+            const blob = await toBlob(canvas, outMime, q);
+            const base = f.name.replace(/\.[^.]+$/, '');
+            const name = `${base}-p${p}` + (fmt==='jpeg'?'.jpg':'.'+fmt);
+            results.appendChild(makeThumb(name, blob));
+          }
+          continue;
+        }
 
-        // For JPEG, fill background so alpha → solid color
-        if (outMime === 'image/jpeg') { ctx.fillStyle = bg; ctx.fillRect(0, 0, canvas.width, canvas.height); }
-        ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+        // SVG
+        if (isSvg(f)){
+          const bmp = await decodeSVGtoBitmap(f);
+          const canvas = drawToCanvas(bmp, maxw, maxh, outMime, bg);
+          const blob = await toBlob(canvas, outMime, q);
+          const name = f.name.replace(/\.[^.]+$/, '') + (fmt==='jpeg'?'.jpg':'.'+fmt);
+          results.appendChild(makeThumb(name, blob));
+          continue;
+        }
 
-        log('Encoding…');
-
-        // toBlob options
-        var blob = await new Promise(function(res){ 
-          if (outMime === 'image/png') return canvas.toBlob(res, 'image/png');
-          if (outMime === 'image/webp') return canvas.toBlob(res, 'image/webp', quality);
-          return canvas.toBlob(res, 'image/jpeg', quality);
-        });
-
-        // Preview
-        var prev = $('img-preview'); prev.innerHTML = '';
-        var img = document.createElement('img'); img.src = URL.createObjectURL(blob);
-        img.style.maxWidth = '100%'; img.style.display = 'block';
-        prev.appendChild(img);
-
-        // Download
-        var a = document.createElement('a');
-        a.href = img.src;
-        a.download = f.name.replace(/\.[^.]+$/, '') + (fmt === 'jpeg' ? '.jpg' : '.' + fmt);
-        var btn = document.createElement('button'); btn.textContent = 'Download ' + a.download;
-        btn.addEventListener('click', function(){ a.click(); });
-        prev.appendChild(btn);
-
-        log('Done.');
+        // Generic (PNG/JPEG/WebP/GIF/BMP/AVIF*)
+        const bmp = await decodeGenericToBitmap(f);
+        const canvas = drawToCanvas(bmp, maxw, maxh, outMime, bg);
+        const blob = await toBlob(canvas, outMime, q);
+        const name = f.name.replace(/\.[^.]+$/, '') + (fmt==='jpeg'?'.jpg':'.'+fmt);
+        results.appendChild(makeThumb(name, blob));
       }catch(err){
         console.error(err);
-        log('Error: ' + (err && err.message ? err.message : err));
-        if (isHeic(f) && !window.heic2any){
-          log('Tip: Add the library at libs/heic2any/heic2any.min.js or ensure cdnjs is reachable.');
-        }
+        log('Error with '+f.name+': '+(err && err.message ? err.message : err));
+        if (isHeic(f) && !window.heic2any) log('Tip: Add heic2any at libs/heic2any/heic2any.min.js or ensure cdnjs is reachable.');
+        if (isTiff(f) && !window.UTIF) log('Tip: Add UTIF at libs/utif/UTIF.min.js or ensure jsDelivr is reachable.');
       }
-    });
-  })();
+    }
+
+    if (!results.children.length){
+      results.innerHTML = '<div class="small muted">No outputs created. Check the log for errors.</div>';
+    } else {
+      log('Done.');
+    }
+  });
+})();
 </script>
 </body>
 </html>
