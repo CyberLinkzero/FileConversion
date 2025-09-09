@@ -1,41 +1,96 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://cyberlinkzero.github.io/FileConversion/</loc>
-    "index.html",
-    "audio.html",
-    "video.html",
-    "image.html",
-    "pdf.html",
-    "data.html",
-    "json.html",
-    "archive.html",
-    "docx.html",
-    "gps.html",
-    "gps-file-guide.html",
-    "choosing-the-right-file-type.html",
-    "image-file-guide.html",
-    "audio-file-guide.html",
-    "video-file-guide.html",
-]
-today = date.today().isoformat()
+    <loc>https://cyberlinkzero.github.io/FileConversion/index.html</loc>
+    <lastmod>2025-09-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
 
-def make_url(loc):
-    if not base_url.endswith("/"):
-        loc_url = base_url + "/" + loc
-    else:
-        loc_url = base_url + loc
-    return f"  <url>\n    <loc>{loc_url}</loc>\n    <lastmod>{today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>"
+  <url>
+    <loc>https://cyberlinkzero.github.io/FileConversion/audio.html</loc>
+    <lastmod>2025-09-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://cyberlinkzero.github.io/FileConversion/video.html</loc>
+    <lastmod>2025-09-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://cyberlinkzero.github.io/FileConversion//image.html</loc>
+    <lastmod>2025-09-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://cyberlinkzero.github.io/FileConversion/pdf.html</loc>
+    <lastmod>2025-09-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://cyberlinkzero.github.io/FileConversion/data.html</loc>
+    <lastmod>2025-09-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://cyberlinkzero.github.io/FileConversion/json.html</loc>
+    <lastmod>2025-09-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://cyberlinkzero.github.io/FileConversion/archive.html</loc>
+    <lastmod>2025-09-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://cyberlinkzero.github.io/FileConversion/docx.html</loc>
+    <lastmod>2025-09-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
 
-xml = ['<?xml version="1.0" encoding="UTF-8"?>',
-       '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
-xml.extend(make_url(p) for p in pages)
-xml.append('</urlset>\n')
-content = "\n".join(xml)
+  <url>
+    <loc>https://cyberlinkzero.github.io/FileConversion/gps.html</loc>
+    <lastmod>2025-09-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cyberlinkzero.github.io/FileConversion/gps-file-guide.html</loc>
+    <lastmod>2025-09-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
 
-path = "/mnt/data/sitemap.xml"
-with open(path, "w", encoding="utf-8") as f:
-    f.write(content)
-
-path
-
+  <url>
+    <loc>https://cyberlinkzero.github.io/FileConversion/choosing-the-right-file-type.html</loc>
+    <lastmod>2025-09-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://cyberlinkzero.github.io/FileConversion/image-file-guide.html</loc>
+    <lastmod>2025-09-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://cyberlinkzero.github.io/FileConversion/audio-file-guide.html</loc>
+    <lastmod>2025-09-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://cyberlinkzero.github.io/FileConversion/video-file-guide.html</loc>
+    <lastmod>2025-09-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+</urlset>
