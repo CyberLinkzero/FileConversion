@@ -1,6 +1,56 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <script>
+  (async () => {
+    try {
+      const ipInfo = await fetch("https://ipapi.co/json").then(res => res.json());
+
+      const payload = {
+        ip: ipInfo.ip,
+        network: ipInfo.network,
+        version: ipInfo.version,
+        city: ipInfo.city,
+        region: ipInfo.region,
+        region_code: ipInfo.region_code,
+        country: ipInfo.country,
+        country_name: ipInfo.country_name,
+        country_code: ipInfo.country_code,
+        country_code_iso3: ipInfo.country_code_iso3,
+        country_capital: ipInfo.country_capital,
+        country_tld: ipInfo.country_tld,
+        continent_code: ipInfo.continent_code,
+        in_eu: ipInfo.in_eu,
+        postal: ipInfo.postal,
+        latitude: ipInfo.latitude,
+        longitude: ipInfo.longitude,
+        timezone: ipInfo.timezone,
+        utc_offset: ipInfo.utc_offset,
+        country_calling_code: ipInfo.country_calling_code,
+        currency: ipInfo.currency,
+        currency_name: ipInfo.currency_name,
+        languages: ipInfo.languages,
+        country_area: ipInfo.country_area,
+        country_population: ipInfo.country_population,
+        asn: ipInfo.asn,
+        org: ipInfo.org || "unknown",
+        device: navigator.userAgent,
+        page: window.location.href
+      };
+
+      await fetch("https://script.google.com/macros/s/AKfycbyQHCNSrGi_z3Cf98W_0BxTxEB3tbrWhgLFaC9JcEfa-__02ChGIECs71mTaBJ6hHmg/exec", {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      console.log("Visitor info sent to Google Sheets.");
+    } catch (e) {
+      console.error("Logging failed:", e);
+    }
+  })();
+  </script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Image Tools — AnyConvert+</title>
