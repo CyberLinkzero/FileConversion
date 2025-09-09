@@ -2,8 +2,40 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://cyberlinkzero.github.io/FileConversion/</loc>
-    <lastmod>2025-09-03</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>1.0</priority>
-  </url>
-</urlset>
+    "index.html",
+    "audio.html",
+    "video.html",
+    "image.html",
+    "pdf.html",
+    "data.html",
+    "json.html",
+    "archive.html",
+    "docx.html",
+    "gps.html",
+    "gps-file-guide.html",
+    "choosing-the-right-file-type.html",
+    "image-file-guide.html",
+    "audio-file-guide.html",
+    "video-file-guide.html",
+]
+today = date.today().isoformat()
+
+def make_url(loc):
+    if not base_url.endswith("/"):
+        loc_url = base_url + "/" + loc
+    else:
+        loc_url = base_url + loc
+    return f"  <url>\n    <loc>{loc_url}</loc>\n    <lastmod>{today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>"
+
+xml = ['<?xml version="1.0" encoding="UTF-8"?>',
+       '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+xml.extend(make_url(p) for p in pages)
+xml.append('</urlset>\n')
+content = "\n".join(xml)
+
+path = "/mnt/data/sitemap.xml"
+with open(path, "w", encoding="utf-8") as f:
+    f.write(content)
+
+path
+
