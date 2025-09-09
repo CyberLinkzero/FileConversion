@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Core -->
   <url>
     <loc>https://cyberlinkzero.github.io/FileConversion/index.html</loc>
     <lastmod>2025-09-09</lastmod>
@@ -7,6 +8,7 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- Converters -->
   <url>
     <loc>https://cyberlinkzero.github.io/FileConversion/audio.html</loc>
     <lastmod>2025-09-09</lastmod>
@@ -20,7 +22,7 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://cyberlinkzero.github.io/FileConversion//image.html</loc>
+    <loc>https://cyberlinkzero.github.io/FileConversion/image.html</loc>
     <lastmod>2025-09-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -56,6 +58,7 @@
     <priority>0.6</priority>
   </url>
 
+  <!-- GPS -->
   <url>
     <loc>https://cyberlinkzero.github.io/FileConversion/gps.html</loc>
     <lastmod>2025-09-09</lastmod>
@@ -69,6 +72,7 @@
     <priority>0.5</priority>
   </url>
 
+  <!-- Blogs / Guides -->
   <url>
     <loc>https://cyberlinkzero.github.io/FileConversion/choosing-the-right-file-type.html</loc>
     <lastmod>2025-09-09</lastmod>
