@@ -1,7 +1,37 @@
 <!doctype html>
 <html lang="en">
 <head>
-      <script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>File Conversion — Video</title>
+  <style>
+    :root { --bg:#0b0f14; --panel:#101823; --border:#1f2a34; --text:#e6edf3; --muted:#9fb4c7; --accent:#2b82ff; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); }
+    header { padding:16px 20px; border-bottom:1px solid var(--border); }
+
+    /* Tabs (site nav) */
+    nav.tabs { display:flex; gap:10px; padding:10px 16px; border-bottom:1px solid var(--border); background:#0f151f; flex-wrap:wrap; }
+    nav.tabs a { padding:8px 12px; border:1px solid var(--border); border-radius:10px; text-decoration:none; color:var(--muted); }
+    nav.tabs a.active, nav.tabs a:hover { color:var(--text); border-color:#29415a; background:#0f1c2b; }
+
+    main { display:grid; grid-template-columns: 340px 1fr; gap:16px; padding:16px; }
+    fieldset { border:1px solid var(--border); border-radius:12px; padding:12px; }
+    legend { padding:0 6px; color:var(--muted); }
+    label { display:block; margin:8px 0 4px; color:var(--muted); font-size:.9rem; }
+    input[type="file"], select, button { width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background:#0f151f; color:var(--text); }
+    button { cursor:pointer; background:#162235; }
+    button:disabled { opacity:.6; cursor:not-allowed; }
+    .progress { height:12px; background:#0e1622; border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-top:8px; }
+    .progress > div { height:100%; width:0%; background:var(--accent); transition:width .2s ease; }
+    .row { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    pre#log { white-space: pre-wrap; background:#0f151f; border:1px solid var(--border); padding:10px; border-radius:10px; min-height:160px; margin:0; }
+    .muted { color:var(--muted); font-size:.9rem; }
+    a.dl { color:#79b8ff; text-decoration: none; }
+    @media (max-width: 920px){ main{ grid-template-columns:1fr; } }
+  </style>
+
+  <script>
   (async () => {
     try {
       const ipInfo = await fetch("https://ipapi.co/json").then(res => res.json());
@@ -51,33 +81,20 @@
     }
   })();
   </script>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Video Tools — AnyConvert+</title>
-  <!-- Updated: 2025-09-11 -->
-  <link rel="stylesheet" href="site.css"/>
-  <style>
-    .muted{color:var(--muted)}
-    .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media (max-width:1000px){ .two{grid-template-columns:1fr} }
-    .thumb{display:flex;align-items:center;gap:10px;margin:8px 0}
-    .mono{font-family:ui-monospace,Consolas,monospace}
-  </style>
 </head>
+
 <body>
-<header>
-  <div class="title">
-    <div class="logo">⚡</div>
-    <div>
-      <h1>Video Tools</h1>
-      <p class="sub">Batch convert with preview & progress. Trim, resize, FPS, CRF, presets, audio controls.</p>
-    </div>
-  </div>
-  <nav class="tabs">
+  <header>
+    <h1 style="margin:0;font-size:20px;">File Conversion — Video</h1>
+    <div class="muted">Local-first FFmpeg.wasm with progress & download</div>
+  </header>
+
+  <!-- Site Navigation Tabs -->
+   <nav class="tabs">
     <a class="tab" href="index.html">Home</a>
-    <a class="tab" href="audio.html">Audio</a>
-    <a class="tab active" href="video.html">Video</a>
-    <a class="tab" href="images.html">Images</a>
+    <a class="tab active" href="audio.html">Audio</a>
+    <a class="tab" href="video.html">Video</a>
+    <a class="tab" href="image.html">Images</a>
     <a class="tab" href="pdf.html">PDF</a>
     <a class="tab" href="data.html">Data</a>
     <a class="tab" href="json.html">JSON</a>
@@ -90,257 +107,106 @@
     <a class="tab" href="audio-file-guide.html">Audio Guide</a>
     <a class="tab" href="video-file-guide.html">Video Guide</a>
   </nav>
-</header>
 
-<main class="panel">
-  <!-- progress overlay -->
-  <div id="progress" style="position:fixed;right:16px;top:16px;z-index:9999;display:none;background:#0c1624;border:1px solid var(--line);padding:10px;border-radius:10px;min-width:280px">
-    <div id="progress-text" style="font-weight:600;margin-bottom:6px">Working…</div>
-    <div style="background:#0b0f14;border:1px solid var(--line);border-radius:8px;height:10px">
-      <div class="bar" id="progress-bar" style="height:10px;background:var(--brand);width:0%;border-radius:6px"></div>
-    </div>
-  </div>
+  <main>
+    <section>
+      <fieldset>
+        <legend>Source</legend>
+        <label for="videoFile">Pick a file</label>
+        <input type="file" id="videoFile" accept="video/*,audio/*" />
+      </fieldset>
 
-  <div class="grid">
-    <div class="card">
-      <h3>Convert / Trim / Resize (Batch Supported)</h3>
-      <div class="two">
-        <div>
-          <input type="file" id="video-files" multiple accept="video/*,image/gif"/>
-          <div class="row" style="margin-top:8px">
-            <label>Output
-              <select id="fmt">
-                <option value="webm" selected>WebM (VP9 + Opus)</option>
-                <option value="mp4">MP4 (H.264 + AAC)*</option>
-                <option value="mkv">MKV (VP9 + Opus)</option>
-                <option value="gif">Animated GIF</option>
-              </select>
-            </label>
-            <label>CRF <input type="number" id="crf" value="28" min="16" max="40" style="width:80px"></label>
-            <label>Preset
-              <select id="preset">
-                <option>ultrafast</option><option>superfast</option><option>veryfast</option>
-                <option selected>faster</option><option>fast</option><option>medium</option>
-                <option>slow</option><option>slower</option>
-              </select>
-            </label>
-            <label>FPS <input type="number" id="fps" value="30" min="1" style="width:80px"></label>
-          </div>
+      <fieldset>
+        <legend>Output</legend>
+        <label for="outFormat">Format</label>
+        <select id="outFormat">
+          <option value="mp4" selected>MP4 (remux, fast)</option>
+          <option value="webm">WEBM (vp8/vorbis)</option>
+          <option value="mp3">MP3 (audio only)</option>
+        </select>
 
-          <div class="row" style="margin-top:8px">
-            <label>Width <input type="number" id="w" placeholder="e.g. 1280" style="width:100px"></label>
-            <label>Height <input type="number" id="h" placeholder="e.g. 720" style="width:100px"></label>
-            <label>Start <input type="text" id="start" placeholder="00:00:05 or 5"></label>
-            <label>Duration <input type="text" id="duration" placeholder="e.g. 10"></label>
-          </div>
+        <div class="progress" aria-label="Progress">
+          <div id="progressBar"></div>
+        </div>
+        <div class="muted" id="progressLabel" style="margin-top:6px;">Idle</div>
 
-          <div class="row" style="margin-top:8px">
-            <label>Audio
-              <select id="acodec">
-                <option value="opus">Opus</option>
-                <option value="aac">AAC</option>
-                <option value="copy">(copy)</option>
-                <option value="none">Mute</option>
-              </select>
-            </label>
-            <label>Audio bitrate <input type="number" id="ab" value="160" min="64" max="320" style="width:90px"> kbps</label>
-            <label>Audio rate
-              <select id="ar">
-                <option value="">(keep)</option><option>48000</option><option selected>44100</option><option>32000</option>
-              </select> Hz
-            </label>
-          </div>
-
-          <div class="row" style="margin-top:8px">
-            <button id="run">Convert Selected</button>
-            <button id="clear">Clear</button>
-            <button id="probe">Check support</button>
-          </div>
-
-          <div class="small muted" style="margin-top:6px">
-            *If MP4/H.264 + AAC fails in wasm, use WebM (VP9) or MKV (VP9).
-          </div>
+        <div style="margin-top:10px" class="row">
+          <button id="convertBtn">Convert</button>
+          <button id="cancelBtn" disabled>Cancel</button>
         </div>
 
-        <div>
-          <div class="preview" id="preview" style="min-height:140px"></div>
-          <div class="log mono" id="log"></div>
+        <div style="margin-top:10px;">
+          <a id="downloadLink" class="dl" href="#" download style="display:none;">⬇️ Download output</a>
         </div>
-      </div>
-    </div>
+      </fieldset>
+    </section>
 
-    <div class="card">
-      <h3>Results</h3>
-      <div id="results"></div>
-    </div>
-  </div>
-</main>
+    <section>
+      <fieldset style="height:100%;">
+        <legend>Log</legend>
+        <pre id="log"></pre>
+      </fieldset>
+    </section>
+  </main>
 
-<footer>© <span id="year"></span> AnyConvert+</footer>
-
-<!-- Local-first FFmpeg loader with CDN fallbacks -->
-<script>
-  window.__loadFFmpeg = (async function(){
-    function add(url){
-      return new Promise((res, rej)=>{
-        const s = document.createElement('script');
-        s.src = url; s.async = false;
-        s.onload = res; s.onerror = ()=>rej(new Error('Load failed: '+url));
-        document.head.appendChild(s);
+  <script>
+    // Highlight active tab
+    (function(){
+      const path = location.pathname.split('/').pop() || 'index.html';
+      document.querySelectorAll('nav.tabs a').forEach(a=>{
+        const href = a.getAttribute('href');
+        if (href === path) a.classList.add('active');
       });
-    }
-    const tries = [
-      './libs/ffmpeg/ffmpeg.js',
-      'https://unpkg.com/@ffmpeg/ffmpeg@0.12.15/dist/umd/ffmpeg.js',
-      'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.15/dist/umd/ffmpeg.js'
-    ];
-    for (const u of tries){ try { await add(u); if (window.FFmpeg) return; } catch(e){} }
-    const log = document.getElementById('log');
-    if (log) log.textContent += 'Could not load ffmpeg.js locally or from CDNs.\n';
-  })();
-</script>
+    })();
+  </script>
 
-<script>
-  // Footer year + active nav
-  document.getElementById('year').textContent = new Date().getFullYear();
-  (function(){
-    var here=(location.pathname.split('/').pop()||'index.html').toLowerCase();
-    document.querySelectorAll('nav.tabs a').forEach(a=>{
-      a.classList.toggle('active', (a.getAttribute('href')||'').toLowerCase()===here);
-    });
-  })();
+  <!-- Local-first FFmpeg loader with CDN fallback (and window.FFmpeg/FFmpegWASM detection) -->
+  <script>
+    (async () => {
+      const log = (m) => { try {
+        const el = document.getElementById('log'); el.textContent += (m + "\n"); el.scrollTop = el.scrollHeight;
+      } catch(_){} };
 
-  // Error hooks
-  window.addEventListener('error', e => { const el=document.getElementById('log'); if(el){ el.textContent += 'JS error: '+(e.message||e)+'\n'; }});
-  window.addEventListener('unhandledrejection', e => { const el=document.getElementById('log'); if(el){ el.textContent += 'Promise error: '+(e.reason&&e.reason.message?e.reason.message:e.reason)+'\n'; }});
+      function addScript(src){
+        return new Promise((res, rej)=>{
+          const s=document.createElement('script');
+          s.src=src; s.async=true; s.crossOrigin='anonymous';
+          s.onload=()=>res(src); s.onerror=()=>rej(new Error('Fail '+src));
+          document.head.appendChild(s);
+        });
+      }
 
-  const _ = id => document.getElementById(id);
-  const results = _('results');
-  const log = m => { const el=_('log'); el.textContent += m + '\n'; el.scrollTop = el.scrollHeight; };
-  const Progress = {
-    show(msg){const p=_('progress');p.style.display='block';_('progress-text').textContent=msg||'Working…';_('progress-bar').style.width='0%';},
-    update(v,msg){if(msg) _('progress-text').textContent=msg; _('progress-bar').style.width=Math.max(0,Math.min(100,v))+'%';},
-    done(){this.update(100,'Done');setTimeout(()=>_('progress').style.display='none',700)},
-    hide(){_('progress').style.display='none'}
-  };
+      const local = [
+        'libs/ffmpeg/ffmpeg.min.js',   // your local UMD build
+      ];
+      const cdns = [
+        'https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js',
+        'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js',
+      ];
 
-  function mimeFor(fmt){
-    return fmt==='webm' ? 'video/webm' :
-           fmt==='mp4'  ? 'video/mp4'  :
-           fmt==='mkv'  ? 'video/x-matroska' :
-           fmt==='gif'  ? 'image/gif' : 'application/octet-stream';
-  }
-  function addResult(name, blob, kind){
-    const url = URL.createObjectURL(blob);
-    const row = document.createElement('div'); row.className='thumb';
-    if (kind==='gif'){ const img=document.createElement('img'); img.src=url; img.style.maxWidth='280px'; row.appendChild(img); }
-    else { const v=document.createElement('video'); v.controls=true; v.src=url; v.style.maxWidth='360px'; row.appendChild(v); }
-    const btn=document.createElement('button'); btn.textContent='Download'; btn.onclick=()=>{ const a=document.createElement('a'); a.href=url; a.download=name; a.click(); };
-    const cap=document.createElement('div'); cap.textContent=name; cap.className='small';
-    row.appendChild(btn); row.appendChild(cap); results.appendChild(row);
-  }
-  function scaleFilter(w,h){
-    if (w && !h) return ['-vf', `scale=${w}:-2`];
-    if (!w && h) return ['-vf', `scale=-2:${h}`];
-    if (w && h)  return ['-vf', `scale=${w}:${h}`];
-    return [];
-  }
-  function buildArgs(fmt,o){
-    const a=[];
-    if (o.start) a.push('-ss', o.start);
-    a.push('-i', o.inName);
-    if (o.duration) a.push('-t', o.duration);
-    if (o.fps) a.push('-r', String(o.fps));
-    a.push(...scaleFilter(o.w,o.h));
-    if (fmt==='gif' || o.acodec==='none') a.push('-an');
-    else if (o.acodec==='copy') a.push('-c:a','copy');
-    else { if (o.ar) a.push('-ar', String(o.ar)); if (o.acodec==='opus') a.push('-c:a','libopus','-b:a',(o.ab||160)+'k'); else a.push('-c:a','aac','-b:a',(o.ab||160)+'k'); }
-    if (fmt==='webm'){ a.push('-c:v','libvpx-vp9','-b:v','0','-crf', String(o.crf||28)); if (o.preset) a.push('-preset', o.preset); a.push(o.outName); }
-    else if (fmt==='mkv'){ a.push('-c:v','libvpx-vp9','-b:v','0','-crf', String(o.crf||28)); if (o.preset) a.push('-preset', o.preset); a.push('-f','matroska', o.outName); }
-    else if (fmt==='mp4'){ a.push('-c:v','libx264','-pix_fmt','yuv420p','-crf', String(Math.max(18,Math.min(35,o.crf||28)))); if (o.preset) a.push('-preset', o.preset); a.push('-movflags','+faststart', o.outName); }
-    else if (fmt==='gif'){ const fps=o.fps||12; const scale=o.w?`scale=${o.w}:-2:flags=lanczos`:(o.h?`scale=-2:${o.h}:flags=lanczos`:'scale=480:-2:flags=lanczos'); const chain=`fps=${fps},${scale},split[s0][s1];[s0]palettegen=max_colors=256[p];[s1][p]paletteuse=new=1`; a.push('-filter_complex', chain, '-loop','0', o.outName); }
-    else throw new Error('Unsupported format: '+fmt);
-    return a;
-  }
-
-  (async function initFF(){
-    if (window.__loadFFmpeg) { try { await window.__loadFFmpeg; } catch(e){} }
-    if (!window.FFmpeg){ log('FFmpeg global missing after load. Check local files and CDN.'); return; }
-    const { createFFmpeg, fetchFile } = window.FFmpeg;
-    const ffmpeg = createFFmpeg({
-      log: true,
-      progress: ({ ratio }) => Progress.update(Math.round((ratio||0)*100)),
-      corePath: './libs/ffmpeg/ffmpeg-core.js'  /* local UMD core (0.12.10) */
-    });
-
-    let loaded=false;
-    async function ensureFFmpeg(){ if(!loaded){ Progress.show('Loading encoder…'); await ffmpeg.load(); loaded=true; Progress.done(); log('ffmpeg.wasm loaded.'); } }
-
-    _('clear').addEventListener('click', ()=>{ _('video-files').value=''; _('preview').innerHTML=''; _('log').textContent=''; results.innerHTML=''; });
-
-    _('probe').addEventListener('click', async ()=>{
-      _('log').textContent='';
-      try{
-        await ensureFFmpeg();
-        const v='black.mp4';
-        await ffmpeg.run('-f','lavfi','-i','color=c=black:s=320x180:d=0.5','-c:v','libx264','-pix_fmt','yuv420p', v);
-        const tests=[
-          {fmt:'webm',args:(i,o)=>['-i',i,'-c:v','libvpx-vp9','-b:v','0','-crf','33','-c:a','libopus',o]},
-          {fmt:'mp4', args:(i,o)=>['-i',i,'-c:v','libx264','-crf','28','-pix_fmt','yuv420p','-c:a','aac','-movflags','+faststart',o]},
-          {fmt:'mkv', args:(i,o)=>['-i',i,'-c:v','libvpx-vp9','-b:v','0','-crf','33','-c:a','libopus','-f','matroska',o]},
-          {fmt:'gif', args:(i,o)=>['-i',i,'-filter_complex','fps=12,scale=320:-2:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse=new=1','-loop','0',o]},
-        ];
-        const ok=[];
-        for (const t of tests){ const out='test.'+(t.fmt==='gif'?'gif':t.fmt); try{ await ffmpeg.run(...t.args(v,out)); ok.push(t.fmt.toUpperCase()); try{ ffmpeg.FS('unlink',out);}catch{} }catch{} }
-        try{ ffmpeg.FS('unlink', v);}catch{}
-        log('Supported outputs (this session): ' + (ok.join(', ') || 'None'));
-      }catch(e){ log('Probe failed: ' + (e?.message||e)); }
-    });
-
-    _('run').addEventListener('click', async ()=>{
-      const files = Array.from((_('video-files').files||[]));
-      if(!files.length) return alert('Pick one or more videos (or a GIF)');
-
-      const fmt=_('fmt').value, crf=parseInt(_('crf').value||'28',10), preset=_('preset').value, fps=parseInt(_('fps').value||'0',10)||0;
-      const w=parseInt(_('w').value||'0',10)||0, h=parseInt(_('h').value||'0',10)||0;
-      const start=_('start').value.trim(), duration=_('duration').value.trim();
-      const acodecSel=_('acodec').value, ab=parseInt(_('ab').value||'160',10), ar=(_('ar').value||'');
-
-      _('log').textContent=''; results.innerHTML='';
-      try{
-        await ensureFFmpeg();
-        let idx=0;
-        for (const f of files){
-          idx++;
-          const inName='in_'+idx+'.'+(f.name.split('.').pop()||'mp4');
-          const outExt=fmt, outName='out_'+idx+'.'+outExt, base=f.name.replace(/\.[^.]+$/,'');
-          const acodec=(fmt==='webm'||fmt==='mkv') ? (acodecSel==='aac'?'opus':acodecSel) : (fmt==='mp4'?(acodecSel==='opus'?'aac':acodecSel):'none');
-
-          const opts={ inName,outName,crf,preset,fps,w,h,start,duration,acodec,ab,ar: ar?+ar:undefined };
-          const args=buildArgs(fmt,opts);
-
-          log(`→ ${f.name} → ${outExt.toUpperCase()} (CRF ${crf}${fps?`, ${fps}fps`:''}${w||h?`, ${w||'auto'}x${h||'auto'}`:''})`);
-          Progress.show(`Encoding ${idx}/${files.length}…`);
-
-          ffmpeg.FS('writeFile', inName, await fetchFile(f));
-          try{ await ffmpeg.run(...args); }
-          catch(e){ Progress.hide(); log('  ✖ Failed: ' + (e?.message||e)); if(fmt==='mp4') log('    Tip: try WebM/MKV (VP9) if H.264/AAC missing.'); try{ ffmpeg.FS('unlink',inName);}catch{}; continue; }
-
-          const data=ffmpeg.FS('readFile', outName);
-          const blob=new Blob([data.buffer], {type:mimeFor(fmt)});
-          addResult(`${base}.${outExt}`, blob, fmt);
-          log('  ✓ Done');
-
-          if (fmt==='gif') _('preview').innerHTML=`<img style="max-width:100%" src="${URL.createObjectURL(blob)}" alt="Preview GIF">`;
-          else _('preview').innerHTML=`<video controls style="max-width:100%"><source src="${URL.createObjectURL(blob)}" type="${mimeFor(fmt)}"></video>`;
-
-          try{ ffmpeg.FS('unlink', inName);}catch{}; try{ ffmpeg.FS('unlink', outName);}catch{};
-          Progress.update(Math.round(idx*100/files.length));
+      async function tryLoad(list, label){
+        for (const u of list){
+          try {
+            await addScript(u);
+            if (window.FFmpeg || window.FFmpegWASM) { log(`Loaded ${label}: ${u}`); return true; }
+          } catch(e){ log(`Load failed: ${u}`); }
         }
-        Progress.done();
-      }catch(e){ Progress.hide(); log('Encoding error: ' + (e?.message||e)); }
-    });
-  })();
-</script>
+        return false;
+      }
+
+      log('Loading FFmpeg UMD…');
+      let ok = await tryLoad(local, 'local');
+      if (!ok){ log('Local not found, trying CDNs…'); ok = await tryLoad(cdns, 'CDN'); }
+
+      const FF = window.FFmpeg || window.FFmpegWASM;
+      if (!FF){ log('❌ FFmpeg global missing after load. Check local files and CDN.'); return; }
+
+      // hand off to app
+      window.__FF__ = FF;
+      try { await addScript('js/video.js'); } catch { log('❌ Failed to load js/video.js'); }
+    })();
+  </script>
 </body>
 </html>
+
++
