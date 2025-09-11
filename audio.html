@@ -1,5 +1,6 @@
 <!doctype html>
-<html lang="en"><head>
+<html lang="en">
+<head>
   <script>
   (async () => {
     try {
@@ -50,55 +51,328 @@
     }
   })();
   </script>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Audio — AnyConvert</title>
-<link rel="stylesheet" href="site.css">
-</head><body>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Audio Tools — AnyConvert+</title>
+  <link rel="stylesheet" href="site.css"/>
+  <style>
+    .muted{color:var(--muted)}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:1000px){ .two-col{grid-template-columns:1fr} }
+    .thumb{display:flex;align-items:center;gap:10px;margin:6px 0}
+    .mono{font-family:ui-monospace,Consolas,monospace}
+  </style>
+</head>
+<body>
 <header>
-  <div class="title"><div class="logo">⚡</div><h1>Audio</h1></div>
-  <nav class="tabs">
-  <a class="tab" href="index.html">Home</a>
-
-  <!-- Converters -->
-  <a class="tab" href="audio.html">Audio</a>
-  <a class="tab" href="video.html">Video</a>
-  <a class="tab" href="images.html">Images</a>
-  <a class="tab" href="pdf.html">PDF</a>
-  <a class="tab" href="data.html">Data</a>
-  <a class="tab" href="json.html">JSON</a>
-  <a class="tab" href="archive.html">Archive</a>
-  <a class="tab" href="docx.html">DOCX</a>
-
-  <!-- GPS tools -->
-  <a class="tab" href="gps.html">GPS</a>
-  <a class="tab" href="gps-file-guide.html">GPS Guide</a>
-
-  <!-- Blogs / Guides -->
-  <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
-  <a class="tab" href="image-file-guide.html">Image Guide</a>
-  <a class="tab" href="audio-file-guide.html">Audio Guide</a>
-  <a class="tab" href="video-file-guide.html">Video Guide</a>
-</nav>
-
-</header>
-<main><section id="tab-audio" class="panel"><div class="grid">
-  <div class="card">
-    <h3>MP3 ↔ WAV</h3>
-    <input type="file" id="audio-input" accept="audio/*" />
-    <div class="row" style="margin-top:12px">
-      <select id="audio-target"><option value="mp3">MP3</option><option value="wav">WAV</option></select>
-      <button id="audio-btn">Convert</button>
+  <div class="title">
+    <div class="logo">⚡</div>
+    <div>
+      <h1>Audio Tools</h1>
+      <p class="sub">Batch convert, trim, and tweak bitrate / sample rate / channels — all in your browser.</p>
     </div>
-    <div id="audio-progress" class="progress"><div class="bar"></div></div>
-    <div class="progress-label" id="audio-progress-label">Idle</div>
-    <div class="log" id="audio-log"></div>
   </div>
-</div></section></main>
-<footer><p>© <span id="year"></span> File Converter — Cyber Edition</p></footer>
-<script src="js/utils.js"></script>
-<script type="module">
-  import { createFFmpeg, fetchFile } from "https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/ffmpeg.min.js";
-  window.createFFmpeg = createFFmpeg; window.fetchFile = fetchFile;
+  <nav class="tabs">
+    <a class="tab" href="index.html">Home</a>
+    <a class="tab active" href="audio.html">Audio</a>
+    <a class="tab" href="video.html">Video</a>
+    <a class="tab" href="image.html">Images</a>
+    <a class="tab" href="pdf.html">PDF</a>
+    <a class="tab" href="data.html">Data</a>
+    <a class="tab" href="json.html">JSON</a>
+    <a class="tab" href="archive.html">Archive</a>
+    <a class="tab" href="docx.html">DOCX</a>
+    <a class="tab" href="gps.html">GPS</a>
+    <a class="tab" href="gps-file-guide.html">GPS Guide</a>
+    <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
+    <a class="tab" href="image-file-guide.html">Image Guide</a>
+    <a class="tab" href="audio-file-guide.html">Audio Guide</a>
+    <a class="tab" href="video-file-guide.html">Video Guide</a>
+  </nav>
+</header>
+
+<main class="panel">
+  <!-- progress -->
+  <div id="progress" style="position:fixed;right:16px;top:16px;z-index:9999;display:none;background:#0c1624;border:1px solid var(--line);padding:10px;border-radius:10px;min-width:280px">
+    <div id="progress-text" style="font-weight:600;margin-bottom:6px">Working…</div>
+    <div style="background:#0b0f14;border:1px solid var(--line);border-radius:8px;height:10px"><div class="bar" id="progress-bar" style="height:10px;background:var(--brand);width:0%;border-radius:6px"></div></div>
+  </div>
+
+  <div class="grid">
+
+    <div class="card">
+      <h3>Convert / Trim (Batch Supported)</h3>
+      <div class="two-col">
+        <div>
+          <input type="file" id="audio-files" multiple accept="audio/*,video/*"/>
+          <div class="row" style="margin-top:8px">
+            <label>Output
+              <select id="fmt">
+                <option value="mp3">MP3 (libmp3lame)</option>
+                <option value="ogg">OGG (Opus)</option>
+                <option value="m4a">M4A (AAC, best-effort)</option>
+                <option value="alac">M4A (ALAC lossless, best-effort)</option>
+                <option value="flac">FLAC (lossless)</option>
+                <option value="wav">WAV (PCM 16-bit LE)</option>
+                <option value="aiff">AIFF (PCM 16-bit BE)</option>
+              </select>
+            </label>
+            <label>Bitrate (lossy)
+              <input type="number" id="kbps" value="192" min="32" max="320" style="width:90px"> kbps
+            </label>
+            <label>Sample rate
+              <select id="ar">
+                <option value="">(keep)</option>
+                <option>48000</option>
+                <option selected>44100</option>
+                <option>32000</option>
+                <option>22050</option>
+              </select> Hz
+            </label>
+            <label>Channels
+              <select id="ac">
+                <option value="">(keep)</option>
+                <option value="1">Mono</option>
+                <option value="2" selected>Stereo</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <label>Start <input type="text" id="start" placeholder="00:00:05 or 5"></label>
+            <label>Duration <input type="text" id="duration" placeholder="e.g. 15"></label>
+            <label>Volume <input type="number" id="vol" value="1" step="0.1" min="0"> ×</label>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <button id="run">Convert Selected</button>
+            <button id="clear">Clear</button>
+            <button id="probe">Check support</button>
+          </div>
+
+          <div class="small muted" style="margin-top:6px">
+            Notes: MP3/Opus/WAV/FLAC are most reliable. AAC/ALAC depend on the wasm build; if a format isn’t available,
+            you’ll see an error — choose another output (e.g., MP3 or Opus).
+          </div>
+        </div>
+
+        <div>
+          <div class="preview" id="preview" style="min-height:120px"></div>
+          <div class="log mono" id="log"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Results</h3>
+      <div id="results"></div>
+    </div>
+
+  </div>
+</main>
+
+<footer>© <span id="year"></span> AnyConvert+</footer>
+
+<!-- ffmpeg.wasm UMD + explicit core path -->
+<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.15/dist/umd/ffmpeg.js"></script>
+<script>
+  // Footer year + active tab
+  document.getElementById('year').textContent = new Date().getFullYear();
+  (function(){
+    var here=(location.pathname.split('/').pop()||'index.html').toLowerCase();
+    document.querySelectorAll('nav.tabs a').forEach(a=>{
+      a.classList.toggle('active', (a.getAttribute('href')||'').toLowerCase()===here);
+    });
+  })();
+
+  // Progress overlay
+  const Progress = {
+    show(msg){const p=_('progress');p.style.display='block';_('progress-text').textContent=msg||'Working…';_('progress-bar').style.width='0%';},
+    update(v,msg){if(msg) _('progress-text').textContent=msg; _('progress-bar').style.width=Math.max(0,Math.min(100,v))+'%';},
+    done(){this.update(100,'Done');setTimeout(()=>_('progress').style.display='none',600)},
+    hide(){_('progress').style.display='none'}
+  };
+
+  const _ = id => document.getElementById(id);
+  const log = m => { const el=_('log'); el.textContent += m + '\\n'; el.scrollTop = el.scrollHeight; };
+  const results = _('results');
+
+  // Initialize ffmpeg with explicit corePath (UMD build)
+  const { createFFmpeg, fetchFile } = FFmpeg;
+  const ffmpeg = createFFmpeg({
+    log: true,
+    progress: ({ ratio }) => Progress.update(Math.round(ratio * 100)),
+    corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.js'
+  });
+  let loaded = false;
+  async function ensureFFmpeg(){
+    if (!loaded) { Progress.show('Loading encoder…'); await ffmpeg.load(); loaded = true; Progress.done(); }
+  }
+
+  // Build args by selected output
+  function buildArgs(fmt, opts){
+    const a = [];
+    // Input
+    a.push('-i', opts.inName);
+    // Time trims (put after input for accuracy)
+    if (opts.start)   { a.push('-ss', opts.start); }
+    if (opts.duration){ a.push('-t',  opts.duration); }
+    // Audio filters
+    if (opts.vol && opts.vol !== 1) { a.push('-filter:a', 'volume=' + opts.vol); }
+    // Sample rate / channels
+    if (opts.ar) { a.push('-ar', String(opts.ar)); }
+    if (opts.ac) { a.push('-ac', String(opts.ac)); }
+
+    // Format specifics
+    switch (fmt){
+      case 'mp3':
+        a.push('-vn','-c:a','libmp3lame','-b:a', (opts.kbps||192)+'k', opts.outName);
+        break;
+      case 'ogg': // Opus in OGG
+        a.push('-vn','-c:a','libopus','-b:a', (opts.kbps||160)+'k', opts.outName);
+        break;
+      case 'm4a': // AAC in MP4/M4A container (best-effort)
+        a.push('-vn','-c:a','aac','-b:a',(opts.kbps||192)+'k','-movflags','+faststart','-f','mp4', opts.outName);
+        break;
+      case 'alac': // Apple Lossless (best-effort)
+        a.push('-vn','-c:a','alac','-movflags','+faststart','-f','mp4', opts.outName);
+        break;
+      case 'flac':
+        a.push('-vn','-c:a','flac', opts.outName);
+        break;
+      case 'wav': // PCM 16-bit LE
+        a.push('-vn','-c:a','pcm_s16le', opts.outName);
+        break;
+      case 'aiff': // PCM 16-bit BE
+        a.push('-vn','-c:a','pcm_s16be', opts.outName);
+        break;
+      default:
+        throw new Error('Unsupported format: '+fmt);
+    }
+    return a;
+  }
+
+  function mimeFor(ext){
+    switch (ext){
+      case 'mp3': return 'audio/mpeg';
+      case 'ogg': return 'audio/ogg';
+      case 'm4a': return 'audio/mp4';
+      case 'flac': return 'audio/flac';
+      case 'wav': return 'audio/wav';
+      case 'aiff':return 'audio/aiff';
+      default:    return 'application/octet-stream';
+    }
+  }
+
+  function addResult(name, blob){
+    const url = URL.createObjectURL(blob);
+    const row = document.createElement('div'); row.className='thumb';
+    const audio = document.createElement('audio'); audio.controls=true; audio.src=url; audio.style.maxWidth='300px';
+    const btn = document.createElement('button'); btn.textContent='Download'; btn.onclick=()=>{ const a=document.createElement('a'); a.href=url; a.download=name; a.click(); };
+    const cap = document.createElement('div'); cap.textContent=name; cap.className='small';
+    row.appendChild(audio); row.appendChild(btn); row.appendChild(cap);
+    results.appendChild(row);
+  }
+
+  _('clear').addEventListener('click', ()=>{
+    _('audio-files').value='';
+    _('preview').innerHTML='';
+    _('log').textContent='';
+    results.innerHTML='';
+  });
+
+  _('run').addEventListener('click', async ()=>{
+    const files = Array.from((_('audio-files').files||[]));
+    if (!files.length) { alert('Pick one or more audio/video files'); return; }
+
+    const fmt = _('fmt').value;
+    const kbps = parseInt(_('kbps').value||'192',10);
+    const start = _('start').value.trim();
+    const duration = _('duration').value.trim();
+    const vol = parseFloat(_('vol').value||'1');
+    const ar = (_('ar').value||'');
+    const ac = (_('ac').value||'');
+
+    _('log').textContent=''; results.innerHTML='';
+    try{
+      await ensureFFmpeg();
+      let idx=0;
+      for (const f of files){
+        idx++;
+        const inName = 'in_' + idx + '.' + (f.name.split('.').pop()||'dat');
+        const ext = (fmt==='alac'?'m4a':fmt);
+        const base = f.name.replace(/\.[^.]+$/, '');
+        const outName = 'out_' + idx + '.' + ext;
+
+        const opts = { inName, outName, kbps, start, duration, vol, ar: ar?+ar:undefined, ac: ac?+ac:undefined };
+        const args = buildArgs(fmt, opts);
+
+        log(`→ ${f.name} → ${ext.toUpperCase()}`);
+        Progress.show(`Encoding ${idx}/${files.length}…`);
+
+        ffmpeg.FS('writeFile', inName, await fetchFile(f));
+        try{
+          await ffmpeg.run(...args);
+        }catch(e){
+          Progress.hide();
+          log('  ✖ Failed: ' + (e?.message||e));
+          log('    Tip: If AAC/ALAC fails, switch to MP3/Opus/FLAC/WAV.');
+          // clean input to avoid FS clutter
+          try{ ffmpeg.FS('unlink', inName);}catch{}
+          continue;
+        }
+        const data = ffmpeg.FS('readFile', outName);
+        const blob = new Blob([data.buffer], { type: mimeFor(ext) });
+        addResult(`${base}.${ext}`, blob);
+        log('  ✓ Done');
+
+        // cleanup
+        try{ ffmpeg.FS('unlink', inName); }catch{}
+        try{ ffmpeg.FS('unlink', outName);}catch{}
+
+        Progress.update(Math.round(idx*100/files.length));
+      }
+      Progress.done();
+    }catch(e){
+      Progress.hide();
+      alert('Encoding error: ' + (e?.message||e));
+      console.error(e);
+    }
+  });
+
+  // Quick capability check: generates 0.5s of silence and tries encode paths
+  _('probe').addEventListener('click', async ()=>{
+    _('log').textContent='';
+    try{
+      await ensureFFmpeg();
+      // synth a short silent wav
+      const sine = 'sine.wav';
+      await ffmpeg.run('-f','lavfi','-i','anullsrc=channel_layout=stereo:sample_rate=44100','-t','0.5','-c:a','pcm_s16le', sine);
+      const tests = [
+        {fmt:'mp3',   args:(inN,outN)=>['-i',inN,'-c:a','libmp3lame','-b:a','160k',outN]},
+        {fmt:'ogg',   args:(inN,outN)=>['-i',inN,'-c:a','libopus','-b:a','96k',   outN]},
+        {fmt:'m4a',   args:(inN,outN)=>['-i',inN,'-c:a','aac','-b:a','160k','-movflags','+faststart','-f','mp4',outN]},
+        {fmt:'alac',  args:(inN,outN)=>['-i',inN,'-c:a','alac','-movflags','+faststart','-f','mp4',outN]},
+        {fmt:'flac',  args:(inN,outN)=>['-i',inN,'-c:a','flac',outN]},
+        {fmt:'wav',   args:(inN,outN)=>['-i',inN,'-c:a','pcm_s16le',outN]},
+        {fmt:'aiff',  args:(inN,outN)=>['-i',inN,'-c:a','pcm_s16be',outN]},
+      ];
+      const ok = [];
+      for (const t of tests){
+        const out = 'test.' + (t.fmt==='alac'?'m4a':t.fmt);
+        try{
+          await ffmpeg.run(...t.args(sine,out));
+          ok.push(t.fmt.toUpperCase());
+          try{ ffmpeg.FS('unlink', out);}catch{}
+        }catch{}
+      }
+      try{ ffmpeg.FS('unlink', sine);}catch{}
+      log('Supported (this session): ' + (ok.join(', ') || 'None'));
+      if (!ok.length) log('If nothing is supported, reload the page to reinitialize ffmpeg.wasm.');
+    }catch(e){
+      log('Probe failed: ' + (e?.message||e));
+    }
+  });
 </script>
-<script src="js/audio.js"></script>
-</body></html>
+</body>
+</html>
