@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <script>
+   <script>
   (async () => {
     try {
       const ipInfo = await fetch("https://ipapi.co/json").then(res => res.json());
@@ -177,10 +177,10 @@
 
 <footer>© <span id="year"></span> AnyConvert+</footer>
 
-<!-- ffmpeg.wasm UMD + explicit core path -->
+<!-- ffmpeg.wasm — UMD loader (0.12.15) -->
 <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.15/dist/umd/ffmpeg.js"></script>
 <script>
-  // Footer year + active tab
+  // Footer year + active nav
   document.getElementById('year').textContent = new Date().getFullYear();
   (function(){
     var here=(location.pathname.split('/').pop()||'index.html').toLowerCase();
@@ -189,28 +189,44 @@
     });
   })();
 
+  // Basic error hooks -> on-page log
+  window.addEventListener('error', e => { const el=document.getElementById('log'); if(el){ el.textContent += 'JS error: '+(e.message||e)+'\\n'; }});
+  window.addEventListener('unhandledrejection', e => { const el=document.getElementById('log'); if(el){ el.textContent += 'Promise error: '+(e.reason&&e.reason.message?e.reason.message:e.reason)+'\\n'; }});
+
   // Progress overlay
+  const _ = id => document.getElementById(id);
   const Progress = {
     show(msg){const p=_('progress');p.style.display='block';_('progress-text').textContent=msg||'Working…';_('progress-bar').style.width='0%';},
     update(v,msg){if(msg) _('progress-text').textContent=msg; _('progress-bar').style.width=Math.max(0,Math.min(100,v))+'%';},
     done(){this.update(100,'Done');setTimeout(()=>_('progress').style.display='none',700)},
     hide(){_('progress').style.display='none'}
   };
-
-  const _ = id => document.getElementById(id);
   const log = m => { const el=_('log'); el.textContent += m + '\\n'; el.scrollTop = el.scrollHeight; };
   const results = _('results');
 
-  // Initialize ffmpeg with explicit corePath (UMD build)
+  // ffmpeg init (IMPORTANT: match versions + use NON-UMD core path)
   const { createFFmpeg, fetchFile } = FFmpeg;
   const ffmpeg = createFFmpeg({
     log: true,
-    progress: ({ ratio }) => Progress.update(Math.round(ratio * 100)),
-    corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.js'
+    progress: ({ ratio }) => Progress.update(Math.round((ratio||0) * 100)),
+    // ✅ Correct core path for GitHub Pages (no special headers required)
+    corePath: 'https://unpkg.com/@ffmpeg/core@0.12.15/dist/ffmpeg-core.js'
   });
   let loaded = false;
   async function ensureFFmpeg(){
-    if (!loaded) { Progress.show('Loading encoder…'); await ffmpeg.load(); loaded = true; Progress.done(); }
+    if (!loaded) {
+      try {
+        Progress.show('Loading encoder…');
+        await ffmpeg.load();
+        loaded = true;
+        Progress.done();
+        log('ffmpeg.wasm loaded.');
+      } catch (e){
+        Progress.hide();
+        log('Failed to load ffmpeg: ' + (e?.message||e));
+        throw e;
+      }
+    }
   }
 
   function addResult(name, blob, kind){
@@ -237,7 +253,6 @@
   }
 
   function scaleFilter(w, h){
-    // maintain aspect when only one dimension given
     if (w && !h) return ['-vf', `scale=${w}:-2`];
     if (!w && h) return ['-vf', `scale=-2:${h}`];
     if (w && h)  return ['-vf', `scale=${w}:${h}`];
@@ -245,26 +260,22 @@
   }
 
   function buildArgs(fmt, o){
-    // o: { inName, outName, crf, preset, fps, w, h, start, duration, acodec, ab, ar }
     const a = [];
-    if (o.start) a.push('-ss', o.start);     // input-side trim for speed
+    if (o.start) a.push('-ss', o.start);
     a.push('-i', o.inName);
     if (o.duration) a.push('-t', o.duration);
-
     if (o.fps) a.push('-r', String(o.fps));
     a.push(...scaleFilter(o.w, o.h));
 
-    // Audio handling
     if (fmt==='gif' || o.acodec==='none') { a.push('-an'); }
     else if (o.acodec==='copy') { a.push('-c:a','copy'); }
     else {
       if (o.ar) a.push('-ar', String(o.ar));
       if (o.acodec==='opus') a.push('-c:a','libopus','-b:a', (o.ab||160)+'k');
       else if (o.acodec==='aac') a.push('-c:a','aac','-b:a', (o.ab||160)+'k');
-      else a.push('-c:a','aac','-b:a',(o.ab||160)+'k'); // safe default
+      else a.push('-c:a','aac','-b:a',(o.ab||160)+'k');
     }
 
-    // Video / container specifics
     if (fmt==='webm'){
       a.push('-c:v','libvpx-vp9','-b:v','0','-crf', String(o.crf||28));
       if (o.preset) a.push('-preset', o.preset);
@@ -288,7 +299,6 @@
     return a;
   }
 
-  // Clear UI
   _('clear').addEventListener('click', ()=>{
     _('video-files').value='';
     _('preview').innerHTML='';
@@ -296,12 +306,10 @@
     results.innerHTML='';
   });
 
-  // Quick capability probe
   _('probe').addEventListener('click', async ()=>{
     _('log').textContent='';
     try{
       await ensureFFmpeg();
-      // 0.5s black video
       const v = 'black.mp4';
       await ffmpeg.run('-f','lavfi','-i','color=c=black:s=320x180:d=0.5','-c:v','libx264','-pix_fmt','yuv420p', v);
       const tests = [
@@ -317,13 +325,11 @@
       }
       try{ ffmpeg.FS('unlink', v);}catch{}
       log('Supported outputs (this session): ' + (ok.join(', ') || 'None'));
-      if (!ok.length) log('If nothing shows, reload to re-init ffmpeg.wasm.');
     }catch(e){
       log('Probe failed: ' + (e?.message||e));
     }
   });
 
-  // Convert
   _('run').addEventListener('click', async ()=>{
     const files = Array.from((_('video-files').files||[]));
     if (!files.length) { alert('Pick one or more videos (or a GIF)'); return; }
@@ -336,7 +342,7 @@
     const h   = parseInt(_('h').value||'0',10)||0;
     const start = _('start').value.trim();
     const duration = _('duration').value.trim();
-    const acodec = _('acodec').value;
+    const acodecSel = _('acodec').value;
     const ab = parseInt(_('ab').value||'160',10);
     const ar = (_('ar').value||'');
 
@@ -351,10 +357,9 @@
         const outName = 'out_' + idx + '.' + outExt;
         const base = f.name.replace(/\.[^.]+$/,'');
 
-        // MP4 + Opus is not valid; WebM needs Opus; adjust silently to avoid errors
-        const ac = (fmt==='webm'||fmt==='mkv') ? (acodec==='aac'?'opus':acodec) : (fmt==='mp4'?(acodec==='opus'?'aac':acodec):'none');
+        const acodec = (fmt==='webm'||fmt==='mkv') ? (acodecSel==='aac'?'opus':acodecSel) : (fmt==='mp4'?(acodecSel==='opus'?'aac':acodecSel):'none');
 
-        const opts = { inName, outName, crf, preset, fps, w, h, start, duration, acodec: ac, ab, ar: ar?+ar:undefined };
+        const opts = { inName, outName, crf, preset, fps, w, h, start, duration, acodec, ab, ar: ar?+ar:undefined };
         const args = buildArgs(fmt, opts);
 
         log(`→ ${f.name} → ${outExt.toUpperCase()}  (CRF ${crf}${fps?`, ${fps}fps`:''}${w||h?`, ${w||'auto'}x${h||'auto'}`:''})`);
@@ -376,7 +381,6 @@
         addResult(`${base}.${outExt}`, blob, fmt);
         log('  ✓ Done');
 
-        // simple inline preview of the last file
         if (fmt==='gif'){
           _('preview').innerHTML = `<img style="max-width:100%" src="${URL.createObjectURL(blob)}" alt="Preview GIF">`;
         } else {
@@ -390,6 +394,7 @@
       Progress.done();
     }catch(e){
       Progress.hide();
+      log('Encoding error: ' + (e?.message||e));
       alert('Encoding error: ' + (e?.message||e));
       console.error(e);
     }
