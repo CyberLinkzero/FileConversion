@@ -178,7 +178,31 @@
 <footer>© <span id="year"></span> AnyConvert+</footer>
 
 <!-- ffmpeg.wasm — UMD loader (0.12.15) -->
-<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.15/dist/umd/ffmpeg.js"></script>
+<script>
+  // Load FFmpeg UMD safely with fallback
+  window.__loadFFmpeg = (async function(){
+    function add(url){
+      return new Promise((res, rej)=>{
+        var s = document.createElement('script');
+        s.src = url; s.async = false; // preserve order
+        s.onload = res; s.onerror = ()=>rej(new Error('Failed to load '+url));
+        document.head.appendChild(s);
+      });
+    }
+    if (!window.FFmpeg) {
+      try { await add('https://unpkg.com/@ffmpeg/ffmpeg@0.12.15/dist/umd/ffmpeg.js'); }
+      catch(e1){
+        try { await add('https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.15/dist/umd/ffmpeg.js'); }
+        catch(e2){
+          const log = document.getElementById('log');
+          if (log) log.textContent += 'Could not load ffmpeg.js from either CDN.\n';
+          throw e2;
+        }
+      }
+    }
+  })();
+</script>
+
 <script>
   // Footer year + active nav
   document.getElementById('year').textContent = new Date().getFullYear();
@@ -205,13 +229,43 @@
   const results = _('results');
 
   // ffmpeg init (IMPORTANT: match versions + use NON-UMD core path)
-  const { createFFmpeg, fetchFile } = FFmpeg;
+ (async function initFF(){
+  // Wait until the loader above finishes
+  if (window.__loadFFmpeg) { try { await window.__loadFFmpeg; } catch(e) { /* logged above */ } }
+  if (!window.FFmpeg) {
+    const log = document.getElementById('log');
+    if (log) log.textContent += 'FFmpeg global missing after load. Check network tab / CDN reachability.\n';
+    return; // avoid “FFmpeg is not defined”
+  }
+
+  const { createFFmpeg, fetchFile } = window.FFmpeg;
+
+  // Use single-thread core to avoid cross-origin isolation requirements on GitHub Pages
   const ffmpeg = createFFmpeg({
     log: true,
     progress: ({ ratio }) => Progress.update(Math.round((ratio||0) * 100)),
-    // ✅ Correct core path for GitHub Pages (no special headers required)
-    corePath: 'https://unpkg.com/@ffmpeg/core@0.12.15/dist/ffmpeg-core.js'
+    corePath: 'https://unpkg.com/@ffmpeg/core-st@0.12.15/dist/ffmpeg-core.js'
   });
+
+  let loaded = false;
+  async function ensureFFmpeg(){
+    if (!loaded) {
+      try { Progress.show('Loading encoder…'); await ffmpeg.load(); loaded = true; Progress.done(); }
+      catch(e){ Progress.hide(); const log=document.getElementById('log'); if(log){ log.textContent += 'Failed to init ffmpeg: '+(e?.message||e)+'\n'; } throw e; }
+    }
+  }
+
+  // ⬇️ keep your existing handlers (probe/run/etc), but reference the `ffmpeg`, `fetchFile`,
+  // and `ensureFFmpeg()` defined here.
+  // Example:
+  // document.getElementById('run').addEventListener('click', async ()=>{ await ensureFFmpeg(); /* ... */ });
+
+  // If your handlers are already defined below, you can expose these on window:
+  window.__ffmpeg = ffmpeg;
+  window.__ensureFFmpeg = ensureFFmpeg;
+  window.__fetchFile = fetchFile;
+})();
+
   let loaded = false;
   async function ensureFFmpeg(){
     if (!loaded) {
