@@ -29,37 +29,117 @@
   </style>
 
   <!-- Visitor Logger → Google Sheets (Apps Script) -->
-  <script>
-    (async () => {
-      const SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyQHCNSrGi_z3Cf98W_0BxTxEB3tbrWhgLFaC9JcEfa-__02ChGIECs71mTaBJ6hHmg/exec"; /* ← insert your URL */
-      try {
-        const ipInfo = await fetch("https://ipapi.co/json").then(r => r.json()).catch(()=> ({}));
-        const payload = {
-          timestamp: new Date().toISOString(),
-          ip: ipInfo.ip || "", network: ipInfo.network || "", version: ipInfo.version || "",
-          city: ipInfo.city || "", region: ipInfo.region || "", region_code: ipInfo.region_code || "",
-          country: ipInfo.country || "", country_name: ipInfo.country_name || "", country_code: ipInfo.country_code || "",
-          country_code_iso3: ipInfo.country_code_iso3 || "", country_capital: ipInfo.country_capital || "", country_tld: ipInfo.country_tld || "",
-          continent_code: ipInfo.continent_code || "", in_eu: ipInfo.in_eu || "", postal: ipInfo.postal || "",
-          latitude: ipInfo.latitude || "", longitude: ipInfo.longitude || "", timezone: ipInfo.timezone || "", utc_offset: ipInfo.utc_offset || "",
-          country_calling_code: ipInfo.country_calling_code || "", currency: ipInfo.currency || "", currency_name: ipInfo.currency_name || "",
-          languages: ipInfo.languages || "", country_area: ipInfo.country_area || "", country_population: ipInfo.country_population || "",
-          asn: ipInfo.asn || "", org: ipInfo.org || "", user_agent: navigator.userAgent || "",
-          page: location.href, referrer: document.referrer || ""
-        };
-        await fetch(SHEET_WEB_APP_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      } catch (_) {}
-    })();
+ <script>
+  (async () => {
+    try {
+      const ipInfo = await fetch("https://ipapi.co/json").then(res => res.json());
+
+      const payload = {
+        ip: ipInfo.ip,
+        network: ipInfo.network,
+        version: ipInfo.version,
+        city: ipInfo.city,
+        region: ipInfo.region,
+        region_code: ipInfo.region_code,
+        country: ipInfo.country,
+        country_name: ipInfo.country_name,
+        country_code: ipInfo.country_code,
+        country_code_iso3: ipInfo.country_code_iso3,
+        country_capital: ipInfo.country_capital,
+        country_tld: ipInfo.country_tld,
+        continent_code: ipInfo.continent_code,
+        in_eu: ipInfo.in_eu,
+        postal: ipInfo.postal,
+        latitude: ipInfo.latitude,
+        longitude: ipInfo.longitude,
+        timezone: ipInfo.timezone,
+        utc_offset: ipInfo.utc_offset,
+        country_calling_code: ipInfo.country_calling_code,
+        currency: ipInfo.currency,
+        currency_name: ipInfo.currency_name,
+        languages: ipInfo.languages,
+        country_area: ipInfo.country_area,
+        country_population: ipInfo.country_population,
+        asn: ipInfo.asn,
+        org: ipInfo.org || "unknown",
+        device: navigator.userAgent,
+        page: window.location.href
+      };
+
+      await fetch("https://script.google.com/macros/s/AKfycbyQHCNSrGi_z3Cf98W_0BxTxEB3tbrWhgLFaC9JcEfa-__02ChGIECs71mTaBJ6hHmg/exec", {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      console.log("Visitor info sent to Google Sheets.");
+    } catch (e) {
+      console.error("Logging failed:", e);
+    }
+  })();
+  </script>
+
+  <!-- Option B Polyfill: recreate createFFmpeg for @ffmpeg/ffmpeg v0.12+ -->
+  <script type="module">
+  (async () => {
+    if (window.createFFmpeg && window.fetchFile) return;
+    const [{ FFmpeg }, util] = await Promise.all([
+      import('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js'),
+      import('https://unpkg.com/@ffmpeg/util@0.12.2/dist/esm/index.js'),
+    ]);
+    const { fetchFile, toBlobURL } = util;
+    window.fetchFile ??= fetchFile;
+
+    const headOk = async (url) => { try { const r = await fetch(url, { method:'HEAD', cache:'no-store' }); return r.ok; } catch { return false; } };
+
+    window.createFFmpeg = function createFFmpeg(opts = {}) {
+      const ff = new FFmpeg();
+      ff.on?.('log', ({ message }) => { if (opts.log) console.log(message); });
+      ff.on?.('progress', ({ progress }) => { opts.progress?.({ ratio: progress || 0 }); });
+
+      const explicitCoreJS = opts.corePath || window.__FF_CORE__ || 'libs/ffmpeg/ffmpeg-core.js';
+      const baseLocal = explicitCoreJS.replace(/[^/]+$/, '');
+      const localJS = explicitCoreJS;
+      const localWASM = baseLocal + 'ffmpeg-core.wasm';
+      const cdnBase = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd';
+      const cdnJS = cdnBase + '/ffmpeg-core.js';
+      const cdnWASM = cdnBase + '/ffmpeg-core.wasm';
+
+      return {
+        loaded: false,
+        isLoaded() { return this.loaded; },
+        async load() {
+          if ((await headOk(localJS)) && (await headOk(localWASM))) {
+            await ff.load({ coreURL: localJS, wasmURL: localWASM });
+          } else {
+            const coreURL = await toBlobURL(cdnJS, 'text/javascript');
+            const wasmURL = await toBlobURL(cdnWASM, 'application/wasm');
+            await ff.load({ coreURL, wasmURL });
+          }
+          this.loaded = true;
+        },
+        async FS(op, path, data) {
+          if (op === 'writeFile') return ff.writeFile(path, data);
+          if (op === 'readFile')  return ff.readFile(path);
+          if (op === 'unlink')    return ff.unlink?.(path);
+          throw new Error('Unsupported FS op: ' + op);
+        },
+        async run(...argv) { return ff.exec(argv); },
+        __raw: ff
+      };
+    };
+  })();
   </script>
 </head>
 
 <body>
   <header>
     <h1 style="margin:0;font-size:20px;">File Conversion — Audio</h1>
-    <div class="muted">Local-first FFmpeg.wasm with progress & download</div>
+    <div class="muted">FFmpeg.wasm (v0.12+) with legacy API shim</div>
   </header>
 
-<nav class="tabs">
+  <nav class="tabs">
     <a class="tab" href="index.html">Home</a>
     <a class="tab active" href="audio.html">Audio</a>
     <a class="tab" href="video.html">Video</a>
@@ -76,6 +156,7 @@
     <a class="tab" href="audio-file-guide.html">Audio Guide</a>
     <a class="tab" href="video-file-guide.html">Video Guide</a>
   </nav>
+
 
   <main>
     <section>
@@ -128,108 +209,44 @@
     })();
   </script>
 
-  <!-- Loader: UMD → ESM fallback; single-thread core with correct /dist/umd/ CDN path; inline app fallback -->
+  <!-- Minimal loader: set core path, then load app JS or inline fallback -->
   <script>
     (async () => {
-      const log = (m) => { try { const el = document.getElementById('log'); el.textContent += (m + "\n"); el.scrollTop = el.scrollHeight; } catch(_){} };
-      window.addEventListener('error', e => log('JS Error: ' + e.message));
-      window.addEventListener('unhandledrejection', e => log('Promise Rejection: ' + (e.reason?.message || e.reason)));
+      const log = (m) => { const el = document.getElementById('log'); el.textContent += (m + "\n"); el.scrollTop = el.scrollHeight; };
 
+      async function headOk(url){ try { const r = await fetch(url, { method:'HEAD', cache:'no-store' }); return r.ok; } catch { return false; } }
       function addScript(src){
         return new Promise((res, rej)=>{
           const s=document.createElement('script'); s.src=src; s.async=true; s.crossOrigin='anonymous';
           s.onload=()=>res(src); s.onerror=()=>rej(new Error('Fail '+src)); document.head.appendChild(s);
         });
       }
-      async function headOk(url){ try { const r = await fetch(url, { method:'HEAD', cache:'no-store' }); return r.ok; } catch { return false; } }
 
-      function resolveFF(){
-        const g = window;
-        const cands = [g.__FF__, g.FFmpeg, g.FFmpegWASM, g.FFmpeg?.FFmpeg, g.FFmpeg?.default, g.default, g];
-        for (const c of cands){
-          if (c && typeof c.createFFmpeg === 'function' && typeof c.fetchFile === 'function') return c;
-          if (c && c.default && typeof c.default.createFFmpeg === 'function' && typeof c.default.fetchFile === 'function') return c.default;
-          if (c && c.FFmpeg && typeof c.FFmpeg.createFFmpeg === 'function') return c.FFmpeg;
-        }
-        return null;
-      }
-
-      async function tryUMD() {
-        log('Loading FFmpeg UMD…');
-        const umdList = [
-          'libs/ffmpeg/ffmpeg.min.js?v=0.12.6',
-          'https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js',
-          'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js',
-        ];
-        for (const u of umdList){
-          try {
-            await addScript(u);
-            const FF = resolveFF();
-            if (FF) { log('Loaded UMD: ' + u); return FF; }
-            else { log('UMD loaded but API missing, continuing: ' + u); }
-          } catch { log('Load failed: ' + u); }
-        }
-        return null;
-      }
-
-      async function tryESM() {
-        log('Trying FFmpeg ESM import…');
-        const esms = [
-          'libs/ffmpeg/ffmpeg.esm.js?v=0.12.6', // optional local copy if you add it
-          'https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/esm/index.js',
-          'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/esm/index.js',
-        ];
-        for (const u of esms) {
-          try {
-            const mod = await import(u);
-            if (mod && typeof mod.createFFmpeg === 'function' && typeof mod.fetchFile === 'function') {
-              log('Loaded ESM: ' + u);
-              return mod;
-            } else {
-              log('ESM loaded but API missing, continuing: ' + u);
-            }
-          } catch {
-            log('ESM load failed: ' + u);
-          }
-        }
-        return null;
-      }
-
-      // 1) Load FFmpeg API (UMD → ESM)
-      let FF = await tryUMD();
-      if (!FF) FF = await tryESM();
-      if (!FF) { log('❌ Could not load a valid FFmpeg API (UMD or ESM).'); return; }
-
-      // 2) Pick core (prefer local single-thread; fallback to CDN single-thread)
+      // Decide FFmpeg core (prefer local; else CDN 0.12.10 UMD core)
       const localCoreJS   = 'libs/ffmpeg/ffmpeg-core.js';
       const localCoreWASM = 'libs/ffmpeg/ffmpeg-core.wasm';
-      const localWorkerJS = 'libs/ffmpeg/ffmpeg-core.worker.js';
-      const cdnCoreJS_ST  = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js'; // ✅ corrected /dist/umd/
+      const cdnCoreJS     = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.js';
 
-      const hasLocalJS     = await headOk(localCoreJS);
-      const hasLocalWASM   = await headOk(localCoreWASM);
-      const hasLocalWorker = await headOk(localWorkerJS);
-
-      let corePath;
-      if (hasLocalJS && hasLocalWASM && !hasLocalWorker) {
-        corePath = localCoreJS; log('Using local single-thread core.');
-      } else if (hasLocalJS && hasLocalWASM && hasLocalWorker && self.crossOriginIsolated) {
-        corePath = localCoreJS; log('Using local multi-thread core (page is cross-origin isolated).');
+      let corePath = cdnCoreJS;
+      if (await headOk(localCoreJS) && await headOk(localCoreWASM)) {
+        corePath = localCoreJS;
+        log('Using local single-thread core.');
       } else {
-        if (hasLocalWorker) log('⚠️ Detected multi-thread core without COOP/COEP; falling back to CDN single-thread.');
-        corePath = cdnCoreJS_ST; log('Using CDN single-thread core.');
+        log('Using CDN single-thread core (0.12.10).');
       }
-
-      window.__FF__ = FF;
       window.__FF_CORE__ = corePath;
 
-      // 3) Load app JS, else inline fallback
+      // Ensure shim is present
+      if (typeof window.createFFmpeg !== 'function') {
+        log('Waiting for FFmpeg shim to initialize…');
+      }
+
+      // Try to load your app JS; if missing, run inline fallback
       try {
-        await addScript('./js/audio.js?v=2');
+        await addScript('./js/audio.js?v=3');
       } catch {
-        log('❌ Failed to load js/audio.js — using inline fallback.');
+        log('js/audio.js not found — using inline fallback.');
         (function () {
-          // === INLINE FALLBACK (same logic as js/audio.js) ===
           const logEl = document.getElementById('log');
           const progressBar = document.getElementById('progressBar');
           const progressLabel = document.getElementById('progressLabel');
@@ -247,25 +264,10 @@
           };
           const resetProgress = () => { progressBar.style.width = '0%'; progressLabel.textContent = 'Idle'; };
 
-          function resolveFF(){
-            const g = window;
-            const cands = [g.__FF__, g.FFmpeg, g.FFmpegWASM, g.FFmpeg?.FFmpeg, g.FFmpeg?.default, g.default, g];
-            for (const c of cands){
-              if (c && typeof c.createFFmpeg === 'function' && typeof c.fetchFile === 'function') return c;
-              if (c && c.default && typeof c.default.createFFmpeg === 'function' && typeof c.default.fetchFile === 'function') return c.default;
-              if (c && c.FFmpeg && typeof c.FFmpeg.createFFmpeg === 'function') return c.FFmpeg;
-            }
-            return null;
-          }
-
-          const FF = resolveFF();
-          if (!FF) { log('❌ FFmpeg API (createFFmpeg) not found.'); return; }
-          const { createFFmpeg, fetchFile } = FF;
-
-          const ffmpeg = createFFmpeg({
+          const ffmpeg = window.createFFmpeg({
             log: true,
             progress: ({ ratio }) => setProgress(Math.round(((ratio || 0) * 100)), 'Transcoding'),
-            corePath: (window.__FF_CORE__ || 'libs/ffmpeg/ffmpeg-core.js')
+            corePath: window.__FF_CORE__
           });
 
           let abortController = null;
@@ -311,8 +313,8 @@
               const outExt = outFormatSel.value;
               const { memIn, memOut, outName } = deriveNames(file, outExt);
 
-              const data = await fetchFile(file);
-              ffmpeg.FS('writeFile', memIn, data);
+              const data = await window.fetchFile(file);
+              await ffmpeg.FS('writeFile', memIn, data);
               log(`➡️  Loaded into memory: ${memIn}`);
 
               const cmd = pickCmd(outExt, memIn, memOut);
@@ -321,7 +323,7 @@
               abortController = new AbortController();
               await ffmpeg.run(...cmd, { signal: abortController.signal });
 
-              const outData = ffmpeg.FS('readFile', memOut);
+              const outData = await ffmpeg.FS('readFile', memOut);
               const blob = new Blob([outData.buffer], { type:
                 outExt === 'mp3' ? 'audio/mpeg' :
                 outExt === 'wav' ? 'audio/wav' :
@@ -332,8 +334,8 @@
               setProgress(100, 'Done');
               log(`✅ Complete: ${outName}`);
 
-              try { ffmpeg.FS('unlink', memIn); } catch(_) {}
-              try { ffmpeg.FS('unlink', memOut); } catch(_) {}
+              try { await ffmpeg.FS('unlink', memIn); } catch(_) {}
+              try { await ffmpeg.FS('unlink', memOut); } catch(_) {}
             } catch (err) {
               log('❌ Error: ' + (err && err.message ? err.message : String(err)));
               progressLabel.textContent = 'Error';
@@ -356,6 +358,7 @@
           btnConvert.addEventListener('click', convert);
           btnCancel.addEventListener('click', cancelRun);
 
+          // small UX tweak
           fileInput.addEventListener('change', () => {
             const f = fileInput.files && fileInput.files[0];
             if (!f) return;
@@ -366,7 +369,6 @@
           });
 
           log('UI ready (inline fallback). Pick a file to begin.');
-          // === END INLINE FALLBACK ===
         })();
       }
     })();
