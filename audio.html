@@ -7,9 +7,10 @@
   <style>
     :root { --bg:#0b0f14; --panel:#101823; --border:#1f2a34; --text:#e6edf3; --muted:#9fb4c7; --accent:#2b82ff; }
     * { box-sizing: border-box; }
-    body { margin:0; font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); }
+    body { margin:0; font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif; background:#0b0f14; color:#e6edf3; }
     header { padding:16px 20px; border-bottom:1px solid var(--border); }
 
+    /* Tabs */
     nav.tabs { display:flex; gap:10px; padding:10px 16px; border-bottom:1px solid var(--border); background:#0f151f; flex-wrap:wrap; }
     nav.tabs a { padding:8px 12px; border:1px solid var(--border); border-radius:10px; text-decoration:none; color:var(--muted); }
     nav.tabs a.active, nav.tabs a:hover { color:var(--text); border-color:#29415a; background:#0f1c2b; }
@@ -18,7 +19,7 @@
     fieldset { border:1px solid var(--border); border-radius:12px; padding:12px; }
     legend { padding:0 6px; color:var(--muted); }
     label { display:block; margin:8px 0 4px; color:var(--muted); font-size:.9rem; }
-    input[type="file"], select, button { width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background:#0f151f; color:var(--text); }
+    input[type="file"], select, button { width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background:#0f151f; color:#e6edf3; }
     button { cursor:pointer; background:#162235; }
     button:disabled { opacity:.6; cursor:not-allowed; }
     .progress { height:12px; background:#0e1622; border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-top:8px; }
@@ -31,55 +32,30 @@
   </style>
 
   <!-- Visitor Logger → Google Sheets (Apps Script) -->
- <script>
-  (async () => {
-    try {
-      const ipInfo = await fetch("https://ipapi.co/json").then(res => res.json());
-
-      const payload = {
-        ip: ipInfo.ip,
-        network: ipInfo.network,
-        version: ipInfo.version,
-        city: ipInfo.city,
-        region: ipInfo.region,
-        region_code: ipInfo.region_code,
-        country: ipInfo.country,
-        country_name: ipInfo.country_name,
-        country_code: ipInfo.country_code,
-        country_code_iso3: ipInfo.country_code_iso3,
-        country_capital: ipInfo.country_capital,
-        country_tld: ipInfo.country_tld,
-        continent_code: ipInfo.continent_code,
-        in_eu: ipInfo.in_eu,
-        postal: ipInfo.postal,
-        latitude: ipInfo.latitude,
-        longitude: ipInfo.longitude,
-        timezone: ipInfo.timezone,
-        utc_offset: ipInfo.utc_offset,
-        country_calling_code: ipInfo.country_calling_code,
-        currency: ipInfo.currency,
-        currency_name: ipInfo.currency_name,
-        languages: ipInfo.languages,
-        country_area: ipInfo.country_area,
-        country_population: ipInfo.country_population,
-        asn: ipInfo.asn,
-        org: ipInfo.org || "unknown",
-        device: navigator.userAgent,
-        page: window.location.href
-      };
-
-      await fetch("https://script.google.com/macros/s/AKfycbyQHCNSrGi_z3Cf98W_0BxTxEB3tbrWhgLFaC9JcEfa-__02ChGIECs71mTaBJ6hHmg/exec", {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      console.log("Visitor info sent to Google Sheets.");
-    } catch (e) {
-      console.error("Logging failed:", e);
-    }
-  })();
+  <script>
+    (async () => {
+      const SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyQHCNSrGi_z3Cf98W_0BxTxEB3tbrWhgLFaC9JcEfa-__02ChGIECs71mTaBJ6hHmg/exec"; /* ← insert your URL */
+      try {
+        const ipInfo = await fetch("https://ipapi.co/json").then(r => r.json()).catch(()=> ({}));
+        const payload = {
+          timestamp: new Date().toISOString(),
+          ip: ipInfo.ip || "", network: ipInfo.network || "", version: ipInfo.version || "",
+          city: ipInfo.city || "", region: ipInfo.region || "", region_code: ipInfo.region_code || "",
+          country: ipInfo.country || "", country_name: ipInfo.country_name || "",
+          country_code: ipInfo.country_code || "", country_code_iso3: ipInfo.country_code_iso3 || "",
+          country_capital: ipInfo.country_capital || "", country_tld: ipInfo.country_tld || "",
+          continent_code: ipInfo.continent_code || "", in_eu: ipInfo.in_eu || "",
+          postal: ipInfo.postal || "", latitude: ipInfo.latitude || "", longitude: ipInfo.longitude || "",
+          timezone: ipInfo.timezone || "", utc_offset: ipInfo.utc_offset || "",
+          country_calling_code: ipInfo.country_calling_code || "", currency: ipInfo.currency || "",
+          currency_name: ipInfo.currency_name || "", languages: ipInfo.languages || "",
+          country_area: ipInfo.country_area || "", country_population: ipInfo.country_population || "",
+          asn: ipInfo.asn || "", org: ipInfo.org || "", user_agent: navigator.userAgent || "",
+          page: location.href, referrer: document.referrer || ""
+        };
+        await fetch(SHEET_WEB_APP_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      } catch (_) { /* silent */ }
+    })();
   </script>
 </head>
 
@@ -89,6 +65,7 @@
     <div class="muted">Local-first FFmpeg.wasm with progress & download</div>
   </header>
 
+  <!-- Site Navigation Tabs -->
   <nav class="tabs">
     <a class="tab" href="index.html">Home</a>
     <a class="tab active" href="audio.html">Audio</a>
@@ -148,6 +125,7 @@
     </section>
   </main>
 
+  <!-- Highlight active tab -->
   <script>
     (function(){
       const path = location.pathname.split('/').pop() || 'index.html';
@@ -158,48 +136,55 @@
     })();
   </script>
 
-  <!-- Local-first loader: UMD + smart single-thread core selection -->
+  <!-- Resilient loader + inline app fallback -->
   <script>
     (async () => {
-      const log = (m) => { try {
-        const el = document.getElementById('log'); el.textContent += (m + "\n"); el.scrollTop = el.scrollHeight;
-      } catch(_){} };
-
+      const log = (m) => { try { const el = document.getElementById('log'); el.textContent += (m + "\n"); el.scrollTop = el.scrollHeight; } catch(_){} };
       window.addEventListener('error', e => log('JS Error: ' + e.message));
       window.addEventListener('unhandledrejection', e => log('Promise Rejection: ' + (e.reason?.message || e.reason)));
 
       function addScript(src){
         return new Promise((res, rej)=>{
-          const s=document.createElement('script');
-          s.src=src; s.async=true; s.crossOrigin='anonymous';
-          s.onload=()=>res(src); s.onerror=()=>rej(new Error('Fail '+src));
-          document.head.appendChild(s);
+          const s=document.createElement('script'); s.src=src; s.async=true; s.crossOrigin='anonymous';
+          s.onload=()=>res(src); s.onerror=()=>rej(new Error('Fail '+src)); document.head.appendChild(s);
         });
       }
-      async function headOk(url){
-        try { const r = await fetch(url, { method:'HEAD', cache:'no-store' }); return r.ok; }
-        catch { return false; }
+      async function headOk(url){ try { const r = await fetch(url, { method:'HEAD', cache:'no-store' }); return r.ok; } catch { return false; } }
+
+      function pickFF(){
+        const g = window;
+        const cands = [g.__FF__, g.FFmpeg, g.FFmpegWASM, g.FFmpeg?.FFmpeg, g.FFmpeg?.default, g.default, g];
+        for (const c of cands){
+          if (c && typeof c.createFFmpeg === 'function' && typeof c.fetchFile === 'function') return c;
+          if (c && c.default && typeof c.default.createFFmpeg === 'function' && typeof c.default.fetchFile === 'function') return c.default;
+          if (c && c.FFmpeg && typeof c.FFmpeg.createFFmpeg === 'function') return c.FFmpeg;
+        }
+        return null;
       }
 
+      // 1) Load UMD (local → CDN)
       log('Loading FFmpeg UMD…');
       const umdList = [
-        'libs/ffmpeg/ffmpeg.min.js',
+        'libs/ffmpeg/ffmpeg.min.js?v=0.12.6',
         'https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js',
         'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js',
       ];
-      let umdLoaded = false;
+      let haveUmd = false;
       for (const u of umdList){
         try {
           await addScript(u);
-          if (window.FFmpeg || window.FFmpegWASM) { log('Loaded UMD: ' + u); umdLoaded = true; break; }
+          const FF = pickFF();
+          if (FF) { log('Loaded UMD: ' + u); haveUmd = true; break; }
+          else { log('UMD loaded but API missing, continuing: ' + u); }
         } catch { log('Load failed: ' + u); }
       }
-      if (!umdLoaded) { log('❌ Could not load ffmpeg.js locally or from CDNs.'); return; }
+      if (!haveUmd){ log('❌ Could not load a valid ffmpeg UMD.'); return; }
 
-      const localCoreJS    = 'libs/ffmpeg/ffmpeg-core.js';
-      const localCoreWASM  = 'libs/ffmpeg/ffmpeg-core.wasm';
-      const localWorkerJS  = 'libs/ffmpeg/ffmpeg-core.worker.js';
-      const cdnCoreJS_ST   = 'https://unpkg.com/@ffmpeg/core-st@0.12.6/dist/ffmpeg-core.js';
+      // 2) Pick core (prefer local single-thread; fallback to CDN single-thread)
+      const localCoreJS   = 'libs/ffmpeg/ffmpeg-core.js';
+      const localCoreWASM = 'libs/ffmpeg/ffmpeg-core.wasm';
+      const localWorkerJS = 'libs/ffmpeg/ffmpeg-core.worker.js';
+      const cdnCoreJS_ST  = 'https://unpkg.com/@ffmpeg/core-st@0.12.6/dist/ffmpeg-core.js';
 
       const hasLocalJS     = await headOk(localCoreJS);
       const hasLocalWASM   = await headOk(localCoreWASM);
@@ -215,14 +200,158 @@
         corePath = cdnCoreJS_ST; log('Using CDN single-thread core.');
       }
 
-      const FF = window.FFmpeg || window.FFmpegWASM;
-      if (!FF){ log('❌ FFmpeg global missing after load.'); return; }
-
+      const FF = pickFF();
+      if (!FF){ log('❌ FFmpeg API missing after UMD load.'); return; }
       window.__FF__ = FF;
       window.__FF_CORE__ = corePath;
 
-      try { await addScript('js/audio.js'); }
-      catch { log('❌ Failed to load js/audio.js'); }
+      // 3) Load app JS, else run inline fallback
+      try {
+        await addScript('./js/audio.js?v=1');
+      } catch (e) {
+        log('❌ Failed to load js/audio.js — using inline fallback.');
+        (function () {
+          // === INLINE FALLBACK FOR js/audio.js ===
+          const logEl = document.getElementById('log');
+          const progressBar = document.getElementById('progressBar');
+          const progressLabel = document.getElementById('progressLabel');
+          const fileInput = document.getElementById('audioFile');
+          const outFormatSel = document.getElementById('outFormat');
+          const btnConvert = document.getElementById('convertBtn');
+          const btnCancel = document.getElementById('cancelBtn');
+          const dlLink = document.getElementById('downloadLink');
+
+          const log = (m) => { logEl.textContent += (m + "\n"); logEl.scrollTop = logEl.scrollHeight; };
+          const setProgress = (pct, msg) => {
+            const v = Math.max(0, Math.min(100, pct | 0));
+            progressBar.style.width = v + '%';
+            progressLabel.textContent = (msg || 'Working…') + ` (${v}%)`;
+          };
+          const resetProgress = () => { progressBar.style.width = '0%'; progressLabel.textContent = 'Idle'; };
+
+          function resolveFF(){
+            const g = window;
+            const cands = [g.__FF__, g.FFmpeg, g.FFmpegWASM, g.FFmpeg?.FFmpeg, g.FFmpeg?.default, g.default, g];
+            for (const c of cands){
+              if (c && typeof c.createFFmpeg === 'function' && typeof c.fetchFile === 'function') return c;
+              if (c && c.default && typeof c.default.createFFmpeg === 'function' && typeof c.default.fetchFile === 'function') return c.default;
+              if (c && c.FFmpeg && typeof c.FFmpeg.createFFmpeg === 'function') return c.FFmpeg;
+            }
+            return null;
+          }
+
+          const FF = resolveFF();
+          if (!FF) { log('❌ FFmpeg API (createFFmpeg) not found.'); return; }
+          const { createFFmpeg, fetchFile } = FF;
+
+          const ffmpeg = createFFmpeg({
+            log: true,
+            progress: ({ ratio }) => setProgress(Math.round(((ratio || 0) * 100)), 'Transcoding'),
+            corePath: (window.__FF_CORE__ || 'libs/ffmpeg/ffmpeg-core.js')
+          });
+
+          let abortController = null;
+
+          async function ensureLoaded() {
+            if (ffmpeg.isLoaded()) return;
+            log('🔧 Loading FFmpeg core… (first run takes longer)');
+            await ffmpeg.load();
+            log('✅ FFmpeg ready');
+          }
+
+          function deriveNames(file, outExt) {
+            const inName = file.name;
+            let base = inName.replace(/\.[^/.]+$/, '');
+            if (!base) base = 'output';
+            const outName = `${base}.${outExt}`;
+            const memIn = `in_${Date.now()}${inName.includes('.') ? inName.slice(inName.lastIndexOf('.')) : '.dat'}`;
+            const memOut = `out_${Date.now()}.${outExt}`;
+            return { inName, memIn, memOut, outName };
+          }
+
+          function pickCmd(outExt, memIn, memOut) {
+            if (outExt === 'mp3') return ['-i', memIn, '-vn', '-c:a', 'mp3', '-q:a', '2', memOut];
+            if (outExt === 'wav') return ['-i', memIn, '-vn', '-ac', '2', '-ar', '44100', '-c:a', 'pcm_s16le', memOut];
+            if (outExt === 'ogg') return ['-i', memIn, '-vn', '-c:a', 'libvorbis', '-q:a', '4', memOut];
+            return ['-i', memIn, '-vn', '-c:a', 'copy', memOut];
+          }
+
+          async function convert() {
+            const file = fileInput.files && fileInput.files[0];
+            if (!file) { alert('Pick a file first.'); return; }
+
+            btnConvert.disabled = true;
+            btnCancel.disabled = false;
+            dlLink.style.display = 'none';
+            dlLink.removeAttribute('href');
+            resetProgress();
+            log(`🎧 Selected: ${file.name} (${(file.size/1e6).toFixed(2)} MB)`);
+
+            try {
+              await ensureLoaded();
+
+              const outExt = outFormatSel.value;
+              const { memIn, memOut, outName } = deriveNames(file, outExt);
+
+              const data = await fetchFile(file);
+              ffmpeg.FS('writeFile', memIn, data);
+              log(`➡️  Loaded into memory: ${memIn}`);
+
+              const cmd = pickCmd(outExt, memIn, memOut);
+              log('▶️  ffmpeg ' + cmd.map(x => (/\s/.test(x) ? `"${x}"` : x)).join(' '));
+
+              abortController = new AbortController();
+              await ffmpeg.run(...cmd, { signal: abortController.signal });
+
+              const outData = ffmpeg.FS('readFile', memOut);
+              const blob = new Blob([outData.buffer], { type:
+                outExt === 'mp3' ? 'audio/mpeg' :
+                outExt === 'wav' ? 'audio/wav' :
+                outExt === 'ogg' ? 'audio/ogg' : 'application/octet-stream'
+              });
+              const url = URL.createObjectURL(blob);
+              dlLink.href = url; dlLink.download = outName; dlLink.style.display = 'inline-block';
+              setProgress(100, 'Done');
+              log(`✅ Complete: ${outName}`);
+
+              try { ffmpeg.FS('unlink', memIn); } catch(_) {}
+              try { ffmpeg.FS('unlink', memOut); } catch(_) {}
+            } catch (err) {
+              log('❌ Error: ' + (err && err.message ? err.message : String(err)));
+              progressLabel.textContent = 'Error';
+            } finally {
+              btnConvert.disabled = false;
+              btnCancel.disabled = true;
+              abortController = null;
+            }
+          }
+
+          function cancelRun() {
+            if (abortController) {
+              try { abortController.abort(); } catch(_) {}
+              log('🛑 Canceled.');
+              btnCancel.disabled = true;
+              btnConvert.disabled = false;
+            }
+          }
+
+          btnConvert.addEventListener('click', convert);
+          btnCancel.addEventListener('click', cancelRun);
+
+          // Nice UX tweaks
+          fileInput.addEventListener('change', () => {
+            const f = fileInput.files && fileInput.files[0];
+            if (!f) return;
+            const ext = (f.name.split('.').pop() || '').toLowerCase();
+            if (['wav','aiff','aif'].includes(ext)) outFormatSel.value = 'mp3';
+            if (['ogg','oga'].includes(ext)) outFormatSel.value = 'wav';
+            if (['mp4','mkv','mov','avi','webm'].includes(ext)) outFormatSel.value = 'mp3';
+          });
+
+          log('UI ready (inline fallback). Pick a file to begin.');
+          // === END INLINE FALLBACK ===
+        })();
+      }
     })();
   </script>
 </body>
