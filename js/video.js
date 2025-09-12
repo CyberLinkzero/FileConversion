@@ -1,4 +1,4 @@
-// js/video.js — uses window.__FF__ (set by loader in HTML)
+// js/video.js — uses window.__FF__ and window.__FF_CORE__
 (function () {
   const logEl = document.getElementById('log');
   const progressBar = document.getElementById('progressBar');
@@ -31,7 +31,7 @@
       const pct = Math.round(((ratio || 0) * 100));
       setProgress(pct, 'Transcoding');
     },
-    corePath: 'libs/ffmpeg/ffmpeg-core.js'
+    corePath: (window.__FF_CORE__ || 'libs/ffmpeg/ffmpeg-core.js')
   });
 
   let abortController = null;
@@ -54,15 +54,12 @@
 
   function pickCmd(outExt, memIn, memOut) {
     if (outExt === 'mp4') {
-      // Fast remux when codecs are compatible
       return ['-i', memIn, '-movflags', 'faststart', '-c', 'copy', memOut];
     }
     if (outExt === 'webm') {
-      // Transcode path; may be slow in wasm
       return ['-i', memIn, '-c:v', 'libvpx', '-b:v', '1M', '-c:a', 'libvorbis', memOut];
     }
     if (outExt === 'mp3') {
-      // Audio-only
       return ['-i', memIn, '-vn', '-c:a', 'mp3', '-q:a', '2', memOut];
     }
     return ['-i', memIn, '-c', 'copy', memOut];
@@ -136,7 +133,7 @@
   btnConvert.addEventListener('click', convert);
   btnCancel.addEventListener('click', cancelRun);
 
-  // Small UX: nudge output format by source ext
+  // Small UX: nudge output by source ext
   fileInput.addEventListener('change', () => {
     const f = fileInput.files && fileInput.files[0];
     if (!f) return;
