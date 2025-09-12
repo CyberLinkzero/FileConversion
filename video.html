@@ -81,74 +81,94 @@
   </script>
 
   <!-- Polyfill + Global bridge for @ffmpeg/ffmpeg v0.12+ -->
-  <script type="module">
-  (async () => {
-    if (window.createFFmpeg && window.fetchFile && window.FFmpeg?.createFFmpeg) return;
+  <!-- Polyfill + Global bridge for @ffmpeg/ffmpeg v0.12+ (with same-origin worker) -->
+<script type="module">
+(async () => {
+  // If legacy API & global already exist, skip
+  if (window.createFFmpeg && window.fetchFile && window.FFmpeg?.createFFmpeg) return;
 
-    const [{ FFmpeg }, util] = await Promise.all([
-      import('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js'),
-      import('https://unpkg.com/@ffmpeg/util@0.12.2/dist/esm/index.js'),
-    ]);
-    const { fetchFile, toBlobURL } = util;
-    window.fetchFile ??= fetchFile;
+  // Load new API (0.12+) ESM modules
+  const [{ FFmpeg }, util] = await Promise.all([
+    import('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js'),
+    import('https://unpkg.com/@ffmpeg/util@0.12.2/dist/esm/index.js'),
+  ]);
+  const { fetchFile, toBlobURL } = util;
+  window.fetchFile ??= fetchFile;
 
-    const headOk = async (url) => { try { const r = await fetch(url, { method:'HEAD', cache:'no-store' }); return r.ok; } catch { return false; } };
+  const headOk = async (url) => { try { const r = await fetch(url, { method:'HEAD', cache:'no-store' }); return r.ok; } catch { return false; } };
 
-    function createFFmpegCompat(opts = {}) {
-      const ff = new FFmpeg();
-      ff.on?.('log',      ({ message })  => { if (opts.log) console.log(message); });
-      ff.on?.('progress', ({ progress }) => { opts.progress?.({ ratio: progress || 0 }); });
-
-      const explicitCoreJS = opts.corePath || window.__FF_CORE__ || 'libs/ffmpeg/ffmpeg-core.js';
-      const baseLocal = explicitCoreJS.replace(/[^/]+$/, '');
-      const localJS   = explicitCoreJS;
-      const localWASM = baseLocal + 'ffmpeg-core.wasm';
-
-      const cdnBase  = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd';
-      const cdnJS    = cdnBase + '/ffmpeg-core.js';
-      const cdnWASM  = cdnBase + '/ffmpeg-core.wasm';
-
-      return {
-        loaded: false,
-        isLoaded() { return this.loaded; },
-        async load() {
-          if ((await headOk(localJS)) && (await headOk(localWASM))) {
-            await ff.load({ coreURL: localJS, wasmURL: localWASM });
-          } else {
-            const coreURL = await toBlobURL(cdnJS, 'text/javascript');
-            const wasmURL = await toBlobURL(cdnWASM, 'application/wasm');
-            await ff.load({ coreURL, wasmURL });
-          }
-          this.loaded = true;
-        },
-        async FS(op, path, data) {
-          if (op === 'writeFile') return ff.writeFile(path, data);
-          if (op === 'readFile')  return ff.readFile(path);
-          if (op === 'unlink')    return ff.unlink?.(path);
-          throw new Error('Unsupported FS operation: ' + op);
-        },
-        async run(...args) {
-          // strip trailing options object (legacy code sometimes passes {signal})
-          if (args.length && typeof args[args.length-1] === 'object' && !Array.isArray(args[args.length-1])) {
-            args = args.slice(0, -1);
-          }
-          return ff.exec(args);
-        },
-        __raw: ff
-      };
+  // Prepare a same-origin blob URL for the worker (avoids cross-origin Worker() errors on GitHub Pages)
+  async function getWorkerURL() {
+    const cdnWorkers = [
+      'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/worker.js',
+      'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/worker.js',
+    ];
+    for (const u of cdnWorkers) {
+      try { return await toBlobURL(u, 'text/javascript'); } catch {}
     }
+    throw new Error('Could not create worker blob URL');
+  }
 
-    // Publish legacy-style globals
-    window.createFFmpeg = window.createFFmpeg || createFFmpegCompat;
-    window.FFmpeg = window.FFmpeg || {};
-    window.FFmpeg.createFFmpeg = window.FFmpeg.createFFmpeg || window.createFFmpeg;
-    window.FFmpeg.fetchFile    = window.FFmpeg.fetchFile    || window.fetchFile;
-    window.FFmpeg.FFmpeg       = window.FFmpeg.FFmpeg       || FFmpeg;
-    window.FFmpeg.default      = window.FFmpeg.default      || { createFFmpeg: window.createFFmpeg, fetchFile: window.fetchFile };
-    window.__FF__              = window.__FF__              || window.FFmpeg;
-    window.FFmpegWASM          = window.FFmpegWASM          || window.FFmpeg;
-  })();
-  </script>
+  function createFFmpegCompat(opts = {}) {
+    const ff = new FFmpeg();
+    ff.on?.('log',      ({ message })  => { if (opts.log) console.log(message); });
+    ff.on?.('progress', ({ progress }) => { opts.progress?.({ ratio: progress || 0 }); });
+
+    const explicitCoreJS = opts.corePath || window.__FF_CORE__ || 'libs/ffmpeg/ffmpeg-core.js';
+    const baseLocal = explicitCoreJS.replace(/[^/]+$/, '');
+    const localJS   = explicitCoreJS;
+    const localWASM = baseLocal + 'ffmpeg-core.wasm';
+
+    const cdnBase  = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd';
+    const cdnJS    = cdnBase + '/ffmpeg-core.js';
+    const cdnWASM  = cdnBase + '/ffmpeg-core.wasm';
+
+    return {
+      loaded: false,
+      isLoaded() { return this.loaded; },
+      async load() {
+        // Always provide a same-origin worker blob URL
+        const workerURL = await getWorkerURL();
+
+        // Prefer local core; else blob-ified CDN core
+        if ((await headOk(localJS)) && (await headOk(localWASM))) {
+          await ff.load({ coreURL: localJS, wasmURL: localWASM, workerURL });
+        } else {
+          const coreURL = await toBlobURL(cdnJS, 'text/javascript');
+          const wasmURL = await toBlobURL(cdnWASM, 'application/wasm');
+          await ff.load({ coreURL, wasmURL, workerURL });
+        }
+        this.loaded = true;
+      },
+      async FS(op, path, data) {
+        if (op === 'writeFile') return ff.writeFile(path, data);
+        if (op === 'readFile')  return ff.readFile(path);
+        if (op === 'unlink')    return ff.unlink?.(path);
+        throw new Error('Unsupported FS operation: ' + op);
+      },
+      async run(...args) {
+        // Strip trailing options object some legacy code passes
+        if (args.length && typeof args[args.length-1] === 'object' && !Array.isArray(args[args.length-1])) {
+          args = args.slice(0, -1);
+        }
+        return ff.exec(args);
+      },
+      __raw: ff
+    };
+  }
+
+  // Publish legacy-style globals
+  window.createFFmpeg = window.createFFmpeg || createFFmpegCompat;
+  window.FFmpeg = window.FFmpeg || {};
+  window.FFmpeg.createFFmpeg = window.FFmpeg.createFFmpeg || window.createFFmpeg;
+  window.FFmpeg.fetchFile    = window.FFmpeg.fetchFile    || window.fetchFile;
+  window.FFmpeg.FFmpeg       = window.FFmpeg.FFmpeg       || FFmpeg;
+  window.FFmpeg.default      = window.FFmpeg.default      || { createFFmpeg: window.createFFmpeg, fetchFile: window.fetchFile };
+  window.__FF__              = window.__FF__              || window.FFmpeg;
+  window.FFmpegWASM          = window.FFmpegWASM          || window.FFmpeg;
+})();
+</script>
+
 </head>
 
 <body>
