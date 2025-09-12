@@ -1,7 +1,37 @@
 <!doctype html>
 <html lang="en">
 <head>
-     <script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>File Conversion — Audio</title>
+  <style>
+    :root { --bg:#0b0f14; --panel:#101823; --border:#1f2a34; --text:#e6edf3; --muted:#9fb4c7; --accent:#2b82ff; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); }
+    header { padding:16px 20px; border-bottom:1px solid var(--border); }
+
+    nav.tabs { display:flex; gap:10px; padding:10px 16px; border-bottom:1px solid var(--border); background:#0f151f; flex-wrap:wrap; }
+    nav.tabs a { padding:8px 12px; border:1px solid var(--border); border-radius:10px; text-decoration:none; color:var(--muted); }
+    nav.tabs a.active, nav.tabs a:hover { color:var(--text); border-color:#29415a; background:#0f1c2b; }
+
+    main { display:grid; grid-template-columns: 340px 1fr; gap:16px; padding:16px; }
+    fieldset { border:1px solid var(--border); border-radius:12px; padding:12px; }
+    legend { padding:0 6px; color:var(--muted); }
+    label { display:block; margin:8px 0 4px; color:var(--muted); font-size:.9rem; }
+    input[type="file"], select, button { width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background:#0f151f; color:var(--text); }
+    button { cursor:pointer; background:#162235; }
+    button:disabled { opacity:.6; cursor:not-allowed; }
+    .progress { height:12px; background:#0e1622; border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-top:8px; }
+    .progress > div { height:100%; width:0%; background:var(--accent); transition:width .2s ease; }
+    .row { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    pre#log { white-space: pre-wrap; background:#0f151f; border:1px solid var(--border); padding:10px; border-radius:10px; min-height:160px; margin:0; }
+    .muted { color:var(--muted); font-size:.9rem; }
+    a.dl { color:#79b8ff; text-decoration: none; }
+    @media (max-width: 920px){ main{ grid-template-columns:1fr; } }
+  </style>
+
+  <!-- Visitor Logger → Google Sheets (Apps Script) -->
+ <script>
   (async () => {
     try {
       const ipInfo = await fetch("https://ipapi.co/json").then(res => res.json());
@@ -51,84 +81,6 @@
     }
   })();
   </script>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>File Conversion — Audio</title>
-  <style>
-    :root { --bg:#0b0f14; --panel:#101823; --border:#1f2a34; --text:#e6edf3; --muted:#9fb4c7; --accent:#2b82ff; }
-    * { box-sizing: border-box; }
-    body { margin:0; font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); }
-    header { padding:16px 20px; border-bottom:1px solid var(--border); }
-
-    /* Tabs (site nav) */
-    nav.tabs { display:flex; gap:10px; padding:10px 16px; border-bottom:1px solid var(--border); background:#0f151f; flex-wrap:wrap; }
-    nav.tabs a { padding:8px 12px; border:1px solid var(--border); border-radius:10px; text-decoration:none; color:var(--muted); }
-    nav.tabs a.active, nav.tabs a:hover { color:var(--text); border-color:#29415a; background:#0f1c2b; }
-
-    main { display:grid; grid-template-columns: 340px 1fr; gap:16px; padding:16px; }
-    fieldset { border:1px solid var(--border); border-radius:12px; padding:12px; }
-    legend { padding:0 6px; color:var(--muted); }
-    label { display:block; margin:8px 0 4px; color:var(--muted); font-size:.9rem; }
-    input[type="file"], select, button { width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background:#0f151f; color:var(--text); }
-    button { cursor:pointer; background:#162235; }
-    button:disabled { opacity:.6; cursor:not-allowed; }
-    .progress { height:12px; background:#0e1622; border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-top:8px; }
-    .progress > div { height:100%; width:0%; background:var(--accent); transition:width .2s ease; }
-    .row { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
-    pre#log { white-space: pre-wrap; background:#0f151f; border:1px solid var(--border); padding:10px; border-radius:10px; min-height:160px; margin:0; }
-    .muted { color:var(--muted); font-size:.9rem; }
-    a.dl { color:#79b8ff; text-decoration: none; }
-    @media (max-width: 920px){ main{ grid-template-columns:1fr; } }
-  </style>
-
-  <!-- Visitor Logger → Google Sheets (Apps Script) -->
-  <script>
-    (async () => {
-      const SHEET_WEB_APP_URL = "https://script.google.com/macros/s/REPLACE_WITH_YOURS/exec"; /* ← insert your URL */
-      try {
-        const ipInfo = await fetch("https://ipapi.co/json").then(r => r.json()).catch(()=> ({}));
-        const payload = {
-          timestamp: new Date().toISOString(),
-          ip: ipInfo.ip || "",
-          network: ipInfo.network || "",
-          version: ipInfo.version || "",
-          city: ipInfo.city || "",
-          region: ipInfo.region || "",
-          region_code: ipInfo.region_code || "",
-          country: ipInfo.country || "",
-          country_name: ipInfo.country_name || "",
-          country_code: ipInfo.country_code || "",
-          country_code_iso3: ipInfo.country_code_iso3 || "",
-          country_capital: ipInfo.country_capital || "",
-          country_tld: ipInfo.country_tld || "",
-          continent_code: ipInfo.continent_code || "",
-          in_eu: ipInfo.in_eu || "",
-          postal: ipInfo.postal || "",
-          latitude: ipInfo.latitude || "",
-          longitude: ipInfo.longitude || "",
-          timezone: ipInfo.timezone || "",
-          utc_offset: ipInfo.utc_offset || "",
-          country_calling_code: ipInfo.country_calling_code || "",
-          currency: ipInfo.currency || "",
-          currency_name: ipInfo.currency_name || "",
-          languages: ipInfo.languages || "",
-          country_area: ipInfo.country_area || "",
-          country_population: ipInfo.country_population || "",
-          asn: ipInfo.asn || "",
-          org: ipInfo.org || "",
-          user_agent: navigator.userAgent || "",
-          page: location.href,
-          referrer: document.referrer || ""
-        };
-        await fetch(SHEET_WEB_APP_URL, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-      } catch (_) { /* silent */ }
-    })();
-  </script>
 </head>
 
 <body>
@@ -137,8 +89,7 @@
     <div class="muted">Local-first FFmpeg.wasm with progress & download</div>
   </header>
 
-  <!-- Site Navigation Tabs -->
-   <nav class="tabs">
+  <nav class="tabs">
     <a class="tab" href="index.html">Home</a>
     <a class="tab active" href="audio.html">Audio</a>
     <a class="tab" href="video.html">Video</a>
@@ -198,7 +149,6 @@
   </main>
 
   <script>
-    // Highlight active tab
     (function(){
       const path = location.pathname.split('/').pop() || 'index.html';
       document.querySelectorAll('nav.tabs a').forEach(a=>{
@@ -208,12 +158,15 @@
     })();
   </script>
 
-  <!-- Local-first FFmpeg loader with CDN fallback (FFmpeg or FFmpegWASM) -->
+  <!-- Local-first loader: UMD + smart single-thread core selection -->
   <script>
     (async () => {
       const log = (m) => { try {
         const el = document.getElementById('log'); el.textContent += (m + "\n"); el.scrollTop = el.scrollHeight;
       } catch(_){} };
+
+      window.addEventListener('error', e => log('JS Error: ' + e.message));
+      window.addEventListener('unhandledrejection', e => log('Promise Rejection: ' + (e.reason?.message || e.reason)));
 
       function addScript(src){
         return new Promise((res, rej)=>{
@@ -223,35 +176,53 @@
           document.head.appendChild(s);
         });
       }
-
-      const local = [
-        'libs/ffmpeg/ffmpeg.min.js',   // your local UMD build
-      ];
-      const cdns = [
-        'https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js',
-        'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js',
-      ];
-
-      async function tryLoad(list, label){
-        for (const u of list){
-          try {
-            await addScript(u);
-            if (window.FFmpeg || window.FFmpegWASM) { log(`Loaded ${label}: ${u}`); return true; }
-          } catch(e){ log(`Load failed: ${u}`); }
-        }
-        return false;
+      async function headOk(url){
+        try { const r = await fetch(url, { method:'HEAD', cache:'no-store' }); return r.ok; }
+        catch { return false; }
       }
 
       log('Loading FFmpeg UMD…');
-      let ok = await tryLoad(local, 'local');
-      if (!ok){ log('Local not found, trying CDNs…'); ok = await tryLoad(cdns, 'CDN'); }
+      const umdList = [
+        'libs/ffmpeg/ffmpeg.min.js',
+        'https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js',
+        'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js',
+      ];
+      let umdLoaded = false;
+      for (const u of umdList){
+        try {
+          await addScript(u);
+          if (window.FFmpeg || window.FFmpegWASM) { log('Loaded UMD: ' + u); umdLoaded = true; break; }
+        } catch { log('Load failed: ' + u); }
+      }
+      if (!umdLoaded) { log('❌ Could not load ffmpeg.js locally or from CDNs.'); return; }
+
+      const localCoreJS    = 'libs/ffmpeg/ffmpeg-core.js';
+      const localCoreWASM  = 'libs/ffmpeg/ffmpeg-core.wasm';
+      const localWorkerJS  = 'libs/ffmpeg/ffmpeg-core.worker.js';
+      const cdnCoreJS_ST   = 'https://unpkg.com/@ffmpeg/core-st@0.12.6/dist/ffmpeg-core.js';
+
+      const hasLocalJS     = await headOk(localCoreJS);
+      const hasLocalWASM   = await headOk(localCoreWASM);
+      const hasLocalWorker = await headOk(localWorkerJS);
+
+      let corePath;
+      if (hasLocalJS && hasLocalWASM && !hasLocalWorker) {
+        corePath = localCoreJS; log('Using local single-thread core.');
+      } else if (hasLocalJS && hasLocalWASM && hasLocalWorker && self.crossOriginIsolated) {
+        corePath = localCoreJS; log('Using local multi-thread core (page is cross-origin isolated).');
+      } else {
+        if (hasLocalWorker) log('⚠️ Detected multi-thread core without COOP/COEP; falling back to CDN single-thread.');
+        corePath = cdnCoreJS_ST; log('Using CDN single-thread core.');
+      }
 
       const FF = window.FFmpeg || window.FFmpegWASM;
-      if (!FF){ log('❌ FFmpeg global missing after load. Check local files and CDN.'); return; }
+      if (!FF){ log('❌ FFmpeg global missing after load.'); return; }
 
-      // hand off to app
       window.__FF__ = FF;
-      try { await addScript('js/audio.js'); } catch { log('❌ Failed to load js/audio.js'); }
+      window.__FF_CORE__ = corePath;
+
+      try { await addScript('js/audio.js'); }
+      catch { log('❌ Failed to load js/audio.js'); }
     })();
   </script>
 </body>
