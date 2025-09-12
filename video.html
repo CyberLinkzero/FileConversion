@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
+  
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>File Conversion — Video</title>
@@ -31,7 +32,8 @@
     @media (max-width: 920px){ main{ grid-template-columns:1fr; } }
   </style>
 
-  <script>
+  <!-- Visitor Logger → Google Sheets (Apps Script) -->
+ <script>
   (async () => {
     try {
       const ipInfo = await fetch("https://ipapi.co/json").then(res => res.json());
@@ -90,7 +92,7 @@
   </header>
 
   <!-- Site Navigation Tabs -->
-   <nav class="tabs">
+ <nav class="tabs">
     <a class="tab" href="index.html">Home</a>
     <a class="tab active" href="audio.html">Audio</a>
     <a class="tab" href="video.html">Video</a>
@@ -160,12 +162,16 @@
     })();
   </script>
 
-  <!-- Local-first FFmpeg loader with CDN fallback (and window.FFmpeg/FFmpegWASM detection) -->
+  <!-- Local-first loader: UMD + smart single-thread core selection -->
   <script>
     (async () => {
       const log = (m) => { try {
         const el = document.getElementById('log'); el.textContent += (m + "\n"); el.scrollTop = el.scrollHeight;
       } catch(_){} };
+
+      // surface hidden runtime errors into the page log
+      window.addEventListener('error', e => log('JS Error: ' + e.message));
+      window.addEventListener('unhandledrejection', e => log('Promise Rejection: ' + (e.reason?.message || e.reason)));
 
       function addScript(src){
         return new Promise((res, rej)=>{
@@ -175,38 +181,57 @@
           document.head.appendChild(s);
         });
       }
+      async function headOk(url){
+        try { const r = await fetch(url, { method:'HEAD', cache:'no-store' }); return r.ok; }
+        catch { return false; }
+      }
 
-      const local = [
-        'libs/ffmpeg/ffmpeg.min.js',   // your local UMD build
-      ];
-      const cdns = [
+      // 1) Load UMD wrapper
+      log('Loading FFmpeg UMD…');
+      const umdList = [
+        'libs/ffmpeg/ffmpeg.min.js',
         'https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js',
         'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js',
       ];
+      let umdLoaded = false;
+      for (const u of umdList){
+        try {
+          await addScript(u);
+          if (window.FFmpeg || window.FFmpegWASM) { log('Loaded UMD: ' + u); umdLoaded = true; break; }
+        } catch { log('Load failed: ' + u); }
+      }
+      if (!umdLoaded) { log('❌ Could not load ffmpeg.js locally or from CDNs.'); return; }
 
-      async function tryLoad(list, label){
-        for (const u of list){
-          try {
-            await addScript(u);
-            if (window.FFmpeg || window.FFmpegWASM) { log(`Loaded ${label}: ${u}`); return true; }
-          } catch(e){ log(`Load failed: ${u}`); }
-        }
-        return false;
+      // 2) Pick a core (prefer local single-thread; fallback to CDN single-thread)
+      const localCoreJS    = 'libs/ffmpeg/ffmpeg-core.js';
+      const localCoreWASM  = 'libs/ffmpeg/ffmpeg-core.wasm';
+      const localWorkerJS  = 'libs/ffmpeg/ffmpeg-core.worker.js'; // only present in multi-thread builds
+      const cdnCoreJS_ST   = 'https://unpkg.com/@ffmpeg/core-st@0.12.6/dist/ffmpeg-core.js';
+
+      const hasLocalJS     = await headOk(localCoreJS);
+      const hasLocalWASM   = await headOk(localCoreWASM);
+      const hasLocalWorker = await headOk(localWorkerJS);
+
+      let corePath;
+      if (hasLocalJS && hasLocalWASM && !hasLocalWorker) {
+        corePath = localCoreJS; log('Using local single-thread core.');
+      } else if (hasLocalJS && hasLocalWASM && hasLocalWorker && self.crossOriginIsolated) {
+        corePath = localCoreJS; log('Using local multi-thread core (page is cross-origin isolated).');
+      } else {
+        if (hasLocalWorker) log('⚠️ Detected multi-thread core without COOP/COEP; falling back to CDN single-thread.');
+        corePath = cdnCoreJS_ST; log('Using CDN single-thread core.');
       }
 
-      log('Loading FFmpeg UMD…');
-      let ok = await tryLoad(local, 'local');
-      if (!ok){ log('Local not found, trying CDNs…'); ok = await tryLoad(cdns, 'CDN'); }
-
       const FF = window.FFmpeg || window.FFmpegWASM;
-      if (!FF){ log('❌ FFmpeg global missing after load. Check local files and CDN.'); return; }
+      if (!FF){ log('❌ FFmpeg global missing after load.'); return; }
 
       // hand off to app
       window.__FF__ = FF;
-      try { await addScript('js/video.js'); } catch { log('❌ Failed to load js/video.js'); }
+      window.__FF_CORE__ = corePath;
+
+      try { await addScript('js/video.js'); }
+      catch { log('❌ Failed to load js/video.js'); }
     })();
   </script>
 </body>
 </html>
-
-+
