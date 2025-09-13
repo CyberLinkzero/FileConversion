@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <script>
+     <script>
   (async () => {
     try {
       const ipInfo = await fetch("https://ipapi.co/json").then(res => res.json());
@@ -78,98 +78,91 @@
     @media (max-width: 920px){ main{ grid-template-columns:1fr; } }
   </style>
 
-  <!-- FFmpeg v0.12 polyfill with proper same-origin worker handling -->
-<script type="module">
-(async () => {
-  if (window.createFFmpeg && window.fetchFile && window.FFmpeg?.createFFmpeg) return;
+  <!-- FFmpeg v0.12 polyfill: ESM core + same-origin worker -->
+  <script type="module">
+  (async () => {
+    if (window.createFFmpeg && window.fetchFile && window.FFmpeg?.createFFmpeg) return;
 
-  const [{ FFmpeg }, util] = await Promise.all([
-    import('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js'),
-    import('https://unpkg.com/@ffmpeg/util@0.12.2/dist/esm/index.js'),
-  ]);
-  const { fetchFile, toBlobURL } = util;
-  window.fetchFile ??= fetchFile;
+    const [{ FFmpeg }, util] = await Promise.all([
+      import('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js'),
+      import('https://unpkg.com/@ffmpeg/util@0.12.2/dist/esm/index.js'),
+    ]);
+    const { fetchFile } = util;
+    window.fetchFile ??= fetchFile;
 
-  const headOk = async (u) => { try { const r = await fetch(u, { method:'HEAD', cache:'no-store' }); return r.ok; } catch { return false; } };
+    const headOk = async (u) => { try { const r = await fetch(u, { method:'HEAD', cache:'no-store' }); return r.ok; } catch { return false; } };
 
-  // Build a worker URL:
-  // 1) If local worker exists -> use it directly (keeps relative imports working).
-  // 2) Else fetch CDN worker text and rewrite its relative imports to absolute URLs, then blobify.
-  async function getClassWorkerURL() {
-    const local = 'libs/ffmpeg/worker.js';
-    if (await headOk(local)) return local; // ✅ same-origin URL, relative imports work
+    async function getClassWorkerURL() {
+      const local = 'libs/ffmpeg/worker.js';
+      if (await headOk(local)) return local;
+      const base = 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/';
+      const src  = base + 'worker.js';
+      const code = await fetch(src, { cache:'no-store' }).then(r => r.text());
+      const patched = code
+        .replace(/from\s+['"]\.\/const\.js['"]/g,  `from '${base}const.js'`)
+        .replace(/from\s+['"]\.\/errors\.js['"]/g, `from '${base}errors.js'`);
+      return URL.createObjectURL(new Blob([patched], { type: 'text/javascript' }));
+    }
 
-    // Fallback: rewrite CDN worker to use absolute imports, then blob-url it
-    const base = 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/';
-    const src  = base + 'worker.js';
-    const code = await fetch(src, { cache:'no-store' }).then(r => r.text());
-    const patched = code
-      .replace(/from\s+['"]\.\/const\.js['"]/g,   `from '${base}const.js'`)
-      .replace(/from\s+['"]\.\/errors\.js['"]/g,  `from '${base}errors.js'`);
-    return URL.createObjectURL(new Blob([patched], { type: 'text/javascript' }));
-  }
+    function createFFmpegCompat(opts = {}) {
+      const ff = new FFmpeg();
+      const pageLog = window.__FF_PAGE_LOG || null;
 
-  function createFFmpegCompat(opts = {}) {
-    const ff = new FFmpeg();
-    const pageLog = window.__FF_PAGE_LOG || null;
+      ff.on?.('log',      ({ message })  => { if (opts.log) console.log(message); if (pageLog) pageLog('[ff] ' + message); });
+      ff.on?.('progress', ({ progress }) => { opts.progress?.({ ratio: progress || 0 }); });
 
-    ff.on?.('log',      ({ message })  => { if (opts.log) console.log(message); if (pageLog) pageLog('[ff] ' + message); });
-    ff.on?.('progress', ({ progress }) => { opts.progress?.({ ratio: progress || 0 }); });
+      const localESMJS   = 'libs/ffmpeg/esm/ffmpeg-core.js';
+      const localESMWASM = 'libs/ffmpeg/esm/ffmpeg-core.wasm';
+      const cdnESMJS     = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js';
+      const cdnESMWASM   = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm';
 
-    const coreLocalJS   = opts.corePath || window.__FF_CORE__ || 'libs/ffmpeg/ffmpeg-core.js';
-    const coreLocalWASM = coreLocalJS.replace(/[^/]+$/, 'ffmpeg-core.wasm');
-    const coreCDNJS     = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.js';
-    const coreCDNWASM   = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm';
+      return {
+        loaded:false,
+        isLoaded(){ return this.loaded; },
+        async load(){
+          const classWorkerURL = await getClassWorkerURL();
 
-    return {
-      loaded:false,
-      isLoaded(){ return this.loaded; },
-      async load(){
-        const classWorkerURL = await getClassWorkerURL(); // 👈 key fix
+          let coreURL, wasmURL;
+          if (await headOk(localESMJS) && await headOk(localESMWASM)) {
+            coreURL = localESMJS;
+            wasmURL = localESMWASM;
+          } else {
+            coreURL = cdnESMJS;
+            wasmURL = cdnESMWASM;
+          }
 
-        // Use local core if present; otherwise blob-ify CDN core (avoids MIME/CORS quirks)
-        let coreURL, wasmURL;
-        if (await headOk(coreLocalJS) && await headOk(coreLocalWASM)) {
-          coreURL = await toBlobURL(coreLocalJS,   'text/javascript');
-          wasmURL = await toBlobURL(coreLocalWASM, 'application/wasm');
-        } else {
-          coreURL = await toBlobURL(coreCDNJS,   'text/javascript');
-          wasmURL = await toBlobURL(coreCDNWASM, 'application/wasm');
-        }
+          await ff.load({ coreURL, wasmURL, classWorkerURL });
+          this.loaded = true;
+        },
+        async FS(op, p, d){
+          if (op==='writeFile') return ff.writeFile(p, d);
+          if (op==='readFile')  return ff.readFile(p);
+          if (op==='unlink')    return ff.unlink?.(p);
+          throw new Error('Unsupported FS op: '+op);
+        },
+        async run(...args){
+          if (args.length && typeof args.at(-1)==='object' && !Array.isArray(args.at(-1))) args = args.slice(0,-1);
+          return ff.exec(args);
+        },
+        __raw: ff
+      };
+    }
 
-        await ff.load({ coreURL, wasmURL, classWorkerURL });
-        this.loaded = true;
-      },
-      async FS(op, p, d){
-        if (op==='writeFile') return ff.writeFile(p, d);
-        if (op==='readFile')  return ff.readFile(p);
-        if (op==='unlink')    return ff.unlink?.(p);
-        throw new Error('Unsupported FS op: '+op);
-      },
-      async run(...args){
-        if (args.length && typeof args.at(-1)==='object' && !Array.isArray(args.at(-1))) args = args.slice(0,-1);
-        return ff.exec(args);
-      },
-      __raw: ff
-    };
-  }
-
-  window.createFFmpeg = window.createFFmpeg || createFFmpegCompat;
-  window.FFmpeg = window.FFmpeg || {};
-  window.FFmpeg.createFFmpeg = window.FFmpeg.createFFmpeg || window.createFFmpeg;
-  window.FFmpeg.fetchFile    = window.FFmpeg.fetchFile    || window.fetchFile;
-  window.FFmpeg.FFmpeg       = window.FFmpeg.FFmpeg       || FFmpeg;
-  window.FFmpeg.default      = window.FFmpeg.default      || { createFFmpeg: window.createFFmpeg, fetchFile: window.fetchFile };
-  window.__FF__              = window.__FF__              || window.FFmpeg;
-})();
-</script>
-
+    window.createFFmpeg = window.createFFmpeg || createFFmpegCompat;
+    window.FFmpeg = window.FFmpeg || {};
+    window.FFmpeg.createFFmpeg = window.FFmpeg.createFFmpeg || window.createFFmpeg;
+    window.FFmpeg.fetchFile    = window.FFmpeg.fetchFile    || window.fetchFile;
+    window.FFmpeg.FFmpeg       = window.FFmpeg.FFmpeg       || FFmpeg;
+    window.FFmpeg.default      = window.FFmpeg.default      || { createFFmpeg: window.createFFmpeg, fetchFile: window.fetchFile };
+    window.__FF__              = window.__FF__              || window.FFmpeg;
+  })();
+  </script>
 </head>
 
 <body>
   <header>
     <h1 style="margin:0;font-size:20px;">File Conversion — Audio</h1>
-    <div class="muted">FFmpeg.wasm v0.12 (compat shim, same-origin worker)</div>
+    <div class="muted">FFmpeg.wasm v0.12 (ESM core + same-origin worker, legacy API shim)</div>
   </header>
 
    <nav class="tabs">
@@ -258,20 +251,18 @@
         });
       }
 
-      const localCoreJS   = 'libs/ffmpeg/ffmpeg-core.js';
-      const localCoreWASM = 'libs/ffmpeg/ffmpeg-core.wasm';
-      const cdnCoreJS     = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.js';
-
-      let corePath = cdnCoreJS;
-      if (await headOk(localCoreJS) && await headOk(localCoreWASM)) { corePath = localCoreJS; log('Using local single-thread core.'); }
-      else { log('Using CDN single-thread core.'); }
-      window.__FF_CORE__ = corePath;
+      const localESMJS   = 'libs/ffmpeg/esm/ffmpeg-core.js';
+      const localESMWASM = 'libs/ffmpeg/esm/ffmpeg-core.wasm';
+      if (await headOk(localESMJS) && await headOk(localESMWASM)) {
+        log('Using local ESM single-thread core.');
+      } else {
+        log('Using CDN ESM single-thread core.');
+      }
 
       async function runInline() {
         const ffmpeg = window.createFFmpeg({
           log: true,
-          progress: ({ ratio }) => setProgress(Math.round(((ratio || 0) * 100)), 'Transcoding'),
-          corePath: window.__FF_CORE__
+          progress: ({ ratio }) => setProgress(Math.round(((ratio || 0) * 100)), 'Transcoding')
         });
 
         let running = false;
@@ -282,7 +273,7 @@
           let pct = 1;
           setProgress(pct, 'Loading core');
           const tick = setInterval(() => { if (pct < 90) { pct += 2; setProgress(pct, 'Loading core'); } }, 400);
-          const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg core load timeout (60s). Verify libs/ffmpeg/worker.js and core files are deployed.')), 60000));
+          const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg core load timeout (60s). Check worker/core files.')), 60000));
           try {
             await Promise.race([ffmpeg.load(), timeout]);
             clearInterval(tick);
@@ -295,12 +286,11 @@
           }
         }
 
-        function pickCmd(outExt, memIn, memOut) {
-          if (outExt === 'mp3') return ['-i', memIn, '-vn', '-c:a', 'mp3', '-q:a', '2', memOut];
-          if (outExt === 'wav') return ['-i', memIn, '-vn', '-ac', '2', '-ar', '44100', '-c:a', 'pcm_s16le', memOut];
-          if (outExt === 'ogg') return ['-i', memIn, '-vn', '-c:a', 'libvorbis', '-q:a', '4', memOut];
-          return ['-i', memIn, '-vn', '-c:a', 'copy', memOut];
-        }
+        const pickCmd = (ext, memIn, memOut) =>
+          ext==='mp3' ? ['-i', memIn, '-vn', '-c:a','mp3','-q:a','2', memOut] :
+          ext==='wav' ? ['-i', memIn, '-vn', '-ac','2','-ar','44100','-c:a','pcm_s16le', memOut] :
+          ext==='ogg' ? ['-i', memIn, '-vn', '-c:a','libvorbis','-q:a','4', memOut] :
+                        ['-i', memIn, '-vn', '-c:a','copy', memOut];
 
         async function convert() {
           const file = fileInput.files && fileInput.files[0];
@@ -357,7 +347,7 @@
         btnCancel.addEventListener('click', cancelRun);
       }
 
-      try { await addScript('./js/audio.js?v=6'); }
+      try { await addScript('./js/audio.js?v=esm1'); }
       catch { log('js/audio.js not found — using inline fallback.'); await runInline(); }
       if (!btnConvert.onclick) await runInline();
     })();
