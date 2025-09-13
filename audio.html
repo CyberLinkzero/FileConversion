@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-   <script>
+    <script>
   (async () => {
     try {
       const ipInfo = await fetch("https://ipapi.co/json").then(res => res.json());
@@ -72,13 +72,13 @@
     .progress { height:12px; background:#0e1622; border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-top:8px; }
     .progress > div { height:100%; width:0%; background:var(--accent); transition:width .2s ease; }
     .row { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
-    pre#log { white-space: pre-wrap; background:#0f151f; border:1px solid var(--border); padding:10px; border-radius:10px; min-height:160px; margin:0; }
+    pre#log { white-space: pre-wrap; background:#0f151f; border:1px solid var(--border); padding:10px; border-radius:10px; min-height:180px; margin:0; }
     .muted { color:var(--muted); font-size:.9rem; }
     a.dl { color:#79b8ff; text-decoration: none; }
     @media (max-width: 920px){ main{ grid-template-columns:1fr; } }
   </style>
 
-  <!-- v0.12 polyfill + same-origin worker (same as in video.html) -->
+  <!-- v0.12 polyfill + same-origin Blob worker + blob-ified core -->
   <script type="module">
   (async () => {
     if (window.createFFmpeg && window.fetchFile && window.FFmpeg?.createFFmpeg) return;
@@ -91,36 +91,34 @@
     window.fetchFile ??= fetchFile;
 
     const headOk = async (u) => { try { const r = await fetch(u, { method:'HEAD', cache:'no-store' }); return r.ok; } catch { return false; } };
+    const blobOr = async (localURL, cdnURL, mime) => {
+      if (await headOk(localURL)) return toBlobURL(localURL, mime);
+      return toBlobURL(cdnURL, mime);
+    };
 
     function createFFmpegCompat(opts = {}) {
       const ff = new FFmpeg();
-      ff.on?.('log',      ({ message })  => { if (opts.log) console.log(message); });
+      const pageLog = window.__FF_PAGE_LOG || null;
+
+      ff.on?.('log',      ({ message })  => { if (opts.log) console.log(message); if (pageLog) pageLog('[ff] ' + message); });
       ff.on?.('progress', ({ progress }) => { opts.progress?.({ ratio: progress || 0 }); });
 
-      const coreJS   = opts.corePath || window.__FF_CORE__ || 'libs/ffmpeg/ffmpeg-core.js';
-      const coreWASM = coreJS.replace(/[^/]+$/, 'ffmpeg-core.wasm');
-      const cdnJS    = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.js';
-      const cdnWASM  = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm';
-      const localWorker = 'libs/ffmpeg/worker.js';
+      const coreLocalJS   = opts.corePath || window.__FF_CORE__ || 'libs/ffmpeg/ffmpeg-core.js';
+      const coreLocalWASM = coreLocalJS.replace(/[^/]+$/, 'ffmpeg-core.wasm');
+      const coreCDNJS     = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.js';
+      const coreCDNWASM   = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm';
+
+      const workerLocal   = 'libs/ffmpeg/worker.js';
+      const workerCDN     = 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/worker.js';
 
       return {
         loaded:false,
         isLoaded(){ return this.loaded; },
         async load(){
-          let classWorkerURL;
-          if (await headOk(localWorker)) {
-            classWorkerURL = localWorker;
-          } else {
-            classWorkerURL = await toBlobURL('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/worker.js', 'text/javascript');
-          }
-
-          if ((await headOk(coreJS)) && (await headOk(coreWASM))) {
-            await ff.load({ coreURL: coreJS, wasmURL: coreWASM, classWorkerURL });
-          } else {
-            const coreURL = await toBlobURL(cdnJS,   'text/javascript');
-            const wasmURL = await toBlobURL(cdnWASM, 'application/wasm');
-            await ff.load({ coreURL, wasmURL, classWorkerURL });
-          }
+          const classWorkerURL = await blobOr(workerLocal, workerCDN, 'text/javascript');
+          const coreURL  = await blobOr(coreLocalJS,   coreCDNJS,   'text/javascript');
+          const wasmURL  = await blobOr(coreLocalWASM, coreCDNWASM, 'application/wasm');
+          await ff.load({ coreURL, wasmURL, classWorkerURL });
           this.loaded = true;
         },
         async FS(op, p, d){
@@ -151,7 +149,7 @@
 <body>
   <header>
     <h1 style="margin:0;font-size:20px;">File Conversion — Audio</h1>
-    <div class="muted">FFmpeg.wasm v0.12 with legacy API shim</div>
+    <div class="muted">FFmpeg.wasm v0.12 (compat shim, same-origin worker)</div>
   </header>
 
    <nav class="tabs">
@@ -211,13 +209,34 @@
     </section>
   </main>
 
-  <!-- Loader (same as video, points __FF_CORE__ then loads js/audio.js) -->
   <script>
     (async () => {
-      const log = (m) => { const el = document.getElementById('log'); el.textContent += (m + "\n"); el.scrollTop = el.scrollHeight; };
+      const logEl = document.getElementById('log');
+      const progressBar = document.getElementById('progressBar');
+      const progressLabel = document.getElementById('progressLabel');
+      const fileInput = document.getElementById('audioFile');
+      const outFormatSel = document.getElementById('outFormat');
+      const btnConvert = document.getElementById('convertBtn');
+      const btnCancel = document.getElementById('cancelBtn');
+      const dlLink = document.getElementById('downloadLink');
+
+      const log = (m) => { logEl.textContent += (m + "\n"); logEl.scrollTop = logEl.scrollHeight; };
+      window.__FF_PAGE_LOG = (m) => log(m);
+
+      const setProgress = (pct, msg) => {
+        const v = Math.max(0, Math.min(100, pct | 0));
+        progressBar.style.width = v + '%';
+        progressLabel.textContent = (msg || 'Working…') + ` (${v}%)`;
+      };
+      const resetProgress = () => { progressBar.style.width = '0%'; progressLabel.textContent = 'Idle'; };
 
       async function headOk(u){ try { const r = await fetch(u, { method:'HEAD', cache:'no-store' }); return r.ok; } catch { return false; } }
-      function addScript(src){ return new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.async=true; s.crossOrigin='anonymous'; s.onload=()=>res(src); s.onerror=()=>rej(); document.head.appendChild(s); }); }
+      function addScript(src){
+        return new Promise((res, rej)=>{
+          const s=document.createElement('script'); s.src=src; s.async=true; s.crossOrigin='anonymous';
+          s.onload=()=>res(src); s.onerror=()=>rej(new Error('Fail '+src)); document.head.appendChild(s);
+        });
+      }
 
       const localCoreJS   = 'libs/ffmpeg/ffmpeg-core.js';
       const localCoreWASM = 'libs/ffmpeg/ffmpeg-core.wasm';
@@ -228,59 +247,99 @@
       else { log('Using CDN single-thread core.'); }
       window.__FF_CORE__ = corePath;
 
-      try { await addScript('./js/audio.js?v=5'); }
-      catch {
-        log('js/audio.js not found — using inline fallback.');
-        (function () {
-          const logEl = document.getElementById('log');
-          const progressBar = document.getElementById('progressBar');
-          const progressLabel = document.getElementById('progressLabel');
-          const fileInput = document.getElementById('audioFile');
-          const outFormatSel = document.getElementById('outFormat');
-          const btnConvert = document.getElementById('convertBtn');
-          const btnCancel = document.getElementById('cancelBtn');
-          const dlLink = document.getElementById('downloadLink');
+      async function runInline() {
+        const ffmpeg = window.createFFmpeg({
+          log: true,
+          progress: ({ ratio }) => setProgress(Math.round(((ratio || 0) * 100)), 'Transcoding'),
+          corePath: window.__FF_CORE__
+        });
 
-          const log = (m) => { logEl.textContent += (m + "\n"); logEl.scrollTop = logEl.scrollHeight; };
-          const setProgress = (p, msg) => { progressBar.style.width = Math.max(0, Math.min(100, p|0)) + '%'; progressLabel.textContent = (msg||'Working…') + ` (${p|0}%)`; };
-          const resetProgress = () => { progressBar.style.width = '0%'; progressLabel.textContent = 'Idle'; };
+        let running = false;
 
-          const ffmpeg = window.createFFmpeg({ log: true, progress: ({ ratio }) => setProgress(Math.round((ratio||0)*100), 'Transcoding'), corePath: window.__FF_CORE__ });
-          let running = false;
-
-          async function ensureLoaded(){ if (ffmpeg.isLoaded()) return; log('🔧 Loading FFmpeg core… (first run takes longer)'); await ffmpeg.load(); log('✅ FFmpeg ready'); }
-          const pickCmd = (ext, memIn, memOut) => ext==='mp3' ? ['-i', memIn, '-vn','-c:a','mp3','-q:a','2', memOut]
-                                    : ext==='wav' ? ['-i', memIn, '-vn','-ac','2','-ar','44100','-c:a','pcm_s16le', memOut]
-                                    : ext==='ogg' ? ['-i', memIn, '-vn','-c:a','libvorbis','-q:a','4', memOut]
-                                                  : ['-i', memIn, '-vn','-c:a','copy', memOut];
-
-          async function convert(){
-            const file = fileInput.files?.[0]; if (!file) return alert('Pick a file first.');
-            btnConvert.disabled = true; btnCancel.disabled = false; dlLink.style.display = 'none'; dlLink.removeAttribute('href'); resetProgress();
-            log(`🎧 Selected: ${file.name} (${(file.size/1e6).toFixed(2)} MB)`);
-            try{
-              running = true; await ensureLoaded();
-              const outExt = outFormatSel.value;
-              const memIn = `in_${Date.now()}${file.name.includes('.')?file.name.slice(file.name.lastIndexOf('.')):'.dat'}`;
-              const memOut = `out_${Date.now()}.${outExt}`;
-              await ffmpeg.FS('writeFile', memIn, await window.fetchFile(file));
-              const cmd = pickCmd(outExt, memIn, memOut); log('▶️  ffmpeg ' + cmd.map(x=>/\s/.test(x)?`"${x}"`:x).join(' '));
-              await ffmpeg.run(...cmd);
-              const data = await ffmpeg.FS('readFile', memOut);
-              const blob = new Blob([data], { type: outExt==='mp3'?'audio/mpeg': outExt==='wav'?'audio/wav': outExt==='ogg'?'audio/ogg':'application/octet-stream' });
-              const url = URL.createObjectURL(blob); dlLink.href = url; dlLink.download = file.name.replace(/\.[^/.]+$/,'')+'.'+outExt; dlLink.style.display='inline-block';
-              setProgress(100,'Done'); log('✅ Complete.');
-              try{ await ffmpeg.FS('unlink', memIn); await ffmpeg.FS('unlink', memOut); }catch(_){}
-            }catch(err){ log('❌ Error: ' + (err?.message || String(err))); progressLabel.textContent='Error'; }
-            finally{ running=false; btnConvert.disabled=false; btnCancel.disabled=true; }
+        async function ensureLoaded() {
+          if (ffmpeg.isLoaded()) return;
+          log('🔧 Loading FFmpeg core… (first run takes longer)');
+          let pct = 1;
+          setProgress(pct, 'Loading core');
+          const tick = setInterval(() => { if (pct < 90) { pct += 2; setProgress(pct, 'Loading core'); } }, 400);
+          const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg core load timeout (60s). Verify libs/ffmpeg/worker.js and core files are deployed.')), 60000));
+          try {
+            await Promise.race([ffmpeg.load(), timeout]);
+            clearInterval(tick);
+            setProgress(95, 'Initializing');
+            log('✅ FFmpeg ready');
+            setProgress(100, 'Ready');
+          } catch (e) {
+            clearInterval(tick);
+            throw e;
           }
+        }
 
-          function cancelRun(){ if (running && ffmpeg.__raw?.terminate) try{ ffmpeg.__raw.terminate(); log('🛑 Terminated current FFmpeg run.'); }catch(_){} btnCancel.disabled=true; btnConvert.disabled=false; }
+        function pickCmd(outExt, memIn, memOut) {
+          if (outExt === 'mp3') return ['-i', memIn, '-vn', '-c:a', 'mp3', '-q:a', '2', memOut];
+          if (outExt === 'wav') return ['-i', memIn, '-vn', '-ac', '2', '-ar', '44100', '-c:a', 'pcm_s16le', memOut];
+          if (outExt === 'ogg') return ['-i', memIn, '-vn', '-c:a', 'libvorbis', '-q:a', '4', memOut];
+          return ['-i', memIn, '-vn', '-c:a', 'copy', memOut];
+        }
 
-          btnConvert.addEventListener('click', convert);
-          btnCancel.addEventListener('click', cancelRun);
-        })();
+        async function convert() {
+          const file = fileInput.files && fileInput.files[0];
+          if (!file) { alert('Pick a file first.'); return; }
+
+          btnConvert.disabled = true; btnCancel.disabled = false; dlLink.style.display = 'none'; dlLink.removeAttribute('href');
+          resetProgress();
+          log(`🎧 Selected: ${file.name} (${(file.size/1e6).toFixed(2)} MB)`);
+
+          try {
+            running = true;
+            await ensureLoaded();
+
+            const outExt = outFormatSel.value;
+            const memIn  = `in_${Date.now()}${file.name.includes('.') ? file.name.slice(file.name.lastIndexOf('.')) : '.dat'}`;
+            const memOut = `out_${Date.now()}.${outExt}`;
+
+            await ffmpeg.FS('writeFile', memIn, await window.fetchFile(file));
+            log(`➡️  Loaded into memory: ${memIn}`);
+
+            const cmd = pickCmd(outExt, memIn, memOut);
+            log('▶️  ffmpeg ' + cmd.map(x => (/\s/.test(x) ? `"${x}"` : x)).join(' '));
+            await ffmpeg.run(...cmd);
+
+            const outData = await ffmpeg.FS('readFile', memOut);
+            const blob = new Blob([outData], { type:
+              outExt === 'mp3' ? 'audio/mpeg' :
+              outExt === 'wav' ? 'audio/wav' :
+              outExt === 'ogg' ? 'audio/ogg' : 'application/octet-stream'
+            });
+            const url = URL.createObjectURL(blob);
+            dlLink.href = url; dlLink.download = file.name.replace(/\.[^/.]+$/,'') + '.' + outExt; dlLink.style.display = 'inline-block';
+            setProgress(100, 'Done');
+            log('✅ Complete.');
+
+            try { await ffmpeg.FS('unlink', memIn); } catch(_) {}
+            try { await ffmpeg.FS('unlink', memOut); } catch(_) {}
+          } catch (err) {
+            log('❌ Error: ' + (err && err.message ? err.message : String(err)));
+            progressLabel.textContent = 'Error';
+          } finally {
+            running = false; btnConvert.disabled = false; btnCancel.disabled = true;
+          }
+        }
+
+        function cancelRun() {
+          if (running && ffmpeg.__raw?.terminate) {
+            try { ffmpeg.__raw.terminate(); log('🛑 Terminated current FFmpeg run.'); } catch(_) {}
+          }
+          btnCancel.disabled = true; btnConvert.disabled = false;
+        }
+
+        btnConvert.addEventListener('click', convert);
+        btnCancel.addEventListener('click', cancelRun);
       }
+
+      try { await addScript('./js/audio.js?v=6'); }
+      catch { log('js/audio.js not found — using inline fallback.'); await runInline(); }
+      if (!btnConvert.onclick) await runInline();
     })();
   </script>
 </body>
