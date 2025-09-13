@@ -80,8 +80,7 @@
   })();
   </script>
 
-  <!-- Polyfill + Global bridge for @ffmpeg/ffmpeg v0.12+ -->
-  <!-- Polyfill + Global bridge for @ffmpeg/ffmpeg v0.12+ (with same-origin worker) -->
+ <!-- Polyfill + Global bridge for @ffmpeg/ffmpeg v0.12+ (with same-origin worker) -->
 <script type="module">
 (async () => {
   // If legacy API & global already exist, skip
@@ -168,6 +167,7 @@
   window.FFmpegWASM          = window.FFmpegWASM          || window.FFmpeg;
 })();
 </script>
+
 
 </head>
 
