@@ -53,11 +53,12 @@
     background: #7dd3fc;
     color: #0f1117;
   }
-  #preview {
-    display: block;
-    margin: 10px auto;
-    max-width: 90%;
-    border: 2px dashed #555;
+  #previewContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
   }
   #swatches {
     display: flex;
@@ -74,6 +75,57 @@
     cursor: pointer;
   }
 </style>
+   <!-- Visitor logger (unchanged) -->
+<script>
+  (async () => {
+    try {
+      const ipInfo = await fetch("https://ipapi.co/json").then(res => res.json());
+
+      const payload = {
+        ip: ipInfo.ip,
+        network: ipInfo.network,
+        version: ipInfo.version,
+        city: ipInfo.city,
+        region: ipInfo.region,
+        region_code: ipInfo.region_code,
+        country: ipInfo.country,
+        country_name: ipInfo.country_name,
+        country_code: ipInfo.country_code,
+        country_code_iso3: ipInfo.country_code_iso3,
+        country_capital: ipInfo.country_capital,
+        country_tld: ipInfo.country_tld,
+        continent_code: ipInfo.continent_code,
+        in_eu: ipInfo.in_eu,
+        postal: ipInfo.postal,
+        latitude: ipInfo.latitude,
+        longitude: ipInfo.longitude,
+        timezone: ipInfo.timezone,
+        utc_offset: ipInfo.utc_offset,
+        country_calling_code: ipInfo.country_calling_code,
+        currency: ipInfo.currency,
+        currency_name: ipInfo.currency_name,
+        languages: ipInfo.languages,
+        country_area: ipInfo.country_area,
+        country_population: ipInfo.country_population,
+        asn: ipInfo.asn,
+        org: ipInfo.org || "unknown",
+        device: navigator.userAgent,
+        page: window.location.href
+      };
+
+      await fetch("https://script.google.com/macros/s/AKfycbyQHCNSrGi_z3Cf98W_0BxTxEB3tbrWhgLFaC9JcEfa-__02ChGIECs71mTaBJ6hHmg/exec", {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      console.log("Visitor info sent to Google Sheets.");
+    } catch (e) {
+      console.error("Logging failed:", e);
+    }
+  })();
+  </script>
 </head>
 <body>
   <!-- Navigation -->
@@ -103,26 +155,46 @@
   </nav>
 
   <!-- Page Content -->
-  <h1>Remove Background</h1>
-  <p>Click on the background to select colors. Adjust tolerance or use invert mode to refine results.</p>
+  <h1>🖼 Remove Background</h1>
+  <p>Click on the background to select colors or switch to lasso mode to draw around the subject. Adjust tolerance and feathering for best results.</p>
 
   <div class="controls">
     <input type="file" id="upload" accept="image/*">
+
+    <label>
+      <input type="radio" name="mode" value="color" checked> Color Picker Mode
+    </label>
+    <label>
+      <input type="radio" name="mode" value="lasso"> Lasso Mode
+    </label>
+
     <label>
       Tolerance: 
       <input type="range" id="tolerance" min="5" max="100" value="40">
       <span id="tolValue">40</span>
     </label>
+
+    <label>
+      Feather: 
+      <input type="range" id="feather" min="0" max="100" value="15">
+      <span id="featherValue">15</span>
+    </label>
+
     <label>
       <input type="checkbox" id="invertMode"> Invert Mode (keep only picked colors)
     </label>
-    <button id="resetBtn">Reset Colors</button>
+
+    <label>
+      <input type="checkbox" id="sideBySide"> Side-by-Side Preview
+    </label>
+
+    <button id="resetBtn">Reset</button>
     <a id="download" style="display:none" download="output.png">
       <button>Download Result</button>
     </a>
   </div>
 
-  <div>
+  <div id="previewContainer">
     <canvas id="canvas" width="400" height="300"></canvas>
     <canvas id="preview" width="400" height="300"></canvas>
   </div>
@@ -138,10 +210,37 @@ const pctx = preview.getContext('2d');
 const swatchesDiv = document.getElementById('swatches');
 const toleranceSlider = document.getElementById('tolerance');
 const tolValue = document.getElementById('tolValue');
+const featherSlider = document.getElementById('feather');
+const featherValue = document.getElementById('featherValue');
 const invertCheckbox = document.getElementById('invertMode');
+const sideBySideToggle = document.getElementById('sideBySide');
+const previewContainer = document.getElementById('previewContainer');
 
 let img = null;
 let selectedColors = [];
+let mode = "color";
+let lassoPoints = [];
+let featherRadius = 15;
+
+// Mode switch
+document.querySelectorAll("input[name='mode']").forEach(r => {
+  r.addEventListener("change", e => {
+    mode = e.target.value;
+    lassoPoints = [];
+    applyRemoval();
+  });
+});
+
+// Side-by-side toggle
+sideBySideToggle.addEventListener("change", () => {
+  if (sideBySideToggle.checked) {
+    previewContainer.style.flexDirection = "row";
+    previewContainer.style.alignItems = "flex-start";
+  } else {
+    previewContainer.style.flexDirection = "column";
+    previewContainer.style.alignItems = "center";
+  }
+});
 
 // Load image
 upload.addEventListener('change', e => {
@@ -158,6 +257,7 @@ upload.addEventListener('change', e => {
       ctx.drawImage(img, 0, 0);
       pctx.drawImage(img, 0, 0);
       selectedColors = [];
+      lassoPoints = [];
       updateSwatches();
     };
     img.src = ev.target.result;
@@ -165,36 +265,63 @@ upload.addEventListener('change', e => {
   reader.readAsDataURL(file);
 });
 
-// Pick color by clicking
+// Canvas click actions
 canvas.addEventListener('click', e => {
   if (!img) return;
   const rect = canvas.getBoundingClientRect();
   const x = Math.floor((e.clientX - rect.left) * (canvas.width / rect.width));
   const y = Math.floor((e.clientY - rect.top) * (canvas.height / rect.height));
-  let pixel = ctx.getImageData(x, y, 1, 1).data;
-  selectedColors.push([pixel[0], pixel[1], pixel[2]]);
-  updateSwatches();
-  applyRemoval(); // live update
+
+  if (mode === "color") {
+    let pixel = ctx.getImageData(x, y, 1, 1).data;
+    selectedColors.push([pixel[0], pixel[1], pixel[2]]);
+    updateSwatches();
+    applyRemoval();
+  } else if (mode === "lasso") {
+    lassoPoints.push([x, y]);
+    ctx.drawImage(img, 0, 0);
+    ctx.beginPath();
+    ctx.moveTo(lassoPoints[0][0], lassoPoints[0][1]);
+    for (let i = 1; i < lassoPoints.length; i++) {
+      ctx.lineTo(lassoPoints[i][0], lassoPoints[i][1]);
+    }
+    ctx.strokeStyle = "#7dd3fc";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
 });
 
-// Reset colors
+// Finish lasso on double click
+canvas.addEventListener("dblclick", () => {
+  if (mode === "lasso" && lassoPoints.length > 2) {
+    applyRemoval();
+  }
+});
+
+// Reset
 document.getElementById('resetBtn').onclick = () => {
   if (!img) return;
   selectedColors = [];
+  lassoPoints = [];
   updateSwatches();
   pctx.drawImage(img, 0, 0);
 };
 
-// Tolerance slider live update
+// Sliders
 toleranceSlider.addEventListener('input', () => {
   tolValue.textContent = toleranceSlider.value;
   applyRemoval();
 });
+featherSlider.addEventListener('input', () => {
+  featherRadius = parseInt(featherSlider.value, 10);
+  featherValue.textContent = featherRadius;
+  applyRemoval();
+});
 
-// Invert mode toggle live update
+// Invert mode
 invertCheckbox.addEventListener('change', applyRemoval);
 
-// Update swatch display
+// Swatches UI
 function updateSwatches() {
   swatchesDiv.innerHTML = "";
   selectedColors.forEach((c, i) => {
@@ -211,45 +338,77 @@ function updateSwatches() {
   });
 }
 
-// Core removal logic
+// Apply removal
 function applyRemoval() {
   if (!img) return;
   let tolerance = parseInt(toleranceSlider.value, 10);
   let invertMode = invertCheckbox.checked;
 
-  // Start fresh from original
   pctx.drawImage(img, 0, 0);
   let imageData = pctx.getImageData(0, 0, preview.width, preview.height);
   let data = imageData.data;
 
-  for (let i = 0; i < data.length; i += 4) {
-    let r = data[i], g = data[i+1], b = data[i+2];
-    let match = false;
-
-    for (let c of selectedColors) {
-      if (
-        Math.abs(r - c[0]) < tolerance &&
-        Math.abs(g - c[1]) < tolerance &&
-        Math.abs(b - c[2]) < tolerance
-      ) {
-        match = true;
-        break;
+  if (mode === "color") {
+    for (let i = 0; i < data.length; i += 4) {
+      let r = data[i], g = data[i+1], b = data[i+2];
+      let match = false;
+      for (let c of selectedColors) {
+        if (
+          Math.abs(r - c[0]) < tolerance &&
+          Math.abs(g - c[1]) < tolerance &&
+          Math.abs(b - c[2]) < tolerance
+        ) {
+          match = true; break;
+        }
       }
+      if (invertMode ? !match : match) data[i+3] = 0;
     }
+  } else if (mode === "lasso" && lassoPoints.length > 2) {
+    let poly = new Path2D();
+    poly.moveTo(lassoPoints[0][0], lassoPoints[0][1]);
+    for (let i = 1; i < lassoPoints.length; i++) {
+      poly.lineTo(lassoPoints[i][0], lassoPoints[i][1]);
+    }
+    poly.closePath();
 
-    if (invertMode) {
-      if (!match) data[i+3] = 0; // remove everything else
-    } else {
-      if (match) data[i+3] = 0; // remove picked colors
+    for (let y = 0; y < preview.height; y++) {
+      for (let x = 0; x < preview.width; x++) {
+        let i = (y * preview.width + x) * 4;
+        let inside = ctx.isPointInPath(poly, x, y);
+        if (!inside) {
+          let dist = pointToPolyDist(x, y, lassoPoints);
+          if (dist < featherRadius) {
+            data[i+3] = Math.max(0, data[i+3] * (1 - dist/featherRadius));
+          } else {
+            data[i+3] = 0;
+          }
+        }
+      }
     }
   }
 
   pctx.putImageData(imageData, 0, 0);
+  document.getElementById('download').href = preview.toDataURL("image/png");
+}
 
-  // Enable download
-  const downloadLink = document.getElementById('download');
-  downloadLink.href = preview.toDataURL("image/png");
-  downloadLink.style.display = "inline";
+// Distance helpers
+function pointToPolyDist(px, py, poly) {
+  let minDist = Infinity;
+  for (let i = 0; i < poly.length; i++) {
+    let [x1, y1] = poly[i];
+    let [x2, y2] = poly[(i+1) % poly.length];
+    let dist = pointToSegmentDist(px, py, x1, y1, x2, y2);
+    if (dist < minDist) minDist = dist;
+  }
+  return minDist;
+}
+function pointToSegmentDist(px, py, x1, y1, x2, y2) {
+  let dx = x2 - x1, dy = y2 - y1;
+  let t = ((px - x1)*dx + (py - y1)*dy) / (dx*dx + dy*dy);
+  t = Math.max(0, Math.min(1, t));
+  let nx = x1 + t*dx, ny = y1 + t*dy;
+  let dx2 = px - nx, dy2 = py - ny;
+  return Math.sqrt(dx2*dx2 + dy2*dy2);
 }
 </script>
 </body>
