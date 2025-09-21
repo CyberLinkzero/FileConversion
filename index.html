@@ -1,22 +1,36 @@
-<!doctype html>
-<html lang="en"><head>
-   <meta charset="UTF-8">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <style>
+  <title>FileConverter.run</title>
+  <style>
     body {
       margin: 0;
       padding: 0;
       background-color: #0f1117; /* dark cyber look */
+      font-family: Arial, Helvetica, sans-serif;
+      color: #ffffff;
     }
     header {
-      text-align: center;   /* center the image */
-      padding: 20px 0;      /* space above and below */
+      text-align: center;   /* center everything */
+      padding: 20px 0;
       background-color: #0f1117;
     }
     header img {
-      max-width: 90%;       /* responsive width */
-      height: auto;         /* keep proportions */
-      max-height: 150px;    /* optional limit so it doesn’t get too tall */
+      max-width: 90%;       /* responsive scaling */
+      height: auto;
+      max-height: 150px;    /* cap height */
+    }
+    header h1 {
+      margin: 10px 0 0 0;
+      font-size: 2rem;
+      color: #7dd3fc;       /* cyber-accent color */
+    }
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 1.5rem;  /* smaller on mobile */
+      }
     }
   </style>
    <!-- Visitor logger (unchanged) -->
