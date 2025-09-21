@@ -1,38 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-   <meta charset="UTF-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FileConverter.run</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: #0f1117; /* dark cyber look */
-      font-family: Arial, Helvetica, sans-serif;
-      color: #ffffff;
-    }
-    header {
-      text-align: center;   /* center everything */
-      padding: 20px 0;
-      background-color: #0f1117;
-    }
-    header img {
-      max-width: 90%;       /* responsive scaling */
-      height: auto;
-      max-height: 150px;    /* cap height */
-    }
-    header h1 {
-      margin: 10px 0 0 0;
-      font-size: 2rem;
-      color: #7dd3fc;       /* cyber-accent color */
-    }
-    @media (max-width: 600px) {
-      header h1 {
-        font-size: 1.5rem;  /* smaller on mobile */
-      }
-    }
-  </style>
+  <title>Remove Background - FileConverter.run</title>
+  <link rel="stylesheet" href="css/style.css">
+<meta charset="UTF-8">
+<title>Remove Background - FileConverter.run</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body {
+    background: #0f1117;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 20px;
+  }
+  nav.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  nav.tabs .tab {
+    padding: 10px 16px;
+    text-decoration: none;
+    color: #7dd3fc;
+    border-bottom: 2px solid transparent;
+  }
+  nav.tabs .tab:hover {
+    border-bottom: 2px solid #7dd3fc;
+  }
+  nav.tabs .tab.active {
+    font-weight: bold;
+    border-bottom: 2px solid #7dd3fc;
+  }
+  canvas {
+    border: 2px solid #7dd3fc;
+    margin: 10px;
+    cursor: crosshair;
+    max-width: 95%;
+  }
+  .controls {
+    margin: 15px 0;
+  }
+  button, input[type=file], input[type=range], label {
+    background: #1a1f2c;
+    color: #7dd3fc;
+    border: 1px solid #7dd3fc;
+    padding: 6px 10px;
+    border-radius: 8px;
+    margin: 5px;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #7dd3fc;
+    color: #0f1117;
+  }
+  #previewContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+  }
+  #swatches {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
+    gap: 6px;
+  }
+  .swatch {
+    width: 30px;
+    height: 30px;
+    border: 2px solid #fff;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+</style>
   
    <!-- Visitor logger (unchanged) -->
 <script>
