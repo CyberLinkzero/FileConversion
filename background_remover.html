@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Remove Background - FileConverter.run</title>
   <link rel="stylesheet" href="css/style.css">
-<meta charset="UTF-8">
-<title>Remove Background - FileConverter.run</title>
-<link rel="stylesheet" href="style.css">
-<style>
+  <link rel="stylesheet" href="style.css">
+  <style>
  body {
   background: #0f1117;
   color: #fff;
@@ -69,6 +67,23 @@ button:hover {
   color: #0f1117;
 }
 
+a.download-btn {
+  display: inline-block;
+  background: #1a1f2c;
+  color: #7dd3fc;
+  border: 1px solid #7dd3fc;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 14px;
+  margin: 5px;
+}
+a.download-btn:hover {
+  background: #7dd3fc;
+  color: #0f1117;
+}
+
 #previewContainer {
   display: flex;
   flex-wrap: wrap;
@@ -99,7 +114,7 @@ button:hover {
     align-items: stretch;
   }
 
-  button, input[type=file], input[type=range], label {
+  button, input[type=file], input[type=range], label, a.download-btn {
     font-size: 16px;
     padding: 10px 14px;
   }
@@ -224,9 +239,7 @@ button:hover {
     </label>
 
     <button id="resetBtn">Reset</button>
-    <a id="download" style="display:none" download="output.png">
-      <button>Download Result</button>
-    </a>
+    <a id="download" download="output.png" class="download-btn">Download Result</a>
   </div>
 
   <div id="previewContainer">
