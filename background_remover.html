@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Background Remover - FileConverter.run</title>
+<style>
+  body {
+    background: #0f1117;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 20px;
+  }
+  canvas {
+    border: 2px solid #7dd3fc;
+    margin: 10px;
+    cursor: crosshair;
+  }
+  .controls {
+    margin: 15px 0;
+  }
+  button, input[type=file], input[type=range], label {
+    background: #1a1f2c;
+    color: #7dd3fc;
+    border: 1px solid #7dd3fc;
+    padding: 6px 10px;
+    border-radius: 8px;
+    margin: 5px;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #7dd3fc;
+    color: #0f1117;
+  }
+  #preview {
+    display: block;
+    margin: 10px auto;
+    max-width: 90%;
+    border: 2px dashed #555;
+  }
+  #swatches {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
+    gap: 6px;
+  }
+  .swatch {
+    width: 30px;
+    height: 30px;
+    border: 2px solid #fff;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <h1>🖼 Background Remover</h1>
+
+  <div class="controls">
+    <input type="file" id="upload" accept="image/*">
+    <label>
+      Tolerance: 
+      <input type="range" id="tolerance" min="5" max="100" value="40">
+      <span id="tolValue">40</span>
+    </label>
+    <label>
+      <input type="checkbox" id="invertMode"> Invert Mode (keep only picked colors)
+    </label>
+    <button id="resetBtn">Reset Colors</button>
+    <a id="download" style="display:none" download="output.png">
+      <button>Download Result</button>
+    </a>
+  </div>
+
+  <div>
+    <canvas id="canvas" width="400" height="300"></canvas>
+    <canvas id="preview" width="400" height="300"></canvas>
+  </div>
+
+  <div id="swatches"></div>
+
+<script>
+const upload = document.getElementById('upload');
+const canvas = document.getElementById('canvas');
+const preview = document.getElementById('preview');
+const ctx = canvas.getContext('2d');
+const pctx = preview.getContext('2d');
+const swatchesDiv = document.getElementById('swatches');
+const toleranceSlider = document.getElementById('tolerance');
+const tolValue = document.getElementById('tolValue');
+const invertCheckbox = document.getElementById('invertMode');
+
+let img = null;
+let selectedColors = [];
+
+// Load image
+upload.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    img = new Image();
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      preview.width = img.width;
+      preview.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      pctx.drawImage(img, 0, 0);
+      selectedColors = [];
+      updateSwatches();
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+// Pick color by clicking
+canvas.addEventListener('click', e => {
+  if (!img) return;
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.floor((e.clientX - rect.left) * (canvas.width / rect.width));
+  const y = Math.floor((e.clientY - rect.top) * (canvas.height / rect.height));
+  let pixel = ctx.getImageData(x, y, 1, 1).data;
+  selectedColors.push([pixel[0], pixel[1], pixel[2]]);
+  updateSwatches();
+  applyRemoval(); // live update
+});
+
+// Reset colors
+document.getElementById('resetBtn').onclick = () => {
+  if (!img) return;
+  selectedColors = [];
+  updateSwatches();
+  pctx.drawImage(img, 0, 0);
+};
+
+// Tolerance slider live update
+toleranceSlider.addEventListener('input', () => {
+  tolValue.textContent = toleranceSlider.value;
+  applyRemoval();
+});
+
+// Invert mode toggle live update
+invertCheckbox.addEventListener('change', applyRemoval);
+
+// Update swatch display
+function updateSwatches() {
+  swatchesDiv.innerHTML = "";
+  selectedColors.forEach((c, i) => {
+    let swatch = document.createElement("div");
+    swatch.className = "swatch";
+    swatch.style.backgroundColor = `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+    swatch.title = `rgb(${c[0]}, ${c[1]}, ${c[2]}) - click to remove`;
+    swatch.onclick = () => {
+      selectedColors.splice(i, 1);
+      updateSwatches();
+      applyRemoval();
+    };
+    swatchesDiv.appendChild(swatch);
+  });
+}
+
+// Core removal logic
+function applyRemoval() {
+  if (!img) return;
+  let tolerance = parseInt(toleranceSlider.value, 10);
+  let invertMode = invertCheckbox.checked;
+
+  // Start fresh from original
+  pctx.drawImage(img, 0, 0);
+  let imageData = pctx.getImageData(0, 0, preview.width, preview.height);
+  let data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    let r = data[i], g = data[i+1], b = data[i+2];
+    let match = false;
+
+    for (let c of selectedColors) {
+      if (
+        Math.abs(r - c[0]) < tolerance &&
+        Math.abs(g - c[1]) < tolerance &&
+        Math.abs(b - c[2]) < tolerance
+      ) {
+        match = true;
+        break;
+      }
+    }
+
+    if (invertMode) {
+      // Keep only picked colors
+      if (!match) data[i+3] = 0;
+    } else {
+      // Remove picked colors
+      if (match) data[i+3] = 0;
+    }
+  }
+
+  pctx.putImageData(imageData, 0, 0);
+
+  // Enable download
+  const downloadLink = document.getElementById('download');
+  downloadLink.href = preview.toDataURL("image/png");
+  downloadLink.style.display = "inline";
+}
+</script>
+</body>
+</html>
