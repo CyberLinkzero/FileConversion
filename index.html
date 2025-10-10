@@ -56,10 +56,180 @@
 <link rel="stylesheet" href="site.css">
 </head><body>
 <header>
-   <img src="cyberconverter.png" alt="Cyber Converter Logo" style="width:300px; height:auto;"
   <meta name="google-site-verification" content="Y-wVlQalzamcQtQbuIi3ux08OMmK0pfLYWfQ-qZzslg" />
   <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-W25SYMTSSR"></script>
+   <!-- ⚡ Electric Logo with Lightning Bolts (no JS) -->
+<div class="electric-wrap">
+  <img src="cyberconverter.png" alt="Cyber Converter Logo" class="electric-logo" />
+
+  <!-- Lightning bolt layer -->
+  <div class="bolt-layer" aria-hidden="true">
+    <!-- Bolt #1 -->
+    <svg class="bolt b1" viewBox="0 0 200 200" preserveAspectRatio="none">
+      <polyline class="bolt-stroke"
+        points="40,10 80,50 60,50 110,110 90,110 150,190" />
+    </svg>
+
+    <!-- Bolt #2 -->
+    <svg class="bolt b2" viewBox="0 0 200 200" preserveAspectRatio="none">
+      <polyline class="bolt-stroke"
+        points="20,40 70,90 50,90 120,150 100,150 160,190" />
+    </svg>
+
+    <!-- Bolt #3 -->
+    <svg class="bolt b3" viewBox="0 0 200 200" preserveAspectRatio="none">
+      <polyline class="bolt-stroke"
+        points="140,0 120,40 140,40 90,120 110,120 60,200" />
+    </svg>
+  </div>
+</div>
+
+<style>
+  .electric-wrap{
+    position:relative;
+    display:inline-block;
+  }
+
+  /* Main logo: neon glow + flicker + subtle ripple warp */
+  .electric-logo{
+    width:300px; /* change size here */
+    height:auto;
+    filter:
+      url(#electric-warp)
+      drop-shadow(0 0 6px #00eaff)
+      drop-shadow(0 0 14px #00eaff)
+      drop-shadow(0 0 24px #7dd3fc);
+    animation: electricFlicker 0.12s infinite alternate;
+    will-change: filter, opacity;
+    display:block;
+  }
+
+  @keyframes electricFlicker{
+    0%   { opacity: 1;   filter: url(#electric-warp) drop-shadow(0 0 6px #00eaff)  drop-shadow(0 0 14px #00eaff)  drop-shadow(0 0 24px #7dd3fc) brightness(1.0); }
+    50%  { opacity: 0.96;filter: url(#electric-warp) drop-shadow(0 0 8px #00ffee)  drop-shadow(0 0 18px #00eaff)  drop-shadow(0 0 28px #a78bfa) brightness(1.08); }
+    100% { opacity: 0.92;filter: url(#electric-warp) drop-shadow(0 0 5px #00eaff)  drop-shadow(0 0 12px #00eaff)  drop-shadow(0 0 20px #7dd3fc) brightness(0.95); }
+  }
+
+  /* Moving “sparks” overlay */
+  .electric-wrap::after{
+    content:"";
+    position:absolute;
+    inset:-8%;
+    background:
+      repeating-linear-gradient(
+        75deg,
+        rgba(255,255,255,0.00) 0px,
+        rgba(255,255,255,0.25) 1px,
+        rgba(255,255,255,0.05) 3px,
+        rgba(255,255,255,0.00) 6px
+      );
+    mix-blend-mode: color-dodge;
+    pointer-events:none;
+    opacity:0.5;
+    animation: sparkSweep 1s linear infinite;
+    filter: blur(0.3px);
+  }
+  @keyframes sparkSweep{
+    0%   { background-position: 0% 0; opacity:0.6; }
+    100% { background-position: 100% 0; opacity:0.2; }
+  }
+
+  /* Subtle outer aura */
+  .electric-wrap::before{
+    content:"";
+    position:absolute;
+    inset:-20px;
+    border-radius:16px;
+    pointer-events:none;
+    box-shadow:
+      0 0 30px 8px rgba(0,234,255,0.15),
+      0 0 60px 16px rgba(125,211,252,0.10),
+      0 0 90px 24px rgba(167,139,250,0.08);
+    animation: auraPulse 2.4s ease-in-out infinite alternate;
+  }
+  @keyframes auraPulse{
+    from { opacity:0.65; }
+    to   { opacity:0.9; }
+  }
+
+  /* ⚡ Lightning bolts */
+  .bolt-layer{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    mix-blend-mode: screen; /* brightens over dark backgrounds */
+  }
+  .bolt{
+    position:absolute;
+    width:100%;
+    height:100%;
+    opacity:0;
+  }
+  .bolt-stroke{
+    fill:none;
+    stroke:#e6ffff;                /* core bolt color (white-cyan) */
+    stroke-width:3.5;
+    stroke-linejoin:round;
+    stroke-linecap:round;
+    filter:url(#bolt-glow);
+  }
+
+  /* Bolt motions + flashes (staggered) */
+  .b1{ animation: boltFlash 1.6s ease-in-out infinite, boltDrift 1.6s linear infinite; }
+  .b2{ animation: boltFlash 2.1s ease-in-out infinite 0.35s, boltDrift 2.1s linear infinite 0.35s; }
+  .b3{ animation: boltFlash 2.8s ease-in-out infinite 0.9s,  boltDrift 2.8s linear infinite 0.9s; }
+
+  @keyframes boltFlash{
+    0%, 80%, 100% { opacity:0; }
+    5%  { opacity:1; }
+    12% { opacity:0.5; }
+    18% { opacity:1; }
+    25% { opacity:0; }
+  }
+  @keyframes boltDrift{
+    0%   { transform: translate(-4%, -3%) scale(1.02); }
+    50%  { transform: translate( 2%,  1%) scale(1.00); }
+    100% { transform: translate(-4%, -3%) scale(1.02); }
+  }
+
+  /* Accessibility: respect reduced motion */
+  @media (prefers-reduced-motion: reduce){
+    .electric-logo,
+    .electric-wrap::before,
+    .electric-wrap::after,
+    .bolt,
+    .b1,.b2,.b3{
+      animation: none !important;
+    }
+  }
+</style>
+
+<!-- SVG filters: ripple + bolt glow (keep once per page) -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <!-- Electric ripple on the logo -->
+    <filter id="electric-warp">
+      <feTurbulence type="fractalNoise" baseFrequency="0.008 0.012" numOctaves="2" seed="3" result="noise">
+        <animate attributeName="baseFrequency" values="0.006 0.01; 0.014 0.02; 0.006 0.01" dur="2s" repeatCount="indefinite"/>
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G">
+        <animate attributeName="scale" values="2;8;2" dur="2s" repeatCount="indefinite"/>
+      </feDisplacementMap>
+    </filter>
+
+    <!-- Lightning glow (outer neon halo) -->
+    <filter id="bolt-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.2" result="blur1"/>
+      <feGaussianBlur stdDeviation="5.5" in="blur1" result="blur2"/>
+      <feMerge>
+        <feMergeNode in="blur2"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+</svg>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
