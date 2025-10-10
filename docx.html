@@ -1,42 +1,228 @@
-<!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>DOCX — AnyConvert+</title>
-<meta http-equiv="refresh" content="0; url=index.html#docx">
-<link rel="stylesheet" href="site.css">
-<script>window.location.replace('index.html#docx');</script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>DOCX Tools - FileConverter.run</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Shared site theme -->
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- Libraries (CDN) -->
+  <!-- DOCX -> HTML -->
+  <script src="https://cdn.jsdelivr.net/npm/mammoth/mammoth.browser.min.js"></script>
+  <!-- HTML -> DOCX -->
+  <script src="https://cdn.jsdelivr.net/npm/html-docx-js/dist/html-docx.js"></script>
+  <!-- Save Blob to file -->
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 </head>
 <body>
-<header><div class="title"><div class="logo">⚡</div><div><h1>DOCX</h1><p class="sub">Forwarding to the DOCX tools on Home…</p></div></div>
-<nav class="tabs">
-  <a class="tab" href="index.html">Home</a>
+  <!-- Navigation -->
+  <nav class="tabs">
+    <a class="tab" href="index.html">Home</a>
 
-  <!-- Converters -->
-  <a class="tab" href="audio.html">Audio</a>
-  <a class="tab" href="video.html">Video</a>
-  <a class="tab" href="images.html">Images</a>
-  <a class="tab" href="pdf.html">PDF</a>
-  <a class="tab" href="data.html">Data</a>
-  <a class="tab" href="json.html">JSON</a>
-  <a class="tab" href="archive.html">Archive</a>
-  <a class="tab" href="docx.html">DOCX</a>
-  <a class="tab" href="background_remover.html">Remove Background</a>
+    <!-- Converters -->
+    <a class="tab" href="audio.html">Audio</a>
+    <a class="tab" href="video.html">Video</a>
+    <a class="tab" href="images.html">Images</a>
+    <a class="tab" href="pdf.html">PDF</a>
+    <a class="tab" href="data.html">Data</a>
+    <a class="tab" href="json.html">JSON</a>
+    <a class="tab" href="archive.html">Archive</a>
+    <a class="tab active" href="docx.html">DOCX</a>
+    <a class="tab" href="background_remover.html">Remove Background</a>
 
-  <!-- GPS tools -->
-  <a class="tab" href="gps.html">GPS</a>
-  <a class="tab" href="gps-file-guide.html">GPS Guide</a>
+    <!-- GPS tools -->
+    <a class="tab" href="gps.html">GPS</a>
+    <a class="tab" href="gps-file-guide.html">GPS Guide</a>
 
-  <!-- Blogs / Guides -->
-  <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
-  <a class="tab" href="image-file-guide.html">Image Guide</a>
-  <a class="tab" href="audio-file-guide.html">Audio Guide</a>
-  <a class="tab" href="video-file-guide.html">Video Guide</a>
-</nav>
+    <!-- Blogs / Guides -->
+    <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
+    <a class="tab" href="image-file-guide.html">Image Guide</a>
+    <a class="tab" href="audio-file-guide.html">Audio Guide</a>
+    <a class="tab" href="video-file-guide.html">Video Guide</a>
+  </nav>
 
-<main class="panel"><div class="grid"><div class="card">
-<p>If you are not redirected automatically, <a href="index.html#docx">click here</a>.</p>
-</div></div></main>
-<footer>© <span id="year"></span> AnyConvert+</footer>
-<script>(function(){var y=document.getElementById('year');if(y) y.textContent=new Date().getFullYear();})();</script>
-<script src="js/nav_active.js"></script>
-</body></html>
+  <div class="container">
+    <h1>DOCX Tools</h1>
+    <p>Convert <strong>DOCX → HTML</strong> (clean, semantic) or <strong>HTML → DOCX</strong> fully in your browser.</p>
+
+    <!-- GRID: two columns on desktop, stacks on mobile -->
+    <div id="grid" style="display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(320px,1fr));">
+      <!-- DOCX -> HTML -->
+      <section class="card" style="background:#1a1c23; padding:16px; border-radius:12px;">
+        <h2 style="margin-top:0;">DOCX → HTML</h2>
+
+        <div id="dropzone" style="border:1px dashed #3d4252; border-radius:10px; padding:16px; text-align:center;">
+          <p style="margin:0 0 8px;">Drop a .docx file here or choose a file</p>
+          <input type="file" id="docxFile" accept=".docx" />
+        </div>
+
+        <div style="margin-top:12px;">
+          <label><input type="checkbox" id="showStyleMap" /> Use custom style map</label>
+          <textarea id="styleMap" placeholder="Optional Mammoth style map (one rule per line)"
+            style="width:100%; height:100px; background:#0f1117; color:#f0f0f0; border:1px solid #3d4252; border-radius:8px; padding:8px; display:none;"></textarea>
+        </div>
+
+        <div style="margin-top:12px;">
+          <button id="convertDocxBtn">Convert to HTML</button>
+          <button id="downloadHtmlBtn" disabled>Download HTML</button>
+          <button id="clearDocxBtn">Clear</button>
+        </div>
+
+        <h3 style="margin:16px 0 8px;">Preview</h3>
+        <div id="htmlPreview"
+             style="min-height:160px; max-height:360px; overflow:auto; background:#0f1117; border:1px solid #3d4252; border-radius:8px; padding:12px;">
+          <em>Converted HTML will appear here…</em>
+        </div>
+      </section>
+
+      <!-- HTML -> DOCX -->
+      <section class="card" style="background:#1a1c23; padding:16px; border-radius:12px;">
+        <h2 style="margin-top:0;">HTML → DOCX</h2>
+        <p style="margin-top:0;">Paste or type HTML below, then export a real <code>.docx</code> file.</p>
+
+        <textarea id="htmlInput"
+          placeholder="&lt;h1&gt;Hello&lt;/h1&gt;&lt;p&gt;This will be turned into a .docx.&lt;/p&gt;"
+          style="width:100%; height:240px; background:#0f1117; color:#f0f0f0; border:1px solid #3d4252; border-radius:8px; padding:8px;"></textarea>
+
+        <div style="margin-top:12px;">
+          <label>File name:
+            <input id="docxFilename" type="text" value="document.docx"
+              style="max-width:260px; background:#0f1117; color:#f0f0f0; border:1px solid #3d4252; border-radius:8px; padding:6px; margin-left:8px;">
+          </label>
+        </div>
+
+        <div style="margin-top:12px;">
+          <button id="previewFromHtml">Preview HTML</button>
+          <button id="downloadDocxBtn">Download DOCX</button>
+          <button id="clearHtmlBtn">Clear</button>
+        </div>
+
+        <h3 style="margin:16px 0 8px;">Preview</h3>
+        <div id="htmlEcho"
+             style="min-height:160px; max-height:360px; overflow:auto; background:#0f1117; border:1px solid #3d4252; border-radius:8px; padding:12px;">
+          <em>HTML preview will appear here…</em>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    // ---- Active tab highlight (optional visual cue) ----
+    document.querySelectorAll('.tabs .tab').forEach(a => {
+      if (a.getAttribute('href') && location.pathname.endsWith(a.getAttribute('href'))) {
+        a.classList.add('active');
+      }
+    });
+
+    // ---- DOCX -> HTML ----
+    const docxInput   = document.getElementById('docxFile');
+    const convertBtn  = document.getElementById('convertDocxBtn');
+    const downloadHTML= document.getElementById('downloadHtmlBtn');
+    const clearDocx   = document.getElementById('clearDocxBtn');
+    const htmlPreview = document.getElementById('htmlPreview');
+
+    const dropzone = document.getElementById('dropzone');
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.style.borderColor = '#7dd3fc'; });
+    dropzone.addEventListener('dragleave', () => { dropzone.style.borderColor = '#3d4252'; });
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropzone.style.borderColor = '#3d4252';
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        docxInput.files = e.dataTransfer.files;
+      }
+    });
+
+    const showStyleMap = document.getElementById('showStyleMap');
+    const styleMapTextarea = document.getElementById('styleMap');
+    showStyleMap.addEventListener('change', () => {
+      styleMapTextarea.style.display = showStyleMap.checked ? 'block' : 'none';
+    });
+
+    let lastHtml = "";
+
+    convertBtn.addEventListener('click', async () => {
+      const file = docxInput.files && docxInput.files[0];
+      if (!file) {
+        alert('Choose a .docx file first.');
+        return;
+      }
+      htmlPreview.innerHTML = '<em>Converting…</em>';
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+
+        const options = {};
+        if (showStyleMap.checked && styleMapTextarea.value.trim()) {
+          options.styleMap = styleMapTextarea.value.split('\n').map(l => l.trim()).filter(Boolean);
+        }
+
+        const result = await window.mammoth.convertToHtml({ arrayBuffer }, options);
+        lastHtml = result.value; // HTML string
+        htmlPreview.innerHTML = lastHtml || '<em>(Empty document or no content recognized)</em>';
+
+        // enable download
+        downloadHTML.disabled = false;
+      } catch (err) {
+        console.error(err);
+        htmlPreview.innerHTML = '<span style="color:#ff6b6b;">Conversion failed. See console.</span>';
+      }
+    });
+
+    downloadHTML.addEventListener('click', () => {
+      if (!lastHtml) return;
+      const blob = new Blob([lastHtml], { type: 'text/html;charset=utf-8' });
+      saveAs(blob, 'document.html');
+    });
+
+    clearDocx.addEventListener('click', () => {
+      docxInput.value = '';
+      lastHtml = '';
+      htmlPreview.innerHTML = '<em>Converted HTML will appear here…</em>';
+      downloadHTML.disabled = true;
+      styleMapTextarea.value = '';
+    });
+
+    // ---- HTML -> DOCX ----
+    const htmlInput   = document.getElementById('htmlInput');
+    const previewEcho = document.getElementById('htmlEcho');
+    const filenameInp = document.getElementById('docxFilename');
+    const previewBtn  = document.getElementById('previewFromHtml');
+    const downloadDocx= document.getElementById('downloadDocxBtn');
+    const clearHtml   = document.getElementById('clearHtmlBtn');
+
+    previewBtn.addEventListener('click', () => {
+      previewEcho.innerHTML = htmlInput.value || '<em>(Nothing to preview)</em>';
+    });
+
+    downloadDocx.addEventListener('click', () => {
+      const html = htmlInput.value.trim();
+      if (!html) {
+        alert('Enter some HTML first.');
+        return;
+      }
+      const fileName = (filenameInp.value || 'document.docx').replace(/[/\\?%*:|"<>]/g, '_');
+
+      // html-docx-js expects a full HTML string with head/body
+      const fullHtml =
+        '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>' +
+        html +
+        '</body></html>';
+
+      const blob = window.htmlDocx.asBlob(fullHtml);
+      saveAs(blob, fileName);
+    });
+
+    clearHtml.addEventListener('click', () => {
+      htmlInput.value = '';
+      previewEcho.innerHTML = '<em>HTML preview will appear here…</em>';
+      filenameInp.value = 'document.docx';
+    });
+  </script>
+
+  <!-- Notes:
+       - Mammoth focuses on clean structure; complex Word layouts (text boxes, shapes) may be simplified. 
+       - For pixel-perfect fidelity, DOCX→exact-PDF isn’t guaranteed client-side. 
+       - Style map lets you remap Word styles (e.g., 'p.Heading1 => h1').
+  -->
+</body>
+</html>
