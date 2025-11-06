@@ -1,48 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Tawk.to Live Chat -->
-  <script>
-    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-    (function(){
-      var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-      s1.async=true;
-      s1.src='https://embed.tawk.to/6906c86e40b306194f3da6e5/1j917ts2m';
-      s1.charset='UTF-8';
-      s1.setAttribute('crossorigin','*');
-      s0.parentNode.insertBefore(s1,s0);
-    })();
-  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
 
-  <!-- Google Tag (Analytics) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-W25SYMTSSR"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-W25SYMTSSR');
-  </script>
+  <title>FileConverter.run — Fast, Private File Tools (No Uploads)</title>
+  <meta name="description" content="Convert, edit, and manage files instantly in your browser. No uploads, no tracking — fast, secure tools for audio, video, images, DOCX, PDF, JSON/CSV, ZIP, and more.">
 
-  <!-- Google AdSense Auto Ads -->
-  <script async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9800485035530027"
-          crossorigin="anonymous"></script>
-  <meta name="google-adsense-account" content="ca-pub-9800485035530027">
+  <!-- Canonical & robots -->
+  <link rel="canonical" href="https://fileconverter.run/">
+  <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1">
+
+  <!-- Social sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="FileConverter.run — Fast, Private File Tools (No Uploads)">
+  <meta property="og:description" content="Private, in-browser converters for images, audio, video, DOCX, PDF, JSON/CSV, and more. No uploads.">
+  <meta property="og:url" content="https://fileconverter.run/">
+  <meta property="og:site_name" content="FileConverter.run">
+  <meta property="og:image" content="https://fileconverter.run/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="FileConverter.run — Fast, Private File Tools (No Uploads)">
+  <meta name="twitter:description" content="Private, in-browser converters—no uploads, no tracking.">
+  <meta name="twitter:image" content="https://fileconverter.run/og-image.png">
+
+  <!-- Icons / PWA niceties -->
+  <link rel="icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#0f1117">
 
   <!-- Site Verifications -->
   <meta name="msvalidate.01" content="D40742A49C60640464B2CC0924A816AE"/>
   <meta name="google-site-verification" content="Y-wVlQalzamcQtQbuIi3ux08OMmK0pfLYWfQ-qZzslg"/>
 
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>FileConverter.run — Fast, Private File Tools (No Uploads)</title>
-  <meta name="description"
-        content="Convert, edit, and manage files instantly in your browser. No uploads, no tracking — just fast, secure tools for audio, video, images, DOCX, PDF, JSON/CSV, ZIP, and more.">
+  <!-- Performance: DNS hints -->
+  <link rel="preconnect" href="https://www.googletagmanager.com">
+  <link rel="preconnect" href="https://www.google-analytics.com">
+  <link rel="preconnect" href="https://pagead2.googlesyndication.com">
+  <link rel="preconnect" href="https://tpc.googlesyndication.com">
+  <link rel="preconnect" href="https://embed.tawk.to">
 
+  <!-- CSS -->
   <link rel="stylesheet" href="site.css">
 
   <style>
-    body{margin:0;padding:0;background:#0f1117;color:#fff;font-family:Arial,Helvetica,sans-serif;}
+    /* System font stack for faster LCP */
+    body{margin:0;padding:0;background:#0f1117;color:#fff;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
     header{text-align:center;padding:20px 0;background:#0f1117;}
     header h1{
       font-size:2.6em;font-weight:700;margin:10px 0 0;
@@ -66,26 +70,78 @@
     .panel{padding:20px 0;}
     .grid{display:grid;grid-template-columns:1fr;gap:20px;}
     .flex-sections{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;}
-    .card{background:#1a1f2c;border:1px solid #263044;border-radius:12px;padding:18px;}
+    .card{background:#1a1f2c;border:1px solid #263044;border-radius:12px;padding:18px;contain:content;content-visibility:auto;contain-intrinsic-size:300px 200px;}
     .center-text{text-align:center;}
     .section-title{color:#7dd3fc;margin:10px 0 8px;}
     .compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
     .note{font-size:.9rem;color:#9aa4b2;}
     footer{background:#1a1f2c;color:#7dd3fc;padding:20px;border-top:1px solid #7dd3fc;margin-top:40px;}
+    img{max-width:100%;height:auto;display:block}
+    .sr-only{position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden}
+    .sr-only-focusable:focus{position:static;width:auto;height:auto}
     @media (max-width:720px){.compare{grid-template-columns:1fr;}}
+    @media (prefers-reduced-motion:reduce){
+      *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+    }
+
+    /* Consent banner theme */
+    :root{
+      --fc-bg:#0f1117;--fc-card:#1a1f2c;--fc-border:#263044;--fc-text:#e5e7eb;--fc-accent:#7dd3fc;
+    }
+    .fc-consent-wrap{
+      position:fixed;inset-inline:0;bottom:0;z-index:99999;display:none;
+      background:linear-gradient(180deg, rgba(15,17,23,.7), #0f1117 60%);backdrop-filter:saturate(120%) blur(6px);
+      padding:16px;border-top:1px solid var(--fc-border);color:var(--fc-text);
+    }
+    .fc-consent{max-width:900px;margin:0 auto;background:var(--fc-card);border:1px solid var(--fc-border);
+      border-radius:12px;padding:16px;box-shadow:0 10px 40px rgba(0,0,0,.5);}
+    .fc-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    .fc-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .fc-btn{border:1px solid var(--fc-border);background:#121723;color:var(--fc-text);padding:8px 12px;border-radius:10px;cursor:pointer}
+    .fc-btn.primary{background:var(--fc-accent);color:#001018;border-color:#3aa9d8;font-weight:700}
+    .fc-link{color:var(--fc-accent);text-decoration:none}
+    .fc-prefs{margin-top:10px;border-top:1px dashed var(--fc-border);padding-top:10px;display:none}
+    .fc-toggle{display:flex;align-items:center;gap:8px;margin-right:12px}
+    .fc-chip{background:#121723;border:1px solid var(--fc-border);padding:4px 8px;border-radius:999px;font-size:.85rem;opacity:.9}
+    .fc-privacy-fab{position:fixed;right:12px;bottom:12px;z-index:99998;background:#121723;border:1px solid var(--fc-border);
+      color:var(--fc-text);border-radius:999px;padding:8px 12px;cursor:pointer;font-size:.9rem}
   </style>
+
+  <!-- Structured Data: WebApplication + FAQ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "FileConverter.run",
+    "url": "https://fileconverter.run/",
+    "applicationCategory": "Utility",
+    "operatingSystem": "Web",
+    "description": "Convert and edit files locally in your browser. No uploads, no tracking.",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "privacyPolicy": "https://fileconverter.run/privacy-policy.html"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+      {"@type":"Question","name":"Do my files ever leave my computer?","acceptedAnswer":{"@type":"Answer","text":"No. All conversions run locally in your browser. Files never leave your device."}},
+      {"@type":"Question","name":"Is FileConverter.run free?","acceptedAnswer":{"@type":"Answer","text":"Yes. It’s free to use. We show privacy-respecting ads to keep it free."}},
+      {"@type":"Question","name":"Can I use it offline?","acceptedAnswer":{"@type":"Answer","text":"Once a tool page is loaded, most operations work without internet access."}}
+    ]
+  }
+  </script>
 </head>
 
 <body>
+<a href="#main" class="sr-only sr-only-focusable">Skip to content</a>
+
 <!-- Sponsored Header -->
 <div id="sponsored-bar" style="position:sticky;top:0;z-index:9999;width:100%;background:#0f1117;color:#e5e7eb;border-bottom:1px solid #1f2430;">
   <div class="container" style="display:flex;align-items:center;gap:.5rem;padding:10px 0;">
     <span style="opacity:.9;">Sponsored by</span>
-    <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer"
-       style="color:#7dd3fc;text-decoration:none;font-weight:600;">Knack.bz</a>
-    <button aria-label="Dismiss sponsor bar"
-            onclick="document.getElementById('sponsored-bar').style.display='none'"
-            style="margin-left:auto;background:transparent;border:none;color:#9aa4b2;cursor:pointer;font-size:16px;line-height:1;">✕</button>
+    <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer" style="color:#7dd3fc;text-decoration:none;font-weight:600;">Knack.bz</a>
+    <button aria-label="Dismiss sponsor bar" onclick="document.getElementById('sponsored-bar').style.display='none'"
+      style="margin-left:auto;background:transparent;border:none;color:#9aa4b2;cursor:pointer;font-size:16px;line-height:1;">✕</button>
   </div>
 </div>
 
@@ -93,8 +149,8 @@
   <h1>File Converter — Cyber Edition</h1>
   <p class="sub">Fast, private file conversions in your browser — no uploads, no tracking.</p>
 
-  <nav class="tabs">
-    <a class="tab" href="index.html">Home</a>
+  <nav class="tabs" aria-label="Primary">
+    <a class="tab" href="index.html" aria-current="page">Home</a>
     <a class="tab" href="audio.html">Audio</a>
     <a class="tab" href="video.html">Video</a>
     <a class="tab" href="images.html">Images</a>
@@ -112,20 +168,23 @@
     <a class="tab" href="video-file-guide.html">Video Guide</a>
   </nav>
 
-  <div class="chips">
-    <span class="chip">HEIC → JPG</span><span class="chip">PNG ↔ JPG</span>
-    <span class="chip">CSV ↔ XLSX</span><span class="chip">MP3 ↔ WAV</span>
-    <span class="chip">MP4 ↔ WebM</span><span class="chip">ZIP / Unzip</span>
-    <span class="chip">GPX/KML → CSV/XLSX</span>
+  <div class="chips" aria-label="Popular quick conversions">
+    <a class="chip" href="/images.html#heic-to-jpg">HEIC → JPG</a>
+    <a class="chip" href="/images.html#png-to-jpg">PNG ↔ JPG</a>
+    <a class="chip" href="/data.html#json-csv-xlsx">CSV ↔ XLSX</a>
+    <a class="chip" href="/audio.html#mp3-wav">MP3 ↔ WAV</a>
+    <a class="chip" href="/video.html#mp4-webm">MP4 ↔ WebM</a>
+    <a class="chip" href="/archive.html#zip">ZIP / Unzip</a>
+    <a class="chip" href="/data.html#gpx-to-csv">GPX/KML → CSV/XLSX</a>
   </div>
 </header>
 
-<main class="container">
+<main id="main" class="container" role="main">
   <section class="panel">
     <div class="grid">
       <div class="card">
         <h2 class="section-title">Our Story</h2>
-        <p>We built FileConverter.run because we were tired of upload-to-convert websites that slow you down and compromise privacy. 
+        <p>We built FileConverter.run because we were tired of upload-to-convert websites that slow you down and compromise privacy.
         Our mission: give everyone a <strong>fast, private, in-browser toolbox</strong> that handles everyday file work securely.</p>
       </div>
 
@@ -158,7 +217,7 @@
           <div>
             <h4>FileConverter.run</h4>
             <ul>
-              <li>✅ 100 % local conversions</li>
+              <li>✅ 100% local conversions</li>
               <li>✅ No sign-ups or tracking</li>
               <li>✅ Instant downloads</li>
               <li>✅ Works even offline</li>
@@ -179,7 +238,7 @@
       <div class="card">
         <h3 class="section-title">FAQ</h3>
         <p><strong>Do my files ever leave my computer?</strong> Never — everything runs locally.</p>
-        <p><strong>Is it free?</strong> Yes. Ads (via Google AdSense Auto Ads) keep it free while respecting privacy.</p>
+        <p><strong>Is it free?</strong> Yes. Ads (via Google AdSense) keep it free while respecting privacy. You can control cookies below.</p>
         <p><strong>Can I use it offline?</strong> Once a page loads, most tools work without internet access.</p>
       </div>
     </div>
@@ -200,5 +259,159 @@
 </footer>
 
 <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+
+<!-- Consent Banner -->
+<div class="fc-consent-wrap" id="fc-consent-wrap" role="dialog" aria-live="polite" aria-label="Privacy controls">
+  <div class="fc-consent">
+    <div class="fc-row">
+      <div style="flex:1 1 520px">
+        <strong style="color:var(--fc-accent)">Privacy & Cookies</strong>
+        <p style="margin:.35rem 0 .5rem">
+          We use strictly-necessary cookies for site features. With your consent, we’ll enable
+          <span class="fc-chip">Analytics</span> and <span class="fc-chip">Ads</span> to keep FileConverter.run free.
+          Data may be shared with Google. See our <a class="fc-link" href="/privacy-policy.html" target="_blank" rel="noopener">Privacy Policy</a>.
+        </p>
+        <button class="fc-btn" id="fc-customize">Customize</button>
+      </div>
+      <div class="fc-actions">
+        <button class="fc-btn" id="fc-reject">Reject non-essential</button>
+        <button class="fc-btn primary" id="fc-accept">Accept all</button>
+      </div>
+    </div>
+
+    <!-- Granular controls -->
+    <div class="fc-prefs" id="fc-prefs">
+      <div class="fc-row" style="margin-top:6px">
+        <label class="fc-toggle">
+          <input type="checkbox" id="fc-analytics"> Enable Analytics (GA4)
+        </label>
+        <label class="fc-toggle">
+          <input type="checkbox" id="fc-ads"> Enable Ads (AdSense)
+        </label>
+        <span class="fc-chip">Essential cookies always on</span>
+      </div>
+      <div class="fc-actions" style="margin-top:10px">
+        <button class="fc-btn" id="fc-save">Save choices</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Floating button to reopen preferences -->
+<button class="fc-privacy-fab" id="fc-open" aria-label="Open privacy preferences">Privacy</button>
+
+<!-- Consent Logic (loads GA/AdSense after consent) -->
+<script>
+(function(){
+  const GA_ID = 'G-W25SYMTSSR';
+  const ADS_CLIENT = 'ca-pub-9800485035530027';
+  const STORAGE_KEY = 'fc.consent.v1';
+  const SHOW_TO_EVERYONE = true; // set false to use EU/UK heuristic
+
+  function inEUHeuristic(){
+    try{
+      const lang = (navigator.language || '').toLowerCase();
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      const euPrefix = ['de','fr','it','es','pt','nl','pl','sv','fi','da','cs','sk','sl','hr','hu','el','et','lv','lt','ga','mt','ro','bg','is','no'];
+      if (lang.startsWith('en-gb')) return true;
+      if (euPrefix.some(p=>lang.startsWith(p))) return true;
+      if (/Europe\//.test(tz)) return true;
+    }catch(e){}
+    return false;
+  }
+  function shouldShowBanner(){ return SHOW_TO_EVERYONE ? true : inEUHeuristic(); }
+
+  const $wrap = document.getElementById('fc-consent-wrap');
+  const $prefs = document.getElementById('fc-prefs');
+  const $open = document.getElementById('fc-open');
+  const $accept = document.getElementById('fc-accept');
+  const $reject = document.getElementById('fc-reject');
+  const $customize = document.getElementById('fc-customize');
+  const $save = document.getElementById('fc-save');
+  const $chkAnalytics = document.getElementById('fc-analytics');
+  const $chkAds = document.getElementById('fc-ads');
+
+  function readConsent(){
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return null;
+    try { return JSON.parse(raw); } catch(e){ return null; }
+  }
+  function writeConsent(obj){ localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
+  function showBanner(){ $wrap.style.display = 'block'; }
+  function hideBanner(){ $wrap.style.display = 'none'; }
+
+  function loadGA(){
+    if (window.__gaLoaded) return; window.__gaLoaded = true;
+    const s = document.createElement('script');
+    s.async = true; s.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    window.gtag = gtag;
+    gtag('js', new Date());
+    // gtag('config', GA_ID, { 'anonymize_ip': true }); // optional added privacy
+    gtag('config', GA_ID);
+  }
+  function loadAds(){
+    if (window.__adsLoaded) return; window.__adsLoaded = true;
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADS_CLIENT}`;
+    s.crossOrigin = 'anonymous';
+    document.head.appendChild(s);
+  }
+  function applyConsent(c){
+    if (c.analytics) loadGA();
+    if (c.ads) loadAds();
+    if (!c.ads){
+      document.querySelectorAll('.adsbygoogle,[data-ad-slot]').forEach(el=>{ el.style.display='none'; });
+    }
+  }
+
+  $open.addEventListener('click', ()=>{
+    const c = readConsent() || {analytics:false,ads:false};
+    $chkAnalytics.checked = !!c.analytics;
+    $chkAds.checked = !!c.ads;
+    $prefs.style.display = 'block';
+    showBanner();
+  });
+  $accept.addEventListener('click', ()=>{
+    const c = { essential:true, analytics:true, ads:true, ts:Date.now() };
+    writeConsent(c); applyConsent(c); hideBanner();
+  });
+  $reject.addEventListener('click', ()=>{
+    const c = { essential:true, analytics:false, ads:false, ts:Date.now() };
+    writeConsent(c); applyConsent(c); hideBanner();
+  });
+  $customize.addEventListener('click', ()=>{ $prefs.style.display = 'block'; });
+  $save.addEventListener('click', ()=>{
+    const c = { essential:true, analytics:$chkAnalytics.checked, ads:$chkAds.checked, ts:Date.now() };
+    writeConsent(c); applyConsent(c); hideBanner();
+  });
+
+  const existing = readConsent();
+  if (existing){ applyConsent(existing); }
+  else if (shouldShowBanner()){ showBanner(); }
+
+  // Defer Tawk.to after load/idle for better INP
+  window.addEventListener('load', ()=>{
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(()=>{
+        var s=document.createElement('script');
+        s.async=true; s.src='https://embed.tawk.to/6906c86e40b306194f3da6e5/1j917ts2m';
+        s.charset='UTF-8'; s.crossOrigin='anonymous';
+        document.head.appendChild(s);
+      }, {timeout:3000});
+    } else {
+      setTimeout(()=>{
+        var s=document.createElement('script');
+        s.async=true; s.src='https://embed.tawk.to/6906c86e40b306194f3da6e5/1j917ts2m';
+        s.charset='UTF-8'; s.crossOrigin='anonymous';
+        document.head.appendChild(s);
+      }, 2500);
+    }
+  });
+})();
+</script>
 </body>
 </html>
