@@ -1,252 +1,297 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/6906c86e40b306194f3da6e5/1j917ts2m';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Tawk.to Script-->
+  <!-- Tawk.to -->
+  <script>
+    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+    (function(){
+      var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+      s1.async=true;
+      s1.src='https://embed.tawk.to/6906c86e40b306194f3da6e5/1j917ts2m';
+      s1.charset='UTF-8';
+      s1.setAttribute('crossorigin','*');
+      s0.parentNode.insertBefore(s1,s0);
+    })();
+  </script>
+
   <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-W25SYMTSSR"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-<img src="cyberconverter.png" alt="Cyber Converter Logo" style="width:300px; height:auto;"
-  gtag('config', 'G-W25SYMTSSR');
-</script
-  <meta name="msvalidate.01" content="D40742A49C60640464B2CC0924A816AE" />
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9800485035530027"
-     crossorigin="anonymous"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-W25SYMTSSR"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-W25SYMTSSR');
+  </script>
+
+  <!-- AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9800485035530027" crossorigin="anonymous"></script>
   <meta name="google-adsense-account" content="ca-pub-9800485035530027">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FileConverter.run</title>
+
+  <!-- Verifications (keep the ones you actually use) -->
+  <meta name="msvalidate.01" content="D40742A49C60640464B2CC0924A816AE" />
+  <meta name="google-site-verification" content="Y-wVlQalzamcQtQbuIi3ux08OMmK0pfLYWfQ-qZzslg" />
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FileConverter.run — Fast, Private File Tools (No Uploads)</title>
+  <meta name="description" content="Convert, edit, and manage files instantly in your browser. No uploads, no tracking — just fast, secure tools for audio, video, images, DOCX, PDF, JSON/CSV, ZIP, and more.">
+
+  <link rel="stylesheet" href="site.css">
+
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: #0f1117; /* dark cyber look */
-      font-family: Arial, Helvetica, sans-serif;
-      color: #ffffff;
-    }
-    header {
-      text-align: center;   /* center everything */
-      padding: 20px 0;
-      background-color: #0f1117;
-    }
-    header img {
-      max-width: 90%;       /* responsive scaling */
-      height: auto;
-      max-height: 150px;    /* cap height */
-    }
+    body { margin:0; padding:0; background:#0f1117; color:#fff; font-family:Arial, Helvetica, sans-serif; }
+    header { text-align:center; padding:20px 0; background:#0f1117; }
     header h1 {
-      margin: 10px 0 0 0;
-      font-size: 2rem;
-      color: #7dd3fc;       /* cyber-accent color */
+      font-size:2.6em; font-weight:700; margin:10px 0 0;
+      background: linear-gradient(90deg,#00ffff,#7dd3fc,#a78bfa,#ff00ff,#00ffcc,#00ffff);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      text-shadow:0 0 6px rgba(125,211,252,.5),0 0 12px rgba(125,211,252,.3),0 0 18px rgba(167,139,250,.2);
+      animation:cyberPulse 3s ease-in-out infinite alternate, gradientShift 4s linear infinite;
+      background-size:400% auto;
     }
-    @media (max-width: 600px) {
-      header h1 {
-        font-size: 1.5rem;  /* smaller on mobile */
-      }
+    .sub { opacity:.9; margin:.5rem 0 1rem; }
+    @keyframes cyberPulse {
+      from { text-shadow:0 0 4px rgba(125,211,252,.3),0 0 8px rgba(125,211,252,.2),0 0 12px rgba(167,139,250,.1); }
+      to { text-shadow:0 0 10px rgba(125,211,252,.6),0 0 20px rgba(125,211,252,.4),0 0 30px rgba(255,0,255,.3); }
     }
+    @keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%}}
+    .tabs { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; padding:10px 12px; border-top:1px solid #1f2430; border-bottom:1px solid #1f2430; }
+    .tab { color:#7dd3fc; text-decoration:none; padding:8px 12px; border-radius:8px; }
+    .chips { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; padding:12px; }
+    .chip { background:#1a1f2c; border:1px solid #263044; padding:6px 10px; border-radius:999px; font-size:.9rem; color:#e5e7eb; }
+    .container { max-width:1200px; margin:0 auto; padding:0 16px; }
+    .panel { padding:20px 0; }
+    .grid { display:grid; grid-template-columns:1fr; gap:20px; }
+    .flex-sections { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; }
+    .card { background:#1a1f2c; border:1px solid #263044; border-radius:12px; padding:18px; }
+    .center-text { text-align:center; }
+    .section-title { color:#7dd3fc; margin:10px 0 8px; }
+    .compare { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .note { font-size:.9rem; color:#9aa4b2; }
+    footer { background:#1a1f2c; color:#7dd3fc; padding:20px; border-top:1px solid #7dd3fc; margin-top:40px; }
+    @media (max-width:720px){ .compare{ grid-template-columns:1fr; } }
   </style>
-  
-   
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9180176508261996" crossorigin="anonymous"></script>
-  <meta name="google-site-verification" content="OfXEGc8P2jXCC3MTpoWXVZwQNuew7SEN48brIsr2u_M" />
-<meta name="google-site-verification" content="Y-wVlQalzamcQtQbuIi3ux08OMmK0pfLYWfQ-qZzslg" />
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>AnyConvert — Cyber Edition</title>
-<link rel="stylesheet" href="site.css">
-</head><body>
- <!-- Sponsored Header Bar (dismissible) -->
+
+  <!-- Schema.org (helps trust/SEO) -->
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"WebSite",
+    "name":"FileConverter.run",
+    "url":"https://fileconverter.run/",
+    "description":"Private, in-browser file conversion tools. No uploads.",
+    "publisher": {"@type":"Organization","name":"File Converter — Cyber Edition"}
+  }
+  </script>
+</head>
+<body>
+
+<!-- Sponsored Header Bar -->
 <div id="sponsored-bar" role="banner" aria-label="Sponsored by Knack.bz"
-     style="position:sticky; top:0; z-index:9999; width:100%;
-            background:#0f1117; color:#e5e7eb; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-            border-bottom:1px solid #1f2430;">
-  <div style="max-width:1200px; margin:0 auto; padding:10px 10px; display:flex; align-items:center; justify-content:center; gap:.5rem;">
+     style="position:sticky; top:0; z-index:9999; width:100%; background:#0f1117; color:#e5e7eb; border-bottom:1px solid #1f2430;">
+  <div class="container" style="display:flex; align-items:center; gap:.5rem; padding:10px 0;">
     <span style="opacity:.9;">Sponsored by</span>
-    <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer"
-       style="color:#7dd3fc; text-decoration:none; font-weight:600;">
-      Knack.bz
-    </a>
-    <button aria-label="Dismiss sponsor bar"
-            onclick="document.getElementById('sponsored-bar').style.display='none'"
-            style="margin-left:auto; background:transparent; border:none; color:#9aa4b2; cursor:pointer; font-size:16px; line-height:1;">
-      ✕
-    </button>
+    <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer" style="color:#7dd3fc; text-decoration:none; font-weight:600;">Knack.bz</a>
+    <button aria-label="Dismiss sponsor bar" onclick="document.getElementById('sponsored-bar').style.display='none'"
+            style="margin-left:auto; background:transparent; border:none; color:#9aa4b2; cursor:pointer; font-size:16px; line-height:1;">✕</button>
   </div>
 </div>
 
-
 <header>
-  <meta name="google-site-verification" content="Y-wVlQalzamcQtQbuIi3ux08OMmK0pfLYWfQ-qZzslg" />
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-W25SYMTSSR"></script>
-
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-W25SYMTSSR');
-</script>
-  <div><h1 style="
-  font-size: 2.6em;
-  font-weight: 700;
-  text-align: center;
-  background: linear-gradient(90deg,
-    #00ffff,
-    #7dd3fc,
-    #a78bfa,
-    #ff00ff,
-    #00ffcc,
-    #00ffff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow:
-    0 0 6px rgba(125, 211, 252, 0.5),
-    0 0 12px rgba(125, 211, 252, 0.3),
-    0 0 18px rgba(167, 139, 250, 0.2);
-  animation:
-    cyberPulse 3s ease-in-out infinite alternate,
-    gradientShift 4s linear infinite;
-  background-size: 400% auto;
-">
-  File Converter — Cyber Edition
-</h1>
-
-<style>
-@keyframes cyberPulse {
-  from {
-    text-shadow:
-      0 0 4px rgba(125, 211, 252, 0.3),
-      0 0 8px rgba(125, 211, 252, 0.2),
-      0 0 12px rgba(167, 139, 250, 0.1);
-  }
-  to {
-    text-shadow:
-      0 0 10px rgba(125, 211, 252, 0.6),
-      0 0 20px rgba(125, 211, 252, 0.4),
-      0 0 30px rgba(255, 0, 255, 0.3);
-  }
-}
-
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-</style>
-
-<p class="sub">Fast, private file conversions in your browser.</p></div></div>
+  <h1>File Converter — Cyber Edition</h1>
+  <p class="sub">Fast, private file conversions in your browser — no uploads, no tracking.</p>
 
   <nav class="tabs">
-
-  <a class="tab" href="index.html">Home</a>
-
-  <!-- Converters -->
-  <a class="tab" href="audio.html">Audio</a>
-  <a class="tab" href="video.html">Video</a>
-  <a class="tab" href="images.html">Images</a>
-  <a class="tab" href="pdf.html">PDF</a>
-  <a class="tab" href="data.html">GPS Data</a>
-  <a class="tab" href="json.html">JSON</a>
-  <a class="tab" href="archive.html">Archive</a>
-  <a class="tab" href="docx.html">DOCX</a>
-  <a class="tab" href="background_remover.html">Remove Background</a>
-
-  <!-- GPS tools -->
-  <a class="tab" href="gps.html">GPS</a>
-  <a class="tab" href="gps-file-guide.html">GPS Guide</a>
-
-  <!-- Blogs / Guides -->
-  <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
-  <a class="tab" href="image-file-guide.html">Image Guide</a>
-  <a class="tab" href="audio-file-guide.html">Audio Guide</a>
-  <a class="tab" href="video-file-guide.html">Video Guide</a>
-</nav>
+    <a class="tab" href="index.html">Home</a>
+    <a class="tab" href="audio.html">Audio</a>
+    <a class="tab" href="video.html">Video</a>
+    <a class="tab" href="images.html">Images</a>
+    <a class="tab" href="pdf.html">PDF</a>
+    <a class="tab" href="data.html">GPS Data</a>
+    <a class="tab" href="json.html">JSON</a>
+    <a class="tab" href="archive.html">Archive</a>
+    <a class="tab" href="docx.html">DOCX</a>
+    <a class="tab" href="background_remover.html">Remove Background</a>
+    <a class="tab" href="gps.html">GPS</a>
+    <a class="tab" href="gps-file-guide.html">GPS Guide</a>
+    <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
+    <a class="tab" href="image-file-guide.html">Image Guide</a>
+    <a class="tab" href="audio-file-guide.html">Audio Guide</a>
+    <a class="tab" href="video-file-guide.html">Video Guide</a>
+  </nav>
 
   <div class="chips">
     <span class="chip">HEIC → JPG</span><span class="chip">PNG ↔ JPG</span><span class="chip">Image → PDF</span>
     <span class="chip">CSV ↔ XLSX</span><span class="chip">MP3 ↔ WAV</span><span class="chip">MP4 ↔ WebM</span>
     <span class="chip">GIF ↔ MP4</span><span class="chip">WebP ↔ GIF</span><span class="chip">Merge/Split PDFs</span>
-    <span class="chip">ZIP/UNZIP</span><span class="chip">GPX/KML → CSV/XLSX</span>
+    <span class="chip">ZIP / Unzip</span><span class="chip">GPX/KML → CSV/XLSX</span>
   </div>
-<meta name="google-site-verification" content="Y-wVlQalzamcQtQbuIi3ux08OMmK0pfLYWfQ-qZzslg" />
 </header>
-<main><section class="panel"><div class="grid"><div class="card">
-  <h2 style="color:#7dd3fc; margin-bottom:10px;">Welcome</h2>
-<p class="muted" style="margin-bottom:30px;">
-  Pick a section from the top. Each conversion runs locally — no file uploads to a server.
-</p>
 
-<section id="about" style="max-width:900px; margin:20px auto; text-align:left; background:#1a1f2c; padding:20px; border-radius:12px; border:1px solid #7dd3fc; color:#fff;">
-  <h3 style="color:#7dd3fc;">About FileConverter.run</h3>
-  <p>
-    <strong>FileConverter.run</strong> is a privacy-first toolset that lets you convert, edit, and manage files instantly — right in your browser. 
-    Unlike other online converters, your files never leave your device. Everything happens locally using modern web technologies.
-  </p>
-  <p>
-    No sign-ups. No cloud uploads. No hidden tracking. Just fast, secure, and private file tools you can trust for personal and business needs.
-  </p>
-</section>
+<main class="container">
 
-<section id="tools" class="flex-sections">
-  <!-- Features -->
-  <div class="card">
-    <h3>What You Can Do</h3>
-    <ul>
-      <li>🎵 Convert <strong>audio</strong> files (MP3, WAV, OGG, and more)</li>
-      <li>🎬 Convert <strong>videos</strong> (MP4, WEBM, AVI, MOV)</li>
-      <li>🖼 Convert and compress <strong>images</strong> (JPG, PNG, GIF, WebP)</li>
-      <li>📄 Convert <strong>documents</strong> (PDF, DOCX, JSON, CSV, TXT)</li>
-      <li>📦 Handle <strong>archives</strong> (ZIP, RAR, TAR, 7z)</li>
-      <li>📍 Work with <strong>GPS data</strong> and location files</li>
-    </ul>
+  <!-- In-content Ad (non-intrusive, below hero) -->
+  <div class="card center-text" aria-label="advertisement" style="padding:6px 0;">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-9800485035530027"
+         data-ad-slot="1234567890"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
   </div>
+  <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
 
-  <!-- Background remover -->
-  <div class="card">
-    <h3>New: Remove Background Tool ✂️</h3>
-    <p>
-      Need to cut a subject out of a photo? The 
-      <a href="background_remover.html">Remove Background</a> tool makes it simple:
-    </p>
-    <ul>
-      <li>🎨 <strong>Color Picker Mode</strong> — click a background color to erase it instantly</li>
-      <li>✏️ <strong>Lasso Mode</strong> — draw around your subject for precise edits</li>
-      <li>📱 Works on desktop & mobile with touch-friendly controls</li>
-      <li>💾 Download results as transparent PNGs, ready to use anywhere</li>
-    </ul>
+  <section class="panel">
+    <div class="grid">
+      <div class="card">
+        <h2 class="section-title">Our Story</h2>
+        <p>
+          We were tired of upload-to-convert sites that make you wait, watermark your results, or quietly store your files.
+          So we built a different kind of toolbox: one that <strong>lives entirely in your browser</strong>. With FileConverter.run,
+          the app code loads once — then every conversion happens locally on your device.
+        </p>
+        <p>
+          It’s faster. It’s private. It’s simple. From students and creators to developers and small businesses, our mission is the same:
+          <em>let you work with files without giving them away.</em>
+        </p>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">How It Works (No Uploads)</h2>
+        <ol>
+          <li><strong>Load a tool</strong> — the page fetches a tiny web app and libraries.</li>
+          <li><strong>Process locally</strong> — your file is read in memory; conversion runs inside your browser (Web APIs/WebAssembly).</li>
+          <li><strong>Download instantly</strong> — results come straight from your device’s memory, never from a remote server.</li>
+        </ol>
+        <p class="note">Tip: For big videos, keep the tab in focus and close heavy background apps to free up RAM.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="flex-sections">
+      <div class="card">
+        <h3 class="section-title">Who It Helps</h3>
+        <ul>
+          <li><strong>Students & Educators:</strong> DOCX ↔ HTML, PDF tweaks, image prep for reports.</li>
+          <li><strong>Creators & Shops:</strong> Background-free PNGs, social-ready images, lightweight video tweaks.</li>
+          <li><strong>Data & Devs:</strong> JSON ⇄ CSV ⇄ XLSX, quick ZIPs, tidy docs for wikis.</li>
+          <li><strong>Everyday Users:</strong> Convert photos, compress assets, fix formats — fast.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title">Use-Case Playbooks</h3>
+        <p><strong>E-commerce:</strong> Remove background → compress to WebP → export product copy to DOCX.</p>
+        <p><strong>Class projects:</strong> DOCX → clean HTML for LMS → print-ready PDF.</p>
+        <p><strong>Data handoff:</strong> JSON → CSV → Excel for a quick import.</p>
+        <p><strong>Social posts:</strong> Crop/convert PNG/JPG → transparent logo overlay → export.</p>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title">What You Can Do</h3>
+        <ul>
+          <li>🎵 Convert audio (MP3, WAV, OGG, more)</li>
+          <li>🎬 Convert videos (MP4, WEBM, AVI, MOV)</li>
+          <li>🖼 Convert/compress images (JPG, PNG, GIF, WebP)</li>
+          <li>📄 Work with docs (PDF, DOCX, HTML, TXT)</li>
+          <li>📦 ZIP / Unzip archives</li>
+          <li>📍 Handle GPS data (GPX/KML ⇄ CSV/XLSX)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- In-article Ad -->
+  <div class="card center-text" aria-label="advertisement" style="padding:6px 0;">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-9800485035530027"
+         data-ad-slot="2345678901"
+         data-ad-format="in-article"
+         data-full-width-responsive="true"></ins>
   </div>
-</section>
+  <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
 
-<p class="card center-text">
-  With FileConverter.run, you get more than just converters — you get a complete, private file toolbox for everyday tasks.
-</p>
+  <section class="panel">
+    <div class="card">
+      <h2 class="section-title">Private vs. Upload Converters</h2>
+      <div class="compare">
+        <div>
+          <h4>FileConverter.run (In-Browser)</h4>
+          <ul>
+            <li>✅ Files stay on your device</li>
+            <li>✅ Fast results, no waiting room</li>
+            <li>✅ No sign-ups, minimal cookies</li>
+            <li>✅ Works even with spotty internet (after load)</li>
+          </ul>
+        </div>
+        <div>
+          <h4>Upload-Based Sites</h4>
+          <ul>
+            <li>⚠️ Files leave your device</li>
+            <li>⚠️ Queue times, watermarks, limits</li>
+            <li>⚠️ Unclear retention/tracking policies</li>
+            <li>⚠️ Potential privacy/security concerns</li>
+          </ul>
+        </div>
+      </div>
+      <p class="note">We keep ads minimal and out of your way so the tools remain front-and-center.</p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="flex-sections">
+      <div class="card">
+        <h3 class="section-title">Quick FAQ</h3>
+        <p><strong>Do my files upload anywhere?</strong> No — everything runs locally in your browser.</p>
+        <p><strong>What’s the max file size?</strong> Depends on your device memory and browser. For huge videos, try smaller chunks.</p>
+        <p><strong>Can I use it offline?</strong> After a tool loads once, many features work without a connection.</p>
+        <p><strong>Is it free?</strong> Yes. We use respectful ads to cover costs.</p>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title">Get Started</h3>
+        <ol>
+          <li>Pick a tool above.</li>
+          <li>Drag your file into the page.</li>
+          <li>Choose the output format.</li>
+          <li>Download the result — done.</li>
+        </ol>
+        <p class="note">Need help? Visit <a href="faq.html" style="color:#7dd3fc;">FAQ</a> or <a href="contact.html" style="color:#7dd3fc;">Contact</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Multiplex/Matched Content (optional; place lower on page) -->
+  <div class="card center-text" aria-label="advertisement" style="padding:6px 0;">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-9800485035530027"
+         data-ad-slot="3456789012"
+         data-ad-format="autorelaxed"
+         data-full-width-responsive="true"></ins>
+  </div>
+  <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+
+  <p class="card center-text">
+    With FileConverter.run, you get more than just converters — you get a complete, private file toolbox for everyday tasks.
+  </p>
 </main>
-<!-- Footer -->
-<footer style="background:#1a1f2c; color:#7dd3fc; padding:20px; margin-top:40px; border-top:1px solid #7dd3fc;">
-  <nav style="display:flex; flex-wrap:wrap; justify-content:center; gap:20px; margin-bottom:10px;">
-    <a href="about.html" style="color:#7dd3fc; text-decoration:none;">About</a>
-    <a href="faq.html" style="color:#7dd3fc; text-decoration:none;">FAQ</a>
-    <a href="privacy-policy.html" style="color:#7dd3fc; text-decoration:none;">Privacy Policy</a>
-    <a href="terms.html" style="color:#7dd3fc; text-decoration:none;">Terms of Service</a>
-    <a href="contact.html" style="color:#7dd3fc; text-decoration:none;">Contact</a>
-  </nav>
-  <p style="font-size:14px; text-align:center; color:#aaa;">
-  </p>
-  
-  <p>© <span id="year"></span> File Converter — Cyber Edition</p></footer>
+
+<footer>
+  <div class="container">
+    <nav style="display:flex; flex-wrap:wrap; justify-content:center; gap:20px; margin-bottom:10px;">
+      <a href="about.html" style="color:#7dd3fc; text-decoration:none;">About</a>
+      <a href="faq.html" style="color:#7dd3fc; text-decoration:none;">FAQ</a>
+      <a href="privacy-policy.html" style="color:#7dd3fc; text-decoration:none;">Privacy Policy</a>
+      <a href="terms.html" style="color:#7dd3fc; text-decoration:none;">Terms of Service</a>
+      <a href="contact.html" style="color:#7dd3fc; text-decoration:none;">Contact</a>
+    </nav>
+    <p>© <span id="year"></span> File Converter — Cyber Edition</p>
+  </div>
+</footer>
+<script>document.getElementById('year').textContent=new Date().getFullYear();</script>
 <script src="js/utils.js"></script>
-</body></html>
+</body>
+</html>
