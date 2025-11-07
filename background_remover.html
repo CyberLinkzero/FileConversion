@@ -27,14 +27,12 @@
 
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Image Editor — FileConverter.run (Erase, Crop, Background, Adjust)</title>
-  <meta name="description" content="Free in-browser image editor: erase background with brush, crop, invert, adjust brightness/contrast/saturation, rotate/flip, and export as PNG or JPG. Private—no uploads.">
+  <title>Image Editor — FileConverter.run (Erase, Recolor, Crop, Adjust)</title>
+  <meta name="description" content="Free in-browser image editor: paint roller color changer with tolerance, erase background, crop, invert, brightness/contrast/saturation, rotate/flip. Private—no uploads.">
   <link rel="stylesheet" href="site.css"/>
 
   <style>
-    :root{
-      --bg:#0f1117; --panel:#1a1f2c; --line:#273142; --brand:#7dd3fc; --muted:#9aa4b2;
-    }
+    :root{ --bg:#0f1117; --panel:#1a1f2c; --line:#273142; --brand:#7dd3fc; --muted:#9aa4b2; }
     body{background:var(--bg); color:#fff; margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
     header{padding:20px 12px;}
     h1{
@@ -45,15 +43,9 @@
       background-size:400% auto; animation:cyberPulse 3s ease-in-out infinite alternate, gradientShift 4s linear infinite;
     }
     .sub{text-align:center; color:#cfe9ff; opacity:.9}
-    @keyframes cyberPulse{
-      from{ text-shadow:0 0 4px rgba(125,211,252,.3),0 0 8px rgba(125,211,252,.2),0 0 12px rgba(167,139,250,.1); }
-      to  { text-shadow:0 0 10px rgba(125,211,252,.6),0 0 20px rgba(125,211,252,.4),0 0 30px rgba(255,0,255,.3); }
-    }
-    @keyframes gradientShift{
-      0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%}
-    }
+    @keyframes cyberPulse{ from{ text-shadow:0 0 4px rgba(125,211,252,.3),0 0 8px rgba(125,211,252,.2),0 0 12px rgba(167,139,250,.1);} to{ text-shadow:0 0 10px rgba(125,211,252,.6),0 0 20px rgba(125,211,252,.4),0 0 30px rgba(255,0,255,.3);} }
+    @keyframes gradientShift{ 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
 
-    /* Nav */
     nav.tabs{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:12px auto 8px}
     nav.tabs .tab{color:var(--brand);text-decoration:none;padding:10px 14px;border-bottom:2px solid transparent}
     nav.tabs .tab:hover, nav.tabs .tab.active{border-bottom:2px solid var(--brand);}
@@ -70,7 +62,7 @@
     .muted{color:var(--muted)}
     .small{font-size:12px}
 
-    button, input[type=file], input[type=range], select, label.inline{
+    button, input[type=file], input[type=range], input[type=color], select, label.inline{
       background:#122034; color:#e6edf3; border:1px solid var(--brand);
       padding:8px 10px; border-radius:8px; font-size:14px;
     }
@@ -93,21 +85,19 @@
     }
     canvas{display:block;max-width:100%;height:auto}
 
-    /* Crop overlay */
     .crop-overlay{position:absolute;inset:0;outline:200vmax solid rgba(0,0,0,.35);pointer-events:none;display:none}
     .crop-rect{position:absolute;border:2px dashed var(--brand);background:rgba(125,211,252,.08);pointer-events:auto}
     .handle{position:absolute;width:12px;height:12px;background:var(--brand);border-radius:50%;border:2px solid #02263b}
     .handle.nw{left:-6px;top:-6px}.handle.ne{right:-6px;top:-6px}
     .handle.sw{left:-6px;bottom:-6px}.handle.se{right:-6px;bottom:-6px}
 
-    /* Erase mode */
     .brush{position:absolute;pointer-events:none;border:2px solid var(--brand);border-radius:50%;
       box-shadow:0 0 10px rgba(125,211,252,.35) inset;mix-blend-mode:screen;display:none}
     .canvas-wrap.editing{cursor:crosshair}
     .canvas-wrap.panning{cursor:grab}
     .canvas-wrap.panning.active{cursor:grabbing}
 
-    /* Info prose */
+    .swatch{width:26px;height:26px;border:2px solid #fff;border-radius:6px;cursor:pointer}
     .prose h3{margin:.2rem 0 .4rem}
     .prose p{margin:.4rem 0}
     .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid var(--brand);color:var(--brand);background:#0f1a2a}
@@ -115,7 +105,7 @@
 </head>
 <body>
 
-<!-- Sponsored Header Bar (dismissible) -->
+<!-- Sponsored Header Bar -->
 <div id="sponsored-bar" role="banner" aria-label="Sponsored by Knack.bz"
      style="position:sticky; top:0; z-index:9999; width:100%;
             background:#0f1117; color:#e5e7eb; font-family:system-ui,-apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -136,7 +126,7 @@
 
 <header>
   <h1>Image Editor — Cyber Edition</h1>
-  <p class="sub">Erase, crop, adjust colors, remove backgrounds, rotate/flip — all locally in your browser (no uploads).</p>
+  <p class="sub">Erase, recolor with paint roller (tolerance), crop, adjust, rotate/flip — all local, no uploads.</p>
 
   <!-- Unified Navigation -->
   <nav class="tabs">
@@ -165,9 +155,9 @@
   </nav>
 
   <div class="chips">
+    <span class="chip">Paint Roller (Color Change)</span>
     <span class="chip">Erase Background</span>
     <span class="chip">Crop & Resize</span>
-    <span class="chip">Invert / Grayscale</span>
     <span class="chip">Brightness / Contrast / Saturation</span>
     <span class="chip">Rotate / Flip</span>
   </div>
@@ -191,11 +181,12 @@
         <button class="tabbtn" data-panel="crop">Crop</button>
         <button class="tabbtn" data-panel="bgremove">Background</button>
         <button class="tabbtn" data-panel="erase">Erase</button>
+        <button class="tabbtn" data-panel="recolor">Recolor</button>
         <button class="tabbtn" data-panel="effects">Effects</button>
         <button class="tabbtn" data-panel="rotate">Rotate/Flip</button>
       </div>
 
-      <!-- Panels -->
+      <!-- Adjust -->
       <div id="panel-adjust" class="panel section">
         <div class="row">
           <label>Brightness
@@ -216,21 +207,23 @@
         </div>
       </div>
 
+      <!-- Crop -->
       <div id="panel-crop" class="panel section" style="display:none">
         <div class="row">
           <button id="startCrop">Start Crop</button>
           <button id="applyCrop" class="primary">Apply Crop</button>
           <button id="cancelCrop" class="secondary">Cancel</button>
         </div>
-        <p class="small muted">Drag the corners to set your crop. Apply when ready.</p>
+        <p class="small muted">Drag corners to set your crop. Apply when ready.</p>
       </div>
 
+      <!-- Background -->
       <div id="panel-bgremove" class="panel section" style="display:none">
         <div class="row">
           <label><input type="radio" name="bgmode" value="color" checked> Color Picker</label>
           <label><input type="radio" name="bgmode" value="lasso"> Lasso</label>
           <label>Tolerance
-            <input type="range" id="tolerance" min="5" max="100" value="40">
+            <input type="range" id="tolerance" min="5" max="120" value="40">
             <span id="tolValue" class="muted">40</span>
           </label>
           <label><input type="checkbox" id="invertMode"> Invert (keep only picked)</label>
@@ -238,6 +231,7 @@
         <div id="swatches" class="row"></div>
       </div>
 
+      <!-- Erase -->
       <div id="panel-erase" class="panel section" style="display:none">
         <div class="row">
           <label>Eraser size
@@ -259,6 +253,33 @@
         </div>
       </div>
 
+      <!-- Recolor (Paint Roller) -->
+      <div id="panel-recolor" class="panel section" style="display:none">
+        <div class="row">
+          <button id="pick-source" title="Click, then click on the image to choose the source color">Pick Source</button>
+          <div id="source-chip" class="swatch" title="Current source color" style="background:#808080"></div>
+          <label>Target
+            <input type="color" id="recolor-target" value="#ff0000">
+          </label>
+          <label>Tolerance
+            <input type="range" id="recolor-tol" min="5" max="120" value="40">
+            <span id="recolor-tol-val" class="muted">40</span>
+          </label>
+        </div>
+        <div class="row">
+          <label>Brush size
+            <input type="range" id="recolor-size" min="4" max="220" value="48">
+            <span id="recolor-size-val" class="muted">48 px</span>
+          </label>
+          <label class="badge"><input type="checkbox" id="recolor-soft" checked> Soft edge</label>
+          <label class="badge"><input type="checkbox" id="recolor-preserve" checked> Preserve brightness</label>
+          <button id="recolor-start" class="primary">Start Painting</button>
+          <button id="recolor-stop" class="secondary">Stop</button>
+        </div>
+        <p class="small muted">Alt + Click on the image to set the source color anytime. Ctrl+Z to undo, Ctrl+Y to redo.</p>
+      </div>
+
+      <!-- Effects -->
       <div id="panel-effects" class="panel section" style="display:none">
         <div class="row">
           <label>Blur
@@ -267,9 +288,9 @@
           </label>
           <button id="applyEffects" class="primary">Apply</button>
         </div>
-        <p class="small muted">Blur uses a fast box blur. (Works best at modest values.)</p>
       </div>
 
+      <!-- Rotate/Flip -->
       <div id="panel-rotate" class="panel section" style="display:none">
         <div class="row">
           <button id="rotLeft">⟲ Rotate Left</button>
@@ -296,36 +317,26 @@
         </div>
       </div>
 
-      <div class="row small muted">Shortcuts: <strong>Ctrl+Z</strong> Undo • <strong>Ctrl+Y</strong> Redo • <strong>Space</strong> Pan • <strong>Ctrl+Wheel</strong> Zoom</div>
+      <div class="row small muted">
+        Shortcuts: <strong>Ctrl+Z</strong> Undo • <strong>Ctrl+Y</strong> Redo • <strong>Space</strong> Pan • <strong>Ctrl+Wheel</strong> Zoom • <strong>Alt+Click</strong> pick source color
+      </div>
     </div>
 
-    <!-- Right: Helpful content for users (and AdSense) -->
+    <!-- Right: Helpful content -->
     <div class="card prose">
-      <h3>Why this editor?</h3>
+      <h3>Why the paint roller?</h3>
       <p>
-        I built this after hearing a photographer and a seller at a café struggle with quick edits: 
-        “I just need to erase the background and brighten the subject for my listing—without learning a big program.”
-        That conversation became this page: a fast, private, no-install editor that runs entirely in your browser.
+        A couple at a pop-up market needed to swap T-shirt colors for mockups fast. They didn’t want Photoshop—just “paint this blue to red with the highlights intact.”
+        That sparked this <em>Paint Roller</em> tool: click to pick the source color, set tolerance, and brush on the new shade.
       </p>
-      <h3>What you can do here</h3>
-      <ul>
-        <li>Erase backgrounds with a soft or hard brush (zoom in for precision)</li>
-        <li>Crop, invert, grayscale, tweak brightness/contrast/saturation</li>
-        <li>Fix orientation with rotate/flip</li>
-        <li>Export high-quality PNG (transparent) or JPG</li>
-      </ul>
-      <h3>Privacy-first</h3>
-      <p>
-        All edits are local: your images never leave your device. It’s ideal for product photos, social posts, and classroom work.
-      </p>
-      <h3>Quick start</h3>
+      <h3>How to recolor</h3>
       <ol>
-        <li>Upload your image</li>
-        <li>Pick a tool: <em>Background</em>, <em>Erase</em>, <em>Adjust</em>, or <em>Crop</em></li>
-        <li>Use <kbd>Ctrl+Z</kbd> to undo a step, <kbd>Ctrl+Y</kbd> to redo</li>
-        <li>Download your result as PNG (transparent) or JPG</li>
+        <li>Alt+Click on the image to pick the source color (or use <em>Pick Source</em>)</li>
+        <li>Choose your target color and set tolerance</li>
+        <li>Start Painting and brush over the area</li>
+        <li>Use <em>Preserve brightness</em> to keep natural highlights/shadows</li>
       </ol>
-      <p class="small muted">Need help? <a href="faq.html" style="color:var(--brand)">See the FAQ</a> or <a href="contact.html" style="color:var(--brand)">contact us</a>.</p>
+      <p class="small muted">Everything runs locally in your browser. Images never leave your device.</p>
     </div>
 
   </div>
@@ -344,7 +355,7 @@
 </footer>
 
 <script>
-/* ========= State & Canvases ========= */
+/* ========= shared canvas/editor utilities (same base as before) ========= */
 const upload = document.getElementById('upload');
 const downloadA = document.getElementById('download');
 const resetBtn = document.getElementById('resetBtn');
@@ -362,59 +373,25 @@ const cropRect = document.getElementById('crop-rect');
 const brushEl = document.getElementById('brush');
 
 let img = null;
-let appliedCanvas = document.createElement('canvas'); // holds current pixels
-let history = [];  // undo stack (ImageData)
-let redo = [];     // redo stack
+let appliedCanvas = document.createElement('canvas');
+let history = [];
+let redo = [];
 const HISTORY_LIMIT = 40;
 
-/* ========= Helpers ========= */
 function pushHistory() {
   if (!appliedCanvas.width || !appliedCanvas.height) return;
-  // limit snapshots
   if (history.length >= HISTORY_LIMIT) history.shift();
   history.push(ctxToImageData(appliedCanvas));
   redo.length = 0;
 }
-function ctxToImageData(cnv){
-  const c = cnv.getContext('2d');
-  return c.getImageData(0,0,cnv.width,cnv.height);
-}
-function imageDataToCanvas(id){
-  const c = document.createElement('canvas');
-  c.width = id.width; c.height = id.height;
-  c.getContext('2d').putImageData(id,0,0);
-  return c;
-}
-function drawBase(){
-  canvas.width = appliedCanvas.width;
-  canvas.height = appliedCanvas.height;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.drawImage(appliedCanvas,0,0);
-  if (sideBySide.checked) drawPreview();
-}
-function drawPreview(){
-  previewWrap.style.display = 'block';
-  preview.width = appliedCanvas.width;
-  preview.height = appliedCanvas.height;
-  pctx.clearRect(0,0,preview.width,preview.height);
-  pctx.drawImage(appliedCanvas,0,0);
-  downloadA.href = preview.toDataURL('image/png');
-}
-function refreshDownload(){
-  (sideBySide.checked? preview:canvas).toBlob(b=>{
-    downloadA.href = URL.createObjectURL(b || new Blob());
-  }, 'image/png');
-}
-function setCanvasSize(w,h){
-  appliedCanvas.width = w; appliedCanvas.height = h;
-}
-function loadImageUrl(url){
-  return new Promise((res,rej)=>{
-    const im = new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=url;
-  });
-}
+function ctxToImageData(cnv){ const c = cnv.getContext('2d'); return c.getImageData(0,0,cnv.width,cnv.height); }
+function imageDataToCanvas(id){ const c = document.createElement('canvas'); c.width = id.width; c.height = id.height; c.getContext('2d').putImageData(id,0,0); return c; }
+function drawBase(){ canvas.width = appliedCanvas.width; canvas.height = appliedCanvas.height; ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(appliedCanvas,0,0); if (sideBySide.checked) drawPreview(); }
+function drawPreview(){ previewWrap.style.display = 'block'; preview.width = appliedCanvas.width; preview.height = appliedCanvas.height; pctx.clearRect(0,0,preview.width,preview.height); pctx.drawImage(appliedCanvas,0,0); downloadA.href = preview.toDataURL('image/png'); }
+function refreshDownload(){ (sideBySide.checked? preview:canvas).toBlob(b=>{ downloadA.href = URL.createObjectURL(b || new Blob()); }, 'image/png'); }
+function setCanvasSize(w,h){ appliedCanvas.width = w; appliedCanvas.height = h; }
+function loadImageUrl(url){ return new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=url; }); }
 
-/* ========= Tabs ========= */
 document.querySelectorAll('.tabbtn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));
@@ -425,7 +402,6 @@ document.querySelectorAll('.tabbtn').forEach(btn=>{
   });
 });
 
-/* ========= Upload / Reset ========= */
 upload.addEventListener('change', async e=>{
   const f = e.target.files[0]; if(!f) return;
   const url = URL.createObjectURL(f);
@@ -435,7 +411,6 @@ upload.addEventListener('change', async e=>{
   history = []; redo = []; pushHistory();
   drawBase(); refreshDownload();
 });
-
 resetBtn.addEventListener('click', ()=>{
   if (!img) return;
   setCanvasSize(img.naturalWidth, img.naturalHeight);
@@ -443,149 +418,94 @@ resetBtn.addEventListener('click', ()=>{
   history = []; redo = []; pushHistory();
   drawBase(); refreshDownload();
 });
+sideBySide.addEventListener('change', ()=>{ previewWrap.style.display = sideBySide.checked ? 'block' : 'none'; drawBase(); refreshDownload(); });
 
-/* ========= Side-by-side ========= */
-sideBySide.addEventListener('change', ()=>{
-  previewWrap.style.display = sideBySide.checked ? 'block' : 'none';
-  drawBase(); refreshDownload();
-});
-
-/* ========= Adjustments ========= */
+/* ========= Adjust / Effects / Rotate (unchanged logic from previous) ========= */
 const bright = document.getElementById('bright');
 const contrast = document.getElementById('contrast');
 const saturate = document.getElementById('saturate');
 const brightVal = document.getElementById('brightVal');
 const contrastVal = document.getElementById('contrastVal');
 const saturateVal = document.getElementById('saturateVal');
-[bright,contrast,saturate].forEach(sl=>{
-  sl.addEventListener('input', ()=>{
-    brightVal.textContent = bright.value;
-    contrastVal.textContent = contrast.value;
-    saturateVal.textContent = saturate.value;
-  });
-});
+[bright,contrast,saturate].forEach(sl=> sl.addEventListener('input', ()=>{
+  brightVal.textContent = bright.value; contrastVal.textContent = contrast.value; saturateVal.textContent = saturate.value;
+}));
 document.getElementById('applyAdjust').addEventListener('click', ()=>{
-  if (!img || !appliedCanvas.width) return;
-  pushHistory();
+  if (!img) return; pushHistory();
   const ac = appliedCanvas.getContext('2d');
   let id = ac.getImageData(0,0,appliedCanvas.width,appliedCanvas.height);
-  const b = parseInt(bright.value,10);
-  const c = parseInt(contrast.value,10);
-  const s = parseInt(saturate.value,10);
-  const data = id.data;
-
-  // precompute contrast factor
-  const cf = (259*(c+255))/(255*(259-c)); // classic contrast formula
+  const b = parseInt(bright.value,10), c = parseInt(contrast.value,10), s = parseInt(saturate.value,10);
+  const data = id.data, cf = (259*(c+255))/(255*(259-c));
   for (let i=0;i<data.length;i+=4){
-    // brightness + contrast on RGB
-    for (let k=0;k<3;k++){
-      let v = data[i+k];
-      v = cf*(v-128)+128; // contrast
-      v += b; // bright
-      data[i+k] = Math.max(0, Math.min(255, v));
-    }
+    for (let k=0;k<3;k++){ let v = data[i+k]; v = cf*(v-128)+128; v += b; data[i+k] = Math.max(0, Math.min(255, v)); }
   }
-  // saturation in HSL-like quick approach
   for (let i=0;i<data.length;i+=4){
-    const r=data[i], g=data[i+1], b2=data[i+2];
-    const avg = (r+g+b2)/3;
-    data[i]   = avg + (r-avg)*(1+s/100);
-    data[i+1] = avg + (g-avg)*(1+s/100);
-    data[i+2] = avg + (b2-avg)*(1+s/100);
+    const r=data[i], g=data[i+1], b2=data[i+2], avg=(r+g+b2)/3, f=(1+s/100);
+    data[i]=avg+(r-avg)*f; data[i+1]=avg+(g-avg)*f; data[i+2]=avg+(b2-avg)*f;
   }
-  ac.putImageData(id,0,0);
-  drawBase(); refreshDownload();
+  ac.putImageData(id,0,0); drawBase(); refreshDownload();
 });
 document.getElementById('invertBtn').addEventListener('click', ()=>{
-  if (!img) return;
-  pushHistory();
-  const ac = appliedCanvas.getContext('2d');
-  const id = ac.getImageData(0,0,appliedCanvas.width,appliedCanvas.height);
-  const d = id.data;
+  if (!img) return; pushHistory();
+  const ac = appliedCanvas.getContext('2d'); const id = ac.getImageData(0,0,appliedCanvas.width,appliedCanvas.height); const d=id.data;
   for (let i=0;i<d.length;i+=4){ d[i]=255-d[i]; d[i+1]=255-d[i+1]; d[i+2]=255-d[i+2]; }
   ac.putImageData(id,0,0); drawBase(); refreshDownload();
 });
 document.getElementById('grayBtn').addEventListener('click', ()=>{
-  if (!img) return;
-  pushHistory();
-  const ac = appliedCanvas.getContext('2d');
-  const id = ac.getImageData(0,0,appliedCanvas.width,appliedCanvas.height);
-  const d = id.data;
-  for (let i=0;i<d.length;i+=4){
-    const y = 0.2126*d[i] + 0.7152*d[i+1] + 0.0722*d[i+2];
-    d[i]=d[i+1]=d[i+2]=y;
-  }
+  if (!img) return; pushHistory();
+  const ac = appliedCanvas.getContext('2d'); const id = ac.getImageData(0,0,appliedCanvas.width,appliedCanvas.height); const d=id.data;
+  for (let i=0;i<d.length;i+=4){ const y=.2126*d[i]+.7152*d[i+1]+.0722*d[i+2]; d[i]=d[i+1]=d[i+2]=y; }
   ac.putImageData(id,0,0); drawBase(); refreshDownload();
 });
 
-/* ========= Effects (blur) ========= */
-const blur = document.getElementById('blur');
-const blurVal = document.getElementById('blurVal');
+const blur = document.getElementById('blur'), blurVal = document.getElementById('blurVal');
 blur.addEventListener('input', ()=> blurVal.textContent = blur.value);
 document.getElementById('applyEffects').addEventListener('click', ()=>{
-  if (!img) return;
-  pushHistory();
-  const r = parseInt(blur.value,10);
+  if (!img) return; pushHistory();
+  const r = parseInt(blur.value,10); const ac = appliedCanvas.getContext('2d');
   if (r<=0){ drawBase(); return; }
-  // fast box blur using canvas filter
-  const ac = appliedCanvas.getContext('2d');
-  const tmp = document.createElement('canvas');
-  tmp.width = appliedCanvas.width; tmp.height = appliedCanvas.height;
-  const tctx = tmp.getContext('2d');
-  tctx.filter = `blur(${r}px)`;
-  tctx.drawImage(appliedCanvas,0,0);
-  ac.clearRect(0,0,appliedCanvas.width,appliedCanvas.height);
-  ac.drawImage(tmp,0,0);
+  const tmp=document.createElement('canvas'); tmp.width=appliedCanvas.width; tmp.height=appliedCanvas.height;
+  const t=tmp.getContext('2d'); t.filter=`blur(${r}px)`; t.drawImage(appliedCanvas,0,0);
+  ac.clearRect(0,0,appliedCanvas.width,appliedCanvas.height); ac.drawImage(tmp,0,0);
   drawBase(); refreshDownload();
 });
 
-/* ========= Rotate / Flip ========= */
 document.getElementById('rotLeft').addEventListener('click', ()=> rotateBy(-90));
 document.getElementById('rotRight').addEventListener('click', ()=> rotateBy(90));
 document.getElementById('flipH').addEventListener('click', ()=> flip(true,false));
 document.getElementById('flipV').addEventListener('click', ()=> flip(false,true));
 function rotateBy(deg){
   if (!img) return; pushHistory();
-  const rad = deg*Math.PI/180;
-  const s = Math.sin(rad), c = Math.cos(rad);
-  const w = appliedCanvas.width, h = appliedCanvas.height;
-  const outW = Math.abs(w*c) + Math.abs(h*s);
-  const outH = Math.abs(w*s) + Math.abs(h*c);
-  const newC = document.createElement('canvas');
-  newC.width = Math.round(outW); newC.height = Math.round(outH);
-  const nc = newC.getContext('2d');
-  nc.translate(outW/2, outH/2); nc.rotate(rad); nc.drawImage(appliedCanvas, -w/2,-h/2);
-  appliedCanvas = newC; drawBase(); refreshDownload();
+  const rad = deg*Math.PI/180, s=Math.sin(rad), c=Math.cos(rad);
+  const w=appliedCanvas.width, h=appliedCanvas.height;
+  const outW = Math.abs(w*c)+Math.abs(h*s), outH=Math.abs(w*s)+Math.abs(h*c);
+  const newC=document.createElement('canvas'); newC.width=Math.round(outW); newC.height=Math.round(outH);
+  const nc=newC.getContext('2d'); nc.translate(outW/2,outH/2); nc.rotate(rad); nc.drawImage(appliedCanvas,-w/2,-h/2);
+  appliedCanvas=newC; drawBase(); refreshDownload();
 }
 function flip(horz,vert){
   if (!img) return; pushHistory();
-  const ac = appliedCanvas.getContext('2d');
-  const tmp = imageDataToCanvas(ctxToImageData(appliedCanvas));
+  const ac = appliedCanvas.getContext('2d'); const tmp=imageDataToCanvas(ctxToImageData(appliedCanvas));
   ac.save(); ac.scale(horz?-1:1, vert?-1:1);
   ac.drawImage(tmp, horz?-appliedCanvas.width:0, vert?-appliedCanvas.height:0);
   ac.restore(); drawBase(); refreshDownload();
 }
 
-/* ========= Background Remove ========= */
+/* ========= Background remove (same as before) ========= */
 const tolerance = document.getElementById('tolerance');
 const tolValue = document.getElementById('tolValue');
 const invertMode = document.getElementById('invertMode');
 const swatchesDiv = document.getElementById('swatches');
 let selectedColors = [];
-let bgMode = "color"; // or "lasso"
-document.querySelectorAll("input[name='bgmode']").forEach(r=>{
-  r.addEventListener('change', e=>{ bgMode = e.target.value; lassoPoints=[]; drawBase(); });
-});
+let bgMode = "color";
+document.querySelectorAll("input[name='bgmode']").forEach(r=> r.addEventListener('change', e=>{ bgMode=e.target.value; lassoPoints=[]; drawBase(); }));
 tolerance.addEventListener('input', ()=> tolValue.textContent = tolerance.value);
 
 let lassoPoints = [];
 canvas.addEventListener('click', e=>{
   if (!img) return;
   if (activePanel() !== 'bgremove') return;
-  const rect = canvas.getBoundingClientRect();
-  const x = Math.floor((e.clientX - rect.left) * (canvas.width / rect.width));
-  const y = Math.floor((e.clientY - rect.top) * (canvas.height / rect.height));
-
+  const {x,y} = clientToImage(clientPoint(e));
   if (bgMode==='color'){
     const pix = canvas.getContext('2d').getImageData(x,y,1,1).data;
     selectedColors.push([pix[0],pix[1],pix[2]]);
@@ -602,9 +522,8 @@ function updateSwatches(){
   swatchesDiv.innerHTML='';
   selectedColors.forEach((c,i)=>{
     const el=document.createElement('div');
-    el.title=`rgb(${c[0]}, ${c[1]}, ${c[2]}) — click to remove`;
-    el.style.width='26px'; el.style.height='26px'; el.style.border='2px solid #fff';
-    el.style.borderRadius='6px'; el.style.cursor='pointer'; el.style.background=`rgb(${c[0]},${c[1]},${c[2]})`;
+    el.className='swatch'; el.title=`rgb(${c[0]}, ${c[1]}, ${c[2]}) — click to remove`;
+    el.style.background=`rgb(${c[0]},${c[1]},${c[2]})`;
     el.onclick=()=>{selectedColors.splice(i,1); updateSwatches(); applyBgRemoval();};
     swatchesDiv.appendChild(el);
   });
@@ -613,81 +532,56 @@ function drawLasso(){
   drawBase();
   const c = canvas.getContext('2d');
   c.save(); c.strokeStyle = '#7dd3fc'; c.lineWidth = 2; c.beginPath();
-  if (lassoPoints.length){ c.moveTo(lassoPoints[0][0], lassoPoints[0][1]);
-    for (let i=1;i<lassoPoints.length;i++){ c.lineTo(lassoPoints[i][0], lassoPoints[i][1]); } }
+  if (lassoPoints.length){ c.moveTo(lassoPoints[0][0], lassoPoints[0][1]); for (let i=1;i<lassoPoints.length;i++) c.lineTo(lassoPoints[i][0], lassoPoints[i][1]); }
   c.stroke(); c.restore();
 }
 function applyBgRemoval(){
-  if (!img) return;
-  pushHistory();
+  if (!img) return; pushHistory();
   const ac = appliedCanvas.getContext('2d');
   let id = ac.getImageData(0,0,appliedCanvas.width,appliedCanvas.height);
   const d = id.data, tol = parseInt(tolerance.value,10), invert = invertMode.checked;
-
   if (bgMode==='color'){
     for (let i=0;i<d.length;i+=4){
       const r=d[i], g=d[i+1], b=d[i+2];
       let match=false;
-      for (const c of selectedColors){
-        if (Math.abs(r-c[0])<tol && Math.abs(g-c[1])<tol && Math.abs(b-c[2])<tol){ match=true;break; }
-      }
+      for (const c of selectedColors){ if (Math.abs(r-c[0])<tol && Math.abs(g-c[1])<tol && Math.abs(b-c[2])<tol){ match=true;break; } }
       if (invert ? !match : match){ d[i+3]=0; }
     }
   } else if (lassoPoints.length>2){
-    // Outside lasso -> transparent
-    const poly = new Path2D();
-    poly.moveTo(lassoPoints[0][0],lassoPoints[0][1]);
-    for (let i=1;i<lassoPoints.length;i++) poly.lineTo(lassoPoints[i][0], lassoPoints[i][1]);
-    poly.closePath();
-    // iterate per pixel
-    const tmpC = document.createElement('canvas'); tmpC.width=appliedCanvas.width; tmpC.height=appliedCanvas.height;
-    const tmpCtx = tmpC.getContext('2d'); tmpCtx.putImageData(id,0,0);
+    const poly = new Path2D(); poly.moveTo(lassoPoints[0][0],lassoPoints[0][1]);
+    for (let i=1;i<lassoPoints.length;i++) poly.lineTo(lassoPoints[i][0], lassoPoints[i][1]); poly.closePath();
     const test = canvas.getContext('2d');
     for (let y=0;y<appliedCanvas.height;y++){
       for (let x=0;x<appliedCanvas.width;x++){
         const inside = test.isPointInPath(poly,x,y);
-        const i = (y*appliedCanvas.width + x)*4;
-        if (!inside) d[i+3]=0;
+        if (!inside){ const idx=(y*appliedCanvas.width+x)*4; d[idx+3]=0; }
       }
     }
   }
-  ac.putImageData(id,0,0);
-  drawBase(); refreshDownload();
+  ac.putImageData(id,0,0); drawBase(); refreshDownload();
 }
 
 /* ========= Crop ========= */
 let cropping = false; let dragHandle=null; let dragStart=null; let rectStart=null;
-function activePanel(){
-  const active = document.querySelector('.tabbtn.active'); return active ? active.dataset.panel : 'adjust';
-}
-document.getElementById('startCrop').addEventListener('click', ()=>{
-  if (!img) return;
-  cropOverlay.style.display='block'; cropping=true;
-});
-document.getElementById('cancelCrop').addEventListener('click', ()=>{
-  cropOverlay.style.display='none'; cropping=false;
-});
+function activePanel(){ const a=document.querySelector('.tabbtn.active'); return a ? a.dataset.panel : 'adjust'; }
+document.getElementById('startCrop').addEventListener('click', ()=>{ if (!img) return; cropOverlay.style.display='block'; cropping=true; });
+document.getElementById('cancelCrop').addEventListener('click', ()=>{ cropOverlay.style.display='none'; cropping=false; });
 document.getElementById('applyCrop').addEventListener('click', ()=>{
-  if (!img) return; if (!cropping) return;
-  pushHistory();
-  // compute rect in image coords
-  const wrapRect = canvas.getBoundingClientRect();
-  const r = cropRect.getBoundingClientRect();
+  if (!img || !cropping) return; pushHistory();
+  const wrapRect = canvas.getBoundingClientRect(); const r = cropRect.getBoundingClientRect();
   const x = Math.round((r.left - wrapRect.left) * (appliedCanvas.width / wrapRect.width));
   const y = Math.round((r.top  - wrapRect.top)  * (appliedCanvas.height / wrapRect.height));
   const w = Math.round(r.width * (appliedCanvas.width / wrapRect.width));
   const h = Math.round(r.height * (appliedCanvas.height / wrapRect.height));
-  const tmp = document.createElement('canvas');
-  tmp.width = Math.max(1,w); tmp.height = Math.max(1,h);
+  const tmp = document.createElement('canvas'); tmp.width = Math.max(1,w); tmp.height = Math.max(1,h);
   tmp.getContext('2d').drawImage(appliedCanvas, x,y,w,h, 0,0,w,h);
   appliedCanvas = tmp; drawBase(); refreshDownload();
   cropOverlay.style.display='none'; cropping=false;
 });
-// drag handles
 Array.from(cropRect.querySelectorAll('.handle')).forEach(h=>{
   h.addEventListener('pointerdown', e=>{
-    dragHandle = h; dragStart = {x:e.clientX,y:e.clientY};
-    const r = cropRect.getBoundingClientRect(); rectStart = {x:r.left,y:r.top,w:r.width,h:r.height};
+    dragHandle=h; dragStart={x:e.clientX,y:e.clientY};
+    const r=cropRect.getBoundingClientRect(); rectStart={x:r.left,y:r.top,w:r.width,h:r.height};
     h.setPointerCapture(e.pointerId);
   });
 });
@@ -695,30 +589,25 @@ window.addEventListener('pointermove', e=>{
   if (!dragHandle) return;
   const wrapRect = canvas.getBoundingClientRect();
   const dx = e.clientX - dragStart.x, dy = e.clientY - dragStart.y;
-  let left = rectStart.x, top = rectStart.y, w = rectStart.w, h = rectStart.h;
-  const cls = dragHandle.classList;
+  let left=rectStart.x, top=rectStart.y, w=rectStart.w, h=rectStart.h;
+  const cls=dragHandle.classList;
   if (cls.contains('nw')){ left+=dx; top+=dy; w-=dx; h-=dy; }
   if (cls.contains('ne')){ top+=dy; w+=dx; h-=dy; }
   if (cls.contains('sw')){ left+=dx; w-=dx; h+=dy; }
   if (cls.contains('se')){ w+=dx; h+=dy; }
-  // clamp to wrapper
   left = Math.max(wrapRect.left, Math.min(left, wrapRect.right - 10));
   top  = Math.max(wrapRect.top,  Math.min(top,  wrapRect.bottom - 10));
   w = Math.max(20, Math.min(w, wrapRect.right - left));
   h = Math.max(20, Math.min(h, wrapRect.bottom - top));
-  // apply
   const relLeft = (left - wrapRect.left) / wrapRect.width * 100;
   const relTop  = (top  - wrapRect.top)  / wrapRect.height * 100;
   const relW    = w / wrapRect.width * 100;
   const relH    = h / wrapRect.height * 100;
-  cropRect.style.left = relLeft+'%';
-  cropRect.style.top  = relTop+'%';
-  cropRect.style.width= relW+'%';
-  cropRect.style.height=relH+'%';
+  cropRect.style.left = relLeft+'%'; cropRect.style.top = relTop+'%'; cropRect.style.width=relW+'%'; cropRect.style.height=relH+'%';
 });
 window.addEventListener('pointerup', ()=>{ dragHandle=null; });
 
-/* ========= Erase + Zoom/Pan ========= */
+/* ========= Erase + Pan/Zoom ========= */
 const eraseSize = document.getElementById('erase-size');
 const eraseSizeVal = document.getElementById('erase-size-val');
 const eraseSoft = document.getElementById('erase-soft');
@@ -730,169 +619,197 @@ const zoomVal = document.getElementById('zoom-val');
 const zoomInBtn = document.getElementById('zoom-in');
 const zoomOutBtn = document.getElementById('zoom-out');
 
-let isErasing = false;
-let isPanning = false;
-let spaceDown = false;
-let zoom = 1;
-let pan = { x: 0, y: 0 };
-let panStart = { x: 0, y: 0 };
-let pointerStart = { x: 0, y: 0 };
-let lastPointer = null;
+let isErasing=false, isPanning=false, spaceDown=false, zoom=1, pan={x:0,y:0}, panStart={x:0,y:0}, pointerStart={x:0,y:0}, lastPointer=null;
 
-function applyTransform() {
-  // We transform the visible wrapper with CSS; coordinate mapping uses getBoundingClientRect.
-  canvasWrap.style.transformOrigin = '0 0';
-  canvasWrap.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`;
-  updateBrushVisual(lastPointer || null);
+function applyTransform(){ canvasWrap.style.transformOrigin='0 0'; canvasWrap.style.transform=`translate(${pan.x}px, ${pan.y}px) scale(${zoom})`; updateBrushVisual(lastPointer||null); }
+function setZoom(z,center=null){
+  const old=zoom; zoom=Math.max(0.25, Math.min(4, z));
+  if (center){ const k=zoom/old; pan.x = center.x - k*(center.x - pan.x); pan.y = center.y - k*(center.y - pan.y); }
+  zoomRange.value = zoom.toFixed(2); zoomVal.textContent = Math.round(zoom*100)+'%'; applyTransform();
 }
-function setZoom(z, center=null) {
-  const old = zoom;
-  zoom = Math.max(0.25, Math.min(4, z));
-  if (center) {
-    const k = zoom / old;
-    pan.x = center.x - k*(center.x - pan.x);
-    pan.y = center.y - k*(center.y - pan.y);
-  }
-  zoomRange.value = zoom.toFixed(2);
-  zoomVal.textContent = Math.round(zoom*100) + '%';
-  applyTransform();
-}
-zoomRange.addEventListener('input', e => setZoom(parseFloat(e.target.value)));
+zoomRange.addEventListener('input', e=> setZoom(parseFloat(e.target.value)));
 zoomInBtn.addEventListener('click', ()=> setZoom(zoom+0.1));
 zoomOutBtn.addEventListener('click', ()=> setZoom(zoom-0.1));
-
-function clientToImage(pt) {
-  const r = canvas.getBoundingClientRect();
-  const x = (pt.x - r.left) * (canvas.width / r.width);
-  const y = (pt.y - r.top) * (canvas.height / r.height);
-  return { x: Math.max(0, Math.min(canvas.width, x)), y: Math.max(0, Math.min(canvas.height, y)) };
-}
-function updateBrushVisual(clientPt) {
-  const size = parseInt(eraseSize.value,10);
-  eraseSizeVal.textContent = size + ' px';
-  if (!clientPt) return;
-  const rect = canvas.getBoundingClientRect();
-  const cssPxDiameter = (size * rect.width / canvas.width);
-  brushEl.style.width = cssPxDiameter + 'px';
-  brushEl.style.height = cssPxDiameter + 'px';
-  brushEl.style.left = (clientPt.x - rect.left - cssPxDiameter/2) + 'px';
-  brushEl.style.top = (clientPt.y - rect.top - cssPxDiameter/2) + 'px';
-}
-eraseSize.addEventListener('input', ()=> updateBrushVisual(lastPointer));
+function clientToImage(pt){ const r = canvas.getBoundingClientRect(); const x=(pt.x-r.left)*(canvas.width/r.width); const y=(pt.y-r.top)*(canvas.height/r.height); return {x:Math.max(0,Math.min(canvas.width,x)), y:Math.max(0,Math.min(canvas.height,y))}; }
+function clientPoint(e){ return {x:e.clientX,y:e.clientY}; }
+function updateBrushVisual(clientPt){ const size=parseInt((activePanel()==='erase'?eraseSize:recolorSize).value,10); if (!clientPt) return; const rect=canvas.getBoundingClientRect(); const cssPxDiameter = (size * rect.width / canvas.width); brushEl.style.width=cssPxDiameter+'px'; brushEl.style.height=cssPxDiameter+'px'; brushEl.style.left=(clientPt.x - rect.left - cssPxDiameter/2)+'px'; brushEl.style.top=(clientPt.y - rect.top - cssPxDiameter/2)+'px'; }
+eraseSize.addEventListener('input', ()=>{ eraseSizeVal.textContent=eraseSize.value+' px'; updateBrushVisual(lastPointer); });
 
 eraseToggle.addEventListener('click', ()=>{
   if (!appliedCanvas.width) return alert('Load an image first.');
-  isErasing = true;
-  canvasWrap.classList.add('editing');
-  brushEl.style.display = 'block';
-  // one snapshot before erase session
-  pushHistory();
+  isErasing = true; canvasWrap.classList.add('editing'); brushEl.style.display='block'; pushHistory();
 });
-eraseStop.addEventListener('click', ()=>{
-  isErasing = false;
-  canvasWrap.classList.remove('editing');
-  brushEl.style.display = 'none';
-});
+eraseStop.addEventListener('click', ()=>{ isErasing=false; canvasWrap.classList.remove('editing'); brushEl.style.display='none'; });
 
 canvas.addEventListener('pointerdown', e=>{
-  lastPointer = { x: e.clientX, y: e.clientY };
-  if (spaceDown) {
-    isPanning = true;
-    canvasWrap.classList.add('panning','active');
-    panStart = { x: pan.x, y: pan.y };
-    pointerStart = { x: e.clientX, y: e.clientY };
-    return;
-  }
-  if (!isErasing) return;
-  canvas.setPointerCapture(e.pointerId);
-  drawErase(e);
+  lastPointer = clientPoint(e);
+  if (spaceDown){ isPanning=true; canvasWrap.classList.add('panning','active'); panStart={x:pan.x,y:pan.y}; pointerStart={x:e.clientX,y:e.clientY}; return; }
+  if (activePanel()==='erase' && isErasing){ canvas.setPointerCapture(e.pointerId); drawErase(e); }
+  if (activePanel()==='recolor' && recolorActive){ canvas.setPointerCapture(e.pointerId); drawRecolor(e); }
 });
 canvas.addEventListener('pointermove', e=>{
-  lastPointer = { x: e.clientX, y: e.clientY };
-  updateBrushVisual(lastPointer);
-
-  if (isPanning) {
-    pan.x = panStart.x + (e.clientX - pointerStart.x);
-    pan.y = panStart.y + (e.clientY - pointerStart.y);
-    applyTransform();
-    return;
-  }
-  if (!isErasing || e.pressure===0) return;
-  drawErase(e);
+  lastPointer = clientPoint(e); updateBrushVisual(lastPointer);
+  if (isPanning){ pan.x = panStart.x + (e.clientX - pointerStart.x); pan.y = panStart.y + (e.clientY - pointerStart.y); applyTransform(); return; }
+  if (activePanel()==='erase' && isErasing && e.pressure!==0) drawErase(e);
+  if (activePanel()==='recolor' && recolorActive && e.pressure!==0) drawRecolor(e);
 });
 canvas.addEventListener('pointerup', ()=>{
-  if (isPanning) {
-    isPanning = false;
-    canvasWrap.classList.remove('active');
-  }
-  if (isErasing) {
-    // Snapshot per stroke end for cleaner undo steps
-    history.push(ctxToImageData(appliedCanvas));
-    if (history.length > HISTORY_LIMIT) history.shift();
-  }
+  if (isPanning){ isPanning=false; canvasWrap.classList.remove('active'); }
+  if (isErasing || recolorActive){ history.push(ctxToImageData(appliedCanvas)); if (history.length>HISTORY_LIMIT) history.shift(); }
 });
-
-canvas.addEventListener('wheel', e=>{
-  if (e.ctrlKey) {
-    e.preventDefault();
-    const center = { x: e.clientX, y: e.clientY };
-    setZoom(zoom + (e.deltaY < 0 ? 0.1 : -0.1), center);
-  }
-}, { passive:false });
+canvas.addEventListener('wheel', e=>{ if (e.ctrlKey){ e.preventDefault(); const center={x:e.clientX,y:e.clientY}; setZoom(zoom + (e.deltaY<0?0.1:-0.1), center); } }, {passive:false});
 
 window.addEventListener('keydown', e=>{
-  if (e.code === 'Space') { spaceDown = true; canvasWrap.classList.add('panning'); }
-  // Undo / Redo
+  if (e.code==='Space'){ spaceDown=true; canvasWrap.classList.add('panning'); }
   const mod = e.ctrlKey || e.metaKey;
   if (mod && e.key.toLowerCase()==='z'){ e.preventDefault(); undo(); }
   if (mod && e.key.toLowerCase()==='y'){ e.preventDefault(); redoStep(); }
+  // Alt+Click source pick happens on pointerdown handler below
 });
-window.addEventListener('keyup', e=>{
-  if (e.code === 'Space') { spaceDown = false; canvasWrap.classList.remove('panning'); }
-});
+window.addEventListener('keyup', e=>{ if (e.code==='Space'){ spaceDown=false; canvasWrap.classList.remove('panning'); } });
 
 function drawErase(e){
-  const pt = clientToImage({ x: e.clientX, y: e.clientY });
+  const pt = clientToImage(clientPoint(e));
   const s = parseInt(eraseSize.value,10);
   const ac = appliedCanvas.getContext('2d');
-  ac.save();
-  ac.globalCompositeOperation = 'destination-out';
-  if (eraseSoft.checked) {
-    const g = ac.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, s/2);
-    g.addColorStop(0, 'rgba(0,0,0,1)');
-    g.addColorStop(1, 'rgba(0,0,0,0)');
-    ac.fillStyle = g;
-  } else {
-    ac.fillStyle = '#000';
-  }
-  ac.beginPath(); ac.arc(pt.x, pt.y, s/2, 0, Math.PI*2); ac.fill();
-  ac.restore();
+  ac.save(); ac.globalCompositeOperation='destination-out';
+  if (eraseSoft.checked){ const g=ac.createRadialGradient(pt.x,pt.y,0,pt.x,pt.y,s/2); g.addColorStop(0,'rgba(0,0,0,1)'); g.addColorStop(1,'rgba(0,0,0,0)'); ac.fillStyle=g; }
+  else { ac.fillStyle='#000'; }
+  ac.beginPath(); ac.arc(pt.x,pt.y,s/2,0,Math.PI*2); ac.fill(); ac.restore();
   drawBase(); refreshDownload();
 }
 
 /* ========= Undo / Redo ========= */
-function undo(){
-  if (history.length <= 1) return; // keep at least one
-  const current = history.pop();
-  redo.push(current);
-  const prev = history[history.length-1];
-  appliedCanvas = imageDataToCanvas(prev);
-  drawBase(); refreshDownload();
-}
-function redoStep(){
-  if (!redo.length) return;
-  const id = redo.pop();
-  history.push(id);
-  appliedCanvas = imageDataToCanvas(id);
-  drawBase(); refreshDownload();
-}
+function undo(){ if (history.length<=1) return; const current=history.pop(); redo.push(current); appliedCanvas = imageDataToCanvas(history[history.length-1]); drawBase(); refreshDownload(); }
+function redoStep(){ if (!redo.length) return; const id = redo.pop(); history.push(id); appliedCanvas = imageDataToCanvas(id); drawBase(); refreshDownload(); }
 
-/* ========= Initial setup ========= */
+/* ========= RECOLOR (Paint Roller) ========= */
+const pickSourceBtn = document.getElementById('pick-source');
+const sourceChip = document.getElementById('source-chip');
+const recolorTarget = document.getElementById('recolor-target');
+const recolorTol = document.getElementById('recolor-tol');
+const recolorTolVal = document.getElementById('recolor-tol-val');
+const recolorSize = document.getElementById('recolor-size');
+const recolorSizeVal = document.getElementById('recolor-size-val');
+const recolorSoft = document.getElementById('recolor-soft');
+const recolorPreserve = document.getElementById('recolor-preserve');
+const recolorStart = document.getElementById('recolor-start');
+const recolorStop = document.getElementById('recolor-stop');
+
+let recolorActive = false;
+let waitingPick = false;
+let srcColor = [128,128,128]; // default source
+
+recolorTol.addEventListener('input', ()=> recolorTolVal.textContent = recolorTol.value);
+recolorSize.addEventListener('input', ()=>{ recolorSizeVal.textContent = recolorSize.value + ' px'; updateBrushVisual(lastPointer); });
+
+function setSourceFromPixel(x,y){
+  const d = canvas.getContext('2d').getImageData(x,y,1,1).data;
+  srcColor = [d[0],d[1],d[2]];
+  sourceChip.style.background = `rgb(${srcColor[0]},${srcColor[1]},${srcColor[2]})`;
+}
+pickSourceBtn.addEventListener('click', ()=>{
+  if (!img) return alert('Load an image first.');
+  waitingPick = true; pickSourceBtn.textContent = 'Click on image…'; pickSourceBtn.classList.add('primary');
+});
+canvas.addEventListener('pointerdown', e=>{
+  // Alt+Click sourcing anytime in Recolor panel
+  if (activePanel()==='recolor' && (waitingPick || e.altKey)){
+    const {x,y} = clientToImage(clientPoint(e)); setSourceFromPixel(x,y);
+    waitingPick = false; pickSourceBtn.textContent='Pick Source'; pickSourceBtn.classList.remove('primary');
+    return; // don’t start painting on same click
+  }
+}, true);
+
+recolorStart.addEventListener('click', ()=>{
+  if (!appliedCanvas.width) return alert('Load an image first.');
+  recolorActive = true; canvasWrap.classList.add('editing'); brushEl.style.display='block'; pushHistory();
+});
+recolorStop.addEventListener('click', ()=>{ recolorActive=false; canvasWrap.classList.remove('editing'); brushEl.style.display='none'; });
+
+function drawRecolor(e){
+  const pt = clientToImage(clientPoint(e));
+  const s = parseInt(recolorSize.value,10);
+  const tol = parseInt(recolorTol.value,10);
+  const targetRGB = hexToRgb(recolorTarget.value);
+  const preserve = recolorPreserve.checked;
+
+  // Grab sub-rect for performance
+  const r = s/2;
+  const x0 = Math.max(0, Math.floor(pt.x - r));
+  const y0 = Math.max(0, Math.floor(pt.y - r));
+  const x1 = Math.min(appliedCanvas.width, Math.ceil(pt.x + r));
+  const y1 = Math.min(appliedCanvas.height, Math.ceil(pt.y + r));
+  const w = x1 - x0, h = y1 - y0;
+  if (w<=0 || h<=0) return;
+
+  const ac = appliedCanvas.getContext('2d');
+  const id = ac.getImageData(x0,y0,w,h);
+  const d = id.data;
+
+  const soft = recolorSoft.checked;
+  const rr = r*r;
+
+  for (let yy=0; yy<h; yy++){
+    for (let xx=0; xx<w; xx++){
+      const dx = (x0+xx) - pt.x;
+      const dy = (y0+yy) - pt.y;
+      const dist2 = dx*dx + dy*dy;
+      if (dist2 > rr) continue; // outside brush circle
+
+      const i = (yy*w + xx) * 4;
+      const pr = d[i], pg = d[i+1], pb = d[i+2], pa = d[i+3];
+      if (pa===0) continue;
+
+      if (!withinTol([pr,pg,pb], srcColor, tol)) continue;
+
+      // compute alpha mix based on soft edge
+      let a = 1;
+      if (soft){
+        const edge = Math.sqrt(dist2)/r; // 0 center -> 1 edge
+        a = 1 - edge; // simple linear fade
+      }
+
+      let tr = targetRGB[0], tg = targetRGB[1], tb = targetRGB[2];
+
+      if (preserve){
+        // Keep original luminance; scale target to match Y
+        const yOrig = 0.2126*pr + 0.7152*pg + 0.0722*pb;
+        const yTar = 0.2126*tr + 0.7152*tg + 0.0722*tb || 1;
+        const k = yOrig / yTar;
+        tr = clamp(tr*k); tg = clamp(tg*k); tb = clamp(tb*k);
+      }
+
+      d[i]   = lerp(pr, tr, a);
+      d[i+1] = lerp(pg, tg, a);
+      d[i+2] = lerp(pb, tb, a);
+      // alpha unchanged
+    }
+  }
+
+  ac.putImageData(id, x0, y0);
+  drawBase(); refreshDownload();
+}
+function hexToRgb(hex){
+  const s = hex.replace('#',''); const n = parseInt(s,16);
+  if (s.length===3){
+    return [ ((n>>8)&0xF)*17, ((n>>4)&0xF)*17, (n&0xF)*17 ];
+  }
+  return [ (n>>16)&0xFF, (n>>8)&0xFF, n&0xFF ];
+}
+function withinTol(rgb, ref, tol){
+  // simple Manhattan distance in RGB
+  return (Math.abs(rgb[0]-ref[0]) + Math.abs(rgb[1]-ref[1]) + Math.abs(rgb[2]-ref[2]))/3 <= tol;
+}
+function clamp(v){ return Math.max(0, Math.min(255, v)); }
+function lerp(a,b,t){ return Math.round(a + (b-a)*t); }
+
+/* ========= init ========= */
 (function init(){
-  // empty 1x1 transparent to keep href valid
-  const tiny = document.createElement('canvas'); tiny.width=1; tiny.height=1;
+  const tiny=document.createElement('canvas'); tiny.width=1; tiny.height=1;
   downloadA.href = tiny.toDataURL('image/png');
   applyTransform();
+  sourceChip.style.background = `rgb(${srcColor[0]},${srcColor[1]},${srcColor[2]})`;
 })();
 </script>
 </body>
