@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="en">
 <head>
+
+
   <!-- Tawk.to Live Chat -->
   <script>
     var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
@@ -76,6 +78,33 @@
     "url":"https://fileconverter.run/json.html"
   }
   </script>
+
+<style>
+.glow-title{
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  font-weight: 800;
+  text-align: center;
+  margin: 10px 0 4px;
+  letter-spacing: .3px;
+  background: linear-gradient(90deg,#00ffff,#7dd3fc,#a78bfa,#ff00ff,#00ffcc,#00ffff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 6px rgba(125,211,252,.45), 0 0 12px rgba(125,211,252,.25), 0 0 18px rgba(167,139,250,.2);
+  animation: cyberPulse 3s ease-in-out infinite alternate, gradientShift 6s linear infinite;
+  background-size: 400% auto;
+}
+@keyframes cyberPulse {
+  from { text-shadow: 0 0 4px rgba(125,211,252,.25), 0 0 8px rgba(125,211,252,.18), 0 0 12px rgba(167,139,250,.12); }
+  to   { text-shadow: 0 0 10px rgba(125,211,252,.6), 0 0 20px rgba(125,211,252,.4), 0 0 30px rgba(255,0,255,.28); }
+}
+@keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+.info{max-width:900px;margin:18px auto;background:#1a1f2c;border:1px solid #273142;border-radius:12px;padding:18px;color:#e6edf3}
+.info h3{margin:0 0 8px;color:#7dd3fc}
+.info p{margin:6px 0 0}
+.info ul{margin:8px 0 0 16px}
+</style>
+
 </head>
 <body>
 <header>
@@ -95,40 +124,51 @@
   </div>
 
   <div class="title">
-    <h1>JSON · CSV · XLSX · DOC</h1>
+    <h1 class="glow-title">JSON · CSV · XLSX · DOC</h1>
     <p class="sub">Convert between CSV/JSON/XLSX and export JSON to a simple .doc — privately, on your device.</p>
   </div>
 
   <!-- Full site navigation -->
-  <nav class="tabs" aria-label="Primary">
-    <!-- Home -->
-    <a class="tab" href="index.html">Home</a>
-
-    <!-- Converters -->
-    <a class="tab" href="audio.html">Audio</a>
-    <a class="tab" href="video.html">Video</a>
-    <a class="tab" href="images.html">Images</a>
-    <a class="tab" href="pdf.html">PDF</a>
-    <a class="tab" href="data.html">GPS Data</a>
-    <a class="tab active" href="json.html" aria-current="page">JSON</a>
-    <a class="tab" href="archive.html">Archive</a>
-    <a class="tab" href="docx.html">DOCX</a>
-    <a class="tab" href="background_remover.html">Remove Background</a>
-
-    <!-- GPS tools -->
-    <a class="tab" href="gps.html">GPS</a>
-    <a class="tab" href="gps-file-guide.html">GPS Guide</a>
-
-    <!-- Guides / Blog -->
-    <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
-    <a class="tab" href="image-file-guide.html">Image Guide</a>
-    <a class="tab" href="audio-file-guide.html">Audio Guide</a>
-    <a class="tab" href="video-file-guide.html">Video Guide</a>
-
-  </nav>
+  
 </header>
+<nav class="tabs">
+  <a class="tab" href="index.html">Home</a>
+  <a class="tab" href="audio.html">Audio</a>
+  <a class="tab" href="video.html">Video</a>
+  <a class="tab" href="images.html">Images</a>
+  <a class="tab" href="pdf.html">PDF</a>
+  <a class="tab" href="data.html">GPS Data</a>
+  <a class="tab active" href="json.html" aria-current="page">JSON</a>
+  <a class="tab" href="archive.html">Archive</a>
+  <a class="tab" href="docx.html">DOCX</a>
+  <a class="tab" href="background_remover.html">Remove Background</a>
+  <a class="tab" href="gps.html">GPS</a>
+  <a class="tab" href="gps-file-guide.html">GPS Guide</a>
+  <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
+  <a class="tab" href="image-file-guide.html">Image Guide</a>
+  <a class="tab" href="audio-file-guide.html">Audio Guide</a>
+  <a class="tab" href="video-file-guide.html">Video Guide</a>
+  <a class="tab" href="about.html">About</a>
+  <a class="tab" href="faq.html">FAQ</a>
+  <a class="tab" href="privacy-policy.html">Privacy Policy</a>
+  <a class="tab" href="terms.html">Terms of Service</a>
+  <a class="tab" href="contact.html">Contact</a>
+</nav>
 
+
+
+
+<section id="adsense-content" class="info">
+  <h3>From JSON to Document—No More Copy/Paste</h3>
+  <ul>
+    <li>Convert JSON, CSV, or XLSX back and forth instantly.</li>
+    <li>Preview data before you download to avoid surprises.</li>
+    <li>Export JSON to a simple .doc for quick handoffs.</li>
+  </ul>
+</section>
 <main class="panel">
+
+
   <div class="grid">
     <!-- DATA CONVERTER: CSV ⇄ JSON ⇄ XLSX -->
     <div class="card">
@@ -198,32 +238,6 @@
       <strong>.doc</strong> in seconds. No uploads, no logins, no tracking — everything runs locally in your browser.
     </p>
     <p class="note">If your JSON is an array of objects, choose “Auto” or “Table” to get a polished table inside the .doc.</p>
-  </section>
-
-  <section class="info" id="quick-start">
-    <h3>Quick Start</h3>
-    <table class="guide">
-      <thead>
-        <tr><th>Task</th><th>Steps</th><th>Tip</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>CSV → JSON</strong></td>
-          <td>Upload CSV → Parse/Preview → choose <code>JSON</code> → Convert & Download</td>
-          <td>Turn on <code>Pretty print</code> for readable JSON</td>
-        </tr>
-        <tr>
-          <td><strong>JSON → XLSX</strong></td>
-          <td>Upload/paste JSON → Parse/Preview → choose <code>XLSX</code> → Convert</td>
-          <td>Arrays of objects become worksheet rows</td>
-        </tr>
-        <tr>
-          <td><strong>JSON → DOC</strong></td>
-          <td>Upload/paste JSON → pick render mode → Preview → Download .doc</td>
-          <td><code>Auto</code> chooses table/preformatted for you</td>
-        </tr>
-      </tbody>
-    </table>
   </section>
 
   <section class="info" id="render-modes">
