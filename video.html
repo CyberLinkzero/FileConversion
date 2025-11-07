@@ -1,6 +1,17 @@
 <!doctype html>
 <html lang="en">
 <head>
+<style>
+  .info{background:#1a1f2c;border:1px solid #263044;border-radius:12px;padding:18px;margin:18px auto;max-width:1100px}
+  .info h2,.info h3{color:#7dd3fc;margin:.2rem 0 .6rem}
+  .info .note{color:#9aa4b2;font-size:.95rem}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media (max-width:900px){ .grid-3{grid-template-columns:1fr} }
+  .guide{width:100%;border-collapse:collapse}
+  .guide th,.guide td{border-bottom:1px solid #263044;padding:8px;text-align:left;vertical-align:top}
+</style>
+<meta name="description" content="Convert and edit files privately in your browser — fast, secure, and no uploads.">
+
     <!--Start of Tawk.to Script-->
 <script type="text/javascript">
 var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
@@ -151,32 +162,95 @@ s0.parentNode.insertBefore(s1,s0);
     window.__FF__              = window.__FF__              || window.FFmpeg;
   })();
   </script>
+
+<style>
+.glow-title{
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  font-weight: 800;
+  text-align: center;
+  margin: 10px 0 4px;
+  letter-spacing: .3px;
+  background: linear-gradient(90deg,#00ffff,#7dd3fc,#a78bfa,#ff00ff,#00ffcc,#00ffff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 6px rgba(125,211,252,.45), 0 0 12px rgba(125,211,252,.25), 0 0 18px rgba(167,139,250,.2);
+  animation: cyberPulse 3s ease-in-out infinite alternate, gradientShift 6s linear infinite;
+  background-size: 400% auto;
+}
+@keyframes cyberPulse {
+  from { text-shadow: 0 0 4px rgba(125,211,252,.25), 0 0 8px rgba(125,211,252,.18), 0 0 12px rgba(167,139,250,.12); }
+  to   { text-shadow: 0 0 10px rgba(125,211,252,.6), 0 0 20px rgba(125,211,252,.4), 0 0 30px rgba(255,0,255,.28); }
+}
+@keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+.info{max-width:900px;margin:18px auto;background:#1a1f2c;border:1px solid #273142;border-radius:12px;padding:18px;color:#e6edf3}
+.info h3{margin:0 0 8px;color:#7dd3fc}
+.info p{margin:6px 0 0}
+.info ul{margin:8px 0 0 16px}
+</style>
+
 </head>
 
 <body>
   <header>
-    <h1 style="margin:0;font-size:20px;">File Conversion — Video</h1>
+    <h1 class="glow-title" style="margin:0;font-size:20px;">File Conversion — Video</h1>
     <div class="muted">FFmpeg.wasm v0.12 (ESM core + same-origin worker, legacy API shim)</div>
   </header>
+<nav class="tabs">
+  <a class="tab" href="index.html">Home</a>
+  <a class="tab" href="audio.html">Audio</a>
+  <a class="tab active" href="video.html" aria-current="page">Video</a>
+  <a class="tab" href="images.html">Images</a>
+  <a class="tab" href="pdf.html">PDF</a>
+  <a class="tab" href="data.html">GPS Data</a>
+  <a class="tab" href="json.html">JSON</a>
+  <a class="tab" href="archive.html">Archive</a>
+  <a class="tab" href="docx.html">DOCX</a>
+  <a class="tab" href="background_remover.html">Remove Background</a>
+  <a class="tab" href="gps.html">GPS</a>
+  <a class="tab" href="gps-file-guide.html">GPS Guide</a>
+  <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
+  <a class="tab" href="image-file-guide.html">Image Guide</a>
+  <a class="tab" href="audio-file-guide.html">Audio Guide</a>
+  <a class="tab" href="video-file-guide.html">Video Guide</a>
+  <a class="tab" href="about.html">About</a>
+  <a class="tab" href="faq.html">FAQ</a>
+  <a class="tab" href="privacy-policy.html">Privacy Policy</a>
+  <a class="tab" href="terms.html">Terms of Service</a>
+  <a class="tab" href="contact.html">Contact</a>
+</nav>
 
-  <nav class="tabs">
-    <a class="tab" href="index.html">Home</a>
-    <a class="tab" href="audio.html">Audio</a>
-    <a class="tab active" href="video.html">Video</a>
-    <a class="tab" href="images.html">Images</a>
-    <a class="tab" href="pdf.html">PDF</a>
-    <a class="tab" href="data.html">GPS Data</a>
-    <a class="tab" href="json.html">JSON</a>
-    <a class="tab" href="archive.html">Archive</a>
-    <a class="tab" href="docx.html">DOCX</a>
-    <a class="tab" href="background_remover.html">Remove Background</a>
-    <a class="tab" href="gps.html">GPS</a>
-    <a class="tab" href="gps-file-guide.html">GPS Guide</a>
-    <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
-    <a class="tab" href="image-file-guide.html">Image Guide</a>
-    <a class="tab" href="audio-file-guide.html">Audio Guide</a>
-    <a class="tab" href="video-file-guide.html">Video Guide</a>
-  </nav>
+
+
+<section id="adsense-content" class="info">
+  <h3>Why Local File Conversion?</h3>
+  <ul>
+    <li>Your files never leave your device—great for privacy and speed.</li>
+    <li>No sign-ups or uploads required; everything runs in your browser.</li>
+    <li>Perfect for students, small businesses, creators, and teams.</li>
+  </ul>
+</section>
+<!-- Sponsored Header Bar (dismissible) -->
+<div id="sponsored-bar" role="banner" aria-label="Sponsored by Knack.bz"
+     style="position:sticky; top:0; z-index:9999; width:100%;
+            background:#0f1117; color:#e5e7eb; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            border-bottom:1px solid #1f2430;">
+  <div style="max-width:1200px; margin:0 auto; padding:10px 10px; display:flex; align-items:center; justify-content:center; gap:.5rem;">
+    <span style="opacity:.9;">Sponsored by</span>
+    <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer"
+       style="color:#7dd3fc; text-decoration:none; font-weight:600;">
+      Knack.bz
+    </a>
+    <button aria-label="Dismiss sponsor bar"
+            onclick="document.getElementById('sponsored-bar').style.display='none'"
+            style="margin-left:auto; background:transparent; border:none; color:#9aa4b2; cursor:pointer; font-size:16px; line-height:1;">
+      ✕
+    </button>
+  </div>
+</div>
+
+
+  
 
   <main>
     <section>
@@ -358,5 +432,6 @@ s0.parentNode.insertBefore(s1,s0);
       if (!btnConvert.onclick) await runInline();
     })();
   </script>
+<script>document.querySelectorAll("#year").forEach(el=>el.textContent=new Date().getFullYear());</script>
 </body>
 </html>
