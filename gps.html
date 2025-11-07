@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="en">
 <head>
+
+
   <!-- Tawk.to Live Chat -->
   <script>
     var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
@@ -71,37 +73,40 @@
     "url":"https://fileconverter.run/gps.html"
   }
   </script>
+
+<style>
+.glow-title{
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  font-weight: 800;
+  text-align: center;
+  margin: 10px 0 4px;
+  letter-spacing: .3px;
+  background: linear-gradient(90deg,#00ffff,#7dd3fc,#a78bfa,#ff00ff,#00ffcc,#00ffff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 6px rgba(125,211,252,.45), 0 0 12px rgba(125,211,252,.25), 0 0 18px rgba(167,139,250,.2);
+  animation: cyberPulse 3s ease-in-out infinite alternate, gradientShift 6s linear infinite;
+  background-size: 400% auto;
+}
+@keyframes cyberPulse {
+  from { text-shadow: 0 0 4px rgba(125,211,252,.25), 0 0 8px rgba(125,211,252,.18), 0 0 12px rgba(167,139,250,.12); }
+  to   { text-shadow: 0 0 10px rgba(125,211,252,.6), 0 0 20px rgba(125,211,252,.4), 0 0 30px rgba(255,0,255,.28); }
+}
+@keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+.info{max-width:900px;margin:18px auto;background:#1a1f2c;border:1px solid #273142;border-radius:12px;padding:18px;color:#e6edf3}
+.info h3{margin:0 0 8px;color:#7dd3fc}
+.info p{margin:6px 0 0}
+.info ul{margin:8px 0 0 16px}
+</style>
+
 </head>
 <body>
 <header>
-  <div class="title"><h1>GPS — GPX · TCX · KML · CSV · XLSX</h1></div>
+  <div class="title"><h1 class="glow-title">GPS — GPX · TCX · KML · CSV · XLSX</h1></div>
 
   <!-- Full site navigation -->
-  <nav class="tabs" aria-label="Primary">
-    <a class="tab" href="index.html">Home</a>
-
-    <!-- Converters -->
-    <a class="tab" href="audio.html">Audio</a>
-    <a class="tab" href="video.html">Video</a>
-    <a class="tab" href="images.html">Images</a>
-    <a class="tab" href="pdf.html">PDF</a>
-    <a class="tab" href="data.html">GPS Data</a>
-    <a class="tab" href="json.html">JSON</a>
-    <a class="tab" href="archive.html">Archive</a>
-    <a class="tab" href="docx.html">DOCX</a>
-    <a class="tab" href="background_remover.html">Remove Background</a>
-
-    <!-- GPS tools -->
-    <a class="tab active" href="gps.html" aria-current="page">GPS</a>
-    <a class="tab" href="gps-file-guide.html">GPS Guide</a>
-
-    <!-- Guides / Blog -->
-    <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
-    <a class="tab" href="image-file-guide.html">Image Guide</a>
-    <a class="tab" href="audio-file-guide.html">Audio Guide</a>
-    <a class="tab" href="video-file-guide.html">Video Guide</a>
-
-  </nav>
+  
 
   <!-- Sponsored Header Bar (dismissible) -->
   <div id="sponsored-bar" role="banner" aria-label="Sponsored by Knack.bz"
@@ -118,8 +123,44 @@
     </div>
   </div>
 </header>
+<nav class="tabs">
+  <a class="tab" href="index.html">Home</a>
+  <a class="tab" href="audio.html">Audio</a>
+  <a class="tab" href="video.html">Video</a>
+  <a class="tab" href="images.html">Images</a>
+  <a class="tab" href="pdf.html">PDF</a>
+  <a class="tab" href="data.html">GPS Data</a>
+  <a class="tab" href="json.html">JSON</a>
+  <a class="tab" href="archive.html">Archive</a>
+  <a class="tab" href="docx.html">DOCX</a>
+  <a class="tab" href="background_remover.html">Remove Background</a>
+  <a class="tab active" href="gps.html" aria-current="page">GPS</a>
+  <a class="tab" href="gps-file-guide.html">GPS Guide</a>
+  <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
+  <a class="tab" href="image-file-guide.html">Image Guide</a>
+  <a class="tab" href="audio-file-guide.html">Audio Guide</a>
+  <a class="tab" href="video-file-guide.html">Video Guide</a>
+  <a class="tab" href="about.html">About</a>
+  <a class="tab" href="faq.html">FAQ</a>
+  <a class="tab" href="privacy-policy.html">Privacy Policy</a>
+  <a class="tab" href="terms.html">Terms of Service</a>
+  <a class="tab" href="contact.html">Contact</a>
+</nav>
 
+
+
+
+<section id="adsense-content" class="info">
+  <h3>Map, Inspect, Export</h3>
+  <ul>
+    <li>Preview tracks on a map, compute distance, pace, elevation gain.</li>
+    <li>Create splits by km/mi; export as GPX/TCX/KML/CSV/XLSX.</li>
+    <li>Pick map styles and fit the viewport to your route.</li>
+  </ul>
+</section>
 <main>
+
+
   <!-- ===== Your interactive tools (kept working) ===== -->
   <section class="panel"><div class="grid">
 
@@ -237,35 +278,6 @@
       all <strong>privately in your browser</strong>, with no uploads or tracking.
     </p>
     <p class="note">Bring your own GPX/TCX/KML/CSV/XLSX — the map preview, stats, and exports happen locally on your device.</p>
-  </section>
-
-  <section class="info" id="quick-start">
-    <h3>Quick Start</h3>
-    <table class="guide">
-      <thead><tr><th>Task</th><th>Steps</th><th>Tip</th></tr></thead>
-      <tbody>
-        <tr>
-          <td><strong>Map a GPX/TCX/KML</strong></td>
-          <td>Choose file → <em>Parse</em> → open <em>Map Preview</em> → <em>Fit to Track</em></td>
-          <td>Markers highlight start/end; hover the route for live readouts</td>
-        </tr>
-        <tr>
-          <td><strong>CSV/XLSX to GPX/KML/TCX</strong></td>
-          <td>Load CSV/XLSX → set field mapping (lat/lon/ele/time) → <em>Preview</em> → pick export</td>
-          <td>Time format “Auto” handles ISO or Excel serial</td>
-        </tr>
-        <tr>
-          <td><strong>Compute splits</strong></td>
-          <td>Open <em>Stats & Splits</em> → choose unit and distance → <em>Recompute</em></td>
-          <td>Great for pacing analysis and segment comparisons</td>
-        </tr>
-        <tr>
-          <td><strong>Export results</strong></td>
-          <td>Select <em>Export as</em> GPX/KML/TCX/CSV/XLSX → <em>Download</em></td>
-          <td>Add a title to embed a track name in GPX/KML/TCX</td>
-        </tr>
-      </tbody>
-    </table>
   </section>
 
   <section class="info" id="format-guide">
