@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="en">
 <head>
+
+
   <!-- Tawk.to Live Chat -->
   <script>
     var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
@@ -78,39 +80,97 @@
     "url":"https://fileconverter.run/data.html"
   }
   </script>
+
+<style>
+.glow-title{
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  font-weight: 800;
+  text-align: center;
+  margin: 10px 0 4px;
+  letter-spacing: .3px;
+  background: linear-gradient(90deg,#00ffff,#7dd3fc,#a78bfa,#ff00ff,#00ffcc,#00ffff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 6px rgba(125,211,252,.45), 0 0 12px rgba(125,211,252,.25), 0 0 18px rgba(167,139,250,.2);
+  animation: cyberPulse 3s ease-in-out infinite alternate, gradientShift 6s linear infinite;
+  background-size: 400% auto;
+}
+@keyframes cyberPulse {
+  from { text-shadow: 0 0 4px rgba(125,211,252,.25), 0 0 8px rgba(125,211,252,.18), 0 0 12px rgba(167,139,250,.12); }
+  to   { text-shadow: 0 0 10px rgba(125,211,252,.6), 0 0 20px rgba(125,211,252,.4), 0 0 30px rgba(255,0,255,.28); }
+}
+@keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+.info{max-width:900px;margin:18px auto;background:#1a1f2c;border:1px solid #273142;border-radius:12px;padding:18px;color:#e6edf3}
+.info h3{margin:0 0 8px;color:#7dd3fc}
+.info p{margin:6px 0 0}
+.info ul{margin:8px 0 0 16px}
+</style>
+
 </head>
 <body>
 <header>
-  <div class="title"><h1>GPS & Spreadsheet Converter</h1></div>
+  <div class="title"><h1 class="glow-title">GPS & Spreadsheet Converter</h1></div>
 
-  <nav class="tabs" aria-label="Primary">
-    <!-- Home -->
-    <a class="tab" href="index.html">Home</a>
-
-    <!-- Converters -->
-    <a class="tab" href="audio.html">Audio</a>
-    <a class="tab" href="video.html">Video</a>
-    <a class="tab" href="images.html">Images</a>
-    <a class="tab" href="pdf.html">PDF</a>
-    <a class="tab active" href="data.html" aria-current="page">GPS Data</a>
-    <a class="tab" href="json.html">JSON</a>
-    <a class="tab" href="archive.html">Archive</a>
-    <a class="tab" href="docx.html">DOCX</a>
-    <a class="tab" href="background_remover.html">Remove Background</a>
-
-    <!-- GPS tools -->
-    <a class="tab" href="gps.html">GPS</a>
-    <a class="tab" href="gps-file-guide.html">GPS Guide</a>
-
-    <!-- File Type Guides / Blog -->
-    <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
-    <a class="tab" href="image-file-guide.html">Image Guide</a>
-    <a class="tab" href="audio-file-guide.html">Audio Guide</a>
-    <a class="tab" href="video-file-guide.html">Video Guide</a>
-  </nav>
+  
 </header>
+<nav class="tabs">
+  <a class="tab" href="index.html">Home</a>
+  <a class="tab" href="audio.html">Audio</a>
+  <a class="tab" href="video.html">Video</a>
+  <a class="tab" href="images.html">Images</a>
+  <a class="tab" href="pdf.html">PDF</a>
+  <a class="tab active" href="data.html" aria-current="page">GPS Data</a>
+  <a class="tab" href="json.html">JSON</a>
+  <a class="tab" href="archive.html">Archive</a>
+  <a class="tab" href="docx.html">DOCX</a>
+  <a class="tab" href="background_remover.html">Remove Background</a>
+  <a class="tab" href="gps.html">GPS</a>
+  <a class="tab" href="gps-file-guide.html">GPS Guide</a>
+  <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
+  <a class="tab" href="image-file-guide.html">Image Guide</a>
+  <a class="tab" href="audio-file-guide.html">Audio Guide</a>
+  <a class="tab" href="video-file-guide.html">Video Guide</a>
+  <a class="tab" href="about.html">About</a>
+  <a class="tab" href="faq.html">FAQ</a>
+  <a class="tab" href="privacy-policy.html">Privacy Policy</a>
+  <a class="tab" href="terms.html">Terms of Service</a>
+  <a class="tab" href="contact.html">Contact</a>
+</nav>
+
+
+
+<section id="adsense-content" class="info">
+  <h3>GPS Data, Clean and Simple</h3>
+  <ul>
+    <li>Turn GPX/KML/TCX/FIT into CSV/XLSX for spreadsheets and analysis.</li>
+    <li>Map columns automatically—lat/lon/ele/time—then export back to GPX/KML/TCX.</li>
+    <li>Great for runners, cyclists, surveyors, and field teams.</li>
+  </ul>
+</section>
+<!-- Sponsored Header Bar (dismissible) -->
+<div id="sponsored-bar" role="banner" aria-label="Sponsored by Knack.bz"
+     style="position:sticky; top:0; z-index:9999; width:100%;
+            background:#0f1117; color:#e5e7eb; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            border-bottom:1px solid #1f2430;">
+  <div style="max-width:1200px; margin:0 auto; padding:10px 10px; display:flex; align-items:center; justify-content:center; gap:.5rem;">
+    <span style="opacity:.9;">Sponsored by</span>
+    <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer"
+       style="color:#7dd3fc; text-decoration:none; font-weight:600;">
+      Knack.bz
+    </a>
+    <button aria-label="Dismiss sponsor bar"
+            onclick="document.getElementById('sponsored-bar').style.display='none'"
+            style="margin-left:auto; background:transparent; border:none; color:#9aa4b2; cursor:pointer; font-size:16px; line-height:1;">
+      ✕
+    </button>
+  </div>
+</div>
+
 
 <main>
+
+
   <!-- ===== Your Tools (unchanged behavior, cleaned structure) ===== -->
   <section class="panel">
     <div class="grid">
@@ -172,30 +232,6 @@
       <span class="pill">XLSX</span>
     </div>
     <p class="note">Everything runs locally using modern web APIs and open libraries.</p>
-  </section>
-
-  <section class="info" id="quick-start">
-    <h3>Quick Start</h3>
-    <h4>CSV ⇄ XLSX</h4>
-    <ol class="tight">
-      <li>Select your file in the appropriate card.</li>
-      <li>Click <em>Convert</em> — download starts automatically.</li>
-      <li>Open in Excel, Numbers, or Google Sheets.</li>
-    </ol>
-
-    <h4>GPS → CSV/XLSX</h4>
-    <ol class="tight">
-      <li>Upload GPX/KML/TCX/FIT files (multi-select allowed).</li>
-      <li>Choose <em>Export CSV</em> or <em>Export XLSX</em>.</li>
-      <li>Open your spreadsheet to filter by time, distance, heart rate, and more.</li>
-    </ol>
-
-    <h4>CSV/XLSX → GPX/KML/TCX</h4>
-    <ol class="tight">
-      <li>Upload a table with columns like <code>lat, lon, time, ele</code>.</li>
-      <li>Select the desired target format (GPX/KML/TCX).</li>
-      <li>Click <em>Export</em> to generate a routable/visualizable file.</li>
-    </ol>
   </section>
 
   <section class="info" id="format-guide">
