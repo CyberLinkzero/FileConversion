@@ -1,374 +1,417 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9800485035530027"
-     crossorigin="anonymous"></script>
-<style>
-  .info{background:#1a1f2c;border:1px solid #263044;border-radius:12px;padding:18px;margin:18px auto;max-width:1100px}
-  .info h2,.info h3{color:#7dd3fc;margin:.2rem 0 .6rem}
-  .info .note{color:#9aa4b2;font-size:.95rem}
-  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-  @media (max-width:900px){ .grid-3{grid-template-columns:1fr} }
-  .guide{width:100%;border-collapse:collapse}
-  .guide th,.guide td{border-bottom:1px solid #263044;padding:8px;text-align:left;vertical-align:top}
-</style>
-   <!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/6906c86e40b306194f3da6e5/1j917ts2m';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Tawk.to Script-->
+  <!-- Tawk.to -->
+  <script type="text/javascript">
+  var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+  (function(){
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true; s1.src='https://embed.tawk.to/6906c86e40b306194f3da6e5/1j917ts2m';
+    s1.charset='UTF-8'; s1.setAttribute('crossorigin','*'); s0.parentNode.insertBefore(s1,s0);
+  })();
+  </script>
 
-  <!-- Google Tag (Analytics) -->
+  <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-W25SYMTSSR"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){ dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'G-W25SYMTSSR');
+    gtag('js', new Date()); gtag('config', 'G-W25SYMTSSR');
   </script>
 
-  <!-- Google AdSense Auto Ads (no manual ad boxes required) -->
-  <script async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9800485035530027"
-          crossorigin="anonymous"></script>
-  <meta name="google-adsense-account" content="ca-pub-9800485035530027">
+  <!-- Google AdSense Auto Ads -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9800485035530027" crossorigin="anonymous"></script>
+  <meta name="google-adsense-account" content="ca-pub-9800485035530027"/>
 
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Image Converter & Resizer — PNG, JPEG, WebP, AVIF | FileConverter.run</title>
   <meta name="description" content="Convert and resize images privately in your browser. PNG/JPEG/WebP/AVIF, batch processing, transparency preserved, and no uploads.">
-  <link rel="stylesheet" href="site.css">
+  <link rel="stylesheet" href="site.css"/>
 
   <style>
-    /* Minimal page styles (works alongside your site.css) */
-    body{margin:0;background:#0f1117;color:#fff;font-family:Arial,Helvetica,sans-serif;}
+    /* ——— Cyber look & layout ——— */
+    :root{
+      --bg:#0f1117; --panel:#1a1f2c; --line:#263044; --brand:#7dd3fc; --muted:#9aa4b2;
+    }
+    html,body{margin:0;background:var(--bg);color:#fff;font-family:Arial,Helvetica,sans-serif;}
     header{text-align:center;padding:22px 0;border-bottom:1px solid #1f2430;}
-    header h1{
-      margin:8px 0 6px;font-size:2.2rem;font-weight:700;
+    .glow-title{
+      font-size: clamp(1.8rem, 3.5vw, 2.6rem); font-weight:800; margin:8px 0 6px;
+      letter-spacing:.3px;
       background:linear-gradient(90deg,#00ffff,#7dd3fc,#a78bfa,#ff00ff,#00ffcc,#00ffff);
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-      text-shadow:0 0 6px rgba(125,211,252,.5),0 0 12px rgba(125,211,252,.3),0 0 18px rgba(167,139,250,.2);
-      animation:gradientShift 4s linear infinite;
+      -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+      text-shadow:0 0 6px rgba(125,211,252,.45),0 0 12px rgba(125,211,252,.25),0 0 30px rgba(167,139,250,.2);
+      animation:cyberPulse 3s ease-in-out infinite alternate, gradientShift 6s linear infinite;
       background-size:400% auto;
     }
-    header p.sub{opacity:.9;margin:0 0 10px;color:#e5e7eb}
+    @keyframes cyberPulse{from{text-shadow:0 0 4px rgba(125,211,252,.25),0 0 8px rgba(125,211,252,.18),0 0 12px rgba(167,139,250,.12)} to{ text-shadow:0 0 10px rgba(125,211,252,.6),0 0 20px rgba(125,211,252,.4),0 0 30px rgba(255,0,255,.28)}}
     @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    header p.sub{opacity:.9;margin:0 0 10px;color:#e5e7eb}
+
     nav.tabs{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:10px 12px;border-top:1px solid #1f2430;border-bottom:1px solid #1f2430;}
-    .tab{color:#7dd3fc;text-decoration:none;padding:8px 12px;border-radius:8px}
+    nav.tabs .tab{color:var(--brand);text-decoration:none;padding:8px 12px;border-radius:8px}
+    nav.tabs .tab.active{font-weight:700;border-bottom:2px solid var(--brand)}
     .container{max-width:1200px;margin:0 auto;padding:0 16px}
     .panel{padding:22px 0}
-    .card{background:#1a1f2c;border:1px solid #263044;border-radius:12px;padding:18px}
-    .section-title{color:#7dd3fc;margin:10px 0 8px}
-    .flex{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
-    .compare{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-    .note{font-size:.9rem;color:#9aa4b2}
-    footer{background:#1a1f2c;color:#7dd3fc;padding:20px;border-top:1px solid #7dd3fc;margin-top:40px}
-    @media (max-width:720px){ .compare{grid-template-columns:1fr} }
-    /* Simple tool area skin */
-    #image-tool{background:#0f1117;padding:12px 0}
-    #tool-shell{background:#141a26;border:1px dashed #263044;border-radius:12px;padding:16px}
-    #tool-shell h2{margin:0 0 8px;color:#7dd3fc}
-    #tool-shell p{margin:0 0 10px;color:#e5e7eb}
-    #tool-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
-    #tool-actions input, #tool-actions select, #tool-actions button{
-      background:#0f1117;color:#e5e7eb;border:1px solid #263044;border-radius:10px;padding:8px 10px
-    }
-    #results{margin-top:14px;min-height:60px;background:#0f1117;border:1px solid #263044;border-radius:10px;padding:10px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+    .section-title{color:var(--brand);margin:10px 0 8px}
     .chips{display:flex;flex-wrap:wrap;gap:8px;padding:10px 0}
-    .chip{background:#101826;border:1px solid #263044;padding:6px 10px;border-radius:999px;font-size:.9rem;color:#e5e7eb}
+    .chip{background:#101826;border:1px solid var(--line);padding:6px 10px;border-radius:999px;font-size:.9rem;color:#e5e7eb}
+
+    /* Tool shell */
+    #image-tool{background:#0f1117;padding:12px 0}
+    #tool-shell{background:#141a26;border:1px dashed var(--line);border-radius:12px;padding:16px}
+    #tool-shell h2{margin:0 0 8px;color:var(--brand)}
+    #tool-shell p{margin:0 0 10px;color:#e5e7eb}
+    #tool-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
+    #tool-actions input, #tool-actions select, #tool-actions button{
+      background:#0f1117;color:#e5e7eb;border:1px solid var(--line);border-radius:10px;padding:8px 10px
+    }
+    #tool-actions button:hover{background:var(--brand);color:#0f1117;cursor:pointer}
+    #results{margin-top:14px;min-height:60px;background:#0f1117;border:1px solid var(--line);border-radius:10px;padding:10px}
+
+    /* AdSense-friendly info block */
+    .info{max-width:1100px;margin:18px auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;color:#e6edf3}
+    .info h3{margin:0 0 8px;color:var(--brand)}
+    .info p{margin:6px 0 0}
+    .info ul{margin:8px 0 0 16px}
+    .guide{width:100%;border-collapse:collapse}
+    .guide th,.guide td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+
+    footer{background:var(--panel);color:var(--brand);padding:20px;border-top:1px solid var(--brand);margin-top:40px}
   </style>
-
-<style>
-.glow-title{
-  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
-  font-weight: 800;
-  text-align: center;
-  margin: 10px 0 4px;
-  letter-spacing: .3px;
-  background: linear-gradient(90deg,#00ffff,#7dd3fc,#a78bfa,#ff00ff,#00ffcc,#00ffff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 6px rgba(125,211,252,.45), 0 0 12px rgba(125,211,252,.25), 0 0 18px rgba(167,139,250,.2);
-  animation: cyberPulse 3s ease-in-out infinite alternate, gradientShift 6s linear infinite;
-  background-size: 400% auto;
-}
-@keyframes cyberPulse {
-  from { text-shadow: 0 0 4px rgba(125,211,252,.25), 0 0 8px rgba(125,211,252,.18), 0 0 12px rgba(167,139,250,.12); }
-  to   { text-shadow: 0 0 10px rgba(125,211,252,.6), 0 0 20px rgba(125,211,252,.4), 0 0 30px rgba(255,0,255,.28); }
-}
-@keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
-.info{max-width:900px;margin:18px auto;background:#1a1f2c;border:1px solid #273142;border-radius:12px;padding:18px;color:#e6edf3}
-.info h3{margin:0 0 8px;color:#7dd3fc}
-.info p{margin:6px 0 0}
-.info ul{margin:8px 0 0 16px}
-</style>
-
 </head>
 
 <body>
-<header>
-  <h1 class="glow-title">Image Converter & Resizer</h1>
-  <p class="sub">Convert & optimize images privately in your browser — no uploads.</p>
-
- 
-
-  <div class="container">
-    <div class="chips">
-      <span class="chip">HEIC → JPG</span><span class="chip">PNG ↔ JPG</span>
-      <span class="chip">PNG/WebP Transparency</span><span class="chip">Batch Convert</span>
-      <span class="chip">Resize & Compress</span><span class="chip">AVIF/WebP</span>
+  <!-- Sponsored Header Bar (dismissible) -->
+  <div id="sponsored-bar" role="banner" aria-label="Sponsored and built by Knack.bz"
+       style="position:sticky; top:0; z-index:9999; width:100%;
+              background:#0f1117; color:#e5e7eb; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+              border-bottom:1px solid #1f2430;">
+    <div style="max-width:1200px; margin:0 auto; padding:10px 10px; display:flex; align-items:center; justify-content:center; gap:.5rem;">
+      <span style="opacity:.9;">Sponsored by</span>
+      <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer"
+         style="color:#7dd3fc; text-decoration:none; font-weight:600;">Knack.bz</a>
+      <button aria-label="Dismiss sponsor bar"
+              onclick="document.getElementById('sponsored-bar').style.display='none'"
+              style="margin-left:auto; background:transparent; border:none; color:#9aa4b2; cursor:pointer; font-size:16px; line-height:1;">✕</button>
     </div>
   </div>
-</header>
-<nav class="tabs">
-  <a class="tab" href="index.html">Home</a>
-  <a class="tab" href="audio.html">Audio</a>
-  <a class="tab" href="video.html">Video</a>
-  <a class="tab active" href="images.html" aria-current="page">Images</a>
-  <a class="tab" href="pdf.html">PDF</a>
-  <a class="tab" href="data.html">GPS Data</a>
-  <a class="tab" href="json.html">JSON</a>
-  <a class="tab" href="archive.html">Archive</a>
-  <a class="tab" href="docx.html">DOCX</a>
-  <a class="tab" href="background_remover.html">Remove Background</a>
-  <a class="tab" href="gps.html">GPS</a>
-  <a class="tab" href="gps-file-guide.html">GPS Guide</a>
-  <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
-  <a class="tab" href="image-file-guide.html">Image Guide</a>
-  <a class="tab" href="audio-file-guide.html">Audio Guide</a>
-  <a class="tab" href="video-file-guide.html">Video Guide</a>
-  <a class="tab" href="about.html">About</a>
-  <a class="tab" href="faq.html">FAQ</a>
-  <a class="tab" href="privacy-policy.html">Privacy Policy</a>
-  <a class="tab" href="terms.html">Terms of Service</a>
-  <a class="tab" href="contact.html">Contact</a>
-</nav>
 
-
-
-<section id="adsense-content" class="info">
-  <h3>Image Tools: Why it Matters</h3>
-  <ul>
-    <li>Convert PNG↔JPG↔WebP without uploads—handy for ecommerce listings and faster pages.</li>
-    <li>Batch compress large photos while keeping quality readable for web.</li>
-    <li>Make crisp PDFs from images (and back again) for forms, receipts, and coursework.</li>
-  </ul>
-</section>
-<!-- Sponsored Header Bar (dismissible) -->
-<div id="sponsored-bar" role="banner" aria-label="Sponsored and built by Knack.bz"
-     style="position:sticky; top:0; z-index:9999; width:100%;
-            background:#0f1117; color:#e5e7eb; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-            border-bottom:1px solid #1f2430;">
-  <div style="max-width:1200px; margin:0 auto; padding:10px 10px; display:flex; align-items:center; justify-content:center; gap:.5rem;">
-    <span style="opacity:.9;">Sponsored by</span>
-    <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer"
-       style="color:#7dd3fc; text-decoration:none; font-weight:600;">
-      Knack.bz
-    </a>
-    <button aria-label="Dismiss sponsor bar"
-            onclick="document.getElementById('sponsored-bar').style.display='none'"
-            style="margin-left:auto; background:transparent; border:none; color:#9aa4b2; cursor:pointer; font-size:16px; line-height:1;">
-      ✕
-    </button>
-  </div>
-</div>
-
-
-<main class="container">
-
-
-  <!-- ===== Tool UI shell (keep your existing JS hooked here) ===== -->
-  <section id="image-tool" class="panel">
-    <div id="tool-shell" class="card">
-      <h2>Start Converting</h2>
-      <p>Files stay on your device. Choose format, size, and quality — then convert.</p>
-
-      <!-- Hook your existing inputs/buttons here or keep these as fallback controls -->
-      <div id="tool-actions">
-        <input type="file" id="files" accept="image/*" multiple>
-        <label>Format
-          <select id="format">
-            <option value="jpeg">JPEG</option>
-            <option value="png">PNG</option>
-            <option value="webp">WebP</option>
-            <option value="avif">AVIF</option>
-          </select>
-        </label>
-        <label>Quality
-          <select id="quality">
-            <option>80</option><option>85</option><option selected>90</option><option>95</option>
-          </select>
-        </label>
-        <label>Max width <input type="number" id="maxw" placeholder="e.g., 1600"></label>
-        <label>Max height <input type="number" id="maxh" placeholder="e.g., 1600"></label>
-        <button id="convert">Convert Selected</button>
-      </div>
-
-      <div id="results" aria-live="polite">Results will appear here after conversion.</div>
-      <!-- Your existing JS can replace this shell or bind to these IDs -->
-    </div>
-  </section>
-
-  <!-- ===== Informational content AdSense reviewers like ===== -->
-  <section class="panel">
-    <div class="card" id="img-intro">
-      <h2 class="section-title">Convert & Optimize Images — Privately, In Your Browser</h2>
-      <p>This tool converts and resizes images on your device. No uploads, no waiting — just fast results for JPG, PNG, WebP, AVIF, GIF, HEIC/HEIF, TIFF, SVG, and more.</p>
-      <ul>
-        <li><strong>Keep transparency:</strong> PNG and WebP preserve alpha channels.</li>
-        <li><strong>Batch friendly:</strong> Select multiple images, set quality/size once, convert all.</li>
-        <li><strong>Creator-ready:</strong> Export the right format for web, social, print, and e-commerce.</li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="panel">
-    <div class="card" id="img-quick-start">
-      <h3 class="section-title">How to Use</h3>
-      <ol>
-        <li>Click <em>Select Files</em> (or drag-and-drop images).</li>
-        <li>Choose an output format (PNG, JPEG, WebP, AVIF) and set <em>Quality</em>, <em>Max width</em>, and <em>Max height</em>.</li>
-        <li>Optional: For <strong>TIFF</strong>, enable “Convert all pages.” For <strong>HEIC/HEIF</strong>, load the decoder when prompted.</li>
-        <li>Press <em>Convert Selected</em>, then download from <em>Results</em>.</li>
-      </ol>
-      <p class="note">Everything runs locally in your browser for speed and privacy.</p>
-    </div>
-  </section>
-
-  <section class="panel">
-    <div class="card" id="img-format-guide">
-      <h3 class="section-title">Choose the Best Format</h3>
-      <div style="overflow:auto">
-        <table style="width:100%;border-collapse:collapse">
-          <thead>
-            <tr>
-              <th style="text-align:left;border-bottom:1px solid #263044;padding:8px">Format</th>
-              <th style="text-align:left;border-bottom:1px solid #263044;padding:8px">Best For</th>
-              <th style="text-align:left;border-bottom:1px solid #263044;padding:8px">Pros</th>
-              <th style="text-align:left;border-bottom:1px solid #263044;padding:8px">Watch Outs</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style="padding:8px"><strong>JPEG (JPG)</strong></td>
-              <td style="padding:8px">Photos, social posts</td>
-              <td style="padding:8px">Small files at good quality; wide support</td>
-              <td style="padding:8px">Lossy; no transparency; avoid heavy recompression</td>
-            </tr>
-            <tr>
-              <td style="padding:8px"><strong>PNG</strong></td>
-              <td style="padding:8px">Logos, UI, graphics, screenshots</td>
-              <td style="padding:8px">Lossless; <em>preserves transparency</em></td>
-              <td style="padding:8px">Larger files for photos</td>
-            </tr>
-            <tr>
-              <td style="padding:8px"><strong>WebP</strong></td>
-              <td style="padding:8px">Modern web images, mixed content</td>
-              <td style="padding:8px">High quality at small size; supports transparency</td>
-              <td style="padding:8px">Old browsers may lack support</td>
-            </tr>
-            <tr>
-              <td style="padding:8px"><strong>AVIF</strong></td>
-              <td style="padding:8px">Cutting-edge web performance</td>
-              <td style="padding:8px">Excellent compression and quality</td>
-              <td style="padding:8px">Browser support varies; slower to encode</td>
-            </tr>
-            <tr>
-              <td style="padding:8px"><strong>GIF</strong></td>
-              <td style="padding:8px">Simple animations, tiny icons</td>
-              <td style="padding:8px">Wide support; simple</td>
-              <td style="padding:8px">Large for photos; limited colors; first frame only when converting</td>
-            </tr>
-            <tr>
-              <td style="padding:8px"><strong>TIFF</strong></td>
-              <td style="padding:8px">Scans, multi-page docs</td>
-              <td style="padding:8px">High fidelity; can hold multiple pages</td>
-              <td style="padding:8px">Big files; convert to PNG/JPG/WebP for sharing</td>
-            </tr>
-            <tr>
-              <td style="padding:8px"><strong>SVG</strong></td>
-              <td style="padding:8px">Logos & icons (vector)</td>
-              <td style="padding:8px">Infinite scaling; tiny files for line art</td>
-              <td style="padding:8px">Rasterize to PNG for social or thumbnails</td>
-            </tr>
-          </tbody>
-        </table>
+  <header>
+    <h1 class="glow-title">Image Converter & Resizer</h1>
+    <p class="sub">Convert & optimize images privately in your browser — no uploads.</p>
+    <div class="container">
+      <div class="chips">
+        <span class="chip">HEIC → JPG</span><span class="chip">PNG ↔ JPG</span>
+        <span class="chip">PNG/WebP Transparency</span><span class="chip">Batch Convert</span>
+        <span class="chip">Resize & Compress</span><span class="chip">AVIF/WebP</span>
       </div>
     </div>
+  </header>
+
+  <!-- Consistent sitewide navigation -->
+  <nav class="tabs">
+    <a class="tab" href="index.html">Home</a>
+    <a class="tab" href="audio.html">Audio</a>
+    <a class="tab" href="video.html">Video</a>
+    <a class="tab active" href="images.html" aria-current="page">Images</a>
+    <a class="tab" href="pdf.html">PDF</a>
+    <a class="tab" href="data.html">GPS Data</a>
+    <a class="tab" href="json.html">JSON</a>
+    <a class="tab" href="archive.html">Archive</a>
+    <a class="tab" href="docx.html">DOCX</a>
+    <a class="tab" href="background_remover.html">Remove Background</a>
+    <a class="tab" href="gps.html">GPS</a>
+    <a class="tab" href="gps-file-guide.html">GPS Guide</a>
+    <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
+    <a class="tab" href="image-file-guide.html">Image Guide</a>
+    <a class="tab" href="audio-file-guide.html">Audio Guide</a>
+    <a class="tab" href="video-file-guide.html">Video Guide</a>
+    <a class="tab" href="about.html">About</a>
+    <a class="tab" href="faq.html">FAQ</a>
+    <a class="tab" href="privacy-policy.html">Privacy Policy</a>
+    <a class="tab" href="terms.html">Terms of Service</a>
+    <a class="tab" href="contact.html">Contact</a>
+  </nav>
+
+  <!-- Short context block (good for AdSense relevance) -->
+  <section id="adsense-content" class="info container" style="margin-top:16px">
+    <h3>Image Tools: Why It Matters</h3>
+    <ul>
+      <li>Convert PNG ↔ JPG ↔ WebP without uploads — perfect for e-commerce, resumes, and social posts.</li>
+      <li>Batch compress large photos while keeping them crisp for the web.</li>
+      <li>Keep transparency for product cutouts (PNG/WebP) and export modern AVIF for ultra-small pages.</li>
+    </ul>
+    <p class="note" style="color:var(--muted)">Everything runs locally in your browser for privacy and speed.</p>
   </section>
 
-  <section class="panel">
-    <div class="card" id="img-pro-tips">
-      <h3 class="section-title">Pro Tips for Best Results</h3>
-      <ul>
-        <li><strong>Right-size first:</strong> Set <em>Max width/height</em> to the largest display size you need — smaller images load faster.</li>
-        <li><strong>Use sRGB:</strong> For web, stick to sRGB for consistent colors across devices.</li>
-        <li><strong>Preserve transparency:</strong> Choose PNG or WebP when you need transparent backgrounds.</li>
-        <li><strong>Dial quality smartly:</strong> For JPEG/WebP, start around 80–85 quality; drop a bit if file size matters.</li>
-        <li><strong>Batch workflows:</strong> Convert multiple images at once for consistent sizes and quality.</li>
-        <li><strong>Large images:</strong> Close heavy tabs and keep this tab focused to give your browser more memory/CPU.</li>
-      </ul>
+  <main class="container">
+    <!-- Tool UI -->
+    <section id="image-tool" class="panel">
+      <div id="tool-shell" class="card">
+        <h2>Start Converting</h2>
+        <p>Choose files, set format/quality/size, then convert. Results appear below with previews & downloads.</p>
+
+        <div id="tool-actions">
+          <input type="file" id="files" accept="image/*" multiple>
+          <label>Format
+            <select id="format">
+              <option value="jpeg">JPEG</option>
+              <option value="png">PNG</option>
+              <option value="webp">WebP</option>
+              <option value="avif">AVIF</option>
+            </select>
+          </label>
+          <label>Quality
+            <select id="quality">
+              <option>80</option><option>85</option><option selected>90</option><option>95</option>
+            </select>
+          </label>
+          <label>Max width <input type="number" id="maxw" placeholder="e.g., 1600"></label>
+          <label>Max height <input type="number" id="maxh" placeholder="e.g., 1600"></label>
+          <button id="convert">Convert Selected</button>
+        </div>
+
+        <div id="results" aria-live="polite">Results will appear here after conversion.</div>
+      </div>
+    </section>
+
+    <!-- Helpful content (AdSense friendly) -->
+    <section class="panel">
+      <div class="card" id="img-intro">
+        <h2 class="section-title">Convert & Optimize Images — Privately, In Your Browser</h2>
+        <p>This tool converts and resizes images on your device. No uploads, no waiting — just fast results for JPG, PNG, WebP, AVIF, GIF, HEIC/HEIF, TIFF, SVG, and more.</p>
+        <ul>
+          <li><strong>Keep transparency:</strong> PNG and WebP preserve alpha channels.</li>
+          <li><strong>Batch friendly:</strong> Select multiple images, set quality/size once, convert all.</li>
+          <li><strong>Creator-ready:</strong> Export the right format for web, social, print, and e-commerce.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="card" id="img-quick-start">
+        <h3 class="section-title">How to Use</h3>
+        <ol>
+          <li>Click <em>Select Files</em> (or drag-and-drop images if your browser prompts).</li>
+          <li>Choose an output format (PNG, JPEG, WebP, AVIF) and set <em>Quality</em>, <em>Max width</em>, and <em>Max height</em>.</li>
+          <li>Optional: For <strong>HEIC/HEIF</strong>, your browser may need a decoder. We can add a polyfill on request.</li>
+          <li>Press <em>Convert Selected</em>, then download from <em>Results</em>.</li>
+        </ol>
+        <p class="note" style="color:var(--muted)">If your browser can’t encode AVIF/WebP, we automatically fall back (usually to PNG or JPEG).</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="card" id="img-format-guide">
+        <h3 class="section-title">Choose the Best Format</h3>
+        <div style="overflow:auto">
+          <table class="guide">
+            <thead>
+              <tr>
+                <th>Format</th><th>Best For</th><th>Pros</th><th>Watch Outs</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>JPEG (JPG)</strong></td><td>Photos, social posts</td><td>Small files at good quality; wide support</td><td>Lossy; no transparency; avoid heavy recompression</td></tr>
+              <tr><td><strong>PNG</strong></td><td>Logos, UI, graphics, screenshots</td><td>Lossless; preserves transparency</td><td>Larger files for photos</td></tr>
+              <tr><td><strong>WebP</strong></td><td>Modern web images, mixed content</td><td>High quality at small size; supports transparency</td><td>Older browsers may lack support</td></tr>
+              <tr><td><strong>AVIF</strong></td><td>Cutting-edge web performance</td><td>Excellent compression and quality</td><td>Encoder support varies; slower to encode</td></tr>
+              <tr><td><strong>GIF</strong></td><td>Simple animations, tiny icons</td><td>Wide support; simple</td><td>Large for photos; limited colors; first frame only when converting</td></tr>
+              <tr><td><strong>TIFF</strong></td><td>Scans, multi-page docs</td><td>High fidelity; can hold multiple pages</td><td>Big files; convert to PNG/JPG/WebP for sharing</td></tr>
+              <tr><td><strong>SVG</strong></td><td>Logos & icons (vector)</td><td>Infinite scaling; tiny for line art</td><td>Rasterize to PNG for thumbnails/social</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="card" id="img-pro-tips">
+        <h3 class="section-title">Pro Tips</h3>
+        <ul>
+          <li><strong>Right-size:</strong> Set <em>Max width/height</em> to your largest display size for faster pages.</li>
+          <li><strong>Preserve transparency:</strong> Use PNG/WebP for product cutouts and UI.</li>
+          <li><strong>Smart quality:</strong> Start JPEG/WebP around 80–85; raise only if needed.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="card" id="img-use-cases">
+        <h3 class="section-title">Use-Case Playbooks</h3>
+        <p><strong>E-commerce:</strong> Remove background → export PNG/WebP with transparency → 1200×1200 product shots → compress.</p>
+        <p><strong>Portfolios:</strong> Convert big PNGs to JPEG at quality 80 → cap width at 1600px.</p>
+        <p><strong>Docs & blogs:</strong> Export charts as PNG (sharp text) → compress → insert into DOCX/HTML.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="card" id="img-faq">
+        <h3 class="section-title">Troubleshooting & FAQs</h3>
+        <p><strong>Why did my animation stop?</strong> Conversions use the first frame of animated GIFs.</p>
+        <p><strong>Images look dull?</strong> Ensure sRGB; wide-gamut sources may shift on web.</p>
+        <p><strong>Max file size?</strong> Depends on device memory. Downscale via Max width/height for huge images.</p>
+        <p><strong>Uploads?</strong> None. Everything runs locally in your browser.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="card" id="related-img">
+        <h3 class="section-title">Related Tools</h3>
+        <ul>
+          <li><a href="background_remover.html" style="color:var(--brand)">Remove Image Background</a></li>
+          <li><a href="pdf.html" style="color:var(--brand)">Make a PDF from Images</a></li>
+          <li><a href="archive.html" style="color:var(--brand)">ZIP / Unzip Images</a></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <nav style="display:flex;flex-wrap:wrap;justify-content:center;gap:20px;margin-bottom:10px;">
+        <a href="about.html" style="color:var(--brand);text-decoration:none;">About</a>
+        <a href="faq.html" style="color:var(--brand);text-decoration:none;">FAQ</a>
+        <a href="privacy-policy.html" style="color:var(--brand);text-decoration:none;">Privacy Policy</a>
+        <a href="terms.html" style="color:var(--brand);text-decoration:none;">Terms of Service</a>
+        <a href="contact.html" style="color:var(--brand);text-decoration:none;">Contact</a>
+      </nav>
+      <p>© <span id="year"></span> File Converter — Cyber Edition</p>
     </div>
-  </section>
+  </footer>
+  <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
 
-  <section class="panel">
-    <div class="card" id="img-use-cases">
-      <h3 class="section-title">Use-Case Playbooks</h3>
-      <p><strong>E-commerce:</strong> Remove background → export PNG/WebP with transparency → create 1200×1200 product shots → compress.</p>
-      <p><strong>Portfolio & resumes:</strong> Convert large PNGs to JPEG at quality 80 → cap at 1600px width for fast loading.</p>
-      <p><strong>Blog & docs:</strong> Export charts/diagrams as PNG (sharp text) → compress → insert into DOCX/HTML.</p>
-      <p><strong>Social posts:</strong> Convert to JPG/WebP → standardize widths (e.g., 1080–2048px) → keep under a few MB for quick upload.</p>
-    </div>
-  </section>
+  <!-- Images tool logic (self-contained) -->
+  <script>
+  (function(){
+    const pick = (ids)=>{ for(const id of ids){ const el=document.getElementById(id); if(el) return el; } return null; };
+    const fileInput = pick(['files','img-input']);
+    const fmtSel    = pick(['format']);
+    const qualEl    = pick(['quality','quality-range','quality-input']);
+    const maxWEl    = pick(['maxw','max-width']);
+    const maxHEl    = pick(['maxh','max-height']);
+    const runBtn    = pick(['convert','run-convert']);
+    const resultsEl = pick(['results','images-preview']);
+    if(!fileInput || !fmtSel || !runBtn || !resultsEl){ console.warn('images: missing IDs'); return; }
 
-  <section class="panel">
-    <div class="card" id="img-faq">
-      <h3 class="section-title">Troubleshooting & FAQs</h3>
-      <p><strong>HEIC/HEIF won’t open?</strong> Load the HEIC decoder when prompted, then re-select your files.</p>
-      <p><strong>Why did my animation stop?</strong> Conversions use the first frame of animated GIFs. Export as MP4/WebP for animation workflows.</p>
-      <p><strong>Images look dull after export?</strong> Ensure your source is sRGB; converting wide-gamut images to web may change appearance.</p>
-      <p><strong>What’s the max file size?</strong> It depends on your device memory. For huge images, downscale using Max width/height.</p>
-      <p><strong>Are my files uploaded?</strong> No. Everything runs locally in your browser.</p>
-    </div>
-  </section>
+    function getQuality01(){
+      if(!qualEl) return 0.9;
+      if(qualEl.tagName === 'SELECT'){
+        const v = Number(qualEl.value || '90'); return Math.max(0.1, Math.min(1, v/100));
+      }
+      const v = Number(qualEl.value || '0.9'); return v>1 ? Math.max(0.1, Math.min(1, v/100)) : Math.max(0.1, Math.min(1, v));
+    }
+    function getMaxes(){
+      const mw = Number((maxWEl && maxWEl.value) || 0) || 0;
+      const mh = Number((maxHEl && maxHEl.value) || 0) || 0;
+      return {mw:mw, mh:mh};
+    }
+    function scaleWH(w,h,mw,mh){
+      if ((mw<=0 && mh<=0) || ((mw<=0 || w<=mw) && (mh<=0 || h<=mh))) return {w,h};
+      const rW = mw>0 ? mw/w : 1, rH = mh>0 ? mh/h : 1, r = Math.min(rW, rH);
+      return { w: Math.max(1, Math.round(w*r)), h: Math.max(1, Math.round(h*r)) };
+    }
+    async function loadImageFromFile(file){
+      const url = URL.createObjectURL(file);
+      try{
+        const bmp = await createImageBitmap(file);
+        return { draw:(c)=>{ const ctx=c.getContext('2d'); ctx.drawImage(bmp,0,0,c.width,c.height); }, w:bmp.width, h:bmp.height, release:()=>bmp.close(), url };
+      }catch{
+        const im = await new Promise((res,rej)=>{ const img=new Image(); img.onload=()=>res(img); img.onerror=rej; img.src=url; });
+        return { draw:(c)=>{ const ctx=c.getContext('2d'); ctx.drawImage(im,0,0,c.width,c.height); }, w:im.naturalWidth, h:im.naturalHeight, release:()=>{}, url };
+      }
+    }
+    function canvasOf(w,h){ const c=document.createElement('canvas'); c.width=w; c.height=h; return c; }
+    async function canvasToBlobSmart(canvas, mime, quality){
+      const blob = await new Promise(res=>canvas.toBlob(res, mime, quality));
+      if (blob) return blob;
+      const fallback = mime==='image/avif' ? 'image/webp' : 'image/png';
+      const blob2 = await new Promise(res=>canvas.toBlob(res, fallback, quality));
+      if (blob2) return blob2;
+      const dataURL = canvas.toDataURL(fallback);
+      const resp = await fetch(dataURL);
+      return await resp.blob();
+    }
+    function chosenMimeAndExt(fmt){
+      switch((fmt||'').toLowerCase()){
+        case 'png':  return { mime:'image/png',  ext:'png'  };
+        case 'webp': return { mime:'image/webp', ext:'webp' };
+        case 'avif': return { mime:'image/avif', ext:'avif' };
+        case 'jpeg':
+        case 'jpg':
+        default:     return { mime:'image/jpeg', ext:'jpg'  };
+      }
+    }
+    function resultCard(name, metaText, url){
+      const card = document.createElement('div');
+      card.style.border='1px solid var(--line)';
+      card.style.borderRadius='8px';
+      card.style.padding='10px';
+      card.style.margin='10px 0';
+      card.style.background='#0c1624';
 
-  <section class="panel">
-    <div class="card" id="related-img">
-      <h3 class="section-title">Related Tools</h3>
-      <ul>
-        <li><a href="/background_remover.html" style="color:#7dd3fc">Remove Image Background</a></li>
-        <li><a href="/pdf.html" style="color:#7dd3fc">Make a PDF from Images</a></li>
-        <li><a href="/archive.html" style="color:#7dd3fc">ZIP / Unzip Images</a></li>
-      </ul>
-    </div>
-  </section>
-</main>
+      const meta=document.createElement('div');
+      meta.className='small';
+      meta.style.color='var(--muted)';
+      meta.textContent=metaText;
 
-<footer>
-  <div class="container">
-    <nav style="display:flex;flex-wrap:wrap;justify-content:center;gap:20px;margin-bottom:10px;">
-      <a href="about.html" style="color:#7dd3fc;text-decoration:none;">About</a>
-      <a href="faq.html" style="color:#7dd3fc;text-decoration:none;">FAQ</a>
-      <a href="privacy-policy.html" style="color:#7dd3fc;text-decoration:none;">Privacy Policy</a>
-      <a href="terms.html" style="color:#7dd3fc;text-decoration:none;">Terms of Service</a>
-      <a href="contact.html" style="color:#7dd3fc;text-decoration:none;">Contact</a>
-    </nav>
-    <p>© <span id="year"></span> File Converter — Cyber Edition</p>
-  </div>
-</footer>
-<script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+      const img=document.createElement('img');
+      img.src=url; img.alt=name; img.style.maxWidth='100%'; img.style.display='block'; img.style.margin='8px 0';
 
-<!-- Optional: Hook your existing tool JS here -->
-<script src="js/utils.js"></script>
-<script src="js/images-tool.js"></script>
+      const a=document.createElement('a');
+      a.href=url; a.download=name; a.textContent='Download '+name;
+      a.style.display='inline-block'; a.style.marginRight='8px'; a.style.color='white'; a.style.textDecoration='none';
+      a.style.background='var(--brand)'; a.style.padding='6px 10px'; a.style.borderRadius='8px'; a.style.color='#0f1117';
+
+      card.appendChild(meta); card.appendChild(img); card.appendChild(a);
+      return card;
+    }
+
+    runBtn.addEventListener('click', async ()=>{
+      const files = Array.from(fileInput.files||[]);
+      if(!files.length){ alert('Choose one or more images first.'); return; }
+      resultsEl.innerHTML = '';
+
+      const fmt = (fmtSel.value || 'jpeg').toLowerCase();
+      const { mime, ext } = chosenMimeAndExt(fmt);
+      const q = getQuality01();
+      const { mw, mh } = getMaxes();
+
+      for (const f of files){
+        try{
+          const src = await loadImageFromFile(f);
+          const {w,h} = scaleWH(src.w, src.h, mw, mh);
+          const canvas = canvasOf(w,h);
+          src.draw(canvas);
+
+          let outBlob = await canvasToBlobSmart(canvas, mime, q);
+          let outExt  = ext;
+          if (outBlob.type && outBlob.type !== mime) {
+            if (outBlob.type === 'image/png')  outExt='png';
+            if (outBlob.type === 'image/jpeg') outExt='jpg';
+            if (outBlob.type === 'image/webp') outExt='webp';
+            if (outBlob.type === 'image/avif') outExt='avif';
+          }
+
+          const base = f.name.replace(/\.[^.]+$/,'');
+          const outName = `${base}.${outExt}`;
+          const outUrl = URL.createObjectURL(outBlob);
+          const meta = `Input: ${f.name}  |  ${src.w}×${src.h} → ${w}×${h}  |  Format: ${outExt.toUpperCase()}`;
+          resultsEl.appendChild(resultCard(outName, meta, outUrl));
+          src.release();
+        }catch(e){
+          const err = document.createElement('div');
+          err.style.color='#fda4af';
+          err.textContent = `Failed: ${f.name} — ${e?.message||e}`;
+          resultsEl.appendChild(err);
+        }
+      }
+      window.scrollTo({ top: document.body.scrollHeight, behavior:'smooth' });
+    });
+  })();
+  </script>
 </body>
 </html>
