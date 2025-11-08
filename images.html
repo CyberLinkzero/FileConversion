@@ -4,10 +4,9 @@
   <!-- Tawk.to -->
   <script type="text/javascript">
   var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-  (function(){
-    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-    s1.async=true; s1.src='https://embed.tawk.to/6906c86e40b306194f3da6e5/1j917ts2m';
-    s1.charset='UTF-8'; s1.setAttribute('crossorigin','*'); s0.parentNode.insertBefore(s1,s0);
+  (function(){var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true;s1.src='https://embed.tawk.to/6906c86e40b306194f3da6e5/1j917ts2m';
+    s1.charset='UTF-8';s1.setAttribute('crossorigin','*');s0.parentNode.insertBefore(s1,s0);
   })();
   </script>
 
@@ -19,7 +18,7 @@
     gtag('js', new Date()); gtag('config', 'G-W25SYMTSSR');
   </script>
 
-  <!-- Google AdSense Auto Ads -->
+  <!-- AdSense Auto Ads -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9800485035530027" crossorigin="anonymous"></script>
   <meta name="google-adsense-account" content="ca-pub-9800485035530027"/>
 
@@ -30,22 +29,18 @@
   <link rel="stylesheet" href="site.css"/>
 
   <style>
-    /* ——— Cyber look & layout ——— */
-    :root{
-      --bg:#0f1117; --panel:#1a1f2c; --line:#263044; --brand:#7dd3fc; --muted:#9aa4b2;
-    }
+    :root{ --bg:#0f1117; --panel:#1a1f2c; --line:#263044; --brand:#7dd3fc; --muted:#9aa4b2; }
     html,body{margin:0;background:var(--bg);color:#fff;font-family:Arial,Helvetica,sans-serif;}
     header{text-align:center;padding:22px 0;border-bottom:1px solid #1f2430;}
     .glow-title{
-      font-size: clamp(1.8rem, 3.5vw, 2.6rem); font-weight:800; margin:8px 0 6px;
-      letter-spacing:.3px;
+      font-size: clamp(1.8rem, 3.5vw, 2.6rem); font-weight:800; margin:8px 0 6px; letter-spacing:.3px;
       background:linear-gradient(90deg,#00ffff,#7dd3fc,#a78bfa,#ff00ff,#00ffcc,#00ffff);
-      -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+      -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
       text-shadow:0 0 6px rgba(125,211,252,.45),0 0 12px rgba(125,211,252,.25),0 0 30px rgba(167,139,250,.2);
       animation:cyberPulse 3s ease-in-out infinite alternate, gradientShift 6s linear infinite;
       background-size:400% auto;
     }
-    @keyframes cyberPulse{from{text-shadow:0 0 4px rgba(125,211,252,.25),0 0 8px rgba(125,211,252,.18),0 0 12px rgba(167,139,250,.12)} to{ text-shadow:0 0 10px rgba(125,211,252,.6),0 0 20px rgba(125,211,252,.4),0 0 30px rgba(255,0,255,.28)}}
+    @keyframes cyberPulse{from{ text-shadow:0 0 4px rgba(125,211,252,.25),0 0 8px rgba(125,211,252,.18),0 0 12px rgba(167,139,250,.12)} to{ text-shadow:0 0 10px rgba(125,211,252,.6),0 0 20px rgba(125,211,252,.4),0 0 30px rgba(255,0,255,.28)}}
     @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
     header p.sub{opacity:.9;margin:0 0 10px;color:#e5e7eb}
 
@@ -59,19 +54,20 @@
     .chips{display:flex;flex-wrap:wrap;gap:8px;padding:10px 0}
     .chip{background:#101826;border:1px solid var(--line);padding:6px 10px;border-radius:999px;font-size:.9rem;color:#e5e7eb}
 
-    /* Tool shell */
-    #image-tool{background:#0f1117;padding:12px 0}
-    #tool-shell{background:#141a26;border:1px dashed var(--line);border-radius:12px;padding:16px}
-    #tool-shell h2{margin:0 0 8px;color:var(--brand)}
-    #tool-shell p{margin:0 0 10px;color:#e5e7eb}
-    #tool-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
-    #tool-actions input, #tool-actions select, #tool-actions button{
+    /* Tool */
+    #fc-tool{background:#0f1117;padding:12px 0}
+    #fc-shell{background:#141a26;border:1px dashed var(--line);border-radius:12px;padding:16px}
+    #fc-shell h2{margin:0 0 8px;color:var(--brand)}
+    #fc-shell p{margin:0 0 10px;color:#e5e7eb}
+    #fc-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
+    #fc-actions input, #fc-actions select, #fc-actions button{
       background:#0f1117;color:#e5e7eb;border:1px solid var(--line);border-radius:10px;padding:8px 10px
     }
-    #tool-actions button:hover{background:var(--brand);color:#0f1117;cursor:pointer}
-    #results{margin-top:14px;min-height:60px;background:#0f1117;border:1px solid var(--line);border-radius:10px;padding:10px}
+    #fc-actions button:hover{background:var(--brand);color:#0f1117;cursor:pointer}
+    #fc-results{margin-top:14px;min-height:60px;background:#0f1117;border:1px solid var(--line);border-radius:10px;padding:10px}
+    #fc-log{margin-top:10px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size:.9rem; color:#cbd5e1; white-space:pre-wrap; background:#0c1624; border:1px solid var(--line); border-radius:8px; padding:10px}
 
-    /* AdSense-friendly info block */
+    /* AdSense-friendly info */
     .info{max-width:1100px;margin:18px auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;color:#e6edf3}
     .info h3{margin:0 0 8px;color:var(--brand)}
     .info p{margin:6px 0 0}
@@ -86,13 +82,10 @@
 <body>
   <!-- Sponsored Header Bar (dismissible) -->
   <div id="sponsored-bar" role="banner" aria-label="Sponsored and built by Knack.bz"
-       style="position:sticky; top:0; z-index:9999; width:100%;
-              background:#0f1117; color:#e5e7eb; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-              border-bottom:1px solid #1f2430;">
+       style="position:sticky; top:0; z-index:9999; width:100%; background:#0f1117; color:#e5e7eb; border-bottom:1px solid #1f2430;">
     <div style="max-width:1200px; margin:0 auto; padding:10px 10px; display:flex; align-items:center; justify-content:center; gap:.5rem;">
       <span style="opacity:.9;">Sponsored by</span>
-      <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer"
-         style="color:#7dd3fc; text-decoration:none; font-weight:600;">Knack.bz</a>
+      <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer" style="color:#7dd3fc; text-decoration:none; font-weight:600;">Knack.bz</a>
       <button aria-label="Dismiss sponsor bar"
               onclick="document.getElementById('sponsored-bar').style.display='none'"
               style="margin-left:auto; background:transparent; border:none; color:#9aa4b2; cursor:pointer; font-size:16px; line-height:1;">✕</button>
@@ -136,28 +129,28 @@
     <a class="tab" href="contact.html">Contact</a>
   </nav>
 
-  <!-- Short context block (good for AdSense relevance) -->
-  <section id="adsense-content" class="info container" style="margin-top:16px">
+  <!-- AdSense-friendly context -->
+  <section class="info container" style="margin-top:16px">
     <h3>Image Tools: Why It Matters</h3>
     <ul>
       <li>Convert PNG ↔ JPG ↔ WebP without uploads — perfect for e-commerce, resumes, and social posts.</li>
       <li>Batch compress large photos while keeping them crisp for the web.</li>
-      <li>Keep transparency for product cutouts (PNG/WebP) and export modern AVIF for ultra-small pages.</li>
+      <li>Keep transparency for product cutouts (PNG/WebP) and export AVIF for ultra-small pages.</li>
     </ul>
-    <p class="note" style="color:var(--muted)">Everything runs locally in your browser for privacy and speed.</p>
+    <p style="color:var(--muted)">Everything runs locally in your browser for privacy and speed.</p>
   </section>
 
   <main class="container">
-    <!-- Tool UI -->
-    <section id="image-tool" class="panel">
-      <div id="tool-shell" class="card">
+    <!-- Tool -->
+    <section id="fc-tool" class="panel">
+      <div id="fc-shell" class="card">
         <h2>Start Converting</h2>
-        <p>Choose files, set format/quality/size, then convert. Results appear below with previews & downloads.</p>
+        <p>Choose files, set format/quality/size, then convert. Results show below with previews & downloads.</p>
 
-        <div id="tool-actions">
-          <input type="file" id="files" accept="image/*" multiple>
+        <div id="fc-actions">
+          <input type="file" id="fc-files" accept="image/*" multiple>
           <label>Format
-            <select id="format">
+            <select id="fc-format">
               <option value="jpeg">JPEG</option>
               <option value="png">PNG</option>
               <option value="webp">WebP</option>
@@ -165,106 +158,28 @@
             </select>
           </label>
           <label>Quality
-            <select id="quality">
+            <select id="fc-quality">
               <option>80</option><option>85</option><option selected>90</option><option>95</option>
             </select>
           </label>
-          <label>Max width <input type="number" id="maxw" placeholder="e.g., 1600"></label>
-          <label>Max height <input type="number" id="maxh" placeholder="e.g., 1600"></label>
-          <button id="convert">Convert Selected</button>
+          <label>Max width <input type="number" id="fc-maxw" placeholder="e.g., 1600"></label>
+          <label>Max height <input type="number" id="fc-maxh" placeholder="e.g., 1600"></label>
+          <button id="fc-convert" type="button">Convert Selected</button>
         </div>
 
-        <div id="results" aria-live="polite">Results will appear here after conversion.</div>
+        <div id="fc-results" aria-live="polite">Results will appear here after conversion.</div>
+        <div id="fc-log" aria-live="polite" role="status"></div>
       </div>
     </section>
 
-    <!-- Helpful content (AdSense friendly) -->
+    <!-- Helpful content -->
     <section class="panel">
-      <div class="card" id="img-intro">
-        <h2 class="section-title">Convert & Optimize Images — Privately, In Your Browser</h2>
-        <p>This tool converts and resizes images on your device. No uploads, no waiting — just fast results for JPG, PNG, WebP, AVIF, GIF, HEIC/HEIF, TIFF, SVG, and more.</p>
+      <div class="card">
+        <h3 class="section-title">Quick Tips</h3>
         <ul>
-          <li><strong>Keep transparency:</strong> PNG and WebP preserve alpha channels.</li>
-          <li><strong>Batch friendly:</strong> Select multiple images, set quality/size once, convert all.</li>
-          <li><strong>Creator-ready:</strong> Export the right format for web, social, print, and e-commerce.</li>
-        </ul>
-      </div>
-    </section>
-
-    <section class="panel">
-      <div class="card" id="img-quick-start">
-        <h3 class="section-title">How to Use</h3>
-        <ol>
-          <li>Click <em>Select Files</em> (or drag-and-drop images if your browser prompts).</li>
-          <li>Choose an output format (PNG, JPEG, WebP, AVIF) and set <em>Quality</em>, <em>Max width</em>, and <em>Max height</em>.</li>
-          <li>Optional: For <strong>HEIC/HEIF</strong>, your browser may need a decoder. We can add a polyfill on request.</li>
-          <li>Press <em>Convert Selected</em>, then download from <em>Results</em>.</li>
-        </ol>
-        <p class="note" style="color:var(--muted)">If your browser can’t encode AVIF/WebP, we automatically fall back (usually to PNG or JPEG).</p>
-      </div>
-    </section>
-
-    <section class="panel">
-      <div class="card" id="img-format-guide">
-        <h3 class="section-title">Choose the Best Format</h3>
-        <div style="overflow:auto">
-          <table class="guide">
-            <thead>
-              <tr>
-                <th>Format</th><th>Best For</th><th>Pros</th><th>Watch Outs</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td><strong>JPEG (JPG)</strong></td><td>Photos, social posts</td><td>Small files at good quality; wide support</td><td>Lossy; no transparency; avoid heavy recompression</td></tr>
-              <tr><td><strong>PNG</strong></td><td>Logos, UI, graphics, screenshots</td><td>Lossless; preserves transparency</td><td>Larger files for photos</td></tr>
-              <tr><td><strong>WebP</strong></td><td>Modern web images, mixed content</td><td>High quality at small size; supports transparency</td><td>Older browsers may lack support</td></tr>
-              <tr><td><strong>AVIF</strong></td><td>Cutting-edge web performance</td><td>Excellent compression and quality</td><td>Encoder support varies; slower to encode</td></tr>
-              <tr><td><strong>GIF</strong></td><td>Simple animations, tiny icons</td><td>Wide support; simple</td><td>Large for photos; limited colors; first frame only when converting</td></tr>
-              <tr><td><strong>TIFF</strong></td><td>Scans, multi-page docs</td><td>High fidelity; can hold multiple pages</td><td>Big files; convert to PNG/JPG/WebP for sharing</td></tr>
-              <tr><td><strong>SVG</strong></td><td>Logos & icons (vector)</td><td>Infinite scaling; tiny for line art</td><td>Rasterize to PNG for thumbnails/social</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <section class="panel">
-      <div class="card" id="img-pro-tips">
-        <h3 class="section-title">Pro Tips</h3>
-        <ul>
-          <li><strong>Right-size:</strong> Set <em>Max width/height</em> to your largest display size for faster pages.</li>
-          <li><strong>Preserve transparency:</strong> Use PNG/WebP for product cutouts and UI.</li>
-          <li><strong>Smart quality:</strong> Start JPEG/WebP around 80–85; raise only if needed.</li>
-        </ul>
-      </div>
-    </section>
-
-    <section class="panel">
-      <div class="card" id="img-use-cases">
-        <h3 class="section-title">Use-Case Playbooks</h3>
-        <p><strong>E-commerce:</strong> Remove background → export PNG/WebP with transparency → 1200×1200 product shots → compress.</p>
-        <p><strong>Portfolios:</strong> Convert big PNGs to JPEG at quality 80 → cap width at 1600px.</p>
-        <p><strong>Docs & blogs:</strong> Export charts as PNG (sharp text) → compress → insert into DOCX/HTML.</p>
-      </div>
-    </section>
-
-    <section class="panel">
-      <div class="card" id="img-faq">
-        <h3 class="section-title">Troubleshooting & FAQs</h3>
-        <p><strong>Why did my animation stop?</strong> Conversions use the first frame of animated GIFs.</p>
-        <p><strong>Images look dull?</strong> Ensure sRGB; wide-gamut sources may shift on web.</p>
-        <p><strong>Max file size?</strong> Depends on device memory. Downscale via Max width/height for huge images.</p>
-        <p><strong>Uploads?</strong> None. Everything runs locally in your browser.</p>
-      </div>
-    </section>
-
-    <section class="panel">
-      <div class="card" id="related-img">
-        <h3 class="section-title">Related Tools</h3>
-        <ul>
-          <li><a href="background_remover.html" style="color:var(--brand)">Remove Image Background</a></li>
-          <li><a href="pdf.html" style="color:var(--brand)">Make a PDF from Images</a></li>
-          <li><a href="archive.html" style="color:var(--brand)">ZIP / Unzip Images</a></li>
+          <li>Right-size: set max width/height to your largest display size for faster pages.</li>
+          <li>Transparency: use PNG/WebP for product cutouts and UI.</li>
+          <li>Smart quality: start JPEG/WebP around 80–85; raise only if needed.</li>
         </ul>
       </div>
     </section>
@@ -284,29 +199,23 @@
   </footer>
   <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
 
-  <!-- Images tool logic (self-contained) -->
+  <!-- Self-contained logic (namespaced to avoid collisions) -->
   <script>
-  (function(){
-    const pick = (ids)=>{ for(const id of ids){ const el=document.getElementById(id); if(el) return el; } return null; };
-    const fileInput = pick(['files','img-input']);
-    const fmtSel    = pick(['format']);
-    const qualEl    = pick(['quality','quality-range','quality-input']);
-    const maxWEl    = pick(['maxw','max-width']);
-    const maxHEl    = pick(['maxh','max-height']);
-    const runBtn    = pick(['convert','run-convert']);
-    const resultsEl = pick(['results','images-preview']);
-    if(!fileInput || !fmtSel || !runBtn || !resultsEl){ console.warn('images: missing IDs'); return; }
+  window.addEventListener('DOMContentLoaded', function(){
+    const $ = (id)=>document.getElementById(id);
+    const logEl = $('fc-log');
+    const resultsEl = $('fc-results');
+
+    function log(msg){ logEl.textContent += msg + '\\n'; logEl.scrollTop = logEl.scrollHeight; }
+    function clearLog(){ logEl.textContent=''; }
 
     function getQuality01(){
-      if(!qualEl) return 0.9;
-      if(qualEl.tagName === 'SELECT'){
-        const v = Number(qualEl.value || '90'); return Math.max(0.1, Math.min(1, v/100));
-      }
-      const v = Number(qualEl.value || '0.9'); return v>1 ? Math.max(0.1, Math.min(1, v/100)) : Math.max(0.1, Math.min(1, v));
+      const v = Number(($('fc-quality').value || '90'));
+      return Math.max(0.1, Math.min(1, v/100));
     }
     function getMaxes(){
-      const mw = Number((maxWEl && maxWEl.value) || 0) || 0;
-      const mh = Number((maxHEl && maxHEl.value) || 0) || 0;
+      const mw = Number($('fc-maxw').value || 0) || 0;
+      const mh = Number($('fc-maxh').value || 0) || 0;
       return {mw:mw, mh:mh};
     }
     function scaleWH(w,h,mw,mh){
@@ -314,29 +223,8 @@
       const rW = mw>0 ? mw/w : 1, rH = mh>0 ? mh/h : 1, r = Math.min(rW, rH);
       return { w: Math.max(1, Math.round(w*r)), h: Math.max(1, Math.round(h*r)) };
     }
-    async function loadImageFromFile(file){
-      const url = URL.createObjectURL(file);
-      try{
-        const bmp = await createImageBitmap(file);
-        return { draw:(c)=>{ const ctx=c.getContext('2d'); ctx.drawImage(bmp,0,0,c.width,c.height); }, w:bmp.width, h:bmp.height, release:()=>bmp.close(), url };
-      }catch{
-        const im = await new Promise((res,rej)=>{ const img=new Image(); img.onload=()=>res(img); img.onerror=rej; img.src=url; });
-        return { draw:(c)=>{ const ctx=c.getContext('2d'); ctx.drawImage(im,0,0,c.width,c.height); }, w:im.naturalWidth, h:im.naturalHeight, release:()=>{}, url };
-      }
-    }
-    function canvasOf(w,h){ const c=document.createElement('canvas'); c.width=w; c.height=h; return c; }
-    async function canvasToBlobSmart(canvas, mime, quality){
-      const blob = await new Promise(res=>canvas.toBlob(res, mime, quality));
-      if (blob) return blob;
-      const fallback = mime==='image/avif' ? 'image/webp' : 'image/png';
-      const blob2 = await new Promise(res=>canvas.toBlob(res, fallback, quality));
-      if (blob2) return blob2;
-      const dataURL = canvas.toDataURL(fallback);
-      const resp = await fetch(dataURL);
-      return await resp.blob();
-    }
     function chosenMimeAndExt(fmt){
-      switch((fmt||'').toLowerCase()){
+      switch(String(fmt||'jpeg').toLowerCase()){
         case 'png':  return { mime:'image/png',  ext:'png'  };
         case 'webp': return { mime:'image/webp', ext:'webp' };
         case 'avif': return { mime:'image/avif', ext:'avif' };
@@ -347,71 +235,99 @@
     }
     function resultCard(name, metaText, url){
       const card = document.createElement('div');
-      card.style.border='1px solid var(--line)';
-      card.style.borderRadius='8px';
-      card.style.padding='10px';
-      card.style.margin='10px 0';
-      card.style.background='#0c1624';
+      card.style.border='1px solid var(--line)'; card.style.borderRadius='8px';
+      card.style.padding='10px'; card.style.margin='10px 0'; card.style.background='#0c1624';
 
       const meta=document.createElement('div');
-      meta.className='small';
-      meta.style.color='var(--muted)';
-      meta.textContent=metaText;
+      meta.className='small'; meta.style.color='var(--muted)'; meta.textContent=metaText;
 
       const img=document.createElement('img');
       img.src=url; img.alt=name; img.style.maxWidth='100%'; img.style.display='block'; img.style.margin='8px 0';
 
       const a=document.createElement('a');
       a.href=url; a.download=name; a.textContent='Download '+name;
-      a.style.display='inline-block'; a.style.marginRight='8px'; a.style.color='white'; a.style.textDecoration='none';
+      a.style.display='inline-block'; a.style.marginRight='8px'; a.style.textDecoration='none';
       a.style.background='var(--brand)'; a.style.padding='6px 10px'; a.style.borderRadius='8px'; a.style.color='#0f1117';
 
       card.appendChild(meta); card.appendChild(img); card.appendChild(a);
       return card;
     }
 
-    runBtn.addEventListener('click', async ()=>{
-      const files = Array.from(fileInput.files||[]);
-      if(!files.length){ alert('Choose one or more images first.'); return; }
-      resultsEl.innerHTML = '';
-
-      const fmt = (fmtSel.value || 'jpeg').toLowerCase();
-      const { mime, ext } = chosenMimeAndExt(fmt);
-      const q = getQuality01();
-      const { mw, mh } = getMaxes();
-
-      for (const f of files){
-        try{
-          const src = await loadImageFromFile(f);
-          const {w,h} = scaleWH(src.w, src.h, mw, mh);
-          const canvas = canvasOf(w,h);
-          src.draw(canvas);
-
-          let outBlob = await canvasToBlobSmart(canvas, mime, q);
-          let outExt  = ext;
-          if (outBlob.type && outBlob.type !== mime) {
-            if (outBlob.type === 'image/png')  outExt='png';
-            if (outBlob.type === 'image/jpeg') outExt='jpg';
-            if (outBlob.type === 'image/webp') outExt='webp';
-            if (outBlob.type === 'image/avif') outExt='avif';
-          }
-
-          const base = f.name.replace(/\.[^.]+$/,'');
-          const outName = `${base}.${outExt}`;
-          const outUrl = URL.createObjectURL(outBlob);
-          const meta = `Input: ${f.name}  |  ${src.w}×${src.h} → ${w}×${h}  |  Format: ${outExt.toUpperCase()}`;
-          resultsEl.appendChild(resultCard(outName, meta, outUrl));
-          src.release();
-        }catch(e){
-          const err = document.createElement('div');
-          err.style.color='#fda4af';
-          err.textContent = `Failed: ${f.name} — ${e?.message||e}`;
-          resultsEl.appendChild(err);
-        }
+    async function loadImageFromFile(file){
+      const url = URL.createObjectURL(file);
+      // Prefer createImageBitmap when available (faster, fewer CORS quirks)
+      try{
+        const bmp = await createImageBitmap(file);
+        return { w:bmp.width, h:bmp.height, draw:(c)=>c.getContext('2d').drawImage(bmp,0,0,c.width,c.height), release:()=>bmp.close(), url };
+      }catch{
+        // Fallback to Image()
+        const img = await new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=(e)=>rej(e); im.src=url; });
+        return { w:img.naturalWidth, h:img.naturalHeight, draw:(c)=>c.getContext('2d').drawImage(img,0,0,c.width,c.height), release:()=>{}, url };
       }
-      window.scrollTo({ top: document.body.scrollHeight, behavior:'smooth' });
+    }
+    function canvasOf(w,h){ const c=document.createElement('canvas'); c.width=w; c.height=h; return c; }
+    async function canvasToBlobSmart(canvas, mime, q){
+      // Try requested mime
+      let blob = await new Promise(res=>canvas.toBlob(res, mime, q));
+      if (blob) return blob;
+      // Graceful fallbacks (e.g., Safari AVIF)
+      const tries = ['image/webp','image/jpeg','image/png'];
+      for (const m of tries){
+        blob = await new Promise(res=>canvas.toBlob(res, m, q));
+        if (blob) return blob;
+      }
+      // Last resort: dataURL → blob
+      const dataURL = canvas.toDataURL('image/png');
+      const resp = await fetch(dataURL);
+      return await resp.blob();
+    }
+
+    $('fc-convert').addEventListener('click', async ()=>{
+      clearLog();
+      resultsEl.innerHTML = '';
+      try{
+        const files = Array.from(($('fc-files').files||[]));
+        if(!files.length){ alert('Choose one or more images first.'); return; }
+        const fmt = $('fc-format').value || 'jpeg';
+        const { mime, ext } = chosenMimeAndExt(fmt);
+        const q = getQuality01();
+        const { mw, mh } = getMaxes();
+        log(`Requested: ${fmt.toUpperCase()} (mime: ${mime}), quality=${q}`);
+
+        for (const f of files){
+          try{
+            log(`Reading ${f.name}…`);
+            const src = await loadImageFromFile(f);
+            const {w,h} = scaleWH(src.w, src.h, mw, mh);
+            const canvas = canvasOf(w,h);
+            src.draw(canvas);
+
+            const outBlob = await canvasToBlobSmart(canvas, mime, q);
+            let outExt = ext;
+            if (outBlob.type && outBlob.type !== mime) {
+              if (outBlob.type === 'image/png')  outExt='png';
+              if (outBlob.type === 'image/jpeg') outExt='jpg';
+              if (outBlob.type === 'image/webp') outExt='webp';
+              if (outBlob.type === 'image/avif') outExt='avif';
+            }
+            const base = f.name.replace(/\.[^.]+$/,'');
+            const outName = `${base}.${outExt}`;
+            const outUrl = URL.createObjectURL(outBlob);
+            const meta = `Input: ${f.name} | ${src.w}×${src.h} → ${w}×${h} | Output: ${outExt.toUpperCase()}`;
+            resultsEl.appendChild(resultCard(outName, meta, outUrl));
+            src.release();
+            log(`Done: ${outName}`);
+          }catch(e){
+            log(`❌ ${f.name}: ${e && e.message ? e.message : e}`);
+          }
+        }
+        window.scrollTo({ top: document.body.scrollHeight, behavior:'smooth' });
+      }catch(err){
+        log('Fatal error: ' + (err && err.message ? err.message : err));
+        alert('Image conversion failed. See the log box for details.');
+      }
     });
-  })();
+  });
   </script>
 </body>
 </html>
