@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Music → Tabs, Sheet & Vocals (Local + Cached)</title>
+<title>Music → Tabs, Sheet, Vocals & Auto-Lyrics (Local + Cached)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Analyze once, render Tabs or Sheet instantly. 100% local with OPFS caching. Optional vocal melody.">
+<meta name="description" content="Analyze once, render Tabs or Sheet instantly. 100% local with OPFS caching. Optional vocal melody and local auto-lyrics via localhost helper.">
 <style>
   :root{--bg:#0f1117;--panel:#121826;--ink:#e5f2ff;--muted:#9aa4b2;--line:#263044;--cyan:#67e8f9;--vio:#a78bfa}
   *{box-sizing:border-box} html,body{height:100%}
@@ -24,7 +24,7 @@
   textarea{width:100%;min-height:120px;resize:vertical;border-radius:12px;padding:12px 14px;background:#0a1424;border:1px solid #263044;color:var(--ink)}
   .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
   .btn{border:0;padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:700;background:linear-gradient(90deg,var(--cyan),var(--vio));color:#07101a}
-  .btn.sec{background:#0a1424;color:var(--ink);border:1px solid var(--line)}
+  .btn.sec{background:#0a1424;color:var(--ink);border:1px solid #263044}
   .btn.ghost{background:transparent;border:1px dashed var(--line);color:var(--muted)}
   .btn:disabled{opacity:.6;cursor:not-allowed}
   .bar{height:8px;background:#0a1424;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-top:10px}
@@ -33,12 +33,16 @@
   .muted{color:var(--muted)}
   #scoreWrap{margin-top:16px;background:#0a1424;border:1px solid #263044;border-radius:12px;padding:12px}
   .badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:#cfe6ff}
+  /* Modal */
+  #transcriber-modal{display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:99999;}
+  #transcriber-card{max-width:640px; margin:10vh auto; background:#121826; color:#e5f2ff; border:1px solid #263044; border-radius:16px; padding:18px;}
+  .btn{cursor:pointer}
 </style>
 </head>
 <body>
 <header>
-  <h1>Music → Tabs, Sheet & Vocals (Local + Cached)</h1>
-  <p class="muted" style="margin:.3rem 0 0">Analyze once, render instantly. 100% on your device. OPFS cache enabled.</p>
+  <h1>Music → Tabs, Sheet, Vocals & Auto-Lyrics (Local)</h1>
+  <p class="muted" style="margin:.3rem 0 0">Analyze once, render instantly. 100% on your device. OPFS cache. Optional local auto-lyrics.</p>
 </header>
 
 <div class="wrap">
@@ -62,7 +66,11 @@
         <div class="chips">
           <label class="chip"><input type="radio" name="mode" value="tabs" checked> Tabs</label>
           <label class="chip"><input type="radio" name="mode" value="sheet"> Sheet music</label>
-          <label class="chip"><input type="checkbox" id="vocals"> Include vocal melody (beta)</label>
+          <label class="chip"><input type="checkbox" id="vocals"> Include vocal melody (notes)</label>
+        </div>
+
+        <div class="chips" style="margin-top:8px">
+          <label class="chip"><input type="checkbox" id="auto-lyrics"> Auto-transcribe lyrics (local)</label>
         </div>
 
         <label class="title" style="margin-top:14px">Tabs instruments</label>
@@ -84,7 +92,7 @@
 
       <div>
         <label class="title">Lyrics (optional)</label>
-        <textarea id="lyrics" placeholder="Paste lyrics to sync under notes…"></textarea>
+        <textarea id="lyrics" placeholder="Paste lyrics to sync under notes… (auto-lyrics will overwrite this)"></textarea>
         <div id="scoreWrap" style="display:none">
           <div id="score"></div>
         </div>
@@ -100,6 +108,32 @@
     <div class="bar"><i id="progress-fill"></i></div>
     <pre id="log"></pre>
   </div></div>
+</div>
+
+<!-- Permission / Setup Modal -->
+<div id="transcriber-modal">
+  <div id="transcriber-card">
+    <h3 style="margin:0 0 8px; background:linear-gradient(90deg,#67e8f9,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+      Allow local lyrics transcription?
+    </h3>
+    <p style="color:#9aa4b2; margin:.5rem 0 1rem;">
+      We can auto-transcribe lyrics <strong>fully on your device</strong>. We’ll help set up a tiny local tool
+      (Python + Whisper) and connect to it at <code>http://127.0.0.1:8765</code>. Nothing leaves your computer.
+    </p>
+    <ol style="margin:0 0 1rem 1.2rem; color:#cfe6ff;">
+      <li>We’ll download a small setup script for your OS.</li>
+      <li>You run it once (it may install Python/pip if missing).</li>
+      <li>It starts a safe local server; this page will detect it automatically.</li>
+    </ol>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+      <button id="allow-setup" class="btn" style="padding:10px 14px;">Allow & Download</button>
+      <button id="deny-setup" class="btn sec" style="padding:10px 14px;">Not now</button>
+    </div>
+    <div id="setup-steps" style="display:none; margin-top:12px; color:#9aa4b2;">
+      <p><strong>Next:</strong> Run the downloaded script. Keep this page open — we’ll auto-detect when the server is ready.</p>
+      <p id="probe-status">Probing <code>127.0.0.1:8765</code>…</p>
+    </div>
+  </div>
 </div>
 
 <script type="module">
@@ -125,16 +159,22 @@ const fmtTXT  = document.querySelector('#fmt-txt');
 const fmtJSON = document.querySelector('#fmt-json');
 const fmtVTT  = document.querySelector('#fmt-vtt');
 const vocalsChk = document.querySelector('#vocals');
+const autoLyricsChk = document.querySelector('#auto-lyrics');
 const cacheBadge = document.querySelector('#cacheBadge');
 const useCacheBtn = document.querySelector('#useCache');
 const clearCacheBtn = document.querySelector('#clearCache');
+const modal = document.getElementById('transcriber-modal');
+const allowBtn = document.getElementById('allow-setup');
+const denyBtn = document.getElementById('deny-setup');
+const steps = document.getElementById('setup-steps');
+const probeEl = document.getElementById('probe-status');
 
 const getMode = () => (document.querySelector('input[name="mode"]:checked')?.value)||'tabs';
 
 /* ========= Small utils ========= */
 const setProgress = p => fill.style.width = Math.max(0,Math.min(100,p)) + '%';
 const tick = () => new Promise(r=>setTimeout(r,0));
-function makeLog(el){ let buf=[],s=false; return (msg)=>{ buf.push(msg); if(!s){ s=true; setTimeout(()=>{ el.textContent+=buf.join('\\n')+'\\n'; el.scrollTop=el.scrollHeight; buf=[]; s=false; },50);} }; }
+function makeLog(el){ let buf=[],s=false; return (msg)=>{ buf.push(msg); if(!s){ s=true; setTimeout(()=>{ el.textContent+=buf.join('\n')+'\n'; el.scrollTop=el.scrollHeight; buf=[]; s=false; },50);} }; }
 const log = makeLog(logEl);
 const pad = (n,l=2)=> String(n).padStart(l,'0');
 const fmtTime = (t)=>{ const m=Math.floor(t/60), s=Math.floor(t%60), ms=Math.round((t-Math.floor(t))*1000); return `${pad(m)}:${pad(s)}.${pad(ms,3)}`; };
@@ -390,13 +430,90 @@ async function showCacheUI(){
   clearCacheBtn.style.display = has ? 'inline-block' : 'none';
 }
 
+/* ========= Local lyrics helper (permission + probe + fetch) ========= */
+const LOCAL_URL = 'http://127.0.0.1:8765';
+function detectOS(){
+  const ua = navigator.userAgent || '';
+  if (ua.includes('Windows')) return 'windows';
+  if (ua.includes('Mac') || ua.includes('Macintosh')) return 'mac';
+  if (ua.includes('Linux')) return 'linux';
+  return 'unknown';
+}
+async function isServerUp(timeoutMs=800){
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), timeoutMs);
+  try{
+    const r = await fetch(LOCAL_URL + '/health', { signal: ctrl.signal });
+    clearTimeout(t);
+    if (!r.ok) return false;
+    const j = await r.json();
+    return !!j.ok;
+  }catch{ clearTimeout(t); return false; }
+}
+function downloadSetupScript(){
+  // Adjust to where you host these in your repo
+  const os = detectOS();
+  const a = document.createElement('a');
+  if (os === 'windows'){
+    a.href = 'start_transcriber.ps1'; a.download = 'start_transcriber.ps1';
+  } else {
+    a.href = 'start_transcriber.sh'; a.download = 'start_transcriber.sh';
+  }
+  document.body.appendChild(a); a.click(); a.remove();
+}
+async function ensureLocalTranscriberPermissionFlow(){
+  if (await isServerUp()) return true;
+  return new Promise((resolve)=>{
+    modal.style.display = 'block';
+    steps.style.display = 'none';
+    allowBtn.onclick = async ()=>{
+      downloadSetupScript();
+      steps.style.display = 'block';
+      let tries = 0;
+      const poll = setInterval(async ()=>{
+        const ok = await isServerUp();
+        tries++;
+        if (ok){
+          clearInterval(poll);
+          probeEl.textContent = '✅ Local server detected.';
+          setTimeout(()=>{ modal.style.display='none'; resolve(true); }, 600);
+        }else{
+          probeEl.textContent = `Probing 127.0.0.1:8765… (attempt ${tries})`;
+        }
+      }, 1200);
+    };
+    denyBtn.onclick = ()=>{ modal.style.display = 'none'; resolve(false); };
+  });
+}
+async function ensureLocalTranscriberOrAsk(){
+  if (await isServerUp()) return true;
+  return await ensureLocalTranscriberPermissionFlow();
+}
+async function transcribeLocally_viaServer(file){
+  const fd = new FormData();
+  fd.append('file', file, file.name || 'audio.wav');
+  const res = await fetch(LOCAL_URL + '/transcribe', { method:'POST', body: fd });
+  if (!res.ok) throw new Error('Local transcription failed');
+  return await res.json(); // { words:[{start,end,text}], language, duration }
+}
+function alignWordsToNotes(words, notes){
+  if (!Array.isArray(words) || !Array.isArray(notes) || !notes.length) return [];
+  const out = []; let j = 0;
+  for (const n of notes){
+    while (j+1 < words.length && Math.abs(words[j+1].start - n.start) < Math.abs(words[j].start - n.start)) j++;
+    const txt = (words[j]?.text || '').trim();
+    out.push(txt); j = Math.min(j+1, words.length-1);
+  }
+  return out;
+}
+
 /* ========= Global state ========= */
 let analyzed = null;          // { title, duration, sr, hop, spans[], melody[], bpm, key }
 let controller=null, pool=null, vWorker=null;
 let sessionMono = null;       // keep in-memory only (for optional melody later)
 
 /* ========= Mode & toggles re-render ========= */
-for (const el of document.querySelectorAll('input[name="mode"], #vocals')) {
+for (const el of document.querySelectorAll('input[name="mode"], #vocals, #auto-lyrics')) {
   el.addEventListener('change', ()=> {
     if (analyzed) renderFromCache();
   });
@@ -427,14 +544,14 @@ async function analyzeOnce(){
     let dec;
     try{ dec = await decodeWithWebAudio(await file.arrayBuffer()); }
     catch{ log('Native decode failed → ffmpeg.wasm…'); dec = await decodeViaFFmpeg(file); }
-    sessionMono = dec.mono; // keep in memory for optional vocals later
+    sessionMono = dec.mono;
     const sr = dec.sr, duration = dec.duration;
     if(duration>600) throw new Error(`Audio too long (${duration.toFixed(0)}s). Limit 600s.`);
     abortBtn.disabled = false; abortBtn.onclick = ()=> controller?.abort();
 
     // Frame & batch chords
     statusEl.textContent='Framing…'; setProgress(10);
-    const { chunks, hop } = frameAudioInChunks(sessionMono, sr, 4096, 2048, 192);
+    const { chunks } = frameAudioInChunks(sessionMono, sr, 4096, 2048, 192);
     const total = chunks.length; log(`Framed into ${total} batches (${chunks[0]?.length||0} frames each).`);
 
     const cores = navigator.hardwareConcurrency || 4;
@@ -455,7 +572,7 @@ async function analyzeOnce(){
     }
 
     // Merge to spans
-    const toTime = (idx)=> idx*2048/sr; // hop fixed at 2048
+    const toTime = (idx)=> idx*2048/sr;
     let spans=[];
     if(labels.length){
       let cur=labels[0], s=0;
@@ -471,7 +588,6 @@ async function analyzeOnce(){
     const bpm   = 100;
     const key   = guessKey(spans);
 
-    // Build analysis object (no melody yet unless checkbox is on)
     analyzed = { title, duration, sr, hop:2048, spans, melody:[], bpm, key };
     setProgress(70);
 
@@ -484,7 +600,6 @@ async function analyzeOnce(){
       log(`Vocal notes: ${notes.length}`);
     }
 
-    // Cache to OPFS
     await writeCache(analyzed);
     await showCacheUI();
 
@@ -501,7 +616,7 @@ async function analyzeOnce(){
   }
 }
 
-/* ========= Render from cache (no re-analysis) ========= */
+/* ========= Render from cache ========= */
 renderBtn.addEventListener('click', renderFromCache);
 async function renderFromCache(){
   if(!analyzed){ const c = await readCache(); if(!c){ log('No analysis available.'); return; } analyzed=c; }
@@ -514,7 +629,7 @@ async function renderFromCache(){
         vWorker = vWorker || yinWorker();
         const notes = await vWorker.run(sessionMono, analyzed.sr, analyzed.hop, new AbortController().signal);
         analyzed.melody = notes;
-        await writeCache(analyzed); // update cache with melody
+        await writeCache(analyzed);
         log(`Vocal notes: ${notes.length}`);
       }catch(e){ log('⚠️ Melody estimation skipped: '+e.message); }
     } else {
@@ -522,10 +637,8 @@ async function renderFromCache(){
     }
   }
 
-  // Branch render
   const mode = getMode();
   if (mode === 'tabs'){
-    // Build textual tabs immediately
     const sel = [...document.querySelectorAll('#chips input:checked')].map(i=>i.value);
     const g = sel.includes('guitar') ? guitarTabsFromChords(analyzed.spans) : null;
     const b = sel.includes('bass')   ? bassTabsFromChords(analyzed.spans)   : null;
@@ -536,22 +649,66 @@ async function renderFromCache(){
     scoreWrap.style.display='none';
     statusEl.textContent='Rendered Tabs.';
 
-    // Exports
     if(fmtMD.checked)   downloadText(`${analyzed.title}_tabs.md`,  toMarkdown(analyzed.title, analyzed.spans, g, b, p, d, chordPro));
     if(fmtTXT.checked)  downloadText(`${analyzed.title}_tabs.txt`, toPlainTabs(g, b, p, d));
     if(fmtJSON.checked) downloadText(`${analyzed.title}_chords.json`, toJSONFile(analyzed.title, analyzed.spans, { key: analyzed.key, bpm: analyzed.bpm }));
     if(fmtVTT.checked)  downloadText(`${analyzed.title}_chords.vtt`, toWebVTT(analyzed.spans));
 
   } else {
-    // Sheet: render with existing analysis (+optional melody)
-    renderSheet({
-      title: analyzed.title,
-      bpm: analyzed.bpm,
-      melody: vocalsChk.checked ? (analyzed.melody||[]) : [],
-      chords: analyzed.spans,
-      lyricsText: (lyrics.value||'').trim()
-    });
-    statusEl.textContent='Rendered Sheet.';
+    // SHEET MODE
+    const wantAutoLyrics = autoLyricsChk.checked;
+    const haveMelody = Array.isArray(analyzed.melody) && analyzed.melody.length>0;
+
+    // Helper to actually draw
+    const draw = (lyricsText) => {
+      renderSheet({
+        title: analyzed.title,
+        bpm: analyzed.bpm,
+        melody: vocalsChk.checked ? (analyzed.melody||[]) : [],
+        chords: analyzed.spans,
+        lyricsText: lyricsText ?? (lyrics.value||'').trim()
+      });
+      statusEl.textContent='Rendered Sheet.';
+    };
+
+    // If auto-lyrics requested, ensure local server & do the flow
+    if (wantAutoLyrics){
+      // We need a file to send to the local server
+      const file = fileEl.files?.[0];
+      if (!file){ log('⚠️ Select an audio/video file first to auto-transcribe.'); draw(''); return; }
+
+      // Melody helps alignment; compute if missing and we still have mono
+      if (!haveMelody && sessionMono){
+        try{
+          statusEl.textContent='Estimating vocal melody…'; setProgress(76);
+          vWorker = vWorker || yinWorker();
+          const notes = await vWorker.run(sessionMono, analyzed.sr, analyzed.hop, new AbortController().signal);
+          analyzed.melody = notes; await writeCache(analyzed);
+          log(`Vocal notes: ${notes.length}`);
+        }catch(e){ log('⚠️ Melody estimation skipped: '+e.message); }
+      }
+
+      // Ask permission & set up if needed
+      const ok = await ensureLocalTranscriberOrAsk();
+      if (!ok){ draw(''); return; }
+
+      // Transcribe + align
+      try{
+        statusEl.textContent='Transcribing lyrics locally…'; setProgress(90);
+        const { words=[] } = await transcribeLocally_viaServer(file);
+        const aligned = alignWordsToNotes(words, analyzed.melody || []);
+        const autoLyrics = aligned.join(' ');
+        draw(autoLyrics);
+        // Also mirror into the textarea so user can edit
+        lyrics.value = autoLyrics;
+      }catch(err){
+        log('❌ Auto-lyrics failed: '+err.message);
+        draw('');
+      }
+    } else {
+      // No auto-lyrics; just draw with existing textarea (or empty)
+      draw();
+    }
   }
 }
 
