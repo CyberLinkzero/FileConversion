@@ -25,14 +25,14 @@
   .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
   .btn{border:0;padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:700;background:linear-gradient(90deg,var(--cyan),var(--vio));color:#07101a}
   .btn.sec{background:#0a1424;color:var(--ink);border:1px solid #263044}
-  .btn.ghost{background:transparent;border:1px dashed var(--line);color:var(--muted)}
+  .btn.ghost{background:transparent;border:1px dashed var(--line);color:#9aa4b2}
   .btn:disabled{opacity:.6;cursor:not-allowed}
-  .bar{height:8px;background:#0a1424;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-top:10px}
+  .bar{height:8px;background:#0a1424;border:1px solid #263044;border-radius:999px;overflow:hidden;margin-top:10px}
   .bar>i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),var(--vio));transition:width .25s}
   pre{margin:10px 0 0;padding:12px;border:1px dashed var(--line);border-radius:12px;background:#07101a;color:#cfe6ff;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;max-height:240px;overflow:auto;white-space:pre-wrap}
   .muted{color:var(--muted)}
   #scoreWrap{margin-top:16px;background:#0a1424;border:1px solid #263044;border-radius:12px;padding:12px}
-  .badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:#cfe6ff}
+  .badge{display:inline-flex;align-items:center;gap:8px;border:1px solid #263044;border-radius:999px;padding:6px 10px;color:#cfe6ff}
   /* Modal */
   #transcriber-modal{display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:99999;}
   #transcriber-card{max-width:640px; margin:10vh auto; background:#121826; color:#e5f2ff; border:1px solid #263044; border-radius:16px; padding:18px;}
@@ -50,13 +50,15 @@
     <div class="row">
       <div>
         <label class="title">Audio/Video file</label>
+        <!-- Hidden input -->
         <input id="file" type="file" accept="audio/*,video/*" hidden>
-
-<label id="drop" class="drop" for="file" aria-label="Choose file">
-  Drag & drop here, or <u>browse</u>
-  <div id="fname" class="muted" style="margin-top:6px"></div>
-</label>
-
+        <!-- Label opens picker even if JS/modules fail -->
+        <label id="drop" class="drop" for="file" aria-label="Choose file">
+          Drag & drop here, or <u>browse</u>
+          <div id="fname" class="muted" style="margin-top:6px"></div>
+        </label>
+        <!-- Extra safe fallback button -->
+        <button id="chooseBtn" class="btn sec" type="button" style="margin-top:8px">Choose file…</button>
 
         <div class="chips" style="margin-top:10px">
           <span id="cacheBadge" class="badge" style="display:none">Cached analysis found</span>
@@ -138,6 +140,42 @@
   </div>
 </div>
 
+<!-- ===== FALLBACK: tiny non-module script so picking/dragging works even if modules fail ===== -->
+<script>
+(function () {
+  const drop   = document.getElementById('drop');
+  const fileEl = document.getElementById('file');
+  const fname  = document.getElementById('fname');
+  const btn    = document.getElementById('chooseBtn');
+
+  // Button fallback (opens OS picker even in strict embed contexts)
+  if (btn) {
+    btn.addEventListener('click', () => {
+      if (fileEl && fileEl.showPicker) fileEl.showPicker(); else fileEl.click();
+    });
+  }
+
+  // Drag & drop (no dependencies)
+  drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('drag'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('drag'));
+  drop.addEventListener('drop', (e) => {
+    e.preventDefault();
+    drop.classList.remove('drag');
+    if (e.dataTransfer?.files?.length) {
+      fileEl.files = e.dataTransfer.files;
+      fname.textContent = fileEl.files[0]?.name || '';
+      fileEl.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  });
+
+  // Show chosen file name (works regardless of module errors)
+  fileEl.addEventListener('change', () => {
+    fname.textContent = fileEl.files[0]?.name || '';
+  });
+})();
+</script>
+
+<!-- Main app (module). If this fails, the picker above still works. -->
 <script type="module">
 /* ========= Import VexFlow (ESM) ========= */
 import { Flow as VF } from 'https://unpkg.com/vexflow@4.2.4/build/esm/vexflow.js';
@@ -181,13 +219,8 @@ const log = makeLog(logEl);
 const pad = (n,l=2)=> String(n).padStart(l,'0');
 const fmtTime = (t)=>{ const m=Math.floor(t/60), s=Math.floor(t%60), ms=Math.round((t-Math.floor(t))*1000); return `${pad(m)}:${pad(s)}.${pad(ms,3)}`; };
 
-/* ========= File input UX ========= */
-drop.onclick = ()=> fileEl.click();
-drop.onkeydown = (e)=>{ if(e.key==='Enter'||e.key===' ') fileEl.click(); };
-fileEl.onchange = ()=> { fname.textContent = fileEl.files[0]?.name ?? ''; showCacheUI(); };
-drop.ondragover = (e)=>{ e.preventDefault(); drop.classList.add('drag'); };
-drop.ondragleave = ()=> drop.classList.remove('drag');
-drop.ondrop = (e)=>{ e.preventDefault(); drop.classList.remove('drag'); fileEl.files = e.dataTransfer.files; fname.textContent=fileEl.files[0]?.name ?? ''; showCacheUI(); };
+/* ========= File input UX (module layer just mirrors name; core picking is handled above) ========= */
+fileEl.addEventListener('change', ()=>{ fname.textContent = fileEl.files[0]?.name ?? ''; showCacheUI(); });
 
 /* ========= Audio helpers ========= */
 async function decodeWithWebAudio(arrayBuf){
@@ -423,7 +456,6 @@ const OPFS = await navigator.storage?.getDirectory?.();
 async function readCache(){ if(!OPFS) return null; try{ const h=await OPFS.getFileHandle('analysis.json'); const f=await h.getFile(); return JSON.parse(await f.text()); }catch{ return null; } }
 async function writeCache(data){ if(!OPFS) return; const h=await OPFS.getFileHandle('analysis.json',{create:true}); const w=await h.createWritable(); await w.write(new Blob([JSON.stringify(data)],{type:'application/json'})); await w.close(); }
 async function clearCache(){ if(!OPFS) return; try{ await OPFS.removeEntry('analysis.json'); }catch{} }
-
 async function showCacheUI(){
   const c = await readCache();
   const has = !!c;
@@ -432,7 +464,7 @@ async function showCacheUI(){
   clearCacheBtn.style.display = has ? 'inline-block' : 'none';
 }
 
-/* ========= Local lyrics helper (permission + probe + fetch) ========= */
+/* ========= Local lyrics helper ========= */
 const LOCAL_URL = 'http://127.0.0.1:8765';
 function detectOS(){
   const ua = navigator.userAgent || '';
@@ -453,38 +485,34 @@ async function isServerUp(timeoutMs=800){
   }catch{ clearTimeout(t); return false; }
 }
 function downloadSetupScript(){
-  // Adjust to where you host these in your repo
   const os = detectOS();
   const a = document.createElement('a');
-  if (os === 'windows'){
-    a.href = 'start_transcriber.ps1'; a.download = 'start_transcriber.ps1';
-  } else {
-    a.href = 'start_transcriber.sh'; a.download = 'start_transcriber.sh';
-  }
+  if (os === 'windows'){ a.href = 'start_transcriber.ps1'; a.download = 'start_transcriber.ps1'; }
+  else { a.href = 'start_transcriber.sh'; a.download = 'start_transcriber.sh'; }
   document.body.appendChild(a); a.click(); a.remove();
 }
 async function ensureLocalTranscriberPermissionFlow(){
   if (await isServerUp()) return true;
   return new Promise((resolve)=>{
-    modal.style.display = 'block';
-    steps.style.display = 'none';
-    allowBtn.onclick = async ()=>{
+    document.getElementById('transcriber-modal').style.display = 'block';
+    document.getElementById('setup-steps').style.display = 'none';
+    document.getElementById('allow-setup').onclick = async ()=>{
       downloadSetupScript();
-      steps.style.display = 'block';
+      document.getElementById('setup-steps').style.display = 'block';
       let tries = 0;
       const poll = setInterval(async ()=>{
         const ok = await isServerUp();
         tries++;
         if (ok){
           clearInterval(poll);
-          probeEl.textContent = '✅ Local server detected.';
-          setTimeout(()=>{ modal.style.display='none'; resolve(true); }, 600);
+          document.getElementById('probe-status').textContent = '✅ Local server detected.';
+          setTimeout(()=>{ document.getElementById('transcriber-modal').style.display='none'; resolve(true); }, 600);
         }else{
-          probeEl.textContent = `Probing 127.0.0.1:8765… (attempt ${tries})`;
+          document.getElementById('probe-status').textContent = `Probing 127.0.0.1:8765… (attempt ${tries})`;
         }
       }, 1200);
     };
-    denyBtn.onclick = ()=>{ modal.style.display = 'none'; resolve(false); };
+    document.getElementById('deny-setup').onclick = ()=>{ document.getElementById('transcriber-modal').style.display = 'none'; resolve(false); };
   });
 }
 async function ensureLocalTranscriberOrAsk(){
@@ -512,23 +540,18 @@ function alignWordsToNotes(words, notes){
 /* ========= Global state ========= */
 let analyzed = null;          // { title, duration, sr, hop, spans[], melody[], bpm, key }
 let controller=null, pool=null, vWorker=null;
-let sessionMono = null;       // keep in-memory only (for optional melody later)
+let sessionMono = null;
 
 /* ========= Mode & toggles re-render ========= */
 for (const el of document.querySelectorAll('input[name="mode"], #vocals, #auto-lyrics')) {
-  el.addEventListener('change', ()=> {
-    if (analyzed) renderFromCache();
-  });
+  el.addEventListener('change', ()=> { if (analyzed) renderFromCache(); });
 }
 chips.addEventListener('change', ()=> { if (analyzed && getMode()==='tabs') renderFromCache(); });
 
 useCacheBtn.onclick = async ()=>{
   const c = await readCache();
   if (!c){ await showCacheUI(); return; }
-  analyzed = c;
-  renderBtn.disabled = false;
-  log('Loaded cached analysis.');
-  renderFromCache();
+  analyzed = c; renderBtn.disabled = false; log('Loaded cached analysis.'); renderFromCache();
 };
 clearCacheBtn.onclick = async ()=>{ await clearCache(); await showCacheUI(); log('Cache cleared.'); };
 
@@ -593,7 +616,7 @@ async function analyzeOnce(){
     analyzed = { title, duration, sr, hop:2048, spans, melody:[], bpm, key };
     setProgress(70);
 
-    // If vocals requested now, compute once
+    // Optional vocal melody
     if (vocalsChk.checked){
       vWorker = vWorker || yinWorker();
       statusEl.textContent='Estimating vocal melody…';
@@ -623,15 +646,14 @@ renderBtn.addEventListener('click', renderFromCache);
 async function renderFromCache(){
   if(!analyzed){ const c = await readCache(); if(!c){ log('No analysis available.'); return; } analyzed=c; }
 
-  // If user toggled vocals ON but we don't have melody yet and we still have mono, compute melody-only now.
+  // If sheet + vocals toggled but no melody yet and we kept mono, compute melody now.
   if (getMode()==='sheet' && vocalsChk.checked && (!analyzed.melody || analyzed.melody.length===0)){
     if (sessionMono){
       try{
-        statusEl.textContent='Estimating vocal melody…'; setProgress(75);
+        statusEl.textContent='Estimating vocal melody…'; setProgress(76);
         vWorker = vWorker || yinWorker();
         const notes = await vWorker.run(sessionMono, analyzed.sr, analyzed.hop, new AbortController().signal);
-        analyzed.melody = notes;
-        await writeCache(analyzed);
+        analyzed.melody = notes; await writeCache(analyzed);
         log(`Vocal notes: ${notes.length}`);
       }catch(e){ log('⚠️ Melody estimation skipped: '+e.message); }
     } else {
@@ -658,28 +680,24 @@ async function renderFromCache(){
 
   } else {
     // SHEET MODE
-    const wantAutoLyrics = autoLyricsChk.checked;
+    const wantAutoLyrics = document.getElementById('auto-lyrics').checked;
     const haveMelody = Array.isArray(analyzed.melody) && analyzed.melody.length>0;
 
-    // Helper to actually draw
     const draw = (lyricsText) => {
       renderSheet({
         title: analyzed.title,
         bpm: analyzed.bpm,
-        melody: vocalsChk.checked ? (analyzed.melody||[]) : [],
+        melody: document.getElementById('vocals').checked ? (analyzed.melody||[]) : [],
         chords: analyzed.spans,
         lyricsText: lyricsText ?? (lyrics.value||'').trim()
       });
       statusEl.textContent='Rendered Sheet.';
     };
 
-    // If auto-lyrics requested, ensure local server & do the flow
     if (wantAutoLyrics){
-      // We need a file to send to the local server
       const file = fileEl.files?.[0];
       if (!file){ log('⚠️ Select an audio/video file first to auto-transcribe.'); draw(''); return; }
 
-      // Melody helps alignment; compute if missing and we still have mono
       if (!haveMelody && sessionMono){
         try{
           statusEl.textContent='Estimating vocal melody…'; setProgress(76);
@@ -690,25 +708,21 @@ async function renderFromCache(){
         }catch(e){ log('⚠️ Melody estimation skipped: '+e.message); }
       }
 
-      // Ask permission & set up if needed
       const ok = await ensureLocalTranscriberOrAsk();
       if (!ok){ draw(''); return; }
 
-      // Transcribe + align
       try{
         statusEl.textContent='Transcribing lyrics locally…'; setProgress(90);
         const { words=[] } = await transcribeLocally_viaServer(file);
         const aligned = alignWordsToNotes(words, analyzed.melody || []);
         const autoLyrics = aligned.join(' ');
         draw(autoLyrics);
-        // Also mirror into the textarea so user can edit
         lyrics.value = autoLyrics;
       }catch(err){
         log('❌ Auto-lyrics failed: '+err.message);
         draw('');
       }
     } else {
-      // No auto-lyrics; just draw with existing textarea (or empty)
       draw();
     }
   }
