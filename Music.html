@@ -50,11 +50,13 @@
     <div class="row">
       <div>
         <label class="title">Audio/Video file</label>
-        <div id="drop" class="drop" tabindex="0" role="button" aria-label="Choose file">
-          <input id="file" type="file" accept="audio/*,video/*" hidden>
-          Drag & drop here, or <u>browse</u>
-          <div id="fname" class="muted" style="margin-top:6px"></div>
-        </div>
+        <input id="file" type="file" accept="audio/*,video/*" hidden>
+
+<label id="drop" class="drop" for="file" aria-label="Choose file">
+  Drag & drop here, or <u>browse</u>
+  <div id="fname" class="muted" style="margin-top:6px"></div>
+</label>
+
 
         <div class="chips" style="margin-top:10px">
           <span id="cacheBadge" class="badge" style="display:none">Cached analysis found</span>
