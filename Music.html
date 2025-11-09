@@ -1,567 +1,340 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<title>FileConverter.run — Music → Tabs & Lyrics (Local)</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<!-- DOCX builder -->
-<script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
-<!-- Optional: ffmpeg.wasm (lazy-loaded only if needed) -->
-<script>
-  window.loadFFmpeg = async () => {
-    if (window.FFmpeg) return window.FFmpeg;
-    await import("https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js");
-    return window.FFmpeg;
-  };
-</script>
+<meta charset="utf-8">
+<title>Music → Tabs & Chords (Local, Batched)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Convert a song into tabs, chords and timelines in your browser — 100% local.">
 <style>
-  :root{
-    --bg:#0f1117; --panel:#0b1220; --ink:#e5f2ff; --muted:#98a3b3; --line:#1e2a3a;
-    --cyan:#67e8f9; --vio:#a78bfa; --glow:0 0 24px rgba(103,232,249,.25),0 0 48px rgba(167,139,250,.18)
-  }
+  :root{--bg:#0f1117;--panel:#121826;--ink:#e5f2ff;--muted:#9aa4b2;--line:#263044;--cyan:#67e8f9;--vio:#a78bfa}
   *{box-sizing:border-box} html,body{height:100%}
-  body{margin:0;color:var(--ink);background:
-      radial-gradient(1100px 600px at 15% -10%, rgba(103,232,249,.12), transparent 60%),
-      radial-gradient(900px 500px at 110% 0%, rgba(167,139,250,.14), transparent 60%), var(--bg);
-      font:16px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-  .wrap{max-width:1100px;margin:0 auto;padding:32px 16px 64px}
-  header h1{margin:0 0 6px;font-size:28px;letter-spacing:.3px}
-  header p{margin:0;color:var(--muted)}
-  a { color: var(--cyan); text-decoration: none } a:hover { text-decoration: underline }
-  .card{margin-top:20px;border:1px solid var(--line);border-radius:18px;background:
-      linear-gradient(180deg, rgba(15,23,42,.6), rgba(11,18,32,.8));box-shadow:var(--glow)}
-  .pad{padding:22px}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  header{padding:22px 16px;text-align:center;border-bottom:1px solid #1f2430}
+  h1{margin:0;font-size:28px;background:linear-gradient(90deg,var(--cyan),var(--vio));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .wrap{max-width:1100px;margin:0 auto;padding:18px 16px 64px}
+  .card{background:linear-gradient(180deg,#121826,#0b1220);border:1px solid var(--line);border-radius:16px;box-shadow:0 0 24px rgba(103,232,249,.14)}
+  .pad{padding:18px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   @media (max-width:900px){.row{grid-template-columns:1fr}}
-  label.title{display:block;color:#cfe6ff;font-size:13px;margin:8px 0 6px;letter-spacing:.25px}
-  .drop{border:2px dashed var(--line);border-radius:14px;padding:18px;text-align:center;cursor:pointer;transition:.2s}
+  label.title{display:block;font-size:13px;color:#cfe6ff;margin:8px 0 6px}
+  .drop{border:2px dashed var(--line);border-radius:12px;padding:18px;text-align:center;cursor:pointer}
   .drop.drag{border-color:var(--cyan);background:rgba(103,232,249,.06)}
-  .muted{color:var(--muted)}
   .chips{display:flex;flex-wrap:wrap;gap:8px}
-  .chip{position:relative;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);
-        padding:8px 12px;border-radius:999px;cursor:pointer;background:rgba(15,23,42,.6)}
-  .chip input{position:absolute;inset:0;opacity:0;cursor:pointer}
-  .chip span{color:#cfe6ff;font-size:14px}
-  .chip input:checked + span{color:#08121a;background:linear-gradient(90deg,var(--cyan),var(--vio));
-        padding:6px 10px;border-radius:999px;font-weight:600}
-  textarea{width:100%;min-height:120px;resize:vertical;border-radius:12px;padding:12px 14px;background:#0a1424;
-           border:1px solid var(--line);color:var(--ink);outline:none}
-  textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(103,232,249,.16)}
-  .actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:8px}
-  .btn{appearance:none;border:0;padding:12px 18px;border-radius:12px;cursor:pointer;font-weight:700;
-       background:linear-gradient(90deg,var(--cyan),var(--vio));color:#07101a;box-shadow:0 10px 30px rgba(103,232,249,.18)}
-  .btn.sec{ background:#0a1424; color:var(--ink); border:1px solid var(--line) }
-  .btn:disabled{opacity:.6;cursor:not-allowed;filter:grayscale(30%)}
-  .status{color:var(--muted);font-size:14px}
-  .bar{height:8px;background:#0a1424;border:1px solid var(--line);border-radius:999px;overflow:hidden}
-  .bar > i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),var(--vio));transition:width .25s}
-  pre.log{margin:10px 0 0;padding:12px;border:1px dashed var(--line);border-radius:12px;background:#07101a;color:#cfe6ff;
-          font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;max-height:220px;overflow:auto}
-  footer{margin-top:28px;color:var(--muted);font-size:13px}
-  .modal-backdrop{position:fixed; inset:0; background:rgba(3,8,20,.6); backdrop-filter: blur(6px);
-    display:none; align-items:center; justify-content:center; z-index:50}
-  .modal{width:min(640px, 92vw); border:1px solid var(--line); border-radius:18px;
-    background:linear-gradient(180deg, rgba(15,23,42,.95), rgba(11,18,32,.98)); padding:20px; box-shadow:var(--glow)}
-  .modal h2{ margin:0 0 6px } .modal p{ margin:.3rem 0; color:var(--muted) }
-  .modal .row{ display:flex; flex-wrap:wrap; gap:10px; margin-top:14px }
-  .checkbox{ display:inline-flex; gap:8px; align-items:center; cursor:pointer; user-select:none }
-  .checkbox input{ width:16px; height:16px }
+  .chip{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--line);padding:8px 12px;border-radius:999px}
+  textarea{width:100%;min-height:120px;resize:vertical;border-radius:12px;padding:12px 14px;background:#0a1424;border:1px solid var(--line);color:var(--ink)}
+  .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+  .btn{border:0;padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:700;background:linear-gradient(90deg,var(--cyan),var(--vio));color:#07101a}
+  .btn.sec{background:#0a1424;color:var(--ink);border:1px solid var(--line)}
+  .btn:disabled{opacity:.6;cursor:not-allowed}
+  .bar{height:8px;background:#0a1424;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-top:10px}
+  .bar>i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),var(--vio));transition:width .25s}
+  pre{margin:10px 0 0;padding:12px;border:1px dashed var(--line);border-radius:12px;background:#07101a;color:#cfe6ff;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;max-height:220px;overflow:auto;white-space:pre-wrap}
+  .muted{color:var(--muted)}
 </style>
 </head>
 <body>
+<header>
+  <h1>Music → Tabs & Chords (Local, Batched)</h1>
+  <p class="muted" style="margin:.3rem 0 0">Runs entirely in your browser. No uploads. Smooth progress + Abort.</p>
+</header>
+
 <div class="wrap">
-  <header>
-    <h1>Music → Tabs & Lyrics (Local Engine)</h1>
-    <p>Runs entirely on your device after consent — no uploads.</p>
-  </header>
-
-  <section class="card" aria-live="polite">
-    <div class="pad">
-      <div class="row">
-        <div>
-          <label class="title">Audio/Video file</label>
-          <div id="drop" class="drop" tabindex="0" role="button" aria-label="Choose file">
-            <input id="file" type="file" accept="audio/*,video/*" hidden />
-            <div class="muted">Drag & drop here, or <u>browse</u></div>
-            <div id="fname" class="muted" style="margin-top:6px"></div>
-          </div>
-
-          <label class="title" style="margin-top:16px">Select instruments to include</label>
-          <div class="chips" id="chips">
-            <label class="chip"><input type="checkbox" value="guitar"><span>Guitar</span></label>
-            <label class="chip"><input type="checkbox" value="bass"><span>Bass</span></label>
-            <label class="chip"><input type="checkbox" value="piano"><span>Piano</span></label>
-            <label class="chip"><input type="checkbox" value="drums"><span>Drums</span></label>
-            <label class="chip"><input type="checkbox" value="vocals"><span>Vocals</span></label>
-          </div>
-        </div>
-        <div>
-          <label class="title">Lyrics (optional, improves “chords over words”)</label>
-          <textarea id="lyrics" placeholder="Paste lyrics here…"></textarea>
-        </div>
-      </div>
-
-      <div class="actions">
-        <button id="prep" class="btn sec">Load Local Environment</button>
-        <button id="go" class="btn" disabled>Convert on this device → DOCX</button>
-        <span id="status" class="status"></span>
-      </div>
-
-      <div style="margin-top:12px">
-        <div class="bar"><i id="bar"></i></div>
-        <pre id="log" class="log"></pre>
-      </div>
-    </div>
-  </section>
-
-  <footer>© FileConverter.run — Cyber Edition</footer>
-</div>
-
-<!-- Consent modal -->
-<div id="consentBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="consentTitle">
-  <div class="modal">
-    <h2 id="consentTitle">Do you consent to loading the local conversion environment?</h2>
-    <p>This will download small processing code into your browser and use your CPU/RAM to analyze audio locally. Your files never leave your device.</p>
-    <ul>
-      <li>Cached in your browser; clear via site data anytime.</li>
-      <li>Processing can use noticeable CPU on long files.</li>
-      <li>No network upload of your media.</li>
-    </ul>
-    <label class="checkbox"><input type="checkbox" id="rememberConsent" /> <span>Remember my choice on this device</span></label>
+  <div class="card"><div class="pad">
     <div class="row">
-      <button id="consentYes" class="btn">I Consent — Load</button>
-      <button id="consentNo"  class="btn sec">Cancel</button>
+      <div>
+        <label class="title">Audio/Video file</label>
+        <div id="drop" class="drop" tabindex="0" role="button" aria-label="Choose file">
+          <input id="file" type="file" accept="audio/*,video/*" hidden>
+          Drag & drop here, or <u>browse</u>
+          <div id="fname" class="muted" style="margin-top:6px"></div>
+        </div>
+
+        <label class="title" style="margin-top:14px">Instruments</label>
+        <div class="chips" id="chips">
+          <label class="chip"><input type="checkbox" value="guitar" checked> Guitar</label>
+          <label class="chip"><input type="checkbox" value="bass"> Bass</label>
+          <label class="chip"><input type="checkbox" value="piano"> Piano</label>
+          <label class="chip"><input type="checkbox" value="drums"> Drums</label>
+        </div>
+
+        <label class="title" style="margin-top:14px">Export formats</label>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="fmt-md" checked> Markdown (.md)</label>
+          <label class="chip"><input type="checkbox" id="fmt-txt"> Text Tabs (.txt)</label>
+          <label class="chip"><input type="checkbox" id="fmt-json"> JSON (.json)</label>
+          <label class="chip"><input type="checkbox" id="fmt-vtt"> WebVTT (.vtt)</label>
+        </div>
+      </div>
+
+      <div>
+        <label class="title">Lyrics (optional)</label>
+        <textarea id="lyrics" placeholder="Paste lyrics here…"></textarea>
+      </div>
     </div>
-  </div>
+
+    <div class="actions">
+      <button id="convert" class="btn">Convert (batched)</button>
+      <button id="abort" class="btn sec" disabled>Abort</button>
+      <span id="status" class="muted"></span>
+    </div>
+    <div class="bar"><i id="progress-fill"></i></div>
+    <pre id="log"></pre>
+  </div></div>
 </div>
 
-<script>
-/* ====== util & ui ====== */
-const { Document, Packer, Paragraph, HeadingLevel, Table, TableRow, TableCell, WidthType } = window.docx;
-const drop   = document.getElementById('drop');
-const fileEl = document.getElementById('file');
-const fname  = document.getElementById('fname');
-const chips  = document.getElementById('chips');
-const lyrics = document.getElementById('lyrics');
-const prepBtn= document.getElementById('prep');
-const goBtn  = document.getElementById('go');
-const statusEl = document.getElementById('status');
-const barEl  = document.getElementById('bar');
-const logEl  = document.getElementById('log');
+<script type="module">
+/* ===== UI refs ===== */
+const drop = document.querySelector('#drop');
+const fileEl = document.querySelector('#file');
+const fname = document.querySelector('#fname');
+const chips = document.querySelector('#chips');
+const lyrics = document.querySelector('#lyrics');
+const goBtn = document.querySelector('#convert');
+const abortBtn = document.querySelector('#abort');
+const statusEl = document.querySelector('#status');
+const logEl = document.querySelector('#log');
+const fill = document.querySelector('#progress-fill');
 
-const consentBackdrop = document.getElementById('consentBackdrop');
-const consentYes = document.getElementById('consentYes');
-const consentNo = document.getElementById('consentNo');
-const rememberConsent = document.getElementById('rememberConsent');
+const fmtMD   = document.querySelector('#fmt-md');
+const fmtTXT  = document.querySelector('#fmt-txt');
+const fmtJSON = document.querySelector('#fmt-json');
+const fmtVTT  = document.querySelector('#fmt-vtt');
 
-function log(m){ logEl.textContent += m + "\n"; logEl.scrollTop = logEl.scrollHeight; }
-function setProgress(p){ barEl.style.width = Math.max(0, Math.min(100, p)) + "%"; }
-function selectedInstruments(){ return [...chips.querySelectorAll('input:checked')].map(i=>i.value); }
+/* ===== Small utils ===== */
+function setProgress(p){ fill.style.width = Math.max(0,Math.min(100,p)) + '%'; }
+function tick(){ return new Promise(r=>setTimeout(r,0)); }
+function makeLog(el){ let buf=[], s=false; return (msg)=>{ buf.push(msg); if(!s){ s=true; setTimeout(()=>{ el.textContent+=buf.join('\\n')+'\\n'; el.scrollTop=el.scrollHeight; buf=[]; s=false; },50);} }; }
+const log = makeLog(logEl);
 
-drop.addEventListener('click', ()=> fileEl.click());
-drop.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' ') fileEl.click(); });
-fileEl.addEventListener('change', ()=> fname.textContent = fileEl.files[0] ? fileEl.files[0].name : "");
-drop.addEventListener('dragover', e=>{ e.preventDefault(); drop.classList.add('drag'); });
-drop.addEventListener('dragleave', ()=> drop.classList.remove('drag'));
-drop.addEventListener('drop', e=>{
-  e.preventDefault(); drop.classList.remove('drag');
-  if(e.dataTransfer.files && e.dataTransfer.files[0]){ fileEl.files = e.dataTransfer.files; fname.textContent = e.dataTransfer.files[0].name; }
-});
+/* ===== File input UX ===== */
+drop.onclick = ()=> fileEl.click();
+drop.onkeydown = (e)=>{ if(e.key==='Enter'||e.key===' ') fileEl.click(); };
+fileEl.onchange = ()=> fname.textContent = fileEl.files[0]?.name ?? '';
+drop.ondragover = (e)=>{ e.preventDefault(); drop.classList.add('drag'); };
+drop.ondragleave = ()=> drop.classList.remove('drag');
+drop.ondrop = (e)=>{ e.preventDefault(); drop.classList.remove('drag'); fileEl.files = e.dataTransfer.files; fname.textContent=fileEl.files[0]?.name ?? ''; };
 
-/* ====== consent ====== */
-const CONSENT_KEY = "fc_local_engine_consent";
-function hasConsent(){ return localStorage.getItem(CONSENT_KEY)==="yes"; }
-function remember(value){ localStorage.setItem(CONSENT_KEY, value ? "yes":"no"); }
-function showConsent(){ consentBackdrop.style.display="flex"; rememberConsent.checked=false; }
-function hideConsent(){ consentBackdrop.style.display="none"; }
-prepBtn.addEventListener('click', ()=> hasConsent() ? initLocalEnv() : showConsent());
-consentYes.addEventListener('click', ()=>{ if(rememberConsent.checked) remember(true); hideConsent(); initLocalEnv(); });
-consentNo.addEventListener('click', ()=>{ if(rememberConsent.checked) remember(false); hideConsent(); statusEl.textContent="Environment not loaded."; });
-
-/* ====== environment init ====== */
-let audioCtxReady = false;
-async function initLocalEnv(){
-  try{
-    prepBtn.disabled = true; setProgress(3); statusEl.textContent = "Loading local environment…"; logEl.textContent="";
-    // (lightweight) WebAudio needs no downloads; we mark as ready.
-    await sleep(200); setProgress(25); log("WebAudio ready.");
-    // lazily test if we can decode common types by creating an OfflineAudioContext later.
-    // We only fetch ffmpeg.wasm if decodeAudioData fails.
-    await sleep(200); setProgress(50); log("Chord engine (JS chroma) ready.");
-    await sleep(200); setProgress(70); log("DOCX builder ready.");
-    setProgress(90); statusEl.textContent="Local environment is ready."; goBtn.disabled = false;
-    setProgress(96);
-  }catch(e){
-    console.error(e); statusEl.textContent="Init failed."; prepBtn.disabled=false;
-  }
+/* ===== Audio helpers ===== */
+async function decodeWithWebAudio(arrayBuf){
+  const ac = new (window.AudioContext||window.webkitAudioContext)();
+  const audio = await ac.decodeAudioData(arrayBuf.slice(0));
+  await ac.close();
+  return audio;
 }
-
-/* ====== main convert ====== */
-goBtn.addEventListener('click', async ()=>{
-  logEl.textContent = ""; statusEl.textContent = ""; setProgress(0);
-  const file = fileEl.files[0]; const inst = selectedInstruments();
-  if(!file){ alert("Choose a file."); return; }
-  if(inst.length===0){ alert("Pick at least one instrument."); return; }
-
-  try{
-    goBtn.disabled = true; statusEl.textContent = "Decoding audio locally…"; setProgress(8);
-
-    // 1) Decode audio buffer (try WebAudio decodeAudioData first)
-    let audioData = await file.arrayBuffer();
-    let audioBuf = await tryDecodeAudio(audioData);
-    if(!audioBuf){
-      log("Built-in decoder failed. Loading ffmpeg.wasm fallback…");
-      await loadFFmpeg(); setProgress(16);
-      audioData = await transcodeToWavPCM(file); // Uint8Array wav data
-      audioBuf = await decodeWithWebAudio(audioData.buffer); // decode WAV
-    }
-    const duration = audioBuf.duration;
-    log(`Decoded: ${duration.toFixed(2)}s, ${audioBuf.sampleRate} Hz, ${audioBuf.numberOfChannels} ch`);
-    setProgress(22);
-
-    // 2) Downmix to mono Float32Array
-    const mono = mixToMono(audioBuf); setProgress(28);
-
-    // 3) BPM (rough) + chroma + chord timeline (major/minor templates)
-    statusEl.textContent = "Analyzing chords…";
-    const sr = audioBuf.sampleRate;
-    const bpm = estimateBPM(mono, sr);
-    const chords = detectChordTimeline(mono, sr); // [{start,end,label}]
-    setProgress(58);
-    log(`Estimated BPM: ~${bpm || "—"}`);
-
-    // 4) Build simple instrument parts from chords
-    const guitar = inst.includes("guitar") ? { tabText: guitarTabsFromChords(chords) } : null;
-    const bass   = inst.includes("bass")   ? { tabText: bassTabsFromChords(chords) }   : null;
-    const piano  = inst.includes("piano")  ? { notes: pianoNotesFromChords(chords) }   : null;
-    const drums  = inst.includes("drums")  ? { grid: drumGrid(duration, bpm) }         : null;
-
-    // 5) Lyrics + chords-over-words (naive placement using uniform timing)
-    statusEl.textContent = "Laying out lyrics…";
-    const chordPro = buildChordPro(chords, lyrics.value, duration);
-    setProgress(74);
-
-    // 6) Assemble analysis object
-    const title = (file.name || "Song").replace(/\.[^.]+$/,'');
-    const analysis = {
-      song:{ title, artist:"—", key: guessGlobalKey(chords), bpm: bpm?Math.round(bpm):null,
-             sections:["Intro","Verse","Chorus","Verse","Bridge","Chorus"] },
-      chords, lyrics_chords: chordPro, guitar, bass, piano, drums
-    };
-
-    // 7) DOCX
-    statusEl.textContent = "Building DOCX…"; setProgress(86);
-    const blob = await buildDocx(analysis);
-    setProgress(96);
-
-    // 8) Download
-    const outName = (title + "_tabs_lyrics.docx").replace(/\s+/g,'_');
-    const url = URL.createObjectURL(blob); const a = document.createElement("a");
-    a.href = url; a.download = outName; a.click(); URL.revokeObjectURL(url);
-    setProgress(100); statusEl.textContent = "Done — DOCX downloaded.";
-  }catch(e){
-    console.error(e); statusEl.textContent="Failed"; log("Error: " + e.message);
-  }finally{
-    goBtn.disabled = false;
-  }
-});
-
-/* ====== audio helpers ====== */
-async function tryDecodeAudio(arrayBuffer){
-  try { return await decodeWithWebAudio(arrayBuffer); } catch { return null; }
-}
-async function decodeWithWebAudio(arrayBuffer){
-  const ctx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 44100*10, 44100);
-  // We use a temp context only to access decodeAudioData reliably.
-  return await new Promise((res, rej)=>{
-    const ac = new (window.AudioContext || window.webkitAudioContext)();
-    ac.decodeAudioData(arrayBuffer.slice(0), (buf)=>{ ac.close(); res(buf); }, (err)=>{ ac.close(); rej(err); });
-  });
-}
-async function transcodeToWavPCM(file){
-  const { createFFmpeg, fetchFile } = window.FFmpeg;
-  const ffmpeg = createFFmpeg({ log: false });
+async function decodeViaFFmpeg(file){
+  const { createFFmpeg, fetchFile } = await import('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js');
+  const ffmpeg = createFFmpeg({ log:false });
   await ffmpeg.load();
-  ffmpeg.FS('writeFile', 'in', await fetchFile(file));
-  // Extract mono 16k wav
-  await ffmpeg.run('-i', 'in', '-vn', '-ac', '1', '-ar', '16000', '-f', 'wav', 'out.wav');
-  const data = ffmpeg.FS('readFile', 'out.wav');
-  return data; // Uint8Array
+  ffmpeg.FS('writeFile','in', await fetchFile(file));
+  await ffmpeg.run('-i','in','-vn','-ac','1','-ar','22050','-f','wav','out.wav');
+  const wav = ffmpeg.FS('readFile','out.wav');
+  ffmpeg.exit();
+  return await decodeWithWebAudio(wav.buffer);
 }
 function mixToMono(buf){
-  const ch = buf.numberOfChannels;
-  const len = buf.length;
-  const out = new Float32Array(len);
-  for(let c=0;c<ch;c++){
-    const data = buf.getChannelData(c);
-    for(let i=0;i<len;i++) out[i] += data[i]/ch;
-  }
+  const len=buf.length, ch=buf.numberOfChannels; const out=new Float32Array(len);
+  for(let c=0;c<ch;c++){ const d=buf.getChannelData(c); for(let i=0;i<len;i++) out[i]+=d[i]/ch; }
   return out;
 }
+function validateFile(file, maxMB=200){
+  if(!file) throw new Error('No file selected.');
+  const mb = file.size/(1024*1024);
+  if(mb>maxMB) throw new Error(`File too large (${mb.toFixed(1)} MB). Limit ${maxMB} MB.`);
+}
 
-/* ====== analysis (lightweight JS) ======
-   This is a simple, fast MVP: STFT -> chroma (12 bins) -> template match for M/m triads.
-   You can replace this with Essentia/Chordino WASM later without changing the UI. */
-function hann(N,i){ return 0.5*(1-Math.cos(2*Math.PI*i/(N-1))); }
-function stft(signal, sr, winSize=4096, hop=2048){
-  const frames=[]; const N=winSize; const H=hop;
-  for(let start=0; start+N<=signal.length; start+=H){
-    const frame = new Float32Array(N);
-    for(let i=0;i<N;i++) frame[i]=signal[start+i]*hann(N,i);
-    frames.push(frame);
+/* ===== Batching & worker pool ===== */
+function frameAudioInChunks(mono, sr, win=4096, hop=2048, framesPerChunk=192){
+  const chunks=[]; let frames=[];
+  for(let i=0;i+win<=mono.length;i+=hop){
+    frames.push(mono.subarray(i,i+win).slice()); // transferable
+    if(frames.length===framesPerChunk){ chunks.push(frames); frames=[]; }
   }
-  return {frames, hop: H, win: N, sr};
+  if(frames.length) chunks.push(frames);
+  return { chunks, hop, sr };
 }
-function fftMag(frame){
-  // naive DFT (fast enough for MVP); replace with FFT lib if you want more speed
-  const N = frame.length; const mags = new Float32Array(N/2);
-  for(let k=0;k<N/2;k++){
-    let re=0, im=0;
-    for(let n=0;n<N;n++){
-      const ang = -2*Math.PI*k*n/N;
-      re += frame[n]*Math.cos(ang);
-      im += frame[n]*Math.sin(ang);
-    }
-    mags[k] = Math.hypot(re,im);
+function makeWorkerPool(n){
+  const url = new URL('./workers/batch-worker.js', import.meta.url);
+  const ws = Array.from({length:n}, ()=> new Worker(url, {type:'module'}));
+  let nextId=0;
+  function runBatch(frames, sr, signal){
+    return new Promise((resolve,reject)=>{
+      const id = nextId++;
+      const w = ws[id % ws.length];
+      const onMsg = (e)=>{ if(e.data?.id!==id) return; w.removeEventListener('message', onMsg); resolve(e.data.labels); };
+      w.addEventListener('message', onMsg);
+      if(signal){ signal.addEventListener('abort', ()=>{ w.removeEventListener('message', onMsg); reject(new DOMException('Aborted','AbortError')); }, {once:true}); }
+      w.postMessage({ id, frames, sr }, frames.map(f=>f.buffer));
+    });
   }
-  return mags;
+  function terminate(){ ws.forEach(w=>w.terminate()); }
+  return { runBatch, size:n, terminate };
 }
-function hzToMidi(hz){ return 69+12*Math.log2(hz/440); }
-function chromaFromSpectrum(mags, sr, nfft){
-  const chroma = new Float32Array(12);
-  for(let k=1;k<mags.length;k++){
-    const freq = k*sr/nfft;
-    if(freq<50 || freq>5000) continue;
-    const midi = hzToMidi(freq);
-    const pc = Math.round(midi)%12;
-    if(isFinite(pc)) chroma[(pc+12)%12] += mags[k];
-  }
-  // normalize
-  const s = chroma.reduce((a,b)=>a+b,0)||1;
-  for(let i=0;i<12;i++) chroma[i]/=s;
-  return chroma;
+
+/* ===== Simple “music” helpers (placeholder logic you can improve later) ===== */
+function guessKey(spans){
+  const w={}; spans.forEach(s=>{const r=s.label.replace('m',''); w[r]=(w[r]||0)+(s.end-s.start);});
+  const best=Object.entries(w).sort((a,b)=>b[1]-a[1])[0]; return best? best[0]+' Major/Minor' : '—';
 }
-function chordLabelFromChroma(ch){
-  // Templates for major/minor triads
-  const MAJ=[1,0,0,0,1,0,0,1,0,0,0,0];
-  const MIN=[1,0,0,1,0,0,0,1,0,0,0,0];
-  let best=null;
-  for(let root=0;root<12;root++){
-    const score = (templ)=> templ.reduce((acc,v,i)=> acc + (v? ch[(i+root)%12] : 0), 0);
-    const sMaj = score(MAJ), sMin=score(MIN);
-    const qual = sMaj>=sMin ? 'maj' : 'min';
-    const sc   = Math.max(sMaj,sMin);
-    if(!best || sc>best.sc) best = {root, qual, sc};
-  }
-  const names = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
-  return `${names[best.root]}${best.qual==='min'?'m':''}`;
-}
-function detectChordTimeline(mono, sr){
-  const hop=2048, win=4096;
-  const {frames} = stft(mono, sr, win, hop);
-  const labels=[]; const times=[];
-  for(let i=0;i<frames.length;i++){
-    const mags=fftMag(frames[i]);
-    const ch=chromaFromSpectrum(mags, sr, win);
-    const lab=chordLabelFromChroma(ch);
-    labels.push(lab);
-    times.push(i*hop/sr);
-  }
-  // Merge consecutive identical labels into spans
-  const spans=[];
-  let curLab=labels[0], start=0;
-  for(let i=1;i<labels.length;i++){
-    if(labels[i]!==curLab){
-      spans.push({start: times[start], end: times[i], label: curLab});
-      curLab=labels[i]; start=i;
-    }
-  }
-  spans.push({start: times[start], end: (frames.length*hop)/sr, label: curLab});
-  // gentle median filter: merge tiny spans (<1.0s) into neighbors
-  const out=[];
+function guitarTabsFromChords(spans){
+  let out = "e|----------------|----------------|\nB|----------------|----------------|\nG|----------------|----------------|\nD|----------------|----------------|\nA|----------------|----------------|\nE|----------------|----------------|\n";
+  const lines = out.split("\\n").map(s=>s.split(""));
+  const end = spans[spans.length-1]?.end || 1;
   for(const s of spans){
-    if(out.length && (s.end-s.start)<1.0 && out[out.length-1].label===s.label){
-      out[out.length-1].end = s.end; // extend
-    }else out.push(s);
+    const col = 2 + Math.floor((s.start/end)*30);
+    const digits = String((s.label.charCodeAt(0)%12)); // placeholder fret
+    for(let i=0;i<digits.length;i++) if(lines[5][col+i]) lines[5][col+i]=digits[i];
   }
-  return out;
+  return lines.map(a=>a.join("")).join("\\n");
 }
-function estimateBPM(mono, sr){
-  // very rough: autocorrelation peak
-  const step = Math.floor(sr/200); // downsample
-  const ds = new Float32Array(Math.floor(mono.length/step));
-  for(let i=0;i<ds.length;i++) ds[i]=mono[i*step];
-  const maxLag = Math.floor((sr/step)*2); // up to ~2s
-  let bestLag=0, best=0;
-  for(let lag=Math.floor((sr/step)/4); lag<maxLag; lag++){
-    let sum=0;
-    for(let i=lag;i<ds.length;i++) sum += ds[i]*ds[i-lag];
-    if(sum>best){ best=sum; bestLag=lag; }
+function bassTabsFromChords(spans){
+  let out = "G|----------------|----------------|\nD|----------------|----------------|\nA|----------------|----------------|\nE|----------------|----------------|\n";
+  const lines = out.split("\\n").map(s=>s.split(""));
+  const end = spans[spans.length-1]?.end || 1; let useA=false;
+  for(const s of spans){
+    const col = 2 + Math.floor((s.start/end)*30);
+    const line = useA?2:3; useA=!useA;
+    if(lines[line][col]) lines[line][col]='3'; // placeholder
   }
-  if(!bestLag) return null;
-  const periodSec = bestLag*(step/sr);
-  const bpm = 60/periodSec;
-  return Math.max(60, Math.min(180, bpm));
+  return lines.map(a=>a.join("")).join("\\n");
 }
-
-/* ====== parts from chords ====== */
-function noteNameToMidi(name){
-  const map = {'C':0,'C#':1,'Db':1,'D':2,'Eb':3,'E':4,'F':5,'F#':6,'Gb':6,'G':7,'Ab':8,'A':9,'Bb':10,'B':11};
-  const m = name.match(/^([A-G][b#]?)(m)?/); if(!m) return 48;
-  return 12 + map[m[1]]; // octave offset will be added later
-}
-function guitarTabsFromChords(chords){
-  // crude power-chord shapes (fifth) around E-string; two bars per line
-  const fretFor = (pc)=>({ // E string
-    0:0,1:1,2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,10:10,11:11
-  }[pc]);
-  let out = "e|----------------|----------------|\n"+
-            "B|----------------|----------------|\n"+
-            "G|----------------|----------------|\n"+
-            "D|----------------|----------------|\n"+
-            "A|----------------|----------------|\n"+
-            "E|----------------|----------------|\n";
-  // place the root at the start of each span
-  const lines = out.split("\n").map(s=>s.split(""));
-  for(const span of chords){
-    const pc = noteNameToMidi(span.label)%12;
-    const f  = fretFor(pc);
-    // put the fret number in E string line near column proportional to time
-    const col = 2 + Math.floor((span.start/(chords[chords.length-1].end||1))*30);
-    const lineIdx = 6-1; // E string
-    const s = String(f);
-    for(let i=0;i<s.length;i++) if(lines[lineIdx][col+i]) lines[lineIdx][col+i]=s[i];
-  }
-  return lines.map(a=>a.join("")).join("\n");
-}
-function bassTabsFromChords(chords){
-  // bass plays root on A/E strings alternating
-  let out = "G|----------------|----------------|\n"+
-            "D|----------------|----------------|\n"+
-            "A|----------------|----------------|\n"+
-            "E|----------------|----------------|\n";
-  const lines = out.split("\n").map(s=>s.split(""));
-  let toggle=false;
-  for(const span of chords){
-    const pc = noteNameToMidi(span.label)%12;
-    const fret = pc; // open position
-    const lineIdx = toggle ? 3-1 : 4-1; // A or E
-    toggle=!toggle;
-    const end = chords[chords.length-1].end||1;
-    const col = 2 + Math.floor((span.start/end)*30);
-    const s = String(fret);
-    for(let i=0;i<s.length;i++) if(lines[lineIdx][col+i]) lines[lineIdx][col+i]=s[i];
-  }
-  return lines.map(a=>a.join("")).join("\n");
-}
-function pianoNotesFromChords(chords){
-  // print triads per span (RH triad, LH root)
-  const names = chords.map(c=>c.label);
+function pianoNotesFromChords(spans){
+  const names = spans.map(s=>s.label);
   return [
-    "RH: " + names.map(n=> (n.endsWith("m")? `${n[0]} ${n}5` : `${n} ${n}5` ).split(" ")[0]+"maj/min").join("  "),
-    "LH: " + names.map(n=> n.replace('m','')+"2").join("  ")
+    "RH: "+names.map(n=> (n.endsWith('m')? (n.replace('m','')+'m triad') : (n+' triad')) ).join("  "),
+    "LH: "+names.map(n=> n.replace('m','')+"2").join("  ")
   ];
 }
 function drumGrid(duration, bpm){
-  const bars = Math.max(1, Math.round((duration/(60/(bpm||100)))/4));
-  const patt = (k)=> Array.from({length:16},(_,i)=> k(i)?'x':'-').join('');
-  const kick = patt(i=> i%4===0);
-  const snr  = patt(i=> i%8===4);
-  const hh   = patt(i=> i%2===0);
-  return [
-    "Kick | " + kick,
-    "Snare| " + snr,
-    "HH   | " + hh
-  ];
+  const patt=(k)=>Array.from({length:16},(_,i)=>k(i)?'x':'-').join('');
+  return ["Kick | "+patt(i=>i%4===0), "Snare| "+patt(i=>i%8===4), "HH   | "+patt(i=>i%2===0)];
+}
+function buildChordProText(spans, lyricsText, duration){
+  if(!lyricsText) return "[Intro] " + spans.slice(0,4).map(s=>s.label).join("  ");
+  const words = lyricsText.trim().split(/\\s+/); if(words.length===0) return lyricsText;
+  const per = (duration||words.length)/Math.max(1,words.length);
+  let res="", idx=0;
+  for(let w=0;w<words.length;w++){
+    const t = w*per;
+    while(idx+1<spans.length && spans[idx+1].start<=t) idx++;
+    const add = (w===0) || (spans[idx].start<=t && (idx===0?true:spans[idx].start>(w-1)*per));
+    res += (add?`[${spans[idx].label}]`:"")+words[w]+((w%12===11)?"\\n":" ");
+  }
+  return res.trim();
 }
 
-/* ====== lyrics + chords-over-words (naive) ====== */
-function buildChordPro(chords, lyricsText, duration){
-  if(!lyricsText) return "[Intro] " + chords.slice(0,4).map(c=>c.label).join("  ") +
-    "\n[Verse]\n" + chords.map(c=>`[${c.label}] ...`).join(" ");
-  const words = lyricsText.trim().split(/\s+/);
-  if(words.length===0) return lyricsText;
-  // assign each word a start time uniformly; place chord before the word when it changes
-  const perWord = (duration||words.length)/Math.max(1, words.length);
-  let cp = ""; let idx=0;
-  for(let w=0; w<words.length; w++){
-    const t = w*perWord;
-    while(idx+1<chords.length && chords[idx+1].start<=t) idx++;
-    const needChord = (w===0) || (chords[idx].start<=t && (idx===0?true:chords[idx].start> (w-1)*perWord));
-    cp += (needChord?`[${chords[idx].label}]`:"") + words[w] + ((w%12===11)?"\n":" ");
-  }
-  return cp.trim();
+/* ===== Export helpers ===== */
+function pad(n,l=2){ return String(n).padStart(l,'0'); }
+function fmtTime(t){ const m=Math.floor(t/60), s=Math.floor(t%60), ms=Math.round((t-Math.floor(t))*1000); return `${pad(m)}:${pad(s)}.${pad(ms,3)}`; }
+function toMarkdown(title, chords, g=null, b=null, p=null, d=null, chordPro=null){
+  const L=[]; L.push(`# ${title} — Tabs & Chords`,'');
+  if(chordPro){ L.push('## Lyrics + Chords','```chordpro',chordPro,'```',''); }
+  if(g){ L.push('## Guitar Tabs','```',g,'```',''); }
+  if(b){ L.push('## Bass Tabs','```',b,'```',''); }
+  if(p?.length){ L.push('## Piano (notes)',...p.map(x=>'- '+x),''); }
+  if(d?.length){ L.push('## Drums (grid)',...d.map(x=>'`'+x+'`'),''); }
+  L.push('## Chord Timeline','', ...chords.map(c=>`- ${fmtTime(c.start)}–${fmtTime(c.end)}: **${c.label}**`),'');
+  return L.join('\\n');
 }
-function guessGlobalKey(chords){
-  // most common root
-  const counts = {};
-  for(const c of chords){
-    const root = c.label.replace('m','');
-    counts[root]=(counts[root]||0)+ (c.end-c.start);
+function toPlainTabs(g=null,b=null,p=null,d=null){ const o=[]; if(g){o.push('GUITAR',g,'');} if(b){o.push('BASS',b,'');} if(p?.length){o.push('PIANO',...p,'');} if(d?.length){o.push('DRUMS',...d,'');} return o.join('\\n'); }
+function toJSONFile(title, chords, meta={}){ return JSON.stringify({title,chords,meta},null,2); }
+function toWebVTT(chords){
+  const L=['WEBVTT','']; const to=(t)=>{const h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=Math.floor(t%60),ms=Math.round((t-Math.floor(t))*1000); return `${pad(h)}:${pad(m)}:${pad(s)}.${pad(ms,3)}`;}
+  chords.forEach((c,i)=>{L.push(String(i+1)); L.push(`${to(c.start)} --> ${to(c.end)}`); L.push(c.label,'');});
+  return L.join('\\n');
+}
+function downloadText(filename, text){ const blob=new Blob([text],{type:'text/plain;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); URL.revokeObjectURL(a.href); }
+
+/* ===== Main pipeline ===== */
+let controller=null, pool=null;
+
+goBtn.addEventListener('click', runBatched);
+async function runBatched(){
+  const file = fileEl.files?.[0];
+  try{
+    validateFile(file);
+  }catch(e){ alert(e.message); return; }
+
+  controller = new AbortController();
+  abortBtn.disabled = false;
+  abortBtn.onclick = ()=> controller?.abort();
+
+  try{
+    logEl.textContent=''; setProgress(3); statusEl.textContent='Decoding…'; goBtn.disabled = true;
+
+    // Decode (native first)
+    let audio;
+    try{
+      audio = await decodeWithWebAudio(await file.arrayBuffer());
+    }catch{
+      log('Native decode failed → using ffmpeg.wasm…');
+      audio = await decodeViaFFmpeg(file);
+    }
+    if(audio.duration>600) throw new Error(`Audio too long (${audio.duration.toFixed(0)}s). Limit 600s.`);
+
+    // Prep
+    statusEl.textContent='Framing…'; setProgress(10);
+    const mono = mixToMono(audio);
+    const { chunks, hop, sr } = frameAudioInChunks(mono, audio.sampleRate, 4096, 2048, 192);
+    const total = chunks.length; log(`Framed into ${total} batches (${chunks[0]?.length||0} frames each).`);
+
+    // Pool
+    const cores = navigator.hardwareConcurrency || 4;
+    pool = pool || makeWorkerPool(Math.min(cores, 4));
+    statusEl.textContent='Analyzing (parallel)…';
+
+    const labels = []; let done=0;
+    for(let i=0;i<chunks.length;i+=pool.size){
+      if(controller.signal.aborted) throw new DOMException('Aborted','AbortError');
+      const wave = chunks.slice(i, i+pool.size);
+      const res = await Promise.all(wave.map(b => pool.runBatch(b, sr, controller.signal)));
+      res.forEach(arr => labels.push(...arr));
+      done += wave.length;
+      setProgress(10 + Math.floor(75 * done/total));
+      statusEl.textContent = `Analyzing… ${done}/${total}`;
+      log(`✔️ Batch ${done}/${total} complete`);
+      await tick(); // keep UI responsive
+    }
+
+    // Merge to spans
+    const toTime = (idx)=> idx*hop/sr; const spans=[];
+    if(labels.length){ let cur=labels[0], s=0;
+      for(let i=1;i<labels.length;i++){ if(labels[i]!==cur){ spans.push({start:toTime(s), end:toTime(i), label:cur}); cur=labels[i]; s=i; } }
+      spans.push({start:toTime(s), end:toTime(labels.length), label:cur});
+    }
+    log(`Built ${spans.length} spans from ${labels.length} frame labels.`);
+
+    // Build parts (placeholder; swap with your real generators later)
+    const title = (file.name||'Song').replace(/\.[^.]+$/,'');
+    const key   = guessKey(spans);
+    const bpm   = null; // (add a BPM estimator later if you want)
+    const selected = [...chips.querySelectorAll('input:checked')].map(i=>i.value);
+
+    const g = selected.includes('guitar') ? guitarTabsFromChords(spans) : null;
+    const b = selected.includes('bass')   ? bassTabsFromChords(spans)   : null;
+    const p = selected.includes('piano')  ? pianoNotesFromChords(spans) : null;
+    const d = selected.includes('drums')  ? drumGrid(audio.duration, bpm) : null;
+    const chordPro = buildChordProText(spans, (lyrics.value||'').trim(), audio.duration);
+
+    // Export (fast)
+    statusEl.textContent='Exporting…'; setProgress(92);
+    if(fmtMD.checked)   downloadText(`${title}_tabs.md`,  toMarkdown(title, spans, g, b, p, d, chordPro));
+    if(fmtTXT.checked)  downloadText(`${title}_tabs.txt`, toPlainTabs(g, b, p, d));
+    if(fmtJSON.checked) downloadText(`${title}_chords.json`, toJSONFile(title, spans, { key, bpm }));
+    if(fmtVTT.checked)  downloadText(`${title}_chords.vtt`, toWebVTT(spans));
+
+    setProgress(100); statusEl.textContent='Done.';
+    const preview = spans.slice(0,8).map(s=>`[${fmtTime(s.start)}–${fmtTime(s.end)}] ${s.label}`).join('\\n');
+    log('Preview:\\n'+preview);
+  }catch(err){
+    if(err.name==='AbortError'){ statusEl.textContent='Canceled.'; log('⚠️ Aborted by user'); }
+    else { statusEl.textContent='Failed.'; log('❌ '+err.message); }
+  }finally{
+    goBtn.disabled=false; abortBtn.disabled=true; controller=null;
   }
-  const best = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
-  return best? best[0]+" Major/Minor" : "—";
 }
 
-/* ====== docx ====== */
-async function buildDocx(a){
-  const rowsToTable = (rows)=> new Table({
-    width:{ size:100, type:WidthType.PERCENTAGE },
-    rows: rows.map(r => new TableRow({ children: r.map(c => new TableCell({ children:[ new Paragraph(String(c)) ] })) }))
-  });
-  const children = [];
-  children.push(new Paragraph({ text:(a.song?.title || "Song")+" — Tabs & Lyrics", heading:HeadingLevel.TITLE }));
-  children.push(new Paragraph({ text:"" }));
-  children.push(new Paragraph({ text:"Song Information", heading:HeadingLevel.HEADING_2 }));
-  children.push(rowsToTable([
-    ["Title", a.song?.title || "—"],
-    ["Artist", a.song?.artist || "—"],
-    ["Detected Key", a.song?.key || "—"],
-    ["Tempo (BPM)", String(a.song?.bpm ?? "—")]
-  ]));
-  if(a.song?.sections?.length){
-    children.push(new Paragraph({ text:"" }));
-    children.push(new Paragraph({ text:"Global Analysis", heading:HeadingLevel.HEADING_2 }));
-    children.push(new Paragraph({ text:"Sections: "+a.song.sections.join(" | ") }));
-  }
-  if(a.lyrics_chords){
-    children.push(new Paragraph({ text:"" }));
-    children.push(new Paragraph({ text:"Lyrics with Chords", heading:HeadingLevel.HEADING_2 }));
-    a.lyrics_chords.split("\n").forEach(line=> children.push(new Paragraph({ text: line })));
-  }
-  if(a.guitar?.tabText){
-    children.push(new Paragraph({ text:"" }));
-    children.push(new Paragraph({ text:"Guitar — Tabs", heading:HeadingLevel.HEADING_2 }));
-    a.guitar.tabText.split("\n").forEach(line=> children.push(new Paragraph({ text: line })));
-  }
-  if(a.bass?.tabText){
-    children.push(new Paragraph({ text:"" }));
-    children.push(new Paragraph({ text:"Bass — Tabs", heading:HeadingLevel.HEADING_2 }));
-    a.bass.tabText.split("\n").forEach(line=> children.push(new Paragraph({ text: line })));
-  }
-  if(a.piano?.notes?.length){
-    children.push(new Paragraph({ text:"" }));
-    children.push(new Paragraph({ text:"Piano — Notes", heading:HeadingLevel.HEADING_2 }));
-    a.piano.notes.forEach(line=> children.push(new Paragraph({ text: line })));
-  }
-  if(a.drums?.grid?.length){
-    children.push(new Paragraph({ text:"" }));
-    children.push(new Paragraph({ text:"Drums — Grid", heading:HeadingLevel.HEADING_2 }));
-    a.drums.grid.forEach(line=> children.push(new Paragraph({ text: line })));
-  }
-  if(a.chords?.length){
-    children.push(new Paragraph({ text:"" }));
-    children.push(new Paragraph({ text:"Appendix — Chord Timeline", heading:HeadingLevel.HEADING_2 }));
-    const header = [["Start (s)","End (s)","Chord"]];
-    const rows = a.chords.map(c=> [Number(c.start).toFixed(2), Number(c.end).toFixed(2), String(c.label)]);
-    children.push(rowsToTable(header.concat(rows)));
-  }
-  const doc = new Document({ sections:[{ children }] });
-  return await Packer.toBlob(doc);
-}
-
-/* ====== tiny helpers ====== */
-const sleep = (ms)=> new Promise(r=>setTimeout(r,ms));
+/* Dev: long-task console telemetry */
+(function(){ if(!('PerformanceObserver' in window)) return; try{const o=new PerformanceObserver(l=>{for(const e of l.getEntries()) if(e.duration>=120) console.log('[LongTask]',Math.round(e.duration)+'ms');}); o.observe({type:'longtask', buffered:true});}catch(_){} })();
 </script>
 </body>
 </html>
