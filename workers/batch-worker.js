@@ -1,109 +1,113 @@
-// workers/yin-worker.js
-// Lightweight YIN pitch tracker → segments into notes; returns [{start,end,midi}]
+// /workers/batch-worker.js
+// Chroma chord detector with spectral whitening, bass emphasis and median smoothing.
+// Input: { id, frames: Float32Array[], sr }  ->  Output: { id, labels: string[] }
 
+//////////////////// Utils ////////////////////
+const NAMES = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
+const MAJ = [1,0,0,0,1,0,0,1,0,0,0,0]; // 1,3,5
+const MIN = [1,0,0,1,0,0,0,1,0,0,0,0]; // 1,b3,5
+function hann(N,i){ return 0.5*(1-Math.cos(2*Math.PI*i/(N-1))); }
+function hzToMidi(hz){ return 69 + 12*Math.log2(hz/440); }
+
+//////////////////// DFT (naive, GH-Pages safe) ////////////////////
+function fftMagPrewindowed(frame){
+  const N = frame.length, mags = new Float32Array(N/2);
+  // window in-place
+  for (let i=0;i<N;i++) frame[i] = frame[i]*hann(N,i);
+  for (let k=1;k<N/2;k++){
+    let re=0, im=0, angCoef=-2*Math.PI*k/N;
+    for (let n=0;n<N;n++){ const ang=angCoef*n, x=frame[n]; re+=x*Math.cos(ang); im+=x*Math.sin(ang); }
+    mags[k] = Math.hypot(re,im);
+  }
+  return mags;
+}
+
+//////////////////// Whitening + Chroma ////////////////////
+// simple spectral whitening: divide by a smoothed envelope
+function whiten(mags, smoothBins=12){
+  const N = mags.length;
+  const out = new Float32Array(N);
+  for (let k=0;k<N;k++){
+    let lo = Math.max(1, k-smoothBins), hi = Math.min(N-1, k+smoothBins), sum=0, cnt=0;
+    for (let j=lo;j<=hi;j++){ sum += mags[j]; cnt++; }
+    const env = sum / (cnt||1);
+    out[k] = env>0 ? mags[k] / env : mags[k];
+  }
+  return out;
+}
+
+function chromaFromSpectrum(mags, sr, nfft){
+  const c = new Float32Array(12);
+  for (let k=1;k<mags.length;k++){
+    const f = k*sr/nfft;
+    if (f<40 || f>6000) continue;
+    let w = 1.0;
+    if (f<200) w *= 1.4;                     // bass emphasis
+    w *= 1/Math.sqrt(1 + (f/2000)**2);       // treble roll-off
+
+    const midi = hzToMidi(f);
+    if (!Number.isFinite(midi)) continue;
+    const pc = Math.round(midi) % 12;
+    c[(pc+12)%12] += w * mags[k];
+  }
+  // L2 normalize
+  let s=0; for (let i=0;i<12;i++) s += c[i]*c[i];
+  if (s>0){ s=Math.sqrt(s); for (let i=0;i<12;i++) c[i]/=s; }
+  return c;
+}
+
+//////////////////// Chord Scoring ////////////////////
+function scoreTemplate(ch, tmpl, rot){
+  let s=0;
+  for (let i=0;i<12;i++) if (tmpl[i]) s += ch[(i+rot)%12];
+  let non=0; // mild penalty for off-template energy
+  for (let i=0;i<12;i++) if (!tmpl[i]) non += ch[(i+rot)%12]*0.05;
+  return s - non;
+}
+function bestChordFromChroma(ch){
+  let best = {r:0,q:'',sc:-1};
+  for (let r=0;r<12;r++){
+    const rootBoost = ch[r]*0.25;
+    const sMaj = scoreTemplate(ch, MAJ, r) + rootBoost;
+    const sMin = scoreTemplate(ch, MIN, r) + rootBoost*0.9;
+    if (sMaj > best.sc) best = {r,q:'', sc:sMaj};
+    if (sMin > best.sc) best = {r,q:'m',sc:sMin};
+  }
+  return NAMES[best.r] + best.q;
+}
+
+//////////////////// Frame Label ////////////////////
+function labelFrame(frame, sr){
+  const mags   = fftMagPrewindowed(frame.slice());
+  const white  = whiten(mags, 10);
+  const chroma = chromaFromSpectrum(white, sr, frame.length);
+  return bestChordFromChroma(chroma);
+}
+
+//////////////////// Median Smoothing ////////////////////
+function medianSmooth(labels, w=5){
+  if (labels.length===0 || w<=1) return labels;
+  const out = labels.slice();
+  const half = Math.floor(w/2);
+  for (let i=0;i<labels.length;i++){
+    const lo = Math.max(0, i-half), hi = Math.min(labels.length-1, i+half);
+    const counts = new Map();
+    for (let j=lo;j<=hi;j++){ counts.set(labels[j], (counts.get(labels[j])||0)+1); }
+    let best=labels[i], bc=0;
+    counts.forEach((c,lab)=>{ if(c>bc){ bc=c; best=lab; } });
+    out[i]=best;
+  }
+  return out;
+}
+
+//////////////////// Batch API ////////////////////
 self.onmessage = (e) => {
-  const { id, mono, sr, hopSamples } = e.data;
-  try {
-    const conf = { sr, fmin: 80, fmax: 1000, frame: 2048, hop: hopSamples || 256, thresh: 0.15, minVoicedFrames: 3 };
-    const f0 = yinTrack(mono, conf);                // per-frame Hz (0 if unvoiced)
-    const notes = segmentNotesFromF0(f0, conf);     // [{start,end,midi}]
-    self.postMessage({ id, notes });
-  } catch (err){
-    self.postMessage({ id, notes: [] });
+  const { id, frames, sr } = e.data;
+  let raw = new Array(frames.length);
+  for (let i=0;i<frames.length;i++){
+    try { raw[i] = labelFrame(frames[i], sr); }
+    catch { raw[i] = 'N'; }
   }
+  const labels = medianSmooth(raw, 5);
+  self.postMessage({ id, labels });
 };
-
-/* ===== YIN core ===== */
-function yinTrack(x, { sr, fmin, fmax, frame, hop, thresh }){
-  const N = x.length;
-  const frames = Math.max(0, Math.floor((N - frame) / hop));
-  const f0 = new Float32Array(frames);
-  const tauMin = Math.max(1, Math.floor(sr / fmax));
-  const tauMax = Math.min(frame-1, Math.floor(sr / fmin));
-  const buf = new Float32Array(frame);
-
-  for (let i=0;i<frames;i++){
-    const off = i*hop;
-    for (let n=0;n<frame;n++) buf[n] = x[off + n] || 0;
-    const tau = yinPitch(buf, tauMin, tauMax, thresh);
-    f0[i] = tau > 0 ? sr / tau : 0;
-  }
-  return f0;
-}
-
-function yinPitch(buf, tauMin, tauMax, thresh){
-  const N = buf.length;
-  const diff = new Float32Array(tauMax+1);
-  // difference function
-  for (let tau=tauMin; tau<=tauMax; tau++){
-    let s=0;
-    for (let i=0;i<N-tau;i++){
-      const d = buf[i] - buf[i+tau];
-      s += d*d;
-    }
-    diff[tau] = s;
-  }
-  // cumulative mean normalized difference
-  const cmnd = new Float32Array(tauMax+1);
-  cmnd[0]=1; let running=0;
-  for (let tau=1; tau<=tauMax; tau++){
-    running += diff[tau];
-    cmnd[tau] = diff[tau] * tau / (running || 1);
-  }
-  // absolute threshold
-  let tau = -1;
-  for (let t=tauMin; t<=tauMax; t++){
-    if (cmnd[t] < thresh){
-      // parabolic interpolation for sub-sample accuracy
-      let t0 = t, t1 = t-1, t2 = t+1;
-      if (t1>=tauMin && t2<=tauMax){
-        const a = cmnd[t1], b = cmnd[t0], c = cmnd[t2];
-        const denom = (a - 2*b + c);
-        const p = denom !== 0 ? 0.5*(a - c)/denom : 0;
-        tau = t + p;
-      } else {
-        tau = t;
-      }
-      break;
-    }
-  }
-  return tau>0 ? tau : 0;
-}
-
-/* ===== F0 → note segmentation ===== */
-function hzToMidi(hz){ return hz>0 ? 69 + 12*Math.log2(hz/440) : 0; }
-function segmentNotesFromF0(f0, { sr, hop, minVoicedFrames=3 }){
-  const notes = [];
-  let on=-1, lastMidi=0;
-  for (let i=0;i<f0.length;i++){
-    const hz = f0[i];
-    if (hz>0){
-      const midi = Math.round(hzToMidi(hz));
-      if (on<0){ on=i; lastMidi=midi; }
-      else {
-        // if pitch jumps a lot, close and start new
-        if (Math.abs(midi - lastMidi) >= 2){
-          if (i-on >= minVoicedFrames){
-            notes.push(idxToNote(on, i, lastMidi, sr, hop));
-          }
-          on = i; lastMidi = midi;
-        } else {
-          // continue same note; keep lastMidi as running median-ish
-          lastMidi = Math.round((lastMidi*3 + midi)/4);
-        }
-      }
-    } else {
-      if (on>=0 && i-on >= minVoicedFrames){
-        notes.push(idxToNote(on, i, lastMidi, sr, hop));
-      }
-      on = -1;
-    }
-  }
-  if (on>=0){
-    notes.push(idxToNote(on, f0.length, lastMidi, sr, hop));
-  }
-  return notes;
-}
-function idxToNote(a, b, midi, sr, hop){
-  return { start: (a*hop)/sr, end: (b*hop)/sr, midi: midi };
-}
