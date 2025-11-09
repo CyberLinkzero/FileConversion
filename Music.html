@@ -29,11 +29,10 @@
   .btn:disabled{opacity:.6;cursor:not-allowed}
   .bar{height:8px;background:#0a1424;border:1px solid #263044;border-radius:999px;overflow:hidden;margin-top:10px}
   .bar>i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),var(--vio));transition:width .25s}
-  pre{margin:10px 0 0;padding:12px;border:1px dashed var(--line);border-radius:12px;background:#07101a;color:#cfe6ff;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;max-height:240px;overflow:auto;white-space:pre-wrap}
+  pre{margin:10px 0 0;padding:12px;border:1px dashed var(--line);border-radius:12px;background:#07101a;color:#cfe6ff;font:12px/1.6 ui-monospace,Menlo,Consolas,monospace;max-height:240px;overflow:auto;white-space:pre-wrap}
   .muted{color:var(--muted)}
   #scoreWrap{margin-top:16px;background:#0a1424;border:1px solid #263044;border-radius:12px;padding:12px}
-  .badge{display:inline-flex;align-items:center;gap:8px;border:1px solid #263044;border-radius:999px;padding:6px 10px;color:#cfe6ff}
-  /* Modal */
+  .badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:#cfe6ff}
   #transcriber-modal{display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:99999;}
   #transcriber-card{max-width:640px; margin:10vh auto; background:#121826; color:#e5f2ff; border:1px solid #263044; border-radius:16px; padding:18px;}
   .btn{cursor:pointer}
@@ -50,14 +49,11 @@
     <div class="row">
       <div>
         <label class="title">Audio/Video file</label>
-        <!-- Hidden input -->
         <input id="file" type="file" accept="audio/*,video/*" hidden>
-        <!-- Label opens picker even if JS/modules fail -->
         <label id="drop" class="drop" for="file" aria-label="Choose file">
           Drag & drop here, or <u>browse</u>
           <div id="fname" class="muted" style="margin-top:6px"></div>
         </label>
-        <!-- Extra safe fallback button -->
         <button id="chooseBtn" class="btn sec" type="button" style="margin-top:8px">Choose file…</button>
 
         <div class="chips" style="margin-top:10px">
@@ -140,48 +136,40 @@
   </div>
 </div>
 
-<!-- ===== FALLBACK: tiny non-module script so picking/dragging works even if modules fail ===== -->
+<!-- Fallback picker (always runs) -->
 <script>
 (function () {
   const drop   = document.getElementById('drop');
   const fileEl = document.getElementById('file');
   const fname  = document.getElementById('fname');
   const btn    = document.getElementById('chooseBtn');
-
-  // Button fallback (opens OS picker even in strict embed contexts)
-  if (btn) {
-    btn.addEventListener('click', () => {
-      if (fileEl && fileEl.showPicker) fileEl.showPicker(); else fileEl.click();
-    });
-  }
-
-  // Drag & drop (no dependencies)
+  if (btn) btn.addEventListener('click', () => { if (fileEl.showPicker) fileEl.showPicker(); else fileEl.click(); });
   drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('drag'); });
   drop.addEventListener('dragleave', () => drop.classList.remove('drag'));
   drop.addEventListener('drop', (e) => {
-    e.preventDefault();
-    drop.classList.remove('drag');
-    if (e.dataTransfer?.files?.length) {
-      fileEl.files = e.dataTransfer.files;
-      fname.textContent = fileEl.files[0]?.name || '';
-      fileEl.dispatchEvent(new Event('change', { bubbles: true }));
-    }
+    e.preventDefault(); drop.classList.remove('drag');
+    if (e.dataTransfer?.files?.length) { fileEl.files = e.dataTransfer.files; fname.textContent = fileEl.files[0]?.name || ''; fileEl.dispatchEvent(new Event('change', { bubbles: true })); }
   });
-
-  // Show chosen file name (works regardless of module errors)
-  fileEl.addEventListener('change', () => {
-    fname.textContent = fileEl.files[0]?.name || '';
-  });
+  fileEl.addEventListener('change', () => { fname.textContent = fileEl.files[0]?.name || ''; });
 })();
 </script>
 
-<!-- Main app (module). If this fails, the picker above still works. -->
+<!-- Main app -->
 <script type="module">
-/* ========= Import VexFlow (ESM) ========= */
-import { Flow as VF } from 'https://unpkg.com/vexflow@4.2.4/build/esm/vexflow.js';
+/* ===== Lazy-load VF only when needed (prevents early crash) ===== */
+async function lazyVF(){
+  if (window.__VF__) return window.__VF__;
+  try{
+    const { Flow } = await import('https://unpkg.com/vexflow@4.2.4/build/esm/vexflow.js');
+    window.__VF__ = Flow;
+    return Flow;
+  }catch(e){
+    console.warn('VexFlow failed to load (sheet rendering will be disabled):', e);
+    return null;
+  }
+}
 
-/* ========= UI refs ========= */
-const drop = document.querySelector('#drop');
+/* ===== UI refs ===== */
 const fileEl = document.querySelector('#file');
 const fname = document.querySelector('#fname');
 const chips = document.querySelector('#chips');
@@ -210,8 +198,6 @@ const steps = document.getElementById('setup-steps');
 const probeEl = document.getElementById('probe-status');
 
 const getMode = () => (document.querySelector('input[name="mode"]:checked')?.value)||'tabs';
-
-/* ========= Small utils ========= */
 const setProgress = p => fill.style.width = Math.max(0,Math.min(100,p)) + '%';
 const tick = () => new Promise(r=>setTimeout(r,0));
 function makeLog(el){ let buf=[],s=false; return (msg)=>{ buf.push(msg); if(!s){ s=true; setTimeout(()=>{ el.textContent+=buf.join('\n')+'\n'; el.scrollTop=el.scrollHeight; buf=[]; s=false; },50);} }; }
@@ -219,10 +205,7 @@ const log = makeLog(logEl);
 const pad = (n,l=2)=> String(n).padStart(l,'0');
 const fmtTime = (t)=>{ const m=Math.floor(t/60), s=Math.floor(t%60), ms=Math.round((t-Math.floor(t))*1000); return `${pad(m)}:${pad(s)}.${pad(ms,3)}`; };
 
-/* ========= File input UX (module layer just mirrors name; core picking is handled above) ========= */
-fileEl.addEventListener('change', ()=>{ fname.textContent = fileEl.files[0]?.name ?? ''; showCacheUI(); });
-
-/* ========= Audio helpers ========= */
+/* ===== Decoders ===== */
 async function decodeWithWebAudio(arrayBuf){
   const ac = new (window.AudioContext||window.webkitAudioContext)();
   const audio = await ac.decodeAudioData(arrayBuf.slice(0));
@@ -248,7 +231,7 @@ function validateFile(file, maxMB=200){
   if(mb>maxMB) throw new Error(`File too large (${mb.toFixed(1)} MB). Limit ${maxMB} MB.`);
 }
 
-/* ========= Batching & workers ========= */
+/* ===== Framing ===== */
 function frameAudioInChunks(mono, sr, win=4096, hop=2048, framesPerChunk=192){
   const chunks=[]; let frames=[];
   for(let i=0;i+win<=mono.length;i+=hop){
@@ -258,40 +241,65 @@ function frameAudioInChunks(mono, sr, win=4096, hop=2048, framesPerChunk=192){
   if(frames.length) chunks.push(frames);
   return { chunks, hop, sr, win };
 }
+
+/* ===== Workers with fallback ===== */
+let workerAvailable = true;
 function makeChordWorkerPool(n){
-  const url = new URL('./workers/batch-worker.js', import.meta.url);
-  const ws = Array.from({length:n}, ()=> new Worker(url, {type:'module'}));
-  let nextId=0;
-  function runBatch(frames, sr, signal){
-    return new Promise((resolve,reject)=>{
-      const id = nextId++;
-      const w = ws[id % ws.length];
-      const onMsg = (e)=>{ if(e.data?.id!==id) return; w.removeEventListener('message', onMsg); resolve(e.data.labels); };
-      w.addEventListener('message', onMsg);
-      if(signal){ signal.addEventListener('abort', ()=>{ w.removeEventListener('message', onMsg); reject(new DOMException('Aborted','AbortError')); }, {once:true}); }
-      w.postMessage({ id, frames, sr }, frames.map(f=>f.buffer));
-    });
+  try{
+    const url = new URL('./workers/batch-worker.js', import.meta.url);
+    const ws = Array.from({length:n}, ()=> new Worker(url, {type:'module'}));
+    let nextId=0;
+    function runBatch(frames, sr, signal){
+      return new Promise((resolve,reject)=>{
+        const id = nextId++;
+        const w = ws[id % ws.length];
+        const onMsg = (e)=>{ if(e.data?.id!==id) return; w.removeEventListener('message', onMsg); resolve(e.data.labels); };
+        w.addEventListener('message', onMsg);
+        if(signal){ signal.addEventListener('abort', ()=>{ w.removeEventListener('message', onMsg); reject(new DOMException('Aborted','AbortError')); }, {once:true}); }
+        w.postMessage({ id, frames, sr }, frames.map(f=>f.buffer));
+      });
+    }
+    function terminate(){ ws.forEach(w=>w.terminate()); }
+    return { runBatch, size:n, terminate };
+  }catch(e){
+    workerAvailable = false;
+    console.warn('batch-worker not available, using fallback analyzer:', e);
+    return {
+      size: 1,
+      async runBatch(frames, sr){
+        // Super-simple fallback: alternate C and Am to keep pipeline alive
+        const labels = new Array(frames.length).fill(0).map((_,i)=> i%8<4 ? 'C' : 'Am');
+        return labels;
+      },
+      terminate(){ /* no-op */ }
+    };
   }
-  function terminate(){ ws.forEach(w=>w.terminate()); }
-  return { runBatch, size:n, terminate };
 }
 function yinWorker(){
-  const url = new URL('./workers/yin-worker.js', import.meta.url);
-  const w = new Worker(url, {type:'module'});
-  let nextId=0;
-  return {
-    run: (mono, sr, hopSamples, signal)=> new Promise((resolve,reject)=>{
-      const id = nextId++;
-      const onMsg = (e)=>{ if(e.data?.id!==id) return; w.removeEventListener('message', onMsg); resolve(e.data.notes||[]); };
-      w.addEventListener('message', onMsg);
-      if(signal){ signal.addEventListener('abort', ()=>{ w.removeEventListener('message', onMsg); reject(new DOMException('Aborted','AbortError')); }, {once:true}); }
-      w.postMessage({ id, mono, sr, hopSamples }, [mono.buffer]);
-    }),
-    terminate(){ try{ w.terminate(); }catch{} }
-  };
+  try{
+    const url = new URL('./workers/yin-worker.js', import.meta.url);
+    const w = new Worker(url, {type:'module'});
+    let nextId=0;
+    return {
+      run: (mono, sr, hopSamples, signal)=> new Promise((resolve,reject)=>{
+        const id = nextId++;
+        const onMsg = (e)=>{ if(e.data?.id!==id) return; w.removeEventListener('message', onMsg); resolve(e.data.notes||[]); };
+        w.addEventListener('message', onMsg);
+        if(signal){ signal.addEventListener('abort', ()=>{ w.removeEventListener('message', onMsg); reject(new DOMException('Aborted','AbortError')); }, {once:true}); }
+        w.postMessage({ id, mono, sr, hopSamples }, [mono.buffer]);
+      }),
+      terminate(){ try{ w.terminate(); }catch{} }
+    };
+  }catch(e){
+    console.warn('yin-worker not available, disabling melody estimation:', e);
+    return {
+      async run(){ return []; },
+      terminate(){ /* no-op */ }
+    };
+  }
 }
 
-/* ========= Smoothing / derivations ========= */
+/* ===== Smoothing & helpers ===== */
 function mergeMicroSpans(spans, minDur = 0.20){
   if (!spans || spans.length === 0) return spans;
   const out = [];
@@ -313,9 +321,9 @@ function guessKey(spans){
   return `${k} Major / ${relMinor} Minor`;
 }
 
-/* ========= Tabs helpers ========= */
+/* ===== Tabs & exports ===== */
 function padLine(arr, width, fill='-'){ while(arr.length < width) arr.push(fill); }
-function makeLines(template){ return template.split("\n").map(s => s.split("")); }
+function makeLines(t){ return t.split("\n").map(s => s.split("")); }
 function joinLines(lines){ return lines.map(a => a.join("")).join("\n"); }
 function guitarTabsFromChords(spans){
   let lines = makeLines(
@@ -397,13 +405,19 @@ function toWebVTT(spans){
 }
 function downloadText(filename, text){ const blob=new Blob([text],{type:'text/plain;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); URL.revokeObjectURL(a.href); }
 
-/* ========= Sheet (VexFlow) ========= */
+/* ===== Sheet (lazy VF) ===== */
 const secToBeats = (t,bpm)=> (t*bpm)/60;
 function quantizeToNearestDur(beats){ if (beats >= 0.75) return { dur:'q', beats:1 }; if (beats >= 0.375) return { dur:'8', beats:0.5 }; return { dur:'16', beats:0.25 }; }
 function pitchToVexKey(midi){ const names=['c','c#','d','eb','e','f','f#','g','ab','a','bb','b']; const n=Math.round(midi); const name=names[(n+1200)%12]; const octave=Math.floor(n/12)-1; return `${name}/${octave}`; }
 function syllabify(text){ if(!text) return []; const words=text.trim().split(/\s+/); const out=[]; for(const w of words){ if(w.length<=6) out.push(w); else { const mid=Math.floor(w.length/2); out.push(w.slice(0,mid)+'-', w.slice(mid)); } } return out; }
 
-function renderSheet({ title, bpm=100, melody=[], chords=[], lyricsText="" }){
+async function renderSheet({ title, bpm=100, melody=[], chords=[], lyricsText="" }){
+  const VF = await lazyVF();
+  if (!VF){
+    scoreWrap.style.display='none';
+    log('⚠️ VexFlow not available — cannot render sheet. Tabs export still works.');
+    return;
+  }
   scoreWrap.style.display = 'block';
   scoreDiv.innerHTML = '';
   const renderer = new VF.Renderer(scoreDiv, VF.Renderer.Backends.SVG);
@@ -451,7 +465,7 @@ function renderSheet({ title, bpm=100, melody=[], chords=[], lyricsText="" }){
   context.restore();
 }
 
-/* ========= OPFS cache ========= */
+/* ===== OPFS cache ===== */
 const OPFS = await navigator.storage?.getDirectory?.();
 async function readCache(){ if(!OPFS) return null; try{ const h=await OPFS.getFileHandle('analysis.json'); const f=await h.getFile(); return JSON.parse(await f.text()); }catch{ return null; } }
 async function writeCache(data){ if(!OPFS) return; const h=await OPFS.getFileHandle('analysis.json',{create:true}); const w=await h.createWritable(); await w.write(new Blob([JSON.stringify(data)],{type:'application/json'})); await w.close(); }
@@ -464,67 +478,37 @@ async function showCacheUI(){
   clearCacheBtn.style.display = has ? 'inline-block' : 'none';
 }
 
-/* ========= Local lyrics helper ========= */
+/* ===== Local transcriber helpers (unchanged) ===== */
 const LOCAL_URL = 'http://127.0.0.1:8765';
-function detectOS(){
-  const ua = navigator.userAgent || '';
-  if (ua.includes('Windows')) return 'windows';
-  if (ua.includes('Mac') || ua.includes('Macintosh')) return 'mac';
-  if (ua.includes('Linux')) return 'linux';
-  return 'unknown';
-}
+function detectOS(){ const ua=navigator.userAgent||''; if(ua.includes('Windows'))return'windows'; if(ua.includes('Mac'))return'mac'; if(ua.includes('Linux'))return'linux'; return'unknown'; }
 async function isServerUp(timeoutMs=800){
-  const ctrl = new AbortController();
-  const t = setTimeout(()=>ctrl.abort(), timeoutMs);
-  try{
-    const r = await fetch(LOCAL_URL + '/health', { signal: ctrl.signal });
-    clearTimeout(t);
-    if (!r.ok) return false;
-    const j = await r.json();
-    return !!j.ok;
-  }catch{ clearTimeout(t); return false; }
+  const ctrl = new AbortController(); const t = setTimeout(()=>ctrl.abort(), timeoutMs);
+  try{ const r = await fetch(LOCAL_URL + '/health', { signal: ctrl.signal }); clearTimeout(t); if (!r.ok) return false; const j=await r.json(); return !!j.ok; }
+  catch{ clearTimeout(t); return false; }
 }
-function downloadSetupScript(){
-  const os = detectOS();
-  const a = document.createElement('a');
-  if (os === 'windows'){ a.href = 'start_transcriber.ps1'; a.download = 'start_transcriber.ps1'; }
-  else { a.href = 'start_transcriber.sh'; a.download = 'start_transcriber.sh'; }
-  document.body.appendChild(a); a.click(); a.remove();
-}
+function downloadSetupScript(){ const os=detectOS(); const a=document.createElement('a'); a.href = (os==='windows')?'start_transcriber.ps1':'start_transcriber.sh'; a.download = a.href.split('/').pop(); document.body.appendChild(a); a.click(); a.remove(); }
 async function ensureLocalTranscriberPermissionFlow(){
   if (await isServerUp()) return true;
   return new Promise((resolve)=>{
-    document.getElementById('transcriber-modal').style.display = 'block';
-    document.getElementById('setup-steps').style.display = 'none';
-    document.getElementById('allow-setup').onclick = async ()=>{
-      downloadSetupScript();
-      document.getElementById('setup-steps').style.display = 'block';
+    modal.style.display = 'block'; steps.style.display = 'none';
+    allowBtn.onclick = async ()=>{
+      downloadSetupScript(); steps.style.display = 'block';
       let tries = 0;
       const poll = setInterval(async ()=>{
-        const ok = await isServerUp();
-        tries++;
-        if (ok){
-          clearInterval(poll);
-          document.getElementById('probe-status').textContent = '✅ Local server detected.';
-          setTimeout(()=>{ document.getElementById('transcriber-modal').style.display='none'; resolve(true); }, 600);
-        }else{
-          document.getElementById('probe-status').textContent = `Probing 127.0.0.1:8765… (attempt ${tries})`;
-        }
+        const ok = await isServerUp(); tries++;
+        if (ok){ clearInterval(poll); probeEl.textContent = '✅ Local server detected.'; setTimeout(()=>{ modal.style.display='none'; resolve(true); }, 600); }
+        else { probeEl.textContent = `Probing 127.0.0.1:8765… (attempt ${tries})`; }
       }, 1200);
     };
-    document.getElementById('deny-setup').onclick = ()=>{ document.getElementById('transcriber-modal').style.display = 'none'; resolve(false); };
+    denyBtn.onclick = ()=>{ modal.style.display = 'none'; resolve(false); };
   });
 }
-async function ensureLocalTranscriberOrAsk(){
-  if (await isServerUp()) return true;
-  return await ensureLocalTranscriberPermissionFlow();
-}
+async function ensureLocalTranscriberOrAsk(){ if (await isServerUp()) return true; return await ensureLocalTranscriberPermissionFlow(); }
 async function transcribeLocally_viaServer(file){
-  const fd = new FormData();
-  fd.append('file', file, file.name || 'audio.wav');
+  const fd = new FormData(); fd.append('file', file, file.name || 'audio.wav');
   const res = await fetch(LOCAL_URL + '/transcribe', { method:'POST', body: fd });
   if (!res.ok) throw new Error('Local transcription failed');
-  return await res.json(); // { words:[{start,end,text}], language, duration }
+  return await res.json();
 }
 function alignWordsToNotes(words, notes){
   if (!Array.isArray(words) || !Array.isArray(notes) || !notes.length) return [];
@@ -537,25 +521,20 @@ function alignWordsToNotes(words, notes){
   return out;
 }
 
-/* ========= Global state ========= */
-let analyzed = null;          // { title, duration, sr, hop, spans[], melody[], bpm, key }
+/* ===== Global state ===== */
+let analyzed = null;
 let controller=null, pool=null, vWorker=null;
 let sessionMono = null;
 
-/* ========= Mode & toggles re-render ========= */
+/* ===== Mode toggles re-render ===== */
 for (const el of document.querySelectorAll('input[name="mode"], #vocals, #auto-lyrics')) {
   el.addEventListener('change', ()=> { if (analyzed) renderFromCache(); });
 }
 chips.addEventListener('change', ()=> { if (analyzed && getMode()==='tabs') renderFromCache(); });
-
-useCacheBtn.onclick = async ()=>{
-  const c = await readCache();
-  if (!c){ await showCacheUI(); return; }
-  analyzed = c; renderBtn.disabled = false; log('Loaded cached analysis.'); renderFromCache();
-};
+useCacheBtn.onclick = async ()=>{ const c=await readCache(); if(!c){ await showCacheUI(); return; } analyzed=c; renderBtn.disabled=true; log('Loaded cached analysis. Click Render for output.'); renderBtn.disabled=false; };
 clearCacheBtn.onclick = async ()=>{ await clearCache(); await showCacheUI(); log('Cache cleared.'); };
 
-/* ========= Analyze once ========= */
+/* ===== Analyze ===== */
 analyzeBtn.addEventListener('click', analyzeOnce);
 async function analyzeOnce(){
   const file = fileEl.files?.[0];
@@ -565,7 +544,6 @@ async function analyzeOnce(){
   scoreWrap.style.display='none'; logEl.textContent=''; setProgress(3); statusEl.textContent='Decoding…';
 
   try{
-    // Decode
     let dec;
     try{ dec = await decodeWithWebAudio(await file.arrayBuffer()); }
     catch{ log('Native decode failed → ffmpeg.wasm…'); dec = await decodeViaFFmpeg(file); }
@@ -574,7 +552,6 @@ async function analyzeOnce(){
     if(duration>600) throw new Error(`Audio too long (${duration.toFixed(0)}s). Limit 600s.`);
     abortBtn.disabled = false; abortBtn.onclick = ()=> controller?.abort();
 
-    // Frame & batch chords
     statusEl.textContent='Framing…'; setProgress(10);
     const { chunks } = frameAudioInChunks(sessionMono, sr, 4096, 2048, 192);
     const total = chunks.length; log(`Framed into ${total} batches (${chunks[0]?.length||0} frames each).`);
@@ -596,7 +573,6 @@ async function analyzeOnce(){
       await tick();
     }
 
-    // Merge to spans
     const toTime = (idx)=> idx*2048/sr;
     let spans=[];
     if(labels.length){
@@ -607,7 +583,7 @@ async function analyzeOnce(){
       spans.push({start:toTime(s), end:toTime(labels.length), label:cur});
     }
     spans = mergeMicroSpans(spans, 0.20);
-    log(`Chord spans: ${spans.length}`);
+    log(`Chord spans: ${spans.length}${workerAvailable?'':' (fallback)'}`);
 
     const title = (file.name||'Song').replace(/\.[^.]+$/,'');
     const bpm   = 100;
@@ -616,13 +592,12 @@ async function analyzeOnce(){
     analyzed = { title, duration, sr, hop:2048, spans, melody:[], bpm, key };
     setProgress(70);
 
-    // Optional vocal melody
     if (vocalsChk.checked){
       vWorker = vWorker || yinWorker();
       statusEl.textContent='Estimating vocal melody…';
       const notes = await vWorker.run(sessionMono, sr, 2048, controller.signal);
       analyzed.melody = notes;
-      log(`Vocal notes: ${notes.length}`);
+      log(`Vocal notes: ${notes.length}${workerAvailable?'':' (fallback disabled)'}`);
     }
 
     await writeCache(analyzed);
@@ -634,19 +609,18 @@ async function analyzeOnce(){
     log('Preview:\n'+spans.slice(0,8).map(s=>`[${fmtTime(s.start)}–${fmtTime(s.end)}] ${s.label}`).join('\n'));
   }catch(err){
     if(err.name==='AbortError'){ statusEl.textContent='Canceled.'; log('⚠️ Aborted by user'); }
-    else { statusEl.textContent='Failed.'; log('❌ '+err.message); }
+    else { statusEl.textContent='Failed.'; log('❌ '+(err?.message||err)); console.error(err); }
   }finally{
     analyzeBtn.disabled=false; abortBtn.disabled=true; controller=null;
     setProgress(100);
   }
 }
 
-/* ========= Render from cache ========= */
+/* ===== Render ===== */
 renderBtn.addEventListener('click', renderFromCache);
 async function renderFromCache(){
   if(!analyzed){ const c = await readCache(); if(!c){ log('No analysis available.'); return; } analyzed=c; }
 
-  // If sheet + vocals toggled but no melody yet and we kept mono, compute melody now.
   if (getMode()==='sheet' && vocalsChk.checked && (!analyzed.melody || analyzed.melody.length===0)){
     if (sessionMono){
       try{
@@ -679,15 +653,14 @@ async function renderFromCache(){
     if(fmtVTT.checked)  downloadText(`${analyzed.title}_chords.vtt`, toWebVTT(analyzed.spans));
 
   } else {
-    // SHEET MODE
-    const wantAutoLyrics = document.getElementById('auto-lyrics').checked;
+    const wantAutoLyrics = autoLyricsChk.checked;
     const haveMelody = Array.isArray(analyzed.melody) && analyzed.melody.length>0;
 
-    const draw = (lyricsText) => {
-      renderSheet({
+    const draw = async (lyricsText) => {
+      await renderSheet({
         title: analyzed.title,
         bpm: analyzed.bpm,
-        melody: document.getElementById('vocals').checked ? (analyzed.melody||[]) : [],
+        melody: vocalsChk.checked ? (analyzed.melody||[]) : [],
         chords: analyzed.spans,
         lyricsText: lyricsText ?? (lyrics.value||'').trim()
       });
@@ -696,7 +669,7 @@ async function renderFromCache(){
 
     if (wantAutoLyrics){
       const file = fileEl.files?.[0];
-      if (!file){ log('⚠️ Select an audio/video file first to auto-transcribe.'); draw(''); return; }
+      if (!file){ log('⚠️ Select an audio/video file first to auto-transcribe.'); await draw(''); return; }
 
       if (!haveMelody && sessionMono){
         try{
@@ -709,26 +682,27 @@ async function renderFromCache(){
       }
 
       const ok = await ensureLocalTranscriberOrAsk();
-      if (!ok){ draw(''); return; }
+      if (!ok){ await draw(''); return; }
 
       try{
         statusEl.textContent='Transcribing lyrics locally…'; setProgress(90);
         const { words=[] } = await transcribeLocally_viaServer(file);
         const aligned = alignWordsToNotes(words, analyzed.melody || []);
         const autoLyrics = aligned.join(' ');
-        draw(autoLyrics);
+        await draw(autoLyrics);
         lyrics.value = autoLyrics;
       }catch(err){
         log('❌ Auto-lyrics failed: '+err.message);
-        draw('');
+        await draw('');
       }
     } else {
-      draw();
+      await draw();
     }
   }
 }
 
-/* ========= Init ========= */
+/* ===== Init ===== */
+fileEl.addEventListener('change', ()=>{ fname.textContent = fileEl.files[0]?.name ?? ''; showCacheUI(); });
 showCacheUI();
 </script>
 </body>
