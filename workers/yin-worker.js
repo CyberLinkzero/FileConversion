@@ -13,7 +13,6 @@ self.onmessage = (e) => {
   }
 };
 
-/* ===== YIN core ===== */
 function yinTrack(x, { sr, fmin, fmax, frame, hop, thresh }){
   const N = x.length;
   const frames = Math.max(0, Math.floor((N - frame) / hop));
@@ -34,7 +33,6 @@ function yinTrack(x, { sr, fmin, fmax, frame, hop, thresh }){
 function yinPitch(buf, tauMin, tauMax, thresh){
   const N = buf.length;
   const diff = new Float32Array(tauMax+1);
-  // difference function
   for (let tau=tauMin; tau<=tauMax; tau++){
     let s=0;
     for (let i=0;i<N-tau;i++){
@@ -43,18 +41,15 @@ function yinPitch(buf, tauMin, tauMax, thresh){
     }
     diff[tau] = s;
   }
-  // cumulative mean normalized difference
   const cmnd = new Float32Array(tauMax+1);
   cmnd[0]=1; let running=0;
   for (let tau=1; tau<=tauMax; tau++){
     running += diff[tau];
     cmnd[tau] = diff[tau] * tau / (running || 1);
   }
-  // absolute threshold
   let tau = -1;
   for (let t=tauMin; t<=tauMax; t++){
     if (cmnd[t] < thresh){
-      // parabolic interpolation for sub-sample accuracy
       let t0 = t, t1 = t-1, t2 = t+1;
       if (t1>=tauMin && t2<=tauMax){
         const a = cmnd[t1], b = cmnd[t0], c = cmnd[t2];
@@ -70,7 +65,6 @@ function yinPitch(buf, tauMin, tauMax, thresh){
   return tau>0 ? tau : 0;
 }
 
-/* ===== F0 → note segmentation ===== */
 function hzToMidi(hz){ return hz>0 ? 69 + 12*Math.log2(hz/440) : 0; }
 function segmentNotesFromF0(f0, { sr, hop, minVoicedFrames=3 }){
   const notes = [];
@@ -81,14 +75,12 @@ function segmentNotesFromF0(f0, { sr, hop, minVoicedFrames=3 }){
       const midi = Math.round(hzToMidi(hz));
       if (on<0){ on=i; lastMidi=midi; }
       else {
-        // if pitch jumps a lot, close and start new
         if (Math.abs(midi - lastMidi) >= 2){
           if (i-on >= minVoicedFrames){
             notes.push(idxToNote(on, i, lastMidi, sr, hop));
           }
           on = i; lastMidi = midi;
         } else {
-          // continue same note; keep lastMidi as running median-ish
           lastMidi = Math.round((lastMidi*3 + midi)/4);
         }
       }
