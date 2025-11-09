@@ -103,7 +103,7 @@ const fmtVTT  = document.querySelector('#fmt-vtt');
 /* ===== Small utils ===== */
 function setProgress(p){ fill.style.width = Math.max(0,Math.min(100,p)) + '%'; }
 function tick(){ return new Promise(r=>setTimeout(r,0)); }
-function makeLog(el){ let buf=[], s=false; return (msg)=>{ buf.push(msg); if(!s){ s=true; setTimeout(()=>{ el.textContent+=buf.join('\n')+'\n'; el.scrollTop=el.scrollHeight; buf=[]; s=false; },50);} }; }
+function makeLog(el){ let buf=[], s=false; return (msg)=>{ buf.push(msg); if(!s){ s=true; setTimeout(()=>{ el.textContent+=buf.join('\\n')+'\\n'; el.scrollTop=el.scrollHeight; buf=[]; s=false; },50);} }; }
 const log = makeLog(logEl);
 const pad = (n,l=2)=> String(n).padStart(l,'0');
 const fmtTime = (t)=>{ const m=Math.floor(t/60), s=Math.floor(t%60), ms=Math.round((t-Math.floor(t))*1000); return `${pad(m)}:${pad(s)}.${pad(ms,3)}`; };
@@ -174,16 +174,16 @@ function makeWorkerPool(n){
 
 /* ===== Safe tab helpers (no out-of-bounds) ===== */
 function padLine(arr, width, fill='-'){ while(arr.length < width) arr.push(fill); }
-function makeLines(template){ return template.split("\n").map(s => s.split("")); }
-function joinLines(lines){ return lines.map(a => a.join("")).join("\n"); }
+function makeLines(template){ return template.split("\\n").map(s => s.split("")); }
+function joinLines(lines){ return lines.map(a => a.join("")).join("\\n"); }
 
 function guitarTabsFromChords(spans){
   let lines = makeLines(
-    "e|----------------|----------------|\n" +
-    "B|----------------|----------------|\n" +
-    "G|----------------|----------------|\n" +
-    "D|----------------|----------------|\n" +
-    "A|----------------|----------------|\n" +
+    "e|----------------|----------------|\\n" +
+    "B|----------------|----------------|\\n" +
+    "G|----------------|----------------|\\n" +
+    "D|----------------|----------------|\\n" +
+    "A|----------------|----------------|\\n" +
     "E|----------------|----------------|"
   );
   if (!spans || !spans.length) return joinLines(lines);
@@ -203,9 +203,9 @@ function guitarTabsFromChords(spans){
 
 function bassTabsFromChords(spans){
   let lines = makeLines(
-    "G|----------------|----------------|\n" +
-    "D|----------------|----------------|\n" +
-    "A|----------------|----------------|\n" +
+    "G|----------------|----------------|\\n" +
+    "D|----------------|----------------|\\n" +
+    "A|----------------|----------------|\\n" +
     "E|----------------|----------------|"
   );
   if (!spans || !spans.length) return joinLines(lines);
@@ -234,27 +234,51 @@ function drumGrid(duration, bpm){
   return ["Kick | "+patt(i=>i%4===0), "Snare| "+patt(i=>i%8===4), "HH   | "+patt(i=>i%2===0)];
 }
 
+/* ===== Span utilities ===== */
+function mergeMicroSpans(spans, minDur = 0.20){
+  if (!spans || spans.length === 0) return spans;
+  const out = [];
+  for (const s of spans){
+    if (!out.length){ out.push({...s}); continue; }
+    const last = out[out.length - 1];
+    if (last.label === s.label){ last.end = s.end; continue; }
+    if ((s.end - s.start) <= minDur){ last.end = s.end; continue; }
+    out.push({...s});
+  }
+  return out;
+}
+
 /* ===== Chord text helpers ===== */
+const NAMES = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
 function buildChordProText(spans, lyricsText, duration){
   if(!spans || !spans.length){
     return lyricsText?.trim() ? lyricsText.trim() : "[Intro] —";
   }
   if(!lyricsText) return "[Intro] " + spans.slice(0,4).map(s=>s.label).join("  ");
-  const words = lyricsText.trim().split(/\s+/); if(words.length===0) return lyricsText;
+  const words = lyricsText.trim().split(/\\s+/); if(words.length===0) return lyricsText;
   const per = (duration||words.length)/Math.max(1,words.length);
   let res="", idx=0;
   for(let w=0;w<words.length;w++){
     const t = w*per;
     while(idx+1<spans.length && spans[idx+1].start<=t) idx++;
     const add = (w===0) || (spans[idx].start<=t && (idx===0?true:spans[idx].start>(w-1)*per));
-    res += (add?`[${spans[idx].label}]`:"")+words[w]+((w%12===11)?"\n":" ");
+    res += (add?`[${spans[idx].label}]`:"")+words[w]+((w%12===11)?"\\n":" ");
   }
   return res.trim();
 }
 function guessKey(spans){
   if(!spans || !spans.length) return "—";
-  const w={}; spans.forEach(s=>{const r=s.label.replace('m',''); w[r]=(w[r]||0)+(s.end-s.start);});
-  const best=Object.entries(w).sort((a,b)=>b[1]-a[1])[0]; return best? best[0]+' Major/Minor' : '—';
+  const w={};
+  for(const s of spans){
+    const root = s.label.replace('m','');
+    w[root] = (w[root]||0) + (s.end - s.start);
+  }
+  const top = Object.entries(w).sort((a,b)=>b[1]-a[1])[0];
+  if(!top) return "—";
+  const k = top[0];
+  const idx = NAMES.indexOf(k);
+  const relMinor = NAMES[(idx + 9 + 12) % 12];
+  return `${k} Major / ${relMinor} Minor`;
 }
 
 /* ===== Export helpers ===== */
@@ -266,14 +290,14 @@ function toMarkdown(title, chords, g=null, b=null, p=null, d=null, chordPro=null
   if(p?.length){ L.push('## Piano (notes)',...p.map(x=>'- '+x),''); }
   if(d?.length){ L.push('## Drums (grid)',...d.map(x=>'`'+x+'`'),''); }
   L.push('## Chord Timeline','', ...(chords||[]).map(c=>`- ${fmtTime(c.start)}–${fmtTime(c.end)}: **${c.label}**`),'');
-  return L.join('\n');
+  return L.join('\\n');
 }
-function toPlainTabs(g=null,b=null,p=null,d=null){ const o=[]; if(g){o.push('GUITAR',g,'');} if(b){o.push('BASS',b,'');} if(p?.length){o.push('PIANO',...p,'');} if(d?.length){o.push('DRUMS',...d,'');} return o.join('\n'); }
+function toPlainTabs(g=null,b=null,p=null,d=null){ const o=[]; if(g){o.push('GUITAR',g,'');} if(b){o.push('BASS',b,'');} if(p?.length){o.push('PIANO',...p,'');} if(d?.length){o.push('DRUMS',...d,'');} return o.join('\\n'); }
 function toJSONFile(title, chords, meta={}){ return JSON.stringify({title,chords,meta},null,2); }
 function toWebVTT(chords){
   const L=['WEBVTT','']; const to=(t)=>{const h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=Math.floor(t%60),ms=Math.round((t-Math.floor(t))*1000); const z=(n,l=2)=>String(n).padStart(l,'0'); return `${z(h)}:${z(m)}:${z(s)}.${z(ms,3)}`;}
   (chords||[]).forEach((c,i)=>{L.push(String(i+1)); L.push(`${to(c.start)} --> ${to(c.end)}`); L.push(c.label,'');});
-  return L.join('\n');
+  return L.join('\\n');
 }
 function downloadText(filename, text){ const blob=new Blob([text],{type:'text/plain;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); URL.revokeObjectURL(a.href); }
 
@@ -331,12 +355,18 @@ async function runBatched(){
     }
 
     // Merge to spans
-    const toTime = (idx)=> idx*hop/sr; const spans=[];
-    if(labels.length){ let cur=labels[0], s=0;
-      for(let i=1;i<labels.length;i++){ if(labels[i]!==cur){ spans.push({start:toTime(s), end:toTime(i), label:cur}); cur=labels[i]; s=i; } }
+    const toTime = (idx)=> idx*hop/sr; let spans=[];
+    if(labels.length){
+      let cur=labels[0], s=0;
+      for(let i=1;i<labels.length;i++){
+        if(labels[i]!==cur){ spans.push({start:toTime(s), end:toTime(i), label:cur}); cur=labels[i]; s=i; }
+      }
       spans.push({start:toTime(s), end:toTime(labels.length), label:cur});
     }
-    log(`Built ${spans.length} spans from ${labels.length} frame labels.`);
+    // Smooth tiny blips
+    spans = mergeMicroSpans(spans, 0.20);
+
+    log(`Built ${spans.length} spans from ${labels.length} frame labels (smoothed).`);
 
     if (!spans.length) {
       setProgress(100);
@@ -347,7 +377,7 @@ async function runBatched(){
     // Build parts
     const title = (file.name||'Song').replace(/\.[^.]+$/,'');
     const key   = guessKey(spans);
-    const bpm   = null; // add an estimator later if needed
+    const bpm   = null; // add a BPM estimator later if needed
 
     const selected = [...(document.querySelectorAll('#chips input:checked')||[])].map(i=>i.value);
     const g = selected.includes('guitar') ? guitarTabsFromChords(spans) : null;
@@ -364,8 +394,8 @@ async function runBatched(){
     if(fmtVTT.checked)  downloadText(`${title}_chords.vtt`, toWebVTT(spans));
 
     setProgress(100); statusEl.textContent='Done.';
-    const preview = spans.slice(0,8).map(s=>`[${fmtTime(s.start)}–${fmtTime(s.end)}] ${s.label}`).join('\n');
-    log('Preview:\n'+preview);
+    const preview = spans.slice(0,8).map(s=>`[${fmtTime(s.start)}–${fmtTime(s.end)}] ${s.label}`).join('\\n');
+    log('Preview:\\n'+preview);
   }catch(err){
     if(err.name==='AbortError'){ statusEl.textContent='Canceled.'; log('⚠️ Aborted by user'); }
     else { statusEl.textContent='Failed.'; log('❌ '+err.message); }
