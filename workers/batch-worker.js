@@ -6,7 +6,8 @@ function computeLabel(frame, sr) {
   let sum = 0;
   for (let i = 0; i < frame.length; i++) sum += frame[i] * frame[i];
   const rms = Math.sqrt(sum / frame.length);
-  return rms > 0.02 ? 'C' : 'Am'; // pretend chord labels for demo
+  // Return fake chord labels for demo; keep string output for main pipeline
+  return rms > 0.02 ? 'C' : 'Am';
 }
 
 self.onmessage = (e) => {
