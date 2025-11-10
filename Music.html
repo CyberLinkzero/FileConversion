@@ -478,61 +478,37 @@ async function isServerUp(timeoutMs=800){
   }catch{ clearTimeout(t); return false; }
 }
 function downloadSetupScript(){
-  const os = detectOS();
-  const a = document.createElement('a');
-  // point these to where you host the scripts in your repo
-  if (os === 'windows'){
-    a.href = '/local-transcriber/start_transcriber.bat'; a.download = 'start_transcriber.bat';
+  // Adjust these paths to where you host them in your repo
+  const SERVER_URL = '/local-transcriber/server.py';
+  const WIN_BAT    = '/local-transcriber/start_transcriber.bat';
+  const WIN_PS1    = '/local-transcriber/start_transcriber.ps1';
+  const NIX_SH     = '/local-transcriber/start_transcriber.sh';
+
+  // Always download server.py first
+  const a1 = document.createElement('a');
+  a1.href = SERVER_URL; a1.download = 'server.py';
+  document.body.appendChild(a1); a1.click(); a1.remove();
+
+  // Then download the launcher per OS
+  const ua = navigator.userAgent || '';
+  const isWin = ua.includes('Windows');
+  const isMac = ua.includes('Mac') || ua.includes('Macintosh');
+
+  const a2 = document.createElement('a');
+  if (isWin) {
+    // Prefer .bat (double-clickable), also drop PowerShell version as an extra
+    a2.href = WIN_BAT; a2.download = 'start_transcriber.bat';
+    document.body.appendChild(a2); a2.click(); a2.remove();
+
+    const a3 = document.createElement('a');
+    a3.href = WIN_PS1; a3.download = 'start_transcriber.ps1';
+    document.body.appendChild(a3); a3.click(); a3.remove();
   } else {
-    a.href = '/local-transcriber/start_transcriber.sh'; a.download = 'start_transcriber.sh';
+    a2.href = NIX_SH; a2.download = 'start_transcriber.sh';
+    document.body.appendChild(a2); a2.click(); a2.remove();
   }
-  document.body.appendChild(a); a.click(); a.remove();
 }
-async function ensureLocalTranscriberPermissionFlow(){
-  if (await isServerUp()) return true;
-  return new Promise((resolve)=>{
-    modal.style.display = 'block';
-    steps.style.display = 'none';
-    allowBtn.onclick = async ()=>{
-      downloadSetupScript();
-      steps.style.display = 'block';
-      let tries = 0;
-      const poll = setInterval(async ()=>{
-        const ok = await isServerUp();
-        tries++;
-        if (ok){
-          clearInterval(poll);
-          probeEl.textContent = '✅ Local server detected.';
-          setTimeout(()=>{ modal.style.display='none'; resolve(true); }, 600);
-        }else{
-          probeEl.textContent = `Probing 127.0.0.1:8765… (attempt ${tries})`;
-        }
-      }, 1200);
-    };
-    denyBtn.onclick = ()=>{ modal.style.display = 'none'; resolve(false); };
-  });
-}
-async function ensureLocalTranscriberOrAsk(){
-  if (await isServerUp()) return true;
-  return await ensureLocalTranscriberPermissionFlow();
-}
-async function transcribeLocally_viaServer(file){
-  const fd = new FormData();
-  fd.append('file', file, file.name || 'audio.wav');
-  const res = await fetch(LOCAL_URL + '/transcribe', { method:'POST', body: fd });
-  if (!res.ok) throw new Error('Local transcription failed');
-  return await res.json(); // { words:[{start,end,text}], language, duration }
-}
-function alignWordsToNotes(words, notes){
-  if (!Array.isArray(words) || !Array.isArray(notes) || !notes.length) return [];
-  const out = []; let j = 0;
-  for (const n of notes){
-    while (j+1 < words.length && Math.abs(words[j+1].start - n.start) < Math.abs(words[j].start - n.start)) j++;
-    const txt = (words[j]?.text || '').trim();
-    out.push(txt); j = Math.min(j+1, words.length-1);
-  }
-  return out;
-}
+
 
 /* ========= Global state ========= */
 let analyzed = null;          // { title, duration, sr, hop, spans[], melody[], bpm, key }
