@@ -1,71 +1,51 @@
 (function(){
   const sc = document.currentScript;
   const cfg = {
-    baseURL: (sc?.dataset.endpoint || "").replace(/\/$/,""),
-    title: sc?.dataset.title || "CyberChat",
-    position: (sc?.dataset.position || "right").toLowerCase(),
-    greeting: sc?.dataset.greeting || "Hey! Need a hand?",
-    primary: sc?.dataset.primary || "#7dd3fc",
-    accent: sc?.dataset.accent || "#a78bfa",
-    autoload: (sc?.dataset.autoload || "false").toLowerCase() === "true"
+    baseURL: (sc?.dataset.endpoint || "https://127.0.0.1:8443").replace(/\/$/,""),
+    title: sc?.dataset.title || "EvolveBot",
+    autoload: (sc?.dataset.autoload || "true").toLowerCase() === "true"
   };
 
   const host = document.createElement("div");
-  host.id = "cyberchat-safe-host";
-  host.style.position = "fixed";
-  host.style.zIndex = 2147483000;
-  host.style.bottom = "20px";
-  host.style[cfg.position==="left"?"left":"right"] = "20px";
+  host.style.position="fixed"; host.style.zIndex=2147483647; host.style.bottom="20px"; host.style.right="20px";
   document.documentElement.appendChild(host);
   const root = host.attachShadow({mode:"open"});
-
   const css = document.createElement("style");
   css.textContent = `
-    .bubble{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(100% 100% at 50% 0%, ${cfg.primary} 0%, ${cfg.accent} 100%);box-shadow:0 10px 30px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);cursor:pointer}
-    .panel{position:fixed;bottom:96px;${cfg.position}:20px;width:min(420px,calc(100vw - 32px));max-height:min(78vh,720px);display:none;opacity:0;transform:translateY(8px);transition:.2s ease}
-    .open{display:block;opacity:1;transform:translateY(0)}
-    .card{background:#0f1117;color:#e5e7eb;border:1px solid #212734;border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,.45);overflow:hidden}
-    .head{display:flex;gap:8px;align-items:center;padding:10px 12px;background:linear-gradient(180deg,rgba(125,211,252,.08) 0%,rgba(167,139,250,.06) 100%);border-bottom:1px solid #212734}
+    .bubble{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;background:#111827;color:#7dd3fc;border:1px solid #263044;cursor:pointer}
+    .panel{position:fixed;bottom:94px;right:20px;width:min(420px,calc(100vw - 32px));display:none}
+    .open{display:block}
+    .card{background:#0f1117;color:#e5e7eb;border:1px solid #212734;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+    .head{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #212734}
     .title{font-weight:700}
     .pill{margin-left:8px;padding:2px 8px;border-radius:999px;border:1px solid #263044;background:#111827;font-size:.75rem;color:#a3b1c6}
-    .body{display:grid;grid-template-rows:auto 1fr auto;height:min(78vh,720px)}
-    .top{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #212734}
-    .avatar{width:58px;height:58px}
-    .messages{overflow:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
-    .msg{max-width:85%;padding:10px 12px;border-radius:14px;line-height:1.4;border:1px solid #1f2632;white-space:pre-wrap}
-    .ai{background:#111827}
-    .user{margin-left:auto;background:#0b1220;color:#dbeafe;border-color:#203049}
-    .compose{display:flex;gap:8px;padding:10px;border-top:1px solid #212734;background:#0b0f16}
-    .in{flex:1;border:1px solid #263044;background:#0f1726;color:#e5e7eb;padding:10px 12px;border-radius:12px;outline:none}
-    .send{padding:10px 14px;border-radius:12px;background:${cfg.primary};color:#001018;font-weight:700;border:1px solid #6bbfe4}
-    .mini{border:1px solid #263044;background:#121826;color:#cbd5e1;border-radius:10px;padding:6px 8px;font-size:.85rem;cursor:pointer}
-    .warn{color:#fbbf24}
-    .err{color:#f87171}
+    .row{display:flex;gap:8px;padding:10px;border-bottom:1px solid #212734}
+    .in{flex:1;border:1px solid #263044;background:#0f1726;color:#e5e7eb;padding:10px 12px;border-radius:10px}
+    .btn{padding:10px 12px;border-radius:10px;border:1px solid #263044;background:#121826;color:#cbd5e1;cursor:pointer}
+    .msgs{padding:10px;max-height:60vh;overflow:auto}
+    .msg{padding:10px 12px;border:1px solid #1f2632;border-radius:10px;margin:6px 0;white-space:pre-wrap}
+    .user{background:#0b1220;margin-left:auto}
   `;
   root.appendChild(css);
 
   const html = document.createElement("div");
   html.innerHTML = `
     <button class="bubble" aria-label="Open ${cfg.title}">💬</button>
-    <div class="panel"><div class="card body">
+    <div class="panel"><div class="card">
       <div class="head">
         <div class="title">${cfg.title}</div>
-        <span id="cc-safe-status" class="pill">Offline</span>
+        <span id="st" class="pill">Offline</span>
         <div style="flex:1"></div>
-        <button id="cc-safe-retry" class="mini">Reconnect</button>
-        <button id="cc-safe-min" class="mini">▾</button>
+        <button id="min" class="btn">▾</button>
       </div>
-      <div class="top">
-        <div class="avatar">🫧</div>
-        <div>
-          <div>${cfg.greeting}</div>
-          <div id="cc-safe-top" style="opacity:.7;font-size:.85rem">Click Reconnect to check your local server.</div>
-        </div>
+      <div class="row">
+        <input id="pair" class="in" placeholder="Enter 6‑digit pairing code">
+        <button id="bind" class="btn">Pair</button>
       </div>
-      <div id="cc-safe-msgs" class="messages" aria-live="polite"></div>
-      <div class="compose">
-        <input id="cc-safe-in" class="in" placeholder="Type a message…" />
-        <button id="cc-safe-send" class="send">Send</button>
+      <div class="msgs" id="msgs" aria-live="polite"></div>
+      <div class="row">
+        <input id="in" class="in" placeholder="Type a message…">
+        <button id="send" class="btn">Send</button>
       </div>
     </div></div>
   `;
@@ -74,61 +54,60 @@
   const el = {
     bubble: root.querySelector(".bubble"),
     panel: root.querySelector(".panel"),
-    status: root.getElementById("cc-safe-status"),
-    top: root.getElementById("cc-safe-top"),
-    msgs: root.getElementById("cc-safe-msgs"),
-    input: root.getElementById("cc-safe-in"),
-    send: root.getElementById("cc-safe-send"),
-    retry: root.getElementById("cc-safe-retry"),
-    min: root.getElementById("cc-safe-min")
+    st: root.getElementById("st"),
+    pair: root.getElementById("pair"),
+    bind: root.getElementById("bind"),
+    msgs: root.getElementById("msgs"),
+    input: root.getElementById("in"),
+    send: root.getElementById("send"),
+    min: root.getElementById("min"),
   };
 
-  let open = false; let connected = false;
-  const add = (role, text)=>{
-    const d = document.createElement("div");
-    d.className = "msg " + (role==="user"?"user":"ai");
-    d.textContent = text;
-    el.msgs.appendChild(d); el.msgs.scrollTop = el.msgs.scrollHeight;
-  };
+  let open=false, token=(localStorage.getItem("cyberchat_token")||"");
+  function setOnline(ok){ el.st.textContent = ok?"Online":"Offline"; el.st.style.color = ok?"#7de4ad":"#f59f9f"; }
+  function add(role, text){ const d = document.createElement("div"); d.className="msg"+(role==="user"?" user":""); d.textContent=text; el.msgs.appendChild(d); el.msgs.scrollTop=el.msgs.scrollHeight; }
 
-  function setStatus(ok){
-    connected = !!ok;
-    el.status.textContent = ok ? "Online" : "Offline";
-    el.status.style.color = ok ? "#7de4ad" : "#f59f9f";
-  }
-
-  async function pingOnce(){
-    const url = (cfg.baseURL||"").replace(/\/$/,"") + "/healthz";
-    if (!url) { setStatus(false); add("ai","Set data-endpoint, e.g. http://127.0.0.1:8000"); return false; }
-    if (location.protocol === "https:" && url.startsWith("http://")) {
-      setStatus(false);
-      add("ai","⚠️ Page is HTTPS but local server is HTTP. Use HTTPS server or test over http://localhost.");
-      return false;
-    }
+  async function api(path, opts={}){
+    const ctl = new AbortController(); const t = setTimeout(()=>ctl.abort(), 5000);
+    const headers = Object.assign({"Content-Type":"application/json"}, (token?{"Authorization":"Bearer "+token}:{}) );
     try{
-      const ctl = new AbortController(); const t = setTimeout(()=>ctl.abort(), 900);
-      const r = await fetch(url, {signal: ctl.signal}); clearTimeout(t);
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      await r.json(); setStatus(true); el.top.textContent = "Connected. Ask away."; return true;
-    }catch(e){ setStatus(false); el.top.textContent = "Not connected. Click Reconnect after starting the server."; return false; }
-  }
-
-  async function chatOnce(text){
-    const url = (cfg.baseURL||"").replace(/\/$/,"") + "/api/chat";
-    try{
-      const ctl = new AbortController(); const t = setTimeout(()=>ctl.abort(), 5000);
-      const r = await fetch(url, {method:"POST", headers:{"Content-Type":"application/json"}, signal:ctl.signal, body: JSON.stringify({messages:[{role:"user",content:text}]})});
+      const r = await fetch(cfg.baseURL+path, Object.assign({signal:ctl.signal, headers}, opts));
       clearTimeout(t);
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      const j = await r.json(); add("ai", j.reply || "[no reply]");
-    }catch(e){ add("ai", "Could not reach local AI. Is it running?"); setStatus(false); }
+      if (r.status === 401) { setOnline(false); return {unauth:true}; }
+      if (!r.ok) throw new Error("HTTP "+r.status);
+      setOnline(true);
+      return await r.json();
+    }catch(e){ setOnline(false); return {error:String(e)}; }
   }
 
-  el.bubble.addEventListener("click", ()=>{ open = !open; el.panel.classList.toggle("open", open); });
-  el.min.addEventListener("click", ()=>{ open = false; el.panel.classList.remove("open"); });
-  el.retry.addEventListener("click", pingOnce);
-  el.send.addEventListener("click", ()=>{ const v = el.input.value.trim(); if(!v) return; add("user", v); el.input.value=""; chatOnce(v); });
-  el.input.addEventListener("keydown", (e)=>{ if(e.key==="Enter"){ e.preventDefault(); el.send.click(); }});
+  async function pair(){
+    const code = (el.pair.value||"").trim().toUpperCase();
+    if (!code) return add("ai","Enter your 6‑digit code from the app (visit /pair).");
+    const res = await api("/pair/verify", {method:"POST", body:JSON.stringify({code})});
+    if (res && res.token){
+      token = res.token; localStorage.setItem("cyberchat_token", token);
+      add("ai","✅ Paired. You can chat now.");
+    } else if (res && res.unauth) {
+      add("ai","Pairing failed: unauthorized. Generate a fresh code and try again.");
+    } else {
+      add("ai","Pairing failed. Check code and expiry.");
+    }
+  }
 
-  if (cfg.autoload) setTimeout(pingOnce, 0);
+  async function send(){
+    const v = el.input.value.trim(); if (!v) return;
+    add("user", v); el.input.value="";
+    const res = await api("/api/chat", {method:"POST", body:JSON.stringify({messages:[{role:"user",content:v}]})});
+    if (res && res.reply){ add("ai", res.reply); }
+    else if (res && res.unauth){ add("ai","🔒 Not paired. Enter the code from the app."); }
+    else { add("ai","Could not reach server."); }
+  }
+
+  el.bubble.onclick = ()=>{ open=!open; el.panel.classList.toggle("open", open); };
+  el.min.onclick = ()=>{ open=false; el.panel.classList.remove("open"); };
+  el.bind.onclick = pair;
+  el.send.onclick = send;
+  el.input.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); send(); }});
+
+  if (cfg.autoload) { (async()=>{ const r = await api("/healthz"); if (r && !r.error) setOnline(true); })(); }
 })();
