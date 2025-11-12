@@ -1,317 +1,55 @@
-<!--
-CyberChat Avatar Widget — single-file drop‑in
-Usage:
-1) Save everything in this file as /assets/cyberchat-widget.js
-2) Add this tag to any webpage (place before </body>):
-   <script src="/assets/cyberchat-widget.js"
-           data-endpoint="/api/chat"
-           data-title="EvolveBot"
-           data-primary="#7dd3fc"
-           data-accent="#a78bfa"
-           data-position="right"   
-           data-greeting="Hey! Need a hand?"
-           data-voice="auto"
-           defer></script>
-3) Implement a simple POST /api/chat endpoint on your server that accepts {messages:[{role:"user"|"assistant", content:string}, ...]} and returns {reply:string}.
-
-Notes:
-- Pure JS: no frameworks. Injects a Shadow DOM so your site styles won’t clash.
-- Includes: popup bubble, chat window, SVG face+torso avatar, mic (STT), speaker (TTS), local history, draggable panel, ESC to close.
-- Customize with data-* attributes above.
--->
-
-(function(){
-  // ---- Config from <script data-*> ----
-  const currentScript = document.currentScript;
-  const CFG = {
-    endpoint: currentScript?.dataset.endpoint || '/api/chat',
-    title: currentScript?.dataset.title || 'CyberChat',
-    greeting: currentScript?.dataset.greeting || "Hi! I'm here to help.",
-    primary: currentScript?.dataset.primary || '#7dd3fc',
-    accent: currentScript?.dataset.accent || '#a78bfa',
-    position: (currentScript?.dataset.position || 'right').toLowerCase(),
-    voice: currentScript?.dataset.voice || 'auto',
-  };
-
-  // ---- Create container + shadow root ----
-  const host = document.createElement('div');
-  host.id = 'cyberchat-host';
-  host.style.position = 'fixed';
-  host.style.zIndex = '2147483000';
-  host.style.bottom = '20px';
-  host.style[CFG.position === 'left' ? 'left' : 'right'] = '20px';
-  document.documentElement.appendChild(host);
-  const shadow = host.attachShadow({mode:'open'});
-
-  // ---- Styles (scoped to shadow root) ----
-  const style = document.createElement('style');
-  style.textContent = `
-    :host{ all:initial }
-    .btn{ cursor:pointer; user-select:none }
-    .bubble{ width:64px; height:64px; border-radius:50%; display:grid; place-items:center; background:radial-gradient(100% 100% at 50% 0%, ${CFG.primary} 0%, ${CFG.accent} 100%); box-shadow:0 10px 30px rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.15) }
-    .bubble:hover{ transform:translateY(-1px); transition:.15s ease }
-
-    .panel{ position:fixed; bottom:96px; ${CFG.position}:20px; width: min(380px, calc(100vw - 32px)); max-height:min(70vh, 650px); display:none; opacity:0; transform:translateY(8px); transition:.2s ease; }
-    .panel.open{ display:block; opacity:1; transform:translateY(0) }
-    .card{ background: #0f1117; color:#e5e7eb; border:1px solid #212734; border-radius:18px; box-shadow:0 12px 40px rgba(0,0,0,.45); overflow:hidden }
-
-    .header{ display:flex; gap:10px; align-items:center; padding:12px 14px; background:linear-gradient(180deg, rgba(125,211,252,.08) 0%, rgba(167,139,250,.06) 100%); border-bottom:1px solid #212734; cursor:move }
-    .title{ font-weight:700; letter-spacing:.3px }
-    .dot{ width:10px; height:10px; border-radius:50%; background:${CFG.primary}; box-shadow:0 0 10px ${CFG.primary}66 }
-    .spacer{ flex:1 }
-    .iconbtn{ width:36px; height:36px; display:grid; place-items:center; border-radius:10px; border:1px solid #263044; background:#121826 }
-    .iconbtn:hover{ border-color:${CFG.primary}44 }
-
-    .body{ display:grid; grid-template-rows:auto 1fr auto; height: min(70vh, 650px) }
-
-    .avatarWrap{ display:flex; align-items:center; gap:12px; padding:12px 14px }
-    .avatar{ width:58px; height:58px; }
-    .greeting{ font-size:.95rem; color:#b7c0cc }
-
-    .messages{ overflow:auto; padding:10px 12px; display:flex; flex-direction:column; gap:8px }
-    .msg{ max-width: 85%; padding:10px 12px; border-radius:14px; line-height:1.35; border:1px solid #1f2632 }
-    .ai{ background:#111827; color:#e5e7eb }
-    .user{ margin-left:auto; background:#0b1220; color:#dbeafe; border-color:#203049 }
-    .time{ font-size:.7rem; opacity:.6; margin-top:2px }
-
-    .composer{ display:flex; gap:8px; padding:10px; border-top:1px solid #212734; background:#0b0f16 }
-    .in{ flex:1; border:1px solid #263044; background:#0f1726; color:#e5e7eb; padding:10px 12px; border-radius:12px; outline:none }
-    .in:focus{ border-color:${CFG.primary}77 }
-    .send{ padding:10px 14px; border-radius:12px; background:${CFG.primary}; color:#001018; font-weight:700; border:1px solid #6bbfe4 }
-    .send:disabled{ opacity:.6; filter:grayscale(1); cursor:not-allowed }
-
-    .tool{ width:40px; height:40px; border-radius:12px; border:1px solid #263044; background:#121826; display:grid; place-items:center }
-
-    .sr-only{ position:absolute; left:-10000px }
-  `;
-  shadow.appendChild(style);
-
-  // ---- HTML scaffold ----
-  const wrapper = document.createElement('div');
-  wrapper.innerHTML = `
-    <button class="bubble btn" aria-label="Open ${CFG.title}">
-      ${faceSVG()}
-    </button>
-    <div class="panel" role="dialog" aria-modal="false" aria-label="${CFG.title}">
-      <div class="card body">
-        <div class="header" id="cc-drag">
-          <span class="dot" aria-hidden="true"></span>
-          <div class="title">${CFG.title}</div>
-          <div class="spacer"></div>
-          <button class="iconbtn" id="cc-min" title="Minimize" aria-label="Minimize">
-            ${icon('chevron')}
-          </button>
-        </div>
-        <div class="avatarWrap">
-          <div class="avatar">${faceSVG(true)}</div>
-          <div>
-            <div class="greeting">${CFG.greeting}</div>
-            <div class="time" id="cc-status">Online</div>
-          </div>
-        </div>
-        <div class="messages" id="cc-messages" aria-live="polite"></div>
-        <div class="composer">
-          <button class="tool" id="cc-mic" title="Talk"><span class="sr-only">Start voice input</span>${icon('mic')}</button>
-          <input class="in" id="cc-input" placeholder="Type a message…" autocomplete="off" />
-          <button class="tool" id="cc-tts" title="Read responses"><span class="sr-only">Toggle voice</span>${icon('speaker')}</button>
-          <button class="send" id="cc-send">Send</button>
-        </div>
-      </div>
-    </div>
-  `;
-  shadow.appendChild(wrapper);
-
-  // ---- State ----
-  const state = {
-    open:false,
-    speaking:false,
-    listening:false,
-    history: loadHistory(),
-    ttsEnabled: true,
-  };
-
-  const el = {
-    bubble: shadow.querySelector('.bubble'),
-    panel: shadow.querySelector('.panel'),
-    messages: shadow.getElementById('cc-messages'),
-    input: shadow.getElementById('cc-input'),
-    send: shadow.getElementById('cc-send'),
-    mic: shadow.getElementById('cc-mic'),
-    tts: shadow.getElementById('cc-tts'),
-    status: shadow.getElementById('cc-status'),
-    drag: shadow.getElementById('cc-drag'),
-    min: shadow.getElementById('cc-min'),
-  };
-
-  // ---- Init UI ----
-  renderHistory();
-  addMsg('assistant', CFG.greeting);
-
-  // Bubble toggle
-  el.bubble.addEventListener('click', togglePanel);
-  el.min.addEventListener('click', togglePanel);
-  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && state.open) togglePanel(); });
-
-  // Send text
-  el.send.addEventListener('click', onSend);
-  el.input.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); onSend(); }});
-
-  // TTS toggle
-  el.tts.addEventListener('click', ()=>{ state.ttsEnabled = !state.ttsEnabled; el.tts.style.opacity = state.ttsEnabled? '1' : '.5'; });
-
-  // STT mic
-  let recognition = null;
-  if('webkitSpeechRecognition' in window || 'SpeechRecognition' in window){
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SR();
-    recognition.continuous = false; recognition.interimResults = false; recognition.lang = document.documentElement.lang || 'en-US';
-    recognition.onstart = ()=>{ state.listening=true; el.mic.style.opacity='.6'; el.status.textContent='Listening…'; };
-    recognition.onend = ()=>{ state.listening=false; el.mic.style.opacity='1'; el.status.textContent='Online'; };
-    recognition.onresult = (ev)=>{ const text = ev.results[0][0].transcript; el.input.value = text; onSend(); };
-    el.mic.addEventListener('click', ()=>{ state.listening? recognition.stop() : recognition.start(); });
-  }else{
-    el.mic.disabled = true; el.mic.title = 'Voice input not supported in this browser';
-  }
-
-  // Drag to move
-  enableDrag(el.drag, el.panel);
-
-  // ---- Functions ----
-  function togglePanel(){
-    state.open = !state.open;
-    el.panel.classList.toggle('open', state.open);
-  }
-
-  function onSend(){
-    const text = el.input.value.trim();
-    if(!text) return;
-    addMsg('user', text);
-    el.input.value='';
-    el.send.disabled = true;
-    el.status.textContent = 'Thinking…';
-    callBackend(text).then(reply=>{
-      addMsg('assistant', reply || '');
-      if(state.ttsEnabled && reply) speak(reply);
-    }).catch(err=>{
-      console.error(err);
-      addMsg('assistant', 'Sorry, I had trouble reaching the server.');
-    }).finally(()=>{
-      el.send.disabled=false; el.status.textContent='Online';
-    });
-  }
-
-  function addMsg(role, content){
-    const item = document.createElement('div');
-    item.className = `msg ${role==='assistant'?'ai':'user'}`;
-    item.innerHTML = escapeHTML(content);
-    el.messages.appendChild(item);
-    const time = document.createElement('div'); time.className='time'; time.textContent = new Date().toLocaleTimeString(); item.appendChild(time);
-    el.messages.scrollTop = el.messages.scrollHeight;
-    state.history.push({role, content, t:Date.now()});
-    saveHistory();
-    animateMouth(role==='assistant');
-  }
-
-  function renderHistory(){
-    if(!state.history.length) return;
-    for(const m of state.history){ addMsg(m.role, m.content); }
-  }
-
-  function saveHistory(){ try{ localStorage.setItem('cyberchat_history', JSON.stringify(state.history.slice(-50))); }catch(_){} }
-  function loadHistory(){ try{ return JSON.parse(localStorage.getItem('cyberchat_history')||'[]'); }catch(_){ return []; } }
-
-  async function callBackend(latestUserText){
-    const body = { messages: [...state.history, {role:'user', content: latestUserText}].map(({role, content})=>({role, content})) };
-    const r = await fetch(CFG.endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    const data = await r.json();
-    return data.reply || '';
-  }
-
-  // --- TTS ---
-  function speak(text){
-    if(!('speechSynthesis' in window)) return;
-    const u = new SpeechSynthesisUtterance(text);
-    if(CFG.voice && CFG.voice !== 'auto'){
-      const pick = speechSynthesis.getVoices().find(v=> v.name.toLowerCase().includes(CFG.voice.toLowerCase()));
-      if(pick) u.voice = pick;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CyberChat Assistant</title>
+  <style>
+    body {
+      background: #0f1117;
+      color: #e5e7eb;
+      font-family: "Segoe UI", Roboto, sans-serif;
+      text-align: center;
+      padding-top: 80px;
     }
-    u.rate = 1.02; u.pitch = 1.0; u.volume = 1.0;
-    u.onstart = ()=> animateMouth(true);
-    u.onend = ()=> animateMouth(false);
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
-  }
+    h1 {
+      color: #7dd3fc;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    p {
+      color: #9aa4b2;
+      max-width: 600px;
+      margin: 0 auto 20px;
+    }
+    footer {
+      position: fixed;
+      bottom: 16px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
 
-  // --- Simple mouth animation (toggle class via animating path d) ---
-  function animateMouth(talking){
-    const mouth = shadow.querySelectorAll('#cc-mouth');
-    mouth.forEach(m=>{ m.setAttribute('d', talking? 'M 18 28 Q 24 33 30 28' : 'M 18 28 Q 24 29 30 28'); });
-  }
+  <h1>CyberChat AI Assistant 🤖</h1>
+  <p>Click the glowing bubble in the corner to chat.  
+     Run the local AI server (FastAPI) if you want to use offline models and plugins.</p>
 
-  // --- Utilities ---
-  function enableDrag(handle, panel){
-    let sx=0, sy=0, px=0, py=0, dragging=false;
-    handle.addEventListener('pointerdown', (e)=>{ dragging=true; sx=e.clientX; sy=e.clientY; const rect=panel.getBoundingClientRect(); px=rect.left; py=rect.top; handle.setPointerCapture(e.pointerId); });
-    handle.addEventListener('pointermove', (e)=>{ if(!dragging) return; const nx = px + (e.clientX - sx); const ny = py + (e.clientY - sy); panel.style.left = nx+ 'px'; panel.style.right = 'auto'; panel.style.top = ny+ 'px'; panel.style.bottom = 'auto'; });
-    const stop=()=> dragging=false; handle.addEventListener('pointerup', stop); handle.addEventListener('pointercancel', stop);
-  }
+  <!-- CyberChat Widget -->
+  <script src="assets/cyberchat-widget.js"
+          data-endpoint="http://127.0.0.1:8000"
+          data-title="EvolveBot"
+          data-primary="#7dd3fc"
+          data-accent="#a78bfa"
+          data-position="right"
+          data-greeting="Hey! Need a hand?"
+          data-voice="auto"
+          defer></script>
 
-  function escapeHTML(s){ return s.replace(/[&<>\"]/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c])); }
-
-  function icon(name){
-    if(name==='mic') return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3Z" stroke="${CFG.primary}"/><path d="M19 11a7 7 0 0 1-14 0" stroke="${CFG.accent}"/><path d="M12 18v4" stroke="#94a3b8"/></svg>`;
-    if(name==='speaker') return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 10v4h3l5 4V6L7 10H4Z" stroke="${CFG.primary}"/><path d="M16 9a3 3 0 0 1 0 6" stroke="${CFG.accent}"/></svg>`;
-    if(name==='chevron') return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="m7 10 5 5 5-5" stroke="#94a3b8"/></svg>`;
-    return '';
-  }
-
-  function faceSVG(full){
-    // Simple friendly cyber avatar (head + mini torso if full)
-    const torso = full? `<rect x="6" y="38" rx="10" ry="10" width="48" height="22" fill="#0b1220" stroke="#1b2333"/>` : '';
-    return `
-      <svg width="${full?58:40}" height="${full?58:40}" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <defs>
-          <radialGradient id="g1" cx="50%" cy="0%" r="100%">
-            <stop offset="0%" stop-color="${CFG.primary}"/><stop offset="100%" stop-color="${CFG.accent}"/>
-          </radialGradient>
-        </defs>
-        <circle cx="30" cy="26" r="16" fill="#0b1220" stroke="url(#g1)" stroke-width="2" />
-        <circle cx="24" cy="24" r="2.5" fill="#cbeafe"/>
-        <circle cx="36" cy="24" r="2.5" fill="#cbeafe"/>
-        <path id="cc-mouth" d="M 18 28 Q 24 29 30 28" stroke="#cbeafe" fill="none" stroke-width="2" stroke-linecap="round"/>
-        ${torso}
-      </svg>`;
-  }
-})();
-
-
-/* -------------------------------------------------------
-   OPTIONAL: Minimal Node/Express server endpoint example
-   Save as server.js and run:  node server.js
-   Replace the dummy reply with your LLM of choice (OpenAI, etc.)
---------------------------------------------------------*/
-
-/*
-const express = require('express');
-const app = express();
-app.use(express.json());
-
-app.post('/api/chat', async (req, res)=>{
-  const messages = req.body?.messages || [];
-  const last = messages.filter(m=>m.role==='user').slice(-1)[0]?.content || '';
-
-  // TODO: Replace this with your real AI call
-  const reply = `You said: "${last}" — I can be wired to GPT, local models, or your business logic.`;
-
-  res.json({ reply });
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, ()=> console.log('CyberChat API on http://localhost:'+PORT));
-*/
-
-<!--
-APPENDIX NOTE: The error was due to the previous full-file replacement colliding with the canvas regex engine.
-This block appends the upgraded v2 code. Copy the entire v2 section below into a new file if needed.
--->
+  <footer>CyberChat v2 — © FileConverter.run Labs</footer>
+</body>
+</html>
