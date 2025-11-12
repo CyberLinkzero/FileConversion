@@ -1,203 +1,48 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CyberChat Assistant</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CyberChat — EvolveBot</title>
   <style>
-    body { background:#0f1117; color:#e5e7eb; font-family: "Segoe UI", Roboto, sans-serif; text-align:center; padding-top:80px }
-    h1 { color:#7dd3fc; font-weight:700; margin-bottom:10px }
-    p { color:#9aa4b2; max-width:700px; margin:0 auto 20px }
-    footer { position:fixed; bottom:16px; left:0; width:100%; text-align:center; font-size:.8rem; color:#6b7280 }
+    body{margin:0;background:#0f1117;color:#e5e7eb;font:16px/1.5 ui-sans-serif,system-ui}
+    header{background:linear-gradient(180deg,rgba(125,211,252,.08),rgba(167,139,250,.06));border-bottom:1px solid #212734;padding:18px}
+    .wrap{max-width:1100px;margin:0 auto;padding:18px}
+    .note{color:#9aa4b2}
+    code{background:#0b1220;border:1px solid #212734;border-radius:6px;padding:2px 6px}
+    .card{border:1px solid #212734;border-radius:12px;background:#0b1220;padding:16px;margin-top:16px}
   </style>
-  <script>
-    // Optional: extend/override FAQ presets
-    window.CYBERCHAT_FAQ = [
-      { q: ["pricing","cost","free"], a: "Core tools are free on the web. Power features may require a local add-on." },
-      { q: ["mp3","extract audio"], a: "Open video → choose MP3 as output → Convert." }
-    ];
-  </script>
 </head>
 <body>
-  <h1>CyberChat AI Assistant 🤖</h1>
-  <p>Click the glowing bubble to chat. Use preset answers, or upgrade to offline AI with a local model.</p>
+  <header><div class="wrap">
+    <h1>CyberChat — EvolveBot</h1>
+    <div class="note">Local app + website widget with pairing code and HTTPS.</div>
+  </div></header>
+  <div class="wrap">
+    <div class="card">
+      <h3>How to pair</h3>
+      <ol>
+        <li>Run the <b>CyberChatServer-Full.exe</b> on your PC.</li>
+        <li>Open <code>http://127.0.0.1:8000/pair</code> → copy the 6‑digit code.</li>
+        <li>Click the chat bubble → paste the code → <b>Pair</b>.</li>
+        <li>Click <b>Send</b> to chat. For HTTPS pages, click “Generate TLS” on the local page and use <code>https://127.0.0.1:8443</code>.</li>
+      </ol>
+    </div>
 
-  <!-- Main Widget -->
-  <script src="assets/cyberchat-widget.js"
-          data-endpoint="http://127.0.0.1:8000"
+    <div class="card">
+      <h3>Embed in your site</h3>
+      <p>Add this line near the end of your page (adjust the path):</p>
+<pre><code>&lt;script src="/assets/cyberchat-widget.js"
+        data-endpoint="https://127.0.0.1:8443"
+        data-title="EvolveBot"
+        defer&gt;&lt;/script&gt;</code></pre>
+    </div>
+  </div>
+
+  <!-- Widget -->
+  <script src="./assets.cyberchat-widget.js"
+          data-endpoint="https://127.0.0.1:8443"
           data-title="EvolveBot"
-          data-primary="#7dd3fc"
-          data-accent="#a78bfa"
-          data-position="right"
-          data-greeting="Hey! Need a hand?"
-          data-voice="auto"
           defer></script>
-
-  <!-- FAQ-First Variant -->
-  <script>
-  (function(){
-    const ensure = (id, html)=>{ let n=document.getElementById(id); if(n) return n; n=document.createElement('div'); n.id=id; n.innerHTML=html; document.body.appendChild(n); return n; };
-    const UI = ensure('cyberchat-faq', `
-      <style>
-        #cyberchat-faq{ position:fixed; bottom:20px; left:20px; z-index:2147483000; font-family: ui-sans-serif, system-ui, Segoe UI, Roboto, sans-serif }
-        #cc-bubble{ width:64px; height:64px; border-radius:50%; display:grid; place-items:center; cursor:pointer; background:radial-gradient(100% 100% at 50% 0%, #7dd3fc 0%, #a78bfa 100%); box-shadow:0 10px 30px rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.15) }
-        #cc-panel{ display:none; position:fixed; bottom:96px; left:20px; width:min(420px, calc(100vw - 32px)); max-height:min(78vh, 720px); background:#0f1117; color:#e5e7eb; border:1px solid #212734; border-radius:18px; box-shadow:0 12px 40px rgba(0,0,0,.45); overflow:hidden }
-        #cc-panel.open{ display:block }
-        .cc-h{ display:flex; gap:8px; align-items:center; padding:10px 12px; background:linear-gradient(180deg, rgba(125,211,252,.08) 0%, rgba(167,139,250,.06) 100%); border-bottom:1px solid #212734 }
-        .cc-title{ font-weight:700 }
-        .cc-pill{ margin-left:8px; padding:2px 8px; border-radius:999px; border:1px solid #263044; background:#111827; font-size:.75rem; color:#a3b1c6 }
-        .cc-grow{ flex:1 }
-        .cc-btn{ border:1px solid #263044; background:#121826; color:#cbd5e1; border-radius:10px; padding:6px 8px; font-size:.85rem; cursor:pointer }
-        .cc-messages{ overflow:auto; padding:10px 12px; display:flex; flex-direction:column; gap:8px; height:min(60vh,560px) }
-        .cc-msg{ max-width:85%; padding:10px 12px; border-radius:14px; line-height:1.4; border:1px solid #1f2632; white-space:pre-wrap }
-        .cc-ai{ background:#111827 }
-        .cc-user{ background:#0b1220; color:#dbeafe; border-color:#203049; margin-left:auto }
-        .cc-compose{ display:flex; gap:8px; padding:10px; border-top:1px solid #212734; background:#0b0f16 }
-        .cc-in{ flex:1; border:1px solid #263044; background:#0f1726; color:#e5e7eb; padding:10px 12px; border-radius:12px; outline:none }
-        .cc-send{ padding:10px 14px; border-radius:12px; background:#7dd3fc; color:#001018; font-weight:700; border:1px solid #6bbfe4; cursor:pointer }
-      </style>
-      <div id="cc-bubble" title="FAQ Chat">💬</div>
-      <div id="cc-panel" role="dialog" aria-modal="false">
-        <div class="cc-h">
-          <div class="cc-title">CyberChat</div>
-          <div id="cc-mode" class="cc-pill">Mode: FAQ</div>
-          <div class="cc-grow"></div>
-          <button id="cc-upgrade" class="cc-btn" title="Use local AI">Upgrade → AI</button>
-          <button id="cc-close" class="cc-btn" title="Minimize">▾</button>
-        </div>
-        <div id="cc-messages" class="cc-messages"></div>
-        <div class="cc-compose">
-          <input id="cc-input" class="cc-in" placeholder="Type a message…"/>
-          <button id="cc-send" class="cc-send">Send</button>
-        </div>
-      </div>
-    `);
-
-    const DEFAULT_FAQ = [
-      { q:["how to convert","convert files","supported formats","what files"], a:"You can convert images, audio, and video. Drag & drop a file on the page, pick the target format, then click Convert. For best results, keep files under 200MB." },
-      { q:["pricing","cost","free"], a:"The core tools are free on the web. Some power features may require a local add‑on or desktop app." },
-      { q:["privacy","data","upload","store"], a:"Your files convert in the browser whenever possible. If a server is needed, we only process transiently and don’t retain your files." },
-      { q:["mp3","extract audio","audio from video"], a:"To get MP3 from a video: load your video → choose MP3 as output → Convert. The result downloads automatically." },
-      { q:["contact","support","help"], a:"You can reach support from the Help button in the footer, or reply here with your issue and we’ll guide you." }
-    ];
-    const FAQ = Array.isArray(window.CYBERCHAT_FAQ) ? window.CYBERCHAT_FAQ.concat(DEFAULT_FAQ) : DEFAULT_FAQ;
-
-    const state = { open:false, mode:"faq", endpoint:"http://127.0.0.1:8000" };
-    const el = (id)=> document.getElementById(id);
-    const panel = el("cc-panel"), bubble = el("cc-bubble"), msgs = el("cc-messages");
-    const sendBtn = el("cc-send"), input = el("cc-input"), modePill = el("cc-mode");
-
-    const addMsg = (role, text)=>{ const d=document.createElement("div"); d.className="cc-msg "+(role==="user"?"cc-user":"cc-ai"); d.textContent=text; msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight; };
-    const norm = (s)=> s.toLowerCase();
-    function scoreFAQ(user){
-      const u = norm(user);
-      let best = {i:-1, score:0};
-      FAQ.forEach((item, i)=>{
-        let s = 0;
-        (item.q||[]).forEach(k=>{ if(u.includes(norm(k))) s += Math.min(norm(k).length, 12); });
-        (item.q||[]).forEach(k=>{ if(u.startsWith(norm(k))) s += 5; });
-        if(s>best.score) best = {i, score:s};
-      });
-      return best.score >= 6 ? FAQ[best.i].a : null;
-    }
-    async function callAI(history){
-      const r = await fetch(state.endpoint + "/api/chat", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({messages: history.map(([role, content])=>({role, content}))})});
-      if(!r.ok) throw new Error("AI HTTP "+r.status);
-      return r.json();
-    }
-    async function checkAI(){
-      try{ const r = await fetch(state.endpoint + "/api/models"); if(!r.ok) throw 0; modePill.textContent="Mode: FAQ (AI available)"; return true; }
-      catch{ modePill.textContent="Mode: FAQ"; return false; }
-    }
-
-    bubble.onclick = ()=>{ state.open=!state.open; panel.classList.toggle("open", state.open); if(state.open){ addMsg("ai","Hi! I can answer common questions. Click “Upgrade → AI” to enable a local model."); checkAI(); } };
-    el("cc-close").onclick = ()=>{ state.open=false; panel.classList.remove("open"); };
-    el("cc-upgrade").onclick = async ()=>{
-      const ok = await checkAI();
-      if(!ok){ addMsg("ai","Local AI not detected. Run the FastAPI server on your PC to enable models."); return; }
-      state.mode="ai"; modePill.textContent="Mode: AI"; addMsg("ai","AI enabled. Ask me anything.");
-    };
-    sendBtn.onclick = async ()=>{
-      const text = input.value.trim(); if(!text) return; input.value=""; addMsg("user", text);
-      if(state.mode==="faq"){
-        const ans = scoreFAQ(text);
-        if(ans) addMsg("ai", ans); else addMsg("ai","I don’t have a preset answer for that. Click “Upgrade → AI” to ask anything.");
-      } else {
-        try{ const out = await callAI([["user", text]]); addMsg("ai", out.reply || "[no reply]"); }
-        catch(e){ addMsg("ai","Could not reach local AI. Switching back to FAQ."); state.mode="faq"; modePill.textContent="Mode: FAQ"; }
-      }
-    };
-    input.addEventListener("keydown", (e)=>{ if(e.key==="Enter"){ e.preventDefault(); sendBtn.click(); }});
-  })();
-  </script>
-
-  <!-- Installer detection bar -->
-  <script>
-  (function(){
-    const ENDPOINT = 'http://127.0.0.1:8000';
-    const PING = ENDPOINT + '/api/models';
-    const bar = document.createElement('div');
-    bar.id = 'cc-installer-bar';
-    bar.setAttribute('style',[
-      'position:fixed','left:16px','right:16px','bottom:16px','z-index:2147483000',
-      'display:none','gap:12px','align-items:center','justify-content:space-between',
-      'background:#0b1220','color:#d1d5db','border:1px solid #1f2735','border-radius:14px',
-      'box-shadow:0 10px 30px rgba(0,0,0,.4)','padding:12px 14px','font:14px/1.4 system-ui,Segoe UI,Roboto'
-    ].join(';'));
-    bar.innerHTML = `
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span style="background:#111a2b;border:1px solid #1f2a3d;border-radius:999px;padding:4px 8px;color:#9ab">Offline AI</span>
-        <span id="cc-installer-text">Enable offline AI by installing the local add‑on.</span>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <a id="cc-dl-win" class="cc-btn" href="#" download>Download for Windows</a>
-        <a id="cc-dl-mac" class="cc-btn" href="#" download>Download for macOS</a>
-        <a id="cc-dl-linux" class="cc-btn" href="#" download>Download for Linux</a>
-        <button id="cc-retry" class="cc-btn">Reconnect</button>
-        <button id="cc-dismiss" class="cc-btn" style="opacity:.8">Dismiss</button>
-      </div>`;
-    const btnCSS = document.createElement('style');
-    btnCSS.textContent = `.cc-btn{appearance:none;text-decoration:none;cursor:pointer;padding:8px 10px;border-radius:10px;border:1px solid #274058;background:#122032;color:#cfe7ff}.cc-btn:hover{border-color:#335b86}@media (max-width:600px){#cc-installer-text{display:none}}`;
-    document.head.appendChild(btnCSS); document.body.appendChild(bar);
-
-    const el = {
-      win: bar.querySelector('#cc-dl-win'), mac: bar.querySelector('#cc-dl-mac'),
-      lin: bar.querySelector('#cc-dl-linux'), retry: bar.querySelector('#cc-retry'),
-      dismiss: bar.querySelector('#cc-dismiss'), text: bar.querySelector('#cc-installer-text')
-    };
-
-    // Replace with your release links:
-    el.win.href = '/downloads/CyberChatServer-Windows.exe';
-    el.mac.href = '/downloads/CyberChatServer-macOS.dmg';
-    el.lin.href = '/downloads/CyberChatServer-Linux.AppImage';
-
-    const ua = navigator.userAgent;
-    if(/Windows/i.test(ua)){ el.win.style.order=0; el.mac.style.order=1; el.lin.style.order=2; }
-    else if(/Macintosh|Mac OS X/i.test(ua)){ el.mac.style.order=0; el.win.style.order=1; el.lin.style.order=2; }
-    else { el.lin.style.order=0; el.win.style.order=1; el.mac.style.order=2; }
-
-    async function ping(){
-      try{ const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),800);
-        const r=await fetch(PING,{signal:ctl.signal}); clearTimeout(t); return r.ok;
-      }catch(e){ return false; }
-    }
-    function show(){ bar.style.display='flex'; }
-    function hide(){ bar.style.display='none'; }
-
-    const dismissed = sessionStorage.getItem('cc-installer-dismissed')==='1';
-    (async()=>{ if(dismissed) return; const ok=await ping(); if(!ok) show(); })();
-
-    let polling=false;
-    async function poll(){
-      if(polling) return; polling=true; el.retry.textContent='Connecting…';
-      for(let i=0;i<20;i++){ const ok=await ping(); if(ok){ hide(); polling=false; el.retry.textContent='Reconnect'; return; } await new Promise(r=>setTimeout(r,750)); }
-      polling=false; el.retry.textContent='Reconnect'; el.text.textContent='Not detected yet. Make sure the add‑on is running, then click Reconnect.';
-    }
-    el.retry.addEventListener('click', poll);
-    el.dismiss.addEventListener('click', ()=>{ sessionStorage.setItem('cc-installer-dismissed','1'); hide(); });
-  })();
-  </script>
-
-  <footer>CyberChat v2 — © FileConverter.run Labs</footer>
 </body>
 </html>
