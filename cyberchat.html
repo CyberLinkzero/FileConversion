@@ -1,543 +1,203 @@
-<!--
-CyberChat Avatar Widget — single-file drop‑in
-Usage:
-1) Save everything in this file as /assets/cyberchat-widget.js
-2) Add this tag to any webpage (place before </body>):
-   <script src="/assets/cyberchat-widget.js"
-           data-endpoint="/api/chat"
-           data-title="EvolveBot"
-           data-primary="#7dd3fc"
-           data-accent="#a78bfa"
-           data-position="right"   
-           data-greeting="Hey! Need a hand?"
-           data-voice="auto"
-           defer></script>
-3) Implement a simple POST /api/chat endpoint on your server that accepts {messages:[{role:"user"|"assistant", content:string}, ...]} and returns {reply:string}.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CyberChat Assistant</title>
+  <style>
+    body { background:#0f1117; color:#e5e7eb; font-family: "Segoe UI", Roboto, sans-serif; text-align:center; padding-top:80px }
+    h1 { color:#7dd3fc; font-weight:700; margin-bottom:10px }
+    p { color:#9aa4b2; max-width:700px; margin:0 auto 20px }
+    footer { position:fixed; bottom:16px; left:0; width:100%; text-align:center; font-size:.8rem; color:#6b7280 }
+  </style>
+  <script>
+    // Optional: extend/override FAQ presets
+    window.CYBERCHAT_FAQ = [
+      { q: ["pricing","cost","free"], a: "Core tools are free on the web. Power features may require a local add-on." },
+      { q: ["mp3","extract audio"], a: "Open video → choose MP3 as output → Convert." }
+    ];
+  </script>
+</head>
+<body>
+  <h1>CyberChat AI Assistant 🤖</h1>
+  <p>Click the glowing bubble to chat. Use preset answers, or upgrade to offline AI with a local model.</p>
 
-Notes:
-- Pure JS: no frameworks. Injects a Shadow DOM so your site styles won’t clash.
-- Includes: popup bubble, chat window, SVG face+torso avatar, mic (STT), speaker (TTS), local history, draggable panel, ESC to close.
-- Customize with data-* attributes above.
--->
+  <!-- Main Widget -->
+  <script src="assets/cyberchat-widget.js"
+          data-endpoint="http://127.0.0.1:8000"
+          data-title="EvolveBot"
+          data-primary="#7dd3fc"
+          data-accent="#a78bfa"
+          data-position="right"
+          data-greeting="Hey! Need a hand?"
+          data-voice="auto"
+          defer></script>
 
-(function(){
-  // ---- Config from <script data-*> ----
-  const currentScript = document.currentScript;
-  const CFG = {
-    endpoint: currentScript?.dataset.endpoint || '/api/chat',
-    title: currentScript?.dataset.title || 'CyberChat',
-    greeting: currentScript?.dataset.greeting || "Hi! I'm here to help.",
-    primary: currentScript?.dataset.primary || '#7dd3fc',
-    accent: currentScript?.dataset.accent || '#a78bfa',
-    position: (currentScript?.dataset.position || 'right').toLowerCase(),
-    voice: currentScript?.dataset.voice || 'auto',
-  };
-
-  // ---- Create container + shadow root ----
-  const host = document.createElement('div');
-  host.id = 'cyberchat-host';
-  host.style.position = 'fixed';
-  host.style.zIndex = '2147483000';
-  host.style.bottom = '20px';
-  host.style[CFG.position === 'left' ? 'left' : 'right'] = '20px';
-  document.documentElement.appendChild(host);
-  const shadow = host.attachShadow({mode:'open'});
-
-  // ---- Styles (scoped to shadow root) ----
-  const style = document.createElement('style');
-  style.textContent = `
-    :host{ all:initial }
-    .btn{ cursor:pointer; user-select:none }
-    .bubble{ width:64px; height:64px; border-radius:50%; display:grid; place-items:center; background:radial-gradient(100% 100% at 50% 0%, ${CFG.primary} 0%, ${CFG.accent} 100%); box-shadow:0 10px 30px rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.15) }
-    .bubble:hover{ transform:translateY(-1px); transition:.15s ease }
-
-    .panel{ position:fixed; bottom:96px; ${CFG.position}:20px; width: min(380px, calc(100vw - 32px)); max-height:min(70vh, 650px); display:none; opacity:0; transform:translateY(8px); transition:.2s ease; }
-    .panel.open{ display:block; opacity:1; transform:translateY(0) }
-    .card{ background: #0f1117; color:#e5e7eb; border:1px solid #212734; border-radius:18px; box-shadow:0 12px 40px rgba(0,0,0,.45); overflow:hidden }
-
-    .header{ display:flex; gap:10px; align-items:center; padding:12px 14px; background:linear-gradient(180deg, rgba(125,211,252,.08) 0%, rgba(167,139,250,.06) 100%); border-bottom:1px solid #212734; cursor:move }
-    .title{ font-weight:700; letter-spacing:.3px }
-    .dot{ width:10px; height:10px; border-radius:50%; background:${CFG.primary}; box-shadow:0 0 10px ${CFG.primary}66 }
-    .spacer{ flex:1 }
-    .iconbtn{ width:36px; height:36px; display:grid; place-items:center; border-radius:10px; border:1px solid #263044; background:#121826 }
-    .iconbtn:hover{ border-color:${CFG.primary}44 }
-
-    .body{ display:grid; grid-template-rows:auto 1fr auto; height: min(70vh, 650px) }
-
-    .avatarWrap{ display:flex; align-items:center; gap:12px; padding:12px 14px }
-    .avatar{ width:58px; height:58px; }
-    .greeting{ font-size:.95rem; color:#b7c0cc }
-
-    .messages{ overflow:auto; padding:10px 12px; display:flex; flex-direction:column; gap:8px }
-    .msg{ max-width: 85%; padding:10px 12px; border-radius:14px; line-height:1.35; border:1px solid #1f2632 }
-    .ai{ background:#111827; color:#e5e7eb }
-    .user{ margin-left:auto; background:#0b1220; color:#dbeafe; border-color:#203049 }
-    .time{ font-size:.7rem; opacity:.6; margin-top:2px }
-
-    .composer{ display:flex; gap:8px; padding:10px; border-top:1px solid #212734; background:#0b0f16 }
-    .in{ flex:1; border:1px solid #263044; background:#0f1726; color:#e5e7eb; padding:10px 12px; border-radius:12px; outline:none }
-    .in:focus{ border-color:${CFG.primary}77 }
-    .send{ padding:10px 14px; border-radius:12px; background:${CFG.primary}; color:#001018; font-weight:700; border:1px solid #6bbfe4 }
-    .send:disabled{ opacity:.6; filter:grayscale(1); cursor:not-allowed }
-
-    .tool{ width:40px; height:40px; border-radius:12px; border:1px solid #263044; background:#121826; display:grid; place-items:center }
-
-    .sr-only{ position:absolute; left:-10000px }
-  `;
-  shadow.appendChild(style);
-
-  // ---- HTML scaffold ----
-  const wrapper = document.createElement('div');
-  wrapper.innerHTML = `
-    <button class="bubble btn" aria-label="Open ${CFG.title}">
-      ${faceSVG()}
-    </button>
-    <div class="panel" role="dialog" aria-modal="false" aria-label="${CFG.title}">
-      <div class="card body">
-        <div class="header" id="cc-drag">
-          <span class="dot" aria-hidden="true"></span>
-          <div class="title">${CFG.title}</div>
-          <div class="spacer"></div>
-          <button class="iconbtn" id="cc-min" title="Minimize" aria-label="Minimize">
-            ${icon('chevron')}
-          </button>
+  <!-- FAQ-First Variant -->
+  <script>
+  (function(){
+    const ensure = (id, html)=>{ let n=document.getElementById(id); if(n) return n; n=document.createElement('div'); n.id=id; n.innerHTML=html; document.body.appendChild(n); return n; };
+    const UI = ensure('cyberchat-faq', `
+      <style>
+        #cyberchat-faq{ position:fixed; bottom:20px; left:20px; z-index:2147483000; font-family: ui-sans-serif, system-ui, Segoe UI, Roboto, sans-serif }
+        #cc-bubble{ width:64px; height:64px; border-radius:50%; display:grid; place-items:center; cursor:pointer; background:radial-gradient(100% 100% at 50% 0%, #7dd3fc 0%, #a78bfa 100%); box-shadow:0 10px 30px rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.15) }
+        #cc-panel{ display:none; position:fixed; bottom:96px; left:20px; width:min(420px, calc(100vw - 32px)); max-height:min(78vh, 720px); background:#0f1117; color:#e5e7eb; border:1px solid #212734; border-radius:18px; box-shadow:0 12px 40px rgba(0,0,0,.45); overflow:hidden }
+        #cc-panel.open{ display:block }
+        .cc-h{ display:flex; gap:8px; align-items:center; padding:10px 12px; background:linear-gradient(180deg, rgba(125,211,252,.08) 0%, rgba(167,139,250,.06) 100%); border-bottom:1px solid #212734 }
+        .cc-title{ font-weight:700 }
+        .cc-pill{ margin-left:8px; padding:2px 8px; border-radius:999px; border:1px solid #263044; background:#111827; font-size:.75rem; color:#a3b1c6 }
+        .cc-grow{ flex:1 }
+        .cc-btn{ border:1px solid #263044; background:#121826; color:#cbd5e1; border-radius:10px; padding:6px 8px; font-size:.85rem; cursor:pointer }
+        .cc-messages{ overflow:auto; padding:10px 12px; display:flex; flex-direction:column; gap:8px; height:min(60vh,560px) }
+        .cc-msg{ max-width:85%; padding:10px 12px; border-radius:14px; line-height:1.4; border:1px solid #1f2632; white-space:pre-wrap }
+        .cc-ai{ background:#111827 }
+        .cc-user{ background:#0b1220; color:#dbeafe; border-color:#203049; margin-left:auto }
+        .cc-compose{ display:flex; gap:8px; padding:10px; border-top:1px solid #212734; background:#0b0f16 }
+        .cc-in{ flex:1; border:1px solid #263044; background:#0f1726; color:#e5e7eb; padding:10px 12px; border-radius:12px; outline:none }
+        .cc-send{ padding:10px 14px; border-radius:12px; background:#7dd3fc; color:#001018; font-weight:700; border:1px solid #6bbfe4; cursor:pointer }
+      </style>
+      <div id="cc-bubble" title="FAQ Chat">💬</div>
+      <div id="cc-panel" role="dialog" aria-modal="false">
+        <div class="cc-h">
+          <div class="cc-title">CyberChat</div>
+          <div id="cc-mode" class="cc-pill">Mode: FAQ</div>
+          <div class="cc-grow"></div>
+          <button id="cc-upgrade" class="cc-btn" title="Use local AI">Upgrade → AI</button>
+          <button id="cc-close" class="cc-btn" title="Minimize">▾</button>
         </div>
-        <div class="avatarWrap">
-          <div class="avatar">${faceSVG(true)}</div>
-          <div>
-            <div class="greeting">${CFG.greeting}</div>
-            <div class="time" id="cc-status">Online</div>
-          </div>
-        </div>
-        <div class="messages" id="cc-messages" aria-live="polite"></div>
-        <div class="composer">
-          <button class="tool" id="cc-mic" title="Talk"><span class="sr-only">Start voice input</span>${icon('mic')}</button>
-          <input class="in" id="cc-input" placeholder="Type a message…" autocomplete="off" />
-          <button class="tool" id="cc-tts" title="Read responses"><span class="sr-only">Toggle voice</span>${icon('speaker')}</button>
-          <button class="send" id="cc-send">Send</button>
+        <div id="cc-messages" class="cc-messages"></div>
+        <div class="cc-compose">
+          <input id="cc-input" class="cc-in" placeholder="Type a message…"/>
+          <button id="cc-send" class="cc-send">Send</button>
         </div>
       </div>
-    </div>
-  `;
-  shadow.appendChild(wrapper);
+    `);
 
-  // ---- State ----
-  const state = {
-    open:false,
-    speaking:false,
-    listening:false,
-    history: loadHistory(),
-    ttsEnabled: true,
-  };
+    const DEFAULT_FAQ = [
+      { q:["how to convert","convert files","supported formats","what files"], a:"You can convert images, audio, and video. Drag & drop a file on the page, pick the target format, then click Convert. For best results, keep files under 200MB." },
+      { q:["pricing","cost","free"], a:"The core tools are free on the web. Some power features may require a local add‑on or desktop app." },
+      { q:["privacy","data","upload","store"], a:"Your files convert in the browser whenever possible. If a server is needed, we only process transiently and don’t retain your files." },
+      { q:["mp3","extract audio","audio from video"], a:"To get MP3 from a video: load your video → choose MP3 as output → Convert. The result downloads automatically." },
+      { q:["contact","support","help"], a:"You can reach support from the Help button in the footer, or reply here with your issue and we’ll guide you." }
+    ];
+    const FAQ = Array.isArray(window.CYBERCHAT_FAQ) ? window.CYBERCHAT_FAQ.concat(DEFAULT_FAQ) : DEFAULT_FAQ;
 
-  const el = {
-    bubble: shadow.querySelector('.bubble'),
-    panel: shadow.querySelector('.panel'),
-    messages: shadow.getElementById('cc-messages'),
-    input: shadow.getElementById('cc-input'),
-    send: shadow.getElementById('cc-send'),
-    mic: shadow.getElementById('cc-mic'),
-    tts: shadow.getElementById('cc-tts'),
-    status: shadow.getElementById('cc-status'),
-    drag: shadow.getElementById('cc-drag'),
-    min: shadow.getElementById('cc-min'),
-  };
+    const state = { open:false, mode:"faq", endpoint:"http://127.0.0.1:8000" };
+    const el = (id)=> document.getElementById(id);
+    const panel = el("cc-panel"), bubble = el("cc-bubble"), msgs = el("cc-messages");
+    const sendBtn = el("cc-send"), input = el("cc-input"), modePill = el("cc-mode");
 
-  // ---- Init UI ----
-  renderHistory();
-  addMsg('assistant', CFG.greeting);
-
-  // Bubble toggle
-  el.bubble.addEventListener('click', togglePanel);
-  el.min.addEventListener('click', togglePanel);
-  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && state.open) togglePanel(); });
-
-  // Send text
-  el.send.addEventListener('click', onSend);
-  el.input.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); onSend(); }});
-
-  // TTS toggle
-  el.tts.addEventListener('click', ()=>{ state.ttsEnabled = !state.ttsEnabled; el.tts.style.opacity = state.ttsEnabled? '1' : '.5'; });
-
-  // STT mic
-  let recognition = null;
-  if('webkitSpeechRecognition' in window || 'SpeechRecognition' in window){
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SR();
-    recognition.continuous = false; recognition.interimResults = false; recognition.lang = document.documentElement.lang || 'en-US';
-    recognition.onstart = ()=>{ state.listening=true; el.mic.style.opacity='.6'; el.status.textContent='Listening…'; };
-    recognition.onend = ()=>{ state.listening=false; el.mic.style.opacity='1'; el.status.textContent='Online'; };
-    recognition.onresult = (ev)=>{ const text = ev.results[0][0].transcript; el.input.value = text; onSend(); };
-    el.mic.addEventListener('click', ()=>{ state.listening? recognition.stop() : recognition.start(); });
-  }else{
-    el.mic.disabled = true; el.mic.title = 'Voice input not supported in this browser';
-  }
-
-  // Drag to move
-  enableDrag(el.drag, el.panel);
-
-  // ---- Functions ----
-  function togglePanel(){
-    state.open = !state.open;
-    el.panel.classList.toggle('open', state.open);
-  }
-
-  function onSend(){
-    const text = el.input.value.trim();
-    if(!text) return;
-    addMsg('user', text);
-    el.input.value='';
-    el.send.disabled = true;
-    el.status.textContent = 'Thinking…';
-    callBackend(text).then(reply=>{
-      addMsg('assistant', reply || '');
-      if(state.ttsEnabled && reply) speak(reply);
-    }).catch(err=>{
-      console.error(err);
-      addMsg('assistant', 'Sorry, I had trouble reaching the server.');
-    }).finally(()=>{
-      el.send.disabled=false; el.status.textContent='Online';
-    });
-  }
-
-  function addMsg(role, content){
-    const item = document.createElement('div');
-    item.className = `msg ${role==='assistant'?'ai':'user'}`;
-    item.innerHTML = escapeHTML(content);
-    el.messages.appendChild(item);
-    const time = document.createElement('div'); time.className='time'; time.textContent = new Date().toLocaleTimeString(); item.appendChild(time);
-    el.messages.scrollTop = el.messages.scrollHeight;
-    state.history.push({role, content, t:Date.now()});
-    saveHistory();
-    animateMouth(role==='assistant');
-  }
-
-  function renderHistory(){
-    if(!state.history.length) return;
-    for(const m of state.history){ addMsg(m.role, m.content); }
-  }
-
-  function saveHistory(){ try{ localStorage.setItem('cyberchat_history', JSON.stringify(state.history.slice(-50))); }catch(_){} }
-  function loadHistory(){ try{ return JSON.parse(localStorage.getItem('cyberchat_history')||'[]'); }catch(_){ return []; } }
-
-  async function callBackend(latestUserText){
-    const body = { messages: [...state.history, {role:'user', content: latestUserText}].map(({role, content})=>({role, content})) };
-    const r = await fetch(CFG.endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    const data = await r.json();
-    return data.reply || '';
-  }
-
-  // --- TTS ---
-  function speak(text){
-    if(!('speechSynthesis' in window)) return;
-    const u = new SpeechSynthesisUtterance(text);
-    if(CFG.voice && CFG.voice !== 'auto'){
-      const pick = speechSynthesis.getVoices().find(v=> v.name.toLowerCase().includes(CFG.voice.toLowerCase()));
-      if(pick) u.voice = pick;
+    const addMsg = (role, text)=>{ const d=document.createElement("div"); d.className="cc-msg "+(role==="user"?"cc-user":"cc-ai"); d.textContent=text; msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight; };
+    const norm = (s)=> s.toLowerCase();
+    function scoreFAQ(user){
+      const u = norm(user);
+      let best = {i:-1, score:0};
+      FAQ.forEach((item, i)=>{
+        let s = 0;
+        (item.q||[]).forEach(k=>{ if(u.includes(norm(k))) s += Math.min(norm(k).length, 12); });
+        (item.q||[]).forEach(k=>{ if(u.startsWith(norm(k))) s += 5; });
+        if(s>best.score) best = {i, score:s};
+      });
+      return best.score >= 6 ? FAQ[best.i].a : null;
     }
-    u.rate = 1.02; u.pitch = 1.0; u.volume = 1.0;
-    u.onstart = ()=> animateMouth(true);
-    u.onend = ()=> animateMouth(false);
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
-  }
-
-  // --- Simple mouth animation (toggle class via animating path d) ---
-  function animateMouth(talking){
-    const mouth = shadow.querySelectorAll('#cc-mouth');
-    mouth.forEach(m=>{ m.setAttribute('d', talking? 'M 18 28 Q 24 33 30 28' : 'M 18 28 Q 24 29 30 28'); });
-  }
-
-  // --- Utilities ---
-  function enableDrag(handle, panel){
-    let sx=0, sy=0, px=0, py=0, dragging=false;
-    handle.addEventListener('pointerdown', (e)=>{ dragging=true; sx=e.clientX; sy=e.clientY; const rect=panel.getBoundingClientRect(); px=rect.left; py=rect.top; handle.setPointerCapture(e.pointerId); });
-    handle.addEventListener('pointermove', (e)=>{ if(!dragging) return; const nx = px + (e.clientX - sx); const ny = py + (e.clientY - sy); panel.style.left = nx+ 'px'; panel.style.right = 'auto'; panel.style.top = ny+ 'px'; panel.style.bottom = 'auto'; });
-    const stop=()=> dragging=false; handle.addEventListener('pointerup', stop); handle.addEventListener('pointercancel', stop);
-  }
-
-  function escapeHTML(s){ return s.replace(/[&<>\"]/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c])); }
-
-  function icon(name){
-    if(name==='mic') return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3Z" stroke="${CFG.primary}"/><path d="M19 11a7 7 0 0 1-14 0" stroke="${CFG.accent}"/><path d="M12 18v4" stroke="#94a3b8"/></svg>`;
-    if(name==='speaker') return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 10v4h3l5 4V6L7 10H4Z" stroke="${CFG.primary}"/><path d="M16 9a3 3 0 0 1 0 6" stroke="${CFG.accent}"/></svg>`;
-    if(name==='chevron') return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="m7 10 5 5 5-5" stroke="#94a3b8"/></svg>`;
-    return '';
-  }
-
-  function faceSVG(full){
-    // Simple friendly cyber avatar (head + mini torso if full)
-    const torso = full? `<rect x="6" y="38" rx="10" ry="10" width="48" height="22" fill="#0b1220" stroke="#1b2333"/>` : '';
-    return `
-      <svg width="${full?58:40}" height="${full?58:40}" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <defs>
-          <radialGradient id="g1" cx="50%" cy="0%" r="100%">
-            <stop offset="0%" stop-color="${CFG.primary}"/><stop offset="100%" stop-color="${CFG.accent}"/>
-          </radialGradient>
-        </defs>
-        <circle cx="30" cy="26" r="16" fill="#0b1220" stroke="url(#g1)" stroke-width="2" />
-        <circle cx="24" cy="24" r="2.5" fill="#cbeafe"/>
-        <circle cx="36" cy="24" r="2.5" fill="#cbeafe"/>
-        <path id="cc-mouth" d="M 18 28 Q 24 29 30 28" stroke="#cbeafe" fill="none" stroke-width="2" stroke-linecap="round"/>
-        ${torso}
-      </svg>`;
-  }
-})();
-
-
-/* -------------------------------------------------------
-   OPTIONAL: Minimal Node/Express server endpoint example
-   Save as server.js and run:  node server.js
-   Replace the dummy reply with your LLM of choice (OpenAI, etc.)
---------------------------------------------------------*/
-
-/*
-const express = require('express');
-const app = express();
-app.use(express.json());
-
-app.post('/api/chat', async (req, res)=>{
-  const messages = req.body?.messages || [];
-  const last = messages.filter(m=>m.role==='user').slice(-1)[0]?.content || '';
-
-  // TODO: Replace this with your real AI call
-  const reply = `You said: "${last}" — I can be wired to GPT, local models, or your business logic.`;
-
-  res.json({ reply });
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, ()=> console.log('CyberChat API on http://localhost:'+PORT));
-*/
-
-<!--
-APPENDIX NOTE: The error was due to the previous full-file replacement colliding with the canvas regex engine.
-This block appends the upgraded v2 code. Copy the entire v2 section below into a new file if needed.
--->
-
-
-<!-- ======================= VARIANT =======================
-Preprogrammed (FAQ) Chat with optional upgrade to Hugging Face AI
-Usage:
-  1) Use the same <script> include as before.
-  2) This variant answers from a local FAQ first. If you click "Upgrade → AI",
-     it will switch to the local server model picker (same FastAPI server).
-  3) You can override/extend the FAQ by defining window.CYBERCHAT_FAQ before
-     loading the script.
-Example override:
-  <script>window.CYBERCHAT_FAQ=[{q:"refund", a:"We offer 30-day refunds."}]</script>
-  <script src="/assets/cyberchat-widget.js" defer></script>
-=========================================================== -->
-<script>
-(function(){
-  // ---- Minimal DOM (reuses host if already present) ----
-  const ensure = (id, html)=>{ let n=document.getElementById(id); if(n) return n; n=document.createElement('div'); n.id=id; n.innerHTML=html; document.body.appendChild(n); return n; };
-  const UI = ensure('cyberchat-faq', `
-    <style>
-      #cyberchat-faq{ position:fixed; bottom:20px; right:20px; z-index:2147483000; font-family: ui-sans-serif, system-ui, Segoe UI, Roboto, sans-serif }
-      #cc-bubble{ width:64px; height:64px; border-radius:50%; display:grid; place-items:center; cursor:pointer; background:radial-gradient(100% 100% at 50% 0%, #7dd3fc 0%, #a78bfa 100%); box-shadow:0 10px 30px rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.15) }
-      #cc-panel{ display:none; position:fixed; bottom:96px; right:20px; width:min(420px, calc(100vw - 32px)); max-height:min(78vh, 720px); background:#0f1117; color:#e5e7eb; border:1px solid #212734; border-radius:18px; box-shadow:0 12px 40px rgba(0,0,0,.45); overflow:hidden }
-      #cc-panel.open{ display:block }
-      .cc-h{ display:flex; gap:8px; align-items:center; padding:10px 12px; background:linear-gradient(180deg, rgba(125,211,252,.08) 0%, rgba(167,139,250,.06) 100%); border-bottom:1px solid #212734 }
-      .cc-title{ font-weight:700 }
-      .cc-pill{ margin-left:8px; padding:2px 8px; border-radius:999px; border:1px solid #263044; background:#111827; font-size:.75rem; color:#a3b1c6 }
-      .cc-grow{ flex:1 }
-      .cc-btn{ border:1px solid #263044; background:#121826; color:#cbd5e1; border-radius:10px; padding:6px 8px; font-size:.85rem; cursor:pointer }
-      .cc-messages{ overflow:auto; padding:10px 12px; display:flex; flex-direction:column; gap:8px; height:min(60vh,560px) }
-      .cc-msg{ max-width:85%; padding:10px 12px; border-radius:14px; line-height:1.4; border:1px solid #1f2632; white-space:pre-wrap }
-      .cc-ai{ background:#111827 }
-      .cc-user{ background:#0b1220; color:#dbeafe; border-color:#203049; margin-left:auto }
-      .cc-compose{ display:flex; gap:8px; padding:10px; border-top:1px solid #212734; background:#0b0f16 }
-      .cc-in{ flex:1; border:1px solid #263044; background:#0f1726; color:#e5e7eb; padding:10px 12px; border-radius:12px; outline:none }
-      .cc-send{ padding:10px 14px; border-radius:12px; background:#7dd3fc; color:#001018; font-weight:700; border:1px solid #6bbfe4; cursor:pointer }
-    </style>
-    <div id="cc-bubble" title="Chat">💬</div>
-    <div id="cc-panel" role="dialog" aria-modal="false">
-      <div class="cc-h">
-        <div class="cc-title">CyberChat</div>
-        <div id="cc-mode" class="cc-pill">Mode: FAQ</div>
-        <div class="cc-grow"></div>
-        <button id="cc-upgrade" class="cc-btn" title="Use local AI">Upgrade → AI</button>
-        <button id="cc-close" class="cc-btn" title="Minimize">▾</button>
-      </div>
-      <div id="cc-messages" class="cc-messages"></div>
-      <div class="cc-compose">
-        <input id="cc-input" class="cc-in" placeholder="Type a message…"/>
-        <button id="cc-send" class="cc-send">Send</button>
-      </div>
-    </div>
-  `);
-
-  // ---- Data ----
-  const DEFAULT_FAQ = [
-    { q:["how to convert", "convert files", "supported formats", "what files"], a:"You can convert images, audio, and video. Drag & drop a file on the page, pick the target format, then click Convert. For best results, keep files under 200MB." },
-    { q:["pricing", "cost", "free"], a:"The core tools are free to use on the web. Some power features may require a local add‑on or desktop app." },
-    { q:["privacy", "data", "upload", "store"], a:"Your files convert in the browser whenever possible. If a server is needed, we only process transiently and don’t retain your files." },
-    { q:["mp3", "extract audio", "audio from video"], a:"To get MP3 from a video: load your video → choose MP3 as output → Convert. The result downloads automatically." },
-    { q:["contact", "support", "help"], a:"You can reach support from the Help button in the footer, or reply here with your issue and we’ll guide you." }
-  ];
-  const FAQ = Array.isArray(window.CYBERCHAT_FAQ) ? window.CYBERCHAT_FAQ.concat(DEFAULT_FAQ) : DEFAULT_FAQ;
-
-  const state = { open:false, mode:'faq', endpoint:'http://127.0.0.1:8000' };
-
-  // ---- Helpers ----
-  const el = (id)=> document.getElementById(id);
-  const panel = el('cc-panel'), bubble = el('cc-bubble'), msgs = el('cc-messages');
-  const sendBtn = el('cc-send'), input = el('cc-input'), modePill = el('cc-mode');
-
-  const addMsg = (role, text)=>{
-    const d = document.createElement('div'); d.className = 'cc-msg ' + (role==='user'?'cc-user':'cc-ai'); d.textContent = text; msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight; };
-
-  const norm = (s)=> s.toLowerCase();
-  function scoreFAQ(user){
-    const u = norm(user);
-    let best = {i:-1, score:0};
-    FAQ.forEach((item, i)=>{
-      let s = 0;
-      (item.q||[]).forEach(k=>{ if(u.includes(norm(k))) s += Math.min(norm(k).length, 12); });
-      // small bonus if starts with a keyword
-      (item.q||[]).forEach(k=>{ if(u.startsWith(norm(k))) s += 5; });
-      if(s > best.score) best = {i, score:s};
-    });
-    return best.score >= 6 ? FAQ[best.i].a : null;
-  }
-
-  async function callAI(history){
-    const r = await fetch(state.endpoint + '/api/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({messages: history.map(([role, content])=>({role, content}))})});
-    if(!r.ok) throw new Error('AI HTTP '+r.status);
-    return r.json();
-  }
-
-  async function checkAI(){
-    try{ const r = await fetch(state.endpoint + '/api/models'); if(!r.ok) throw 0; modePill.textContent = 'Mode: FAQ (AI available)'; return true; }
-    catch{ modePill.textContent = 'Mode: FAQ'; return false; }
-  }
-
-  // ---- Events ----
-  bubble.onclick = ()=>{ state.open=!state.open; panel.classList.toggle('open', state.open); if(state.open){ addMsg('ai', 'Hi! I can answer common questions. Click “Upgrade → AI” to enable a local model.'); checkAI(); } };
-  el('cc-close').onclick = ()=>{ state.open=false; panel.classList.remove('open'); };
-  el('cc-upgrade').onclick = async ()=>{
-    const ok = await checkAI();
-    if(!ok){ addMsg('ai', 'Local AI not detected. Run the FastAPI server on your PC to enable models.'); return; }
-    state.mode = 'ai'; modePill.textContent = 'Mode: AI'; addMsg('ai', 'AI enabled. Ask me anything.');
-  };
-  sendBtn.onclick = async ()=>{
-    const text = input.value.trim(); if(!text) return; input.value=''; addMsg('user', text);
-    if(state.mode==='faq'){
-      const ans = scoreFAQ(text);
-      if(ans) addMsg('ai', ans); else addMsg('ai', 'I don’t have a preset answer for that. Click “Upgrade → AI” to ask anything.');
-    } else {
-      try{ const out = await callAI([["user", text]]); addMsg('ai', out.reply || '[no reply]'); }
-      catch(e){ addMsg('ai', 'Could not reach local AI. Switching back to FAQ.'); state.mode='faq'; modePill.textContent='Mode: FAQ'; }
+    async function callAI(history){
+      const r = await fetch(state.endpoint + "/api/chat", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({messages: history.map(([role, content])=>({role, content}))})});
+      if(!r.ok) throw new Error("AI HTTP "+r.status);
+      return r.json();
     }
-  };
-  input.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendBtn.click(); }});
-})();
-</script>
+    async function checkAI(){
+      try{ const r = await fetch(state.endpoint + "/api/models"); if(!r.ok) throw 0; modePill.textContent="Mode: FAQ (AI available)"; return true; }
+      catch{ modePill.textContent="Mode: FAQ"; return false; }
+    }
 
-
-<!-- ======================= ADD-ON =======================
-Installer Detection + Download Prompt (drop-in)
-- Adds lightweight client-side logic that:
-  1) Checks if the local AI server is up at http://127.0.0.1:8000
-  2) If not, shows a non-blocking banner with OS-specific download button(s)
-  3) After the user installs/launches the server, a "Reconnect" button polls
-     until the server is detected, then hides the banner automatically.
-- You can place real download URLs below.
-========================================================== -->
-<script>
-(function(){
-  const ENDPOINT = 'http://127.0.0.1:8000';
-  const PING = ENDPOINT + '/api/models';
-
-  // ---- Minimal UI ----
-  const bar = document.createElement('div');
-  bar.id = 'cc-installer-bar';
-  bar.setAttribute('style', [
-    'position:fixed','left:16px','right:16px','bottom:16px','z-index:2147483000',
-    'display:none','gap:12px','align-items:center','justify-content:space-between',
-    'background:#0b1220','color:#d1d5db','border:1px solid #1f2735','border-radius:14px',
-    'box-shadow:0 10px 30px rgba(0,0,0,.4)','padding:12px 14px','font:14px/1.4 system-ui,Segoe UI,Roboto'
-  ].join(';'));
-  bar.innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <span style="background:#111a2b;border:1px solid #1f2a3d;border-radius:999px;padding:4px 8px;color:#9ab">Offline AI</span>
-      <span id="cc-installer-text">Enable offline AI by installing the local add‑on.</span>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <a id="cc-dl-win" class="cc-btn" href="#" download>Download for Windows</a>
-      <a id="cc-dl-mac" class="cc-btn" href="#" download>Download for macOS</a>
-      <a id="cc-dl-linux" class="cc-btn" href="#" download>Download for Linux</a>
-      <button id="cc-retry" class="cc-btn">Reconnect</button>
-      <button id="cc-dismiss" class="cc-btn" style="opacity:.8">Dismiss</button>
-    </div>`;
-  const btnCSS = document.createElement('style');
-  btnCSS.textContent = `
-    .cc-btn{appearance:none;text-decoration:none;cursor:pointer;padding:8px 10px;border-radius:10px;border:1px solid #274058;background:#122032;color:#cfe7ff}
-    .cc-btn:hover{border-color:#335b86}
-    @media (max-width:600px){#cc-installer-text{display:none}}
-  `;
-  document.head.appendChild(btnCSS);
-  document.body.appendChild(bar);
-
-  const el = {
-    win: bar.querySelector('#cc-dl-win'),
-    mac: bar.querySelector('#cc-dl-mac'),
-    lin: bar.querySelector('#cc-dl-linux'),
-    retry: bar.querySelector('#cc-retry'),
-    dismiss: bar.querySelector('#cc-dismiss'),
-    text: bar.querySelector('#cc-installer-text')
-  };
-
-  // ---- Configure download URLs (replace with your real links) ----
-  // Example: host installers at /downloads on your site or a GitHub Release
-  el.win.href = '/downloads/CyberChatServer-Windows.exe';
-  el.mac.href = '/downloads/CyberChatServer-macOS.dmg';
-  el.lin.href = '/downloads/CyberChatServer-Linux.AppImage';
-
-  // OS hint (show primary button first)
-  const ua = navigator.userAgent;
-  if(/Windows/i.test(ua)){ el.win.style.order = 0; el.mac.style.order=1; el.lin.style.order=2; }
-  else if(/Macintosh|Mac OS X/i.test(ua)){ el.mac.style.order = 0; el.win.style.order=1; el.lin.style.order=2; }
-  else { el.lin.style.order = 0; el.win.style.order=1; el.mac.style.order=2; }
-
-  // ---- Logic ----
-  async function ping(){
-    try{
-      const ctl = new AbortController();
-      const t = setTimeout(()=>ctl.abort(), 800);
-      const r = await fetch(PING, {signal: ctl.signal});
-      clearTimeout(t);
-      return r.ok;
-    }catch(e){ return false; }
-  }
-
-  function show(){ bar.style.display = 'flex'; }
-  function hide(){ bar.style.display = 'none'; }
-
-  // Show bar only if server appears offline (and not previously dismissed)
-  const dismissed = sessionStorage.getItem('cc-installer-dismissed') === '1';
-  (async()=>{
-    if(dismissed) return; // user chose to hide for this session
-    const ok = await ping();
-    if(!ok) show();
+    bubble.onclick = ()=>{ state.open=!state.open; panel.classList.toggle("open", state.open); if(state.open){ addMsg("ai","Hi! I can answer common questions. Click “Upgrade → AI” to enable a local model."); checkAI(); } };
+    el("cc-close").onclick = ()=>{ state.open=false; panel.classList.remove("open"); };
+    el("cc-upgrade").onclick = async ()=>{
+      const ok = await checkAI();
+      if(!ok){ addMsg("ai","Local AI not detected. Run the FastAPI server on your PC to enable models."); return; }
+      state.mode="ai"; modePill.textContent="Mode: AI"; addMsg("ai","AI enabled. Ask me anything.");
+    };
+    sendBtn.onclick = async ()=>{
+      const text = input.value.trim(); if(!text) return; input.value=""; addMsg("user", text);
+      if(state.mode==="faq"){
+        const ans = scoreFAQ(text);
+        if(ans) addMsg("ai", ans); else addMsg("ai","I don’t have a preset answer for that. Click “Upgrade → AI” to ask anything.");
+      } else {
+        try{ const out = await callAI([["user", text]]); addMsg("ai", out.reply || "[no reply]"); }
+        catch(e){ addMsg("ai","Could not reach local AI. Switching back to FAQ."); state.mode="faq"; modePill.textContent="Mode: FAQ"; }
+      }
+    };
+    input.addEventListener("keydown", (e)=>{ if(e.key==="Enter"){ e.preventDefault(); sendBtn.click(); }});
   })();
+  </script>
 
-  // Reconnect polling: allow user to click "Reconnect" after installing
-  let polling = false; let timer = null;
-  async function poll(){
-    if(polling) return; polling = true; el.retry.textContent = 'Connecting…';
-    for(let i=0;i<20;i++){
-      const ok = await ping();
-      if(ok){ hide(); polling=false; el.retry.textContent='Reconnect'; return; }
-      await new Promise(r=> setTimeout(r, 750));
+  <!-- Installer detection bar -->
+  <script>
+  (function(){
+    const ENDPOINT = 'http://127.0.0.1:8000';
+    const PING = ENDPOINT + '/api/models';
+    const bar = document.createElement('div');
+    bar.id = 'cc-installer-bar';
+    bar.setAttribute('style',[
+      'position:fixed','left:16px','right:16px','bottom:16px','z-index:2147483000',
+      'display:none','gap:12px','align-items:center','justify-content:space-between',
+      'background:#0b1220','color:#d1d5db','border:1px solid #1f2735','border-radius:14px',
+      'box-shadow:0 10px 30px rgba(0,0,0,.4)','padding:12px 14px','font:14px/1.4 system-ui,Segoe UI,Roboto'
+    ].join(';'));
+    bar.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="background:#111a2b;border:1px solid #1f2a3d;border-radius:999px;padding:4px 8px;color:#9ab">Offline AI</span>
+        <span id="cc-installer-text">Enable offline AI by installing the local add‑on.</span>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <a id="cc-dl-win" class="cc-btn" href="#" download>Download for Windows</a>
+        <a id="cc-dl-mac" class="cc-btn" href="#" download>Download for macOS</a>
+        <a id="cc-dl-linux" class="cc-btn" href="#" download>Download for Linux</a>
+        <button id="cc-retry" class="cc-btn">Reconnect</button>
+        <button id="cc-dismiss" class="cc-btn" style="opacity:.8">Dismiss</button>
+      </div>`;
+    const btnCSS = document.createElement('style');
+    btnCSS.textContent = `.cc-btn{appearance:none;text-decoration:none;cursor:pointer;padding:8px 10px;border-radius:10px;border:1px solid #274058;background:#122032;color:#cfe7ff}.cc-btn:hover{border-color:#335b86}@media (max-width:600px){#cc-installer-text{display:none}}`;
+    document.head.appendChild(btnCSS); document.body.appendChild(bar);
+
+    const el = {
+      win: bar.querySelector('#cc-dl-win'), mac: bar.querySelector('#cc-dl-mac'),
+      lin: bar.querySelector('#cc-dl-linux'), retry: bar.querySelector('#cc-retry'),
+      dismiss: bar.querySelector('#cc-dismiss'), text: bar.querySelector('#cc-installer-text')
+    };
+
+    // Replace with your release links:
+    el.win.href = '/downloads/CyberChatServer-Windows.exe';
+    el.mac.href = '/downloads/CyberChatServer-macOS.dmg';
+    el.lin.href = '/downloads/CyberChatServer-Linux.AppImage';
+
+    const ua = navigator.userAgent;
+    if(/Windows/i.test(ua)){ el.win.style.order=0; el.mac.style.order=1; el.lin.style.order=2; }
+    else if(/Macintosh|Mac OS X/i.test(ua)){ el.mac.style.order=0; el.win.style.order=1; el.lin.style.order=2; }
+    else { el.lin.style.order=0; el.win.style.order=1; el.mac.style.order=2; }
+
+    async function ping(){
+      try{ const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),800);
+        const r=await fetch(PING,{signal:ctl.signal}); clearTimeout(t); return r.ok;
+      }catch(e){ return false; }
     }
-    polling=false; el.retry.textContent='Reconnect';
-    el.text.textContent = 'Not detected yet. Make sure the add‑on is running, then click Reconnect.';
-  }
+    function show(){ bar.style.display='flex'; }
+    function hide(){ bar.style.display='none'; }
 
-  el.retry.addEventListener('click', poll);
-  el.dismiss.addEventListener('click', ()=>{ sessionStorage.setItem('cc-installer-dismissed','1'); hide(); });
-})();
-</script>
+    const dismissed = sessionStorage.getItem('cc-installer-dismissed')==='1';
+    (async()=>{ if(dismissed) return; const ok=await ping(); if(!ok) show(); })();
+
+    let polling=false;
+    async function poll(){
+      if(polling) return; polling=true; el.retry.textContent='Connecting…';
+      for(let i=0;i<20;i++){ const ok=await ping(); if(ok){ hide(); polling=false; el.retry.textContent='Reconnect'; return; } await new Promise(r=>setTimeout(r,750)); }
+      polling=false; el.retry.textContent='Reconnect'; el.text.textContent='Not detected yet. Make sure the add‑on is running, then click Reconnect.';
+    }
+    el.retry.addEventListener('click', poll);
+    el.dismiss.addEventListener('click', ()=>{ sessionStorage.setItem('cc-installer-dismissed','1'); hide(); });
+  })();
+  </script>
+
+  <footer>CyberChat v2 — © FileConverter.run Labs</footer>
+</body>
+</html>
