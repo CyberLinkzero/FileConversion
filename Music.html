@@ -204,54 +204,75 @@ const log = makeLog(logEl);
 const pad = (n,l=2)=> String(n).padStart(l,'0');
 const fmtTime = (t)=>{ const m=Math.floor(t/60), s=Math.floor(t%60), ms=Math.round((t-Math.floor(t))*1000); return `${pad(m)}:${pad(s)}.${pad(ms,3)}`; };
 
+log('🎵 Music tab page script init');
+
 /* ========= File state ========= */
 let currentFile = null;
 
-/* ========= File input UX ========= */
 function setCurrentFile(file){
   currentFile = file || null;
   fname.textContent = currentFile ? (currentFile.name || '') : '';
 }
 
-drop.onclick = ()=>{
-  // allow re-selecting same file
-  fileEl.value = '';
-  fileEl.click();
-};
+/* ========= File input UX ========= */
 
-pickBtn.addEventListener('click', (e)=>{
-  e.stopPropagation();
-  fileEl.value = '';
+/* Click anywhere on drop zone (except where prevented) */
+drop.addEventListener('click', (e)=>{
+  // If inner Browse button handles it, let that handler run instead
+  if (e.target.id === 'pickBtn') return;
+  log('Drop zone clicked → opening file picker');
+  fileEl.value = '';   // allow re-selecting same file
   fileEl.click();
 });
 
-drop.onkeydown = (e)=>{
-  if(e.key==='Enter'||e.key===' ') {
-    fileEl.value='';
+/* Explicit Browse button */
+if (pickBtn){
+  pickBtn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    log('Browse button clicked → opening file picker');
+    fileEl.value = '';
+    fileEl.click();
+  });
+}
+
+/* Keyboard accessibility */
+drop.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter' || e.key === ' '){
+    e.preventDefault();
+    log('Drop zone keypress → opening file picker');
+    fileEl.value = '';
     fileEl.click();
   }
-};
+});
 
+/* File chosen via OS dialog */
 fileEl.addEventListener('change', ()=>{
-  const file = fileEl.files?.[0] || null;
+  const file = (fileEl.files && fileEl.files[0]) ? fileEl.files[0] : null;
+  log('File input change fired: ' + (file ? file.name : 'no file'));
   setCurrentFile(file);
   showCacheUI();
 });
 
-drop.ondragover = (e)=>{
+/* Drag & drop support */
+drop.addEventListener('dragover', (e)=>{
   e.preventDefault();
   drop.classList.add('drag');
-};
-drop.ondragleave = ()=> drop.classList.remove('drag');
-drop.ondrop = (e)=>{
+});
+drop.addEventListener('dragleave', ()=>{
+  drop.classList.remove('drag');
+});
+drop.addEventListener('drop', (e)=>{
   e.preventDefault();
   drop.classList.remove('drag');
-  if (e.dataTransfer?.files?.length){
+
+  if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
     const file = e.dataTransfer.files[0];
+    log('Dropped file: ' + file.name);
     setCurrentFile(file);
+    // NOTE: do NOT assign to fileEl.files — read-only in browsers
     showCacheUI();
   }
-};
+});
 
 /* ========= Audio helpers ========= */
 async function decodeWithWebAudio(arrayBuf){
@@ -728,7 +749,7 @@ analyzeBtn.addEventListener('click', analyzeOnce);
 abortBtn.addEventListener('click', ()=> controller?.abort());
 
 async function analyzeOnce(){
-  const file = currentFile;
+  const file = currentFile || (fileEl.files && fileEl.files[0]);
   try{ validateFile(file); }catch(e){ alert(e.message); return; }
   controller = new AbortController();
   analyzeBtn.disabled = true; renderBtn.disabled = true; abortBtn.disabled = true;
@@ -899,7 +920,7 @@ async function renderFromCache(){
     };
 
     if (wantAutoLyrics){
-      const file = currentFile;
+      const file = currentFile || (fileEl.files && fileEl.files[0]);
       if (!file){
         log('⚠️ Select an audio/video file first to auto-transcribe.');
         draw('');
