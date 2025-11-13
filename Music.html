@@ -2,49 +2,49 @@
 <html lang="en">
 <head>
   <script src="/assets/cyberchat-widget.js"
-        data-endpoint="http://127.0.0.1:8000"
-        data-title="EvolveBot"
-        data-position="right"
-        data-greeting="Hey! Need a hand?"
-        data-autoload="true"
-        defer></script>
-<meta charset="utf-8">
-<title> Music → Tabs, Sheet, Vocals & Auto-Lyrics(Local + Cached) Coming Soon Under Construction </title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Analyze once, render Tabs or Sheet instantly. 100% local with OPFS caching. Optional vocal melody and local auto-lyrics via localhost helper Under Constructiion.">
-<style>
-  :root{--bg:#0f1117;--panel:#121826;--ink:#e5f2ff;--muted:#9aa4b2;--line:#263044;--cyan:#67e8f9;--vio:#a78bfa}
-  *{box-sizing:border-box} html,body{height:100%}
-  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial}
-  header{padding:22px 16px;text-align:center;border-bottom:1px solid #1f2430}
-  h1{margin:0;font-size:28px;background:linear-gradient(90deg,var(--cyan),var(--vio));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-  .wrap{max-width:1200px;margin:0 auto;padding:18px 16px 64px}
-  .card{background:linear-gradient(180deg,#121826,#0b1220);border:1px solid var(--line);border-radius:16px;box-shadow:0 0 24px rgba(103,232,249,.14)}
-  .pad{padding:18px}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  @media (max-width:1000px){.row{grid-template-columns:1fr}}
-  label.title{display:block;font-size:13px;color:#cfe6ff;margin:8px 0 6px}
-  .drop{border:2px dashed var(--line);border-radius:12px;padding:18px;text-align:center;cursor:pointer}
-  .drop.drag{border-color:var(--cyan);background:rgba(103,232,249,.06)}
-  .chips{display:flex;flex-wrap:wrap;gap:8px}
-  .chip{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--line);padding:8px 12px;border-radius:999px}
-  textarea{width:100%;min-height:120px;resize:vertical;border-radius:12px;padding:12px 14px;background:#0a1424;border:1px solid #263044;color:var(--ink)}
-  .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
-  .btn{border:0;padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:700;background:linear-gradient(90deg,var(--cyan),var(--vio));color:#07101a}
-  .btn.sec{background:#0a1424;color:var(--ink);border:1px solid #263044}
-  .btn.ghost{background:transparent;border:1px dashed var(--line);color:#var(--muted)}
-  .btn:disabled{opacity:.6;cursor:not-allowed}
-  .bar{height:8px;background:#0a1424;border:1px solid #var(--line);border-radius:999px;overflow:hidden;margin-top:10px}
-  .bar>i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),var(--vio));transition:width .25s}
-  pre{margin:10px 0 0;padding:12px;border:1px dashed var(--line);border-radius:12px;background:#07101a;color:#cfe6ff;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;max-height:240px;overflow:auto;white-space:pre-wrap}
-  .muted{color:var(--muted)}
-  #scoreWrap{margin-top:16px;background:#0a1424;border:1px solid #263044;border-radius:12px;padding:12px}
-  .badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:#cfe6ff}
-  /* Modal */
-  #transcriber-modal{display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:99999;}
-  #transcriber-card{max-width:640px; margin:10vh auto; background:#121826; color:#e5f2ff; border:1px solid #263044; border-radius:16px; padding:18px;}
-  .btn{cursor:pointer}
-</style>
+          data-endpoint="http://127.0.0.1:8000"
+          data-title="EvolveBot"
+          data-position="right"
+          data-greeting="Hey! Need a hand?"
+          data-autoload="true"
+          defer></script>
+  <meta charset="utf-8">
+  <title> Music → Tabs, Sheet, Vocals & Auto-Lyrics(Local + Cached) Coming Soon Under Construction </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Analyze once, render Tabs or Sheet instantly. 100% local with OPFS caching. Optional vocal melody and local auto-lyrics via localhost helper Under Constructiion.">
+  <style>
+    :root{--bg:#0f1117;--panel:#121826;--ink:#e5f2ff;--muted:#9aa4b2;--line:#263044;--cyan:#67e8f9;--vio:#a78bfa}
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    header{padding:22px 16px;text-align:center;border-bottom:1px solid #1f2430}
+    h1{margin:0;font-size:28px;background:linear-gradient(90deg,var(--cyan),var(--vio));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .wrap{max-width:1200px;margin:0 auto;padding:18px 16px 64px}
+    .card{background:linear-gradient(180deg,#121826,#0b1220);border:1px solid var(--line);border-radius:16px;box-shadow:0 0 24px rgba(103,232,249,.14)}
+    .pad{padding:18px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    @media (max-width:1000px){.row{grid-template-columns:1fr}}
+    label.title{display:block;font-size:13px;color:#cfe6ff;margin:8px 0 6px}
+    .drop{border:2px dashed var(--line);border-radius:12px;padding:18px;text-align:center;cursor:pointer}
+    .drop.drag{border-color:var(--cyan);background:rgba(103,232,249,.06)}
+    .chips{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--line);padding:8px 12px;border-radius:999px}
+    textarea{width:100%;min-height:120px;resize:vertical;border-radius:12px;padding:12px 14px;background:#0a1424;border:1px solid #263044;color:var(--ink)}
+    .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+    .btn{border:0;padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:700;background:linear-gradient(90deg,var(--cyan),var(--vio));color:#07101a}
+    .btn.sec{background:#0a1424;color:var(--ink);border:1px solid #263044}
+    .btn.ghost{background:transparent;border:1px dashed var(--line);color:var(--muted)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .bar{height:8px;background:#0a1424;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-top:10px}
+    .bar>i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),var(--vio));transition:width .25s}
+    pre{margin:10px 0 0;padding:12px;border:1px dashed var(--line);border-radius:12px;background:#07101a;color:#cfe6ff;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;max-height:240px;overflow:auto;white-space:pre-wrap}
+    .muted{color:var(--muted)}
+    #scoreWrap{margin-top:16px;background:#0a1424;border:1px solid #263044;border-radius:12px;padding:12px}
+    .badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:#cfe6ff}
+    /* Modal */
+    #transcriber-modal{display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:99999;}
+    #transcriber-card{max-width:640px; margin:10vh auto; background:#121826; color:#e5f2ff; border:1px solid #263044; border-radius:16px; padding:18px;}
+    .btn{cursor:pointer}
+  </style>
 </head>
 <body>
 <header>
@@ -58,13 +58,13 @@
       <div>
         <label class="title">Audio/Video file</label>
         <input id="file" type="file" accept="audio/*,video/*" hidden>
-       <div id="drop" class="drop" aria-label="Choose file" tabindex="0" role="button">
-  <div>Drag & drop here</div>
-  <div style="margin-top:8px">
-    <button id="pickBtn" type="button" class="btn sec" style="padding:8px 12px">Browse…</button>
-  </div>
-  <div id="fname" class="muted" style="margin-top:6px"></div>
-</div>
+        <div id="drop" class="drop" aria-label="Choose file" tabindex="0" role="button">
+          <div>Drag & drop here</div>
+          <div style="margin-top:8px">
+            <button id="pickBtn" type="button" class="btn sec" style="padding:8px 12px">Browse…</button>
+          </div>
+          <div id="fname" class="muted" style="margin-top:6px"></div>
+        </div>
 
         <div class="chips" style="margin-top:10px">
           <span id="cacheBadge" class="badge" style="display:none">Cached analysis found</span>
@@ -192,6 +192,7 @@ const denyBtn = document.getElementById('deny-setup');
 const steps = document.getElementById('setup-steps');
 const probeEl = document.getElementById('probe-status');
 const splitSel = document.getElementById('force-split');
+const pickBtn = document.getElementById('pickBtn');
 
 const getMode = () => (document.querySelector('input[name="mode"]:checked')?.value)||'tabs';
 
@@ -203,24 +204,51 @@ const log = makeLog(logEl);
 const pad = (n,l=2)=> String(n).padStart(l,'0');
 const fmtTime = (t)=>{ const m=Math.floor(t/60), s=Math.floor(t%60), ms=Math.round((t-Math.floor(t))*1000); return `${pad(m)}:${pad(s)}.${pad(ms,3)}`; };
 
-/* ========= File input UX (fix: same file twice) ========= */
+/* ========= File state ========= */
+let currentFile = null;
+
+/* ========= File input UX ========= */
+function setCurrentFile(file){
+  currentFile = file || null;
+  fname.textContent = currentFile ? (currentFile.name || '') : '';
+}
+
 drop.onclick = ()=>{
-  fileEl.value = '';     // allow re-selecting same file
+  // allow re-selecting same file
+  fileEl.value = '';
   fileEl.click();
 };
-drop.onkeydown = (e)=>{ if(e.key==='Enter'||e.key===' ') { fileEl.value=''; fileEl.click(); } };
+
+pickBtn.addEventListener('click', (e)=>{
+  e.stopPropagation();
+  fileEl.value = '';
+  fileEl.click();
+});
+
+drop.onkeydown = (e)=>{
+  if(e.key==='Enter'||e.key===' ') {
+    fileEl.value='';
+    fileEl.click();
+  }
+};
+
 fileEl.addEventListener('change', ()=>{
-  fname.textContent = fileEl.files[0]?.name ?? '';
+  const file = fileEl.files?.[0] || null;
+  setCurrentFile(file);
   showCacheUI();
 });
-drop.ondragover = (e)=>{ e.preventDefault(); drop.classList.add('drag'); };
+
+drop.ondragover = (e)=>{
+  e.preventDefault();
+  drop.classList.add('drag');
+};
 drop.ondragleave = ()=> drop.classList.remove('drag');
 drop.ondrop = (e)=>{
   e.preventDefault();
   drop.classList.remove('drag');
   if (e.dataTransfer?.files?.length){
-    fileEl.files = e.dataTransfer.files;
-    fname.textContent = fileEl.files[0]?.name ?? '';
+    const file = e.dataTransfer.files[0];
+    setCurrentFile(file);
     showCacheUI();
   }
 };
@@ -269,9 +297,18 @@ function makeChordWorkerPool(n){
     return new Promise((resolve,reject)=>{
       const id = nextId++;
       const w = ws[id % ws.length];
-      const onMsg = (e)=>{ if(e.data?.id!==id) return; w.removeEventListener('message', onMsg); resolve(e.data.labels); };
+      const onMsg = (e)=>{
+        if(e.data?.id!==id) return;
+        w.removeEventListener('message', onMsg);
+        resolve(e.data.labels);
+      };
       w.addEventListener('message', onMsg);
-      if(signal){ signal.addEventListener('abort', ()=>{ w.removeEventListener('message', onMsg); reject(new DOMException('Aborted','AbortError')); }, {once:true}); }
+      if(signal){
+        signal.addEventListener('abort', ()=>{
+          w.removeEventListener('message', onMsg);
+          reject(new DOMException('Aborted','AbortError'));
+        }, {once:true});
+      }
       w.postMessage({ id, frames, sr }, frames.map(f=>f.buffer));
     });
   }
@@ -285,9 +322,18 @@ function yinWorker(){
   return {
     run: (mono, sr, hopSamples, signal)=> new Promise((resolve,reject)=>{
       const id = nextId++;
-      const onMsg = (e)=>{ if(e.data?.id!==id) return; w.removeEventListener('message', onMsg); resolve(e.data.notes||[]); };
+      const onMsg = (e)=>{
+        if(e.data?.id!==id) return;
+        w.removeEventListener('message', onMsg);
+        resolve(e.data.notes||[]);
+      };
       w.addEventListener('message', onMsg);
-      if(signal){ signal.addEventListener('abort', ()=>{ w.removeEventListener('message', onMsg); reject(new DOMException('Aborted','AbortError')); }, {once:true}); }
+      if(signal){
+        signal.addEventListener('abort', ()=>{
+          w.removeEventListener('message', onMsg);
+          reject(new DOMException('Aborted','AbortError'));
+        }, {once:true});
+      }
       w.postMessage({ id, mono, sr, hopSamples }, [mono.buffer]);
     }),
     terminate(){ try{ w.terminate(); }catch{} }
@@ -402,19 +448,37 @@ function buildChordProText(spans, lyricsText, duration){
 }
 function toMarkdown(title, spans, g=null, b=null, p=null, d=null, chordPro=null){
   const L=[]; L.push(`# ${title} — Tabs & Chords`,'');
+
   if(chordPro){ L.push('## Lyrics + Chords','```chordpro',chordPro,'```',''); }
   if(g){ L.push('## Guitar Tabs','```',g,'```',''); }
   if(b){ L.push('## Bass Tabs','```',b,'```',''); }
   if(p?.length){ L.push('## Piano (notes)',...p.map(x=>'- '+x),''); }
   if(d?.length){ L.push('## Drums (grid)',...d.map(x=>'`'+x+'`'),''); }
   L.push('## Chord Timeline','', ...(spans||[]).map(c=>`- ${fmtTime(c.start)}–${fmtTime(c.end)}: **${c.label}**`),'');
+
   return L.join('\n');
 }
-function toPlainTabs(g=null,b=null,p=null,d=null){ const o=[]; if(g){o.push('GUITAR',g,'');} if(b){o.push('BASS',b,'');} if(p?.length){o.push('PIANO',...p,'');} if(d?.length){o.push('DRUMS',...d,'');} return o.join('\n'); }
+function toPlainTabs(g=null,b=null,p=null,d=null){
+  const o=[];
+  if(g){o.push('GUITAR',g,'');}
+  if(b){o.push('BASS',b,'');}
+  if(p?.length){o.push('PIANO',...p,'');}
+  if(d?.length){o.push('DRUMS',...d,'');}
+  return o.join('\n');
+}
 function toJSONFile(title, spans, meta={}){ return JSON.stringify({title,chords:spans,meta},null,2); }
 function toWebVTT(spans){
-  const L=['WEBVTT','']; const to=(t)=>{const h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=Math.floor(t%60),ms=Math.round((t-Math.floor(t))*1000); const z=(n,l=2)=>String(n).padStart(l,'0'); return `${z(h)}:${z(m)}:${z(s)}.${z(ms,3)}`;}
-  (spans||[]).forEach((c,i)=>{L.push(String(i+1)); L.push(`${to(c.start)} --> ${to(c.end)}`); L.push(c.label,'');});
+  const L=['WEBVTT',''];
+  const to=(t)=>{
+    const h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=Math.floor(t%60),ms=Math.round((t-Math.floor(t))*1000);
+    const z=(n,l=2)=>String(n).padStart(l,'0');
+    return `${z(h)}:${z(m)}:${z(s)}.${z(ms,3)}`;
+  };
+  (spans||[]).forEach((c,i)=>{
+    L.push(String(i+1));
+    L.push(`${to(c.start)} --> ${to(c.end)}`);
+    L.push(c.label,'');
+  });
   return L.join('\n');
 }
 function downloadText(filename, text){
@@ -425,9 +489,31 @@ function downloadText(filename, text){
 
 /* ========= Sheet (VexFlow) ========= */
 const secToBeats = (t,bpm)=> (t*bpm)/60;
-function quantizeToNearestDur(beats){ if (beats >= 0.75) return { dur:'q', beats:1 }; if (beats >= 0.375) return { dur:'8', beats:0.5 }; return { dur:'16', beats:0.25 }; }
-function pitchToVexKey(midi){ const names=['c','c#','d','eb','e','f','f#','g','ab','a','bb','b']; const n=Math.round(midi); const name=names[(n+1200)%12]; const octave=Math.floor(n/12)-1; return `${name}/${octave}`; }
-function syllabify(text){ if(!text) return []; const words=text.trim().split(/\s+/); const out=[]; for(const w of words){ if(w.length<=6) out.push(w); else { const mid=Math.floor(w.length/2); out.push(w.slice(0,mid)+'-', w.slice(mid)); } } return out; }
+function quantizeToNearestDur(beats){
+  if (beats >= 0.75) return { dur:'q', beats:1 };
+  if (beats >= 0.375) return { dur:'8', beats:0.5 };
+  return { dur:'16', beats:0.25 };
+}
+function pitchToVexKey(midi){
+  const names=['c','c#','d','eb','e','f','f#','g','ab','a','bb','b'];
+  const n=Math.round(midi);
+  const name=names[(n+1200)%12];
+  const octave=Math.floor(n/12)-1;
+  return `${name}/${octave}`;
+}
+function syllabify(text){
+  if(!text) return [];
+  const words=text.trim().split(/\s+/);
+  const out=[];
+  for(const w of words){
+    if(w.length<=6) out.push(w);
+    else {
+      const mid=Math.floor(w.length/2);
+      out.push(w.slice(0,mid)+'-', w.slice(mid));
+    }
+  }
+  return out;
+}
 
 function renderSheet({ title, bpm=100, melody=[], chords=[], lyricsText="" }){
   scoreWrap.style.display = 'block';
@@ -488,9 +574,27 @@ function safeRenderSheet(opts){
 
 /* ========= OPFS cache ========= */
 const OPFS = await navigator.storage?.getDirectory?.();
-async function readCache(){ if(!OPFS) return null; try{ const h=await OPFS.getFileHandle('analysis.json'); const f=await h.getFile(); return JSON.parse(await f.text()); }catch{ return null; } }
-async function writeCache(data){ if(!OPFS) return; const h=await OPFS.getFileHandle('analysis.json',{create:true}); const w=await h.createWritable(); await w.write(new Blob([JSON.stringify(data)],{type:'application/json'})); await w.close(); }
-async function clearCache(){ if(!OPFS) return; try{ await OPFS.removeEntry('analysis.json'); }catch{} }
+async function readCache(){
+  if(!OPFS) return null;
+  try{
+    const h=await OPFS.getFileHandle('analysis.json');
+    const f=await h.getFile();
+    return JSON.parse(await f.text());
+  }catch{
+    return null;
+  }
+}
+async function writeCache(data){
+  if(!OPFS) return;
+  const h=await OPFS.getFileHandle('analysis.json',{create:true});
+  const w=await h.createWritable();
+  await w.write(new Blob([JSON.stringify(data)],{type:'application/json'}));
+  await w.close();
+}
+async function clearCache(){
+  if(!OPFS) return;
+  try{ await OPFS.removeEntry('analysis.json'); }catch{}
+}
 
 async function showCacheUI(){
   const c = await readCache();
@@ -500,15 +604,8 @@ async function showCacheUI(){
   clearCacheBtn.style.display = has ? 'inline-block' : 'none';
 }
 
-/* ========= Local lyrics helper (permission + probe + fetch) ========= */
+/* ========= Local lyrics helper ========= */
 const LOCAL_URL = 'http://127.0.0.1:8765';
-function detectOS(){
-  const ua = navigator.userAgent || '';
-  if (ua.includes('Windows')) return 'windows';
-  if (ua.includes('Mac') || ua.includes('Macintosh')) return 'mac';
-  if (ua.includes('Linux')) return 'linux';
-  return 'unknown';
-}
 async function isServerUp(timeoutMs=800){
   const ctrl = new AbortController();
   const t = setTimeout(()=>ctrl.abort(), timeoutMs);
@@ -518,10 +615,12 @@ async function isServerUp(timeoutMs=800){
     if (!r.ok) return false;
     const j = await r.json();
     return !!j.ok;
-  }catch{ clearTimeout(t); return false; }
+  }catch{
+    clearTimeout(t);
+    return false;
+  }
 }
 function downloadSetupScript(){
-  // Adjust paths to where you host them
   const SERVER_URL = '/local-transcriber/server.py';
   const WIN_BAT    = '/local-transcriber/start_transcriber.bat';
   const WIN_PS1    = '/local-transcriber/start_transcriber.ps1';
@@ -568,7 +667,10 @@ async function ensureLocalTranscriberPermissionFlow(){
         }
       }, 1200);
     };
-    denyBtn.onclick = ()=>{ modal.style.display = 'none'; resolve(false); };
+    denyBtn.onclick = ()=>{
+      modal.style.display = 'none';
+      resolve(false);
+    };
   });
 }
 async function ensureLocalTranscriberOrAsk(){
@@ -606,20 +708,27 @@ chips.addEventListener('change', ()=> { if (analyzed && getMode()==='tabs') rend
 
 useCacheBtn.onclick = async ()=>{
   const c = await readCache();
-  if (!c){ await showCacheUI(); return; }
+  if (!c){
+    await showCacheUI();
+    return;
+  }
   analyzed = c;
   renderBtn.disabled = false;
   log('Loaded cached analysis.');
   renderFromCache();
 };
-clearCacheBtn.onclick = async ()=>{ await clearCache(); await showCacheUI(); log('Cache cleared.'); };
+clearCacheBtn.onclick = async ()=>{
+  await clearCache();
+  await showCacheUI();
+  log('Cache cleared.');
+};
 
 /* ========= Analyze once ========= */
 analyzeBtn.addEventListener('click', analyzeOnce);
 abortBtn.addEventListener('click', ()=> controller?.abort());
 
 async function analyzeOnce(){
-  const file = fileEl.files?.[0];
+  const file = currentFile;
   try{ validateFile(file); }catch(e){ alert(e.message); return; }
   controller = new AbortController();
   analyzeBtn.disabled = true; renderBtn.disabled = true; abortBtn.disabled = true;
@@ -629,7 +738,10 @@ async function analyzeOnce(){
     // Decode
     let dec;
     try{ dec = await decodeWithWebAudio(await file.arrayBuffer()); }
-    catch{ log('Native decode failed → ffmpeg.wasm…'); dec = await decodeViaFFmpeg(file); }
+    catch{
+      log('Native decode failed → ffmpeg.wasm…');
+      dec = await decodeViaFFmpeg(file);
+    }
     sessionMono = dec.mono;
     const sr = dec.sr, duration = dec.duration;
     if(duration>600) throw new Error(`Audio too long (${duration.toFixed(0)}s). Limit 600s.`);
@@ -663,7 +775,10 @@ async function analyzeOnce(){
     if(labels.length){
       let cur=labels[0], s=0;
       for(let i=1;i<labels.length;i++){
-        if(labels[i]!==cur){ spans.push({start:toTime(s), end:toTime(i), label:cur}); cur=labels[i]; s=i; }
+        if(labels[i]!==cur){
+          spans.push({start:toTime(s), end:toTime(i), label:cur});
+          cur=labels[i]; s=i;
+        }
       }
       spans.push({start:toTime(s), end:toTime(labels.length), label:cur});
     }
@@ -714,7 +829,11 @@ renderBtn.addEventListener('click', ()=>{
 });
 
 async function renderFromCache(){
-  if(!analyzed){ const c = await readCache(); if(!c){ log('No analysis available.'); return; } analyzed=c; }
+  if(!analyzed){
+    const c = await readCache();
+    if(!c){ log('No analysis available.'); return; }
+    analyzed=c;
+  }
 
   // If user toggled vocals ON but we don't have melody yet and we still have mono, compute melody-only now.
   if (getMode()==='sheet' && vocalsChk.checked && (!analyzed.melody || analyzed.melody.length===0)){
@@ -745,10 +864,22 @@ async function renderFromCache(){
     statusEl.textContent='Rendered Tabs.';
 
     let any = false;
-    if(fmtMD.checked){ any=true; downloadText(`${analyzed.title}_tabs.md`,  toMarkdown(analyzed.title, analyzed.spans, g, b, p, d, chordPro)); }
-    if(fmtTXT.checked){ any=true; downloadText(`${analyzed.title}_tabs.txt`, toPlainTabs(g, b, p, d)); }
-    if(fmtJSON.checked){ any=true; downloadText(`${analyzed.title}_chords.json`, toJSONFile(analyzed.title, analyzed.spans, { key: analyzed.key, bpm: analyzed.bpm })); }
-    if(fmtVTT.checked){ any=true; downloadText(`${analyzed.title}_chords.vtt`, toWebVTT(analyzed.spans)); }
+    if(fmtMD.checked){
+      any=true;
+      downloadText(`${analyzed.title}_tabs.md`,  toMarkdown(analyzed.title, analyzed.spans, g, b, p, d, chordPro));
+    }
+    if(fmtTXT.checked){
+      any=true;
+      downloadText(`${analyzed.title}_tabs.txt`, toPlainTabs(g, b, p, d));
+    }
+    if(fmtJSON.checked){
+      any=true;
+      downloadText(`${analyzed.title}_chords.json`, toJSONFile(analyzed.title, analyzed.spans, { key: analyzed.key, bpm: analyzed.bpm }));
+    }
+    if(fmtVTT.checked){
+      any=true;
+      downloadText(`${analyzed.title}_chords.vtt`, toWebVTT(analyzed.spans));
+    }
     if(!any) log('ℹ️ No export format selected. Tick Markdown/Text/JSON/VTT and click Render.');
 
   } else {
@@ -768,8 +899,12 @@ async function renderFromCache(){
     };
 
     if (wantAutoLyrics){
-      const file = fileEl.files?.[0];
-      if (!file){ log('⚠️ Select an audio/video file first to auto-transcribe.'); draw(''); return; }
+      const file = currentFile;
+      if (!file){
+        log('⚠️ Select an audio/video file first to auto-transcribe.');
+        draw('');
+        return;
+      }
 
       if (!haveMelody && sessionMono){
         try{
