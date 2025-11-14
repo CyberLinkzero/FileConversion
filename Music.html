@@ -27,7 +27,7 @@
     .btn.sec{background:#0a1424;color:var(--ink);border:1px solid #263044}
     .btn.ghost{background:transparent;border:1px dashed var(--line);color:var(--muted)}
     .btn:disabled{opacity:.6;cursor:not-allowed}
-    .bar{height:8px;background:#0a1424;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-top:10px}
+    .bar{height:8px;background:#0a1424;border:1px solid #263044;border-radius:999px;overflow:hidden;margin-top:10px}
     .bar>i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),var(--vio));transition:width .25s}
     pre{margin:10px 0 0;padding:12px;border:1px dashed var(--line);border-radius:12px;background:#07101a;color:#cfe6ff;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;max-height:240px;overflow:auto;white-space:pre-wrap}
     .muted{color:var(--muted)}
@@ -153,8 +153,19 @@
 </div>
 
 <script type="module">
-/* ========= Import VexFlow (ESM) ========= */
-import { Flow as VF } from 'https://unpkg.com/vexflow@4.2.4/build/esm/vexflow.js';
+/* ========= Lazy VexFlow loader (no top-level import) ========= */
+let VF = null;
+async function loadVexFlowOnce(){
+  if (VF) return VF;
+  try{
+    const mod = await import('https://unpkg.com/vexflow@4.2.4/build/esm/vexflow.js');
+    VF = mod.Flow;
+    return VF;
+  }catch(err){
+    console.error('VexFlow failed to load:', err);
+    throw err;
+  }
+}
 
 /* ========= UI refs ========= */
 const drop = document.querySelector('#drop');
@@ -209,12 +220,11 @@ function setCurrentFile(file){
 
 /* ========= File input UX ========= */
 
-/* Click anywhere on drop zone (except where prevented) */
+/* Click anywhere on drop zone (except Browse button) */
 drop.addEventListener('click', (e)=>{
-  // If inner Browse button handles it, let that handler run instead
   if (e.target.id === 'pickBtn') return;
   log('Drop zone clicked → opening file picker');
-  fileEl.value = '';   // allow re-selecting same file
+  fileEl.value = '';
   fileEl.click();
 });
 
@@ -251,18 +261,14 @@ drop.addEventListener('dragover', (e)=>{
   e.preventDefault();
   drop.classList.add('drag');
 });
-drop.addEventListener('dragleave', ()=>{
-  drop.classList.remove('drag');
-});
+drop.addEventListener('dragleave', ()=>{ drop.classList.remove('drag'); });
 drop.addEventListener('drop', (e)=>{
   e.preventDefault();
   drop.classList.remove('drag');
-
   if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
     const file = e.dataTransfer.files[0];
     log('Dropped file: ' + file.name);
     setCurrentFile(file);
-    // NOTE: do NOT assign to fileEl.files — read-only in browsers
     showCacheUI();
   }
 });
@@ -358,7 +364,6 @@ function yinWorker(){
 function mergeMicroSpans(spans, minDur = 0.20, maxSpanSec = 0){
   if (!spans || spans.length === 0) return spans;
 
-  // merge identical labels; absorb micro flips
   const merged = [];
   for (const s of spans){
     if (!merged.length){ merged.push({...s}); continue; }
@@ -374,7 +379,6 @@ function mergeMicroSpans(spans, minDur = 0.20, maxSpanSec = 0){
 
   if (!maxSpanSec || maxSpanSec <= 0) return merged;
 
-  // chop long spans
   const out = [];
   for (const m of merged){
     let t = m.start;
@@ -529,14 +533,17 @@ function syllabify(text){
   return out;
 }
 
-function renderSheet({ title, bpm=100, melody=[], chords=[], lyricsText="" }){
+async function renderSheet({ title, bpm=100, melody=[], chords=[], lyricsText="" }){
+  const Flow = await loadVexFlowOnce();
+  const VFLocal = Flow;
+
   scoreWrap.style.display = 'block';
   scoreDiv.innerHTML = '';
-  const renderer = new VF.Renderer(scoreDiv, VF.Renderer.Backends.SVG);
+  const renderer = new VFLocal.Renderer(scoreDiv, VFLocal.Renderer.Backends.SVG);
   renderer.resize(1000, 260);
   const context = renderer.getContext();
   context.setFont('Arial', 10, 'normal');
-  const stave = new VF.Stave(10, 20, 980);
+  const stave = new VFLocal.Stave(10, 20, 980);
   stave.addClef('treble').addTimeSignature('4/4');
   stave.setContext(context).draw();
 
@@ -547,24 +554,26 @@ function renderSheet({ title, bpm=100, melody=[], chords=[], lyricsText="" }){
       const durBeats = (n.end - n.start) * beatsPerSec;
       const q = quantizeToNearestDur(durBeats);
       const key = pitchToVexKey(n.midi);
-      notes.push(new VF.StaveNote({ keys: [key], duration: q.dur }));
+      notes.push(new VFLocal.StaveNote({ keys: [key], duration: q.dur }));
     }
   } else {
-    notes.push(new VF.StaveNote({ keys: ['c/4'], duration: 'w' }));
+    notes.push(new VFLocal.StaveNote({ keys: ['c/4'], duration: 'w' }));
   }
 
   const sylls = syllabify(lyricsText);
   if (sylls.length) {
     const max = Math.min(notes.length, sylls.length);
     for (let i=0;i<max;i++){
-      const ann = new VF.Annotation(sylls[i]).setFont('Arial', 12).setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
+      const ann = new VFLocal.Annotation(sylls[i])
+        .setFont('Arial', 12)
+        .setVerticalJustification(VFLocal.Annotation.VerticalJustify.BOTTOM);
       notes[i].addAnnotation(0, ann);
     }
   }
 
-  const voice = new VF.Voice({ num_beats: 4, beat_value: 4 });
+  const voice = new VFLocal.Voice({ num_beats: 4, beat_value: 4 });
   voice.addTickables(notes);
-  new VF.Formatter().joinVoices([voice]).format([voice], 920);
+  new VFLocal.Formatter().joinVoices([voice]).format([voice], 920);
   voice.draw(context, stave);
 
   // Chords text above
@@ -577,12 +586,13 @@ function renderSheet({ title, bpm=100, melody=[], chords=[], lyricsText="" }){
   context.restore();
 }
 
-function safeRenderSheet(opts){
-  try { renderSheet(opts); }
-  catch(e){
+async function safeRenderSheet(opts){
+  try {
+    await renderSheet(opts);
+  } catch(e){
     log('⚠️ Sheet render failed: ' + e.message + ' — falling back to Tabs export.');
     document.querySelector('input[name="mode"][value="tabs"]').checked = true;
-    renderFromCache();
+    await renderFromCache();
   }
 }
 
@@ -640,12 +650,10 @@ function downloadSetupScript(){
   const WIN_PS1    = '/local-transcriber/start_transcriber.ps1';
   const NIX_SH     = '/local-transcriber/start_transcriber.sh';
 
-  // server.py
   const a1 = document.createElement('a');
   a1.href = SERVER_URL; a1.download = 'server.py';
   document.body.appendChild(a1); a1.click(); a1.remove();
 
-  // launcher
   const ua = navigator.userAgent || '';
   const isWin = ua.includes('Windows');
   const a2 = document.createElement('a');
@@ -696,7 +704,7 @@ async function transcribeLocally_viaServer(file){
   fd.append('file', file, file.name || 'audio.wav');
   const res = await fetch(LOCAL_URL + '/transcribe', { method:'POST', body: fd });
   if (!res.ok) throw new Error('Local transcription failed');
-  return await res.json(); // { words:[{start,end,text}], language, duration }
+  return await res.json();
 }
 function alignWordsToNotes(words, notes){
   if (!Array.isArray(words) || !Array.isArray(notes) || !notes.length) return [];
@@ -712,7 +720,7 @@ function alignWordsToNotes(words, notes){
 /* ========= Global state ========= */
 let analyzed = null;          // { title, duration, sr, hop, spans[], melody[], bpm, key }
 let controller=null, pool=null, vWorker=null;
-let sessionMono = null;       // keep in-memory only (for optional melody later)
+let sessionMono = null;
 
 /* ========= Mode & toggles re-render ========= */
 for (const el of document.querySelectorAll('input[name="mode"], #vocals, #auto-lyrics')) {
@@ -749,7 +757,6 @@ async function analyzeOnce(){
   scoreWrap.style.display='none'; logEl.textContent=''; setProgress(3); statusEl.textContent='Decoding…';
 
   try{
-    // Decode
     let dec;
     try{ dec = await decodeWithWebAudio(await file.arrayBuffer()); }
     catch{
@@ -761,7 +768,6 @@ async function analyzeOnce(){
     if(duration>600) throw new Error(`Audio too long (${duration.toFixed(0)}s). Limit 600s.`);
     abortBtn.disabled = false;
 
-    // Frame & batch chords
     statusEl.textContent='Framing…'; setProgress(10);
     const { chunks } = frameAudioInChunks(sessionMono, sr, 4096, 2048, 192);
     const total = chunks.length; log(`Framed into ${total} batches (${chunks[0]?.length||0} frames each).`);
@@ -783,7 +789,6 @@ async function analyzeOnce(){
       await tick();
     }
 
-    // Merge to spans
     const toTime = (idx)=> idx*2048/sr;
     let spans=[];
     if(labels.length){
@@ -797,11 +802,10 @@ async function analyzeOnce(){
       spans.push({start:toTime(s), end:toTime(labels.length), label:cur});
     }
 
-    // Apply forced split fallback
     const forcedSec = Number(splitSel?.value || 0);
     spans = mergeMicroSpans(spans, 0.20, forcedSec);
     if ((!spans || spans.length <= 1) && forcedSec === 0) {
-      spans = mergeMicroSpans(spans, 0.20, 4); // default safety
+      spans = mergeMicroSpans(spans, 0.20, 4);
     }
 
     log(`Chord spans: ${spans.length}`);
@@ -810,7 +814,6 @@ async function analyzeOnce(){
     const bpm   = 100;
     const key   = guessKey(spans);
 
-    // If vocals requested now, compute once
     let melody = [];
     if (vocalsChk.checked){
       vWorker = vWorker || yinWorker();
@@ -849,7 +852,6 @@ async function renderFromCache(){
     analyzed=c;
   }
 
-  // If user toggled vocals ON but we don't have melody yet and we still have mono, compute melody-only now.
   if (getMode()==='sheet' && vocalsChk.checked && (!analyzed.melody || analyzed.melody.length===0)){
     if (sessionMono){
       try{
@@ -895,14 +897,12 @@ async function renderFromCache(){
       downloadText(`${analyzed.title}_chords.vtt`, toWebVTT(analyzed.spans));
     }
     if(!any) log('ℹ️ No export format selected. Tick Markdown/Text/JSON/VTT and click Render.');
-
   } else {
-    // SHEET MODE
     const wantAutoLyrics = autoLyricsChk.checked;
     const haveMelody = Array.isArray(analyzed.melody) && analyzed.melody.length>0;
 
-    const draw = (lyricsText) => {
-      safeRenderSheet({
+    const draw = async (lyricsText) => {
+      await safeRenderSheet({
         title: analyzed.title,
         bpm: analyzed.bpm,
         melody: vocalsChk.checked ? (analyzed.melody||[]) : [],
@@ -916,7 +916,7 @@ async function renderFromCache(){
       const file = currentFile || (fileEl.files && fileEl.files[0]);
       if (!file){
         log('⚠️ Select an audio/video file first to auto-transcribe.');
-        draw('');
+        await draw('');
         return;
       }
 
@@ -931,21 +931,21 @@ async function renderFromCache(){
       }
 
       const ok = await ensureLocalTranscriberOrAsk();
-      if (!ok){ draw(''); return; }
+      if (!ok){ await draw(''); return; }
 
       try{
         statusEl.textContent='Transcribing lyrics locally…'; setProgress(90);
         const { words=[] } = await transcribeLocally_viaServer(file);
         const aligned = alignWordsToNotes(words, analyzed.melody || []);
         const autoLyrics = aligned.join(' ');
-        draw(autoLyrics);
+        await draw(autoLyrics);
         lyrics.value = autoLyrics;
       }catch(err){
         log('❌ Auto-lyrics failed: '+err.message);
-        draw('');
+        await draw('');
       }
     } else {
-      draw();
+      await draw();
     }
   }
 }
