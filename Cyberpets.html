@@ -1,0 +1,2209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>HabitatGotchi – Backyard Virtual Pets</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="A fenced backyard full of virtual pets. They move, chase, play, poop, and live with day/night, weather, houses, and a weird human named Justin.">
+  <style>
+    :root {
+      --bg:#050816;
+      --panel:#0b1020;
+      --accent:#67e8f9;
+      --accent2:#a855f7;
+      --danger:#fb7185;
+      --good:#4ade80;
+      --muted:#9aa4b2;
+      --text:#e5f2ff;
+      --border:#1f2937;
+      --radius-lg:18px;
+      --radius-md:12px;
+      --radius-pill:999px;
+      --shadow:0 18px 40px rgba(0,0,0,.6);
+    }
+    *{box-sizing:border-box}
+    html,body{
+      margin:0;
+      padding:0;
+      min-height:100%;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:radial-gradient(circle at top,#1f2933 0,#050816 45%,#030712 100%);
+      color:var(--text);
+    }
+    body{
+      padding:16px;
+      display:flex;
+      justify-content:center;
+    }
+    .app{
+      width:100%;
+      max-width:1100px;
+      background:
+        radial-gradient(circle at 0 0,rgba(103,232,249,.12),transparent 55%),
+        radial-gradient(circle at 100% 100%,rgba(168,85,247,.12),transparent 55%),
+        linear-gradient(135deg,#020617,#020617);
+      border-radius:24px;
+      border:1px solid rgba(148,163,184,.45);
+      box-shadow:var(--shadow);
+      padding:14px;
+      position:relative;
+      overflow:hidden;
+    }
+    .app-inner{position:relative;z-index:1}
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom:10px;
+      flex-wrap:wrap;
+    }
+    h1{
+      margin:0;
+      font-size:1.4rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      display:flex;
+      align-items:center;
+      gap:.4rem;
+    }
+    .tagline{
+      font-size:.86rem;
+      color:var(--muted);
+      margin-top:3px;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size:.78rem;
+      padding:4px 9px;
+      border-radius:var(--radius-pill);
+      background:rgba(22,163,74,.12);
+      border:1px solid rgba(74,222,128,.5);
+      color:var(--good);
+      white-space:nowrap;
+    }
+    .badge-dot{
+      width:8px;height:8px;border-radius:999px;
+      background:var(--good);
+      box-shadow:0 0 12px rgba(74,222,128,1);
+      animation:livepulse 1.5s infinite ease-out;
+    }
+    @keyframes livepulse{
+      0%{transform:scale(1);opacity:1}
+      60%{transform:scale(1.7);opacity:0}
+      100%{transform:scale(1);opacity:1}
+    }
+
+    .world-panel{
+      background:radial-gradient(circle at top left,rgba(15,23,42,.96),rgba(15,23,42,1));
+      border-radius:20px;
+      border:1px solid var(--border);
+      padding:9px;
+      box-shadow:0 10px 30px rgba(0,0,0,.4);
+      margin-bottom:10px;
+    }
+    .panel-title{
+      font-size:.82rem;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--muted);
+      display:flex;
+      justify-content:space-between;
+      align-items:baseline;
+      margin-bottom:6px;
+    }
+    .panel-title span.count{
+      font-size:.78rem;
+      color:rgba(148,163,184,.8);
+    }
+
+    .yard-wrap{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .yard-label{
+      font-size:.75rem;
+      color:var(--muted);
+      white-space:nowrap;
+    }
+    .yard-slider{
+      flex:1;
+      display:flex;
+      align-items:center;
+      gap:4px;
+    }
+    .yard-slider input[type="range"]{
+      width:100%;
+    }
+
+    .world{
+      position:relative;
+      width:100%;
+      height:260px;
+      border-radius:16px;
+      overflow:hidden;
+      margin-top:6px;
+      border:1px solid rgba(30,64,175,.9);
+      background:
+        linear-gradient(to top,#0b5130 0 40%,#22c55e 40% 55%,#60a5fa 55% 78%,#0ea5e9 78% 100%);
+    }
+
+    /* time-of-day sky */
+    .world-day{
+      background:
+        linear-gradient(to top,#0b5130 0 40%,#22c55e 40% 55%,#60a5fa 55% 78%,#38bdf8 78% 100%);
+    }
+    .world-dawn{
+      background:
+        linear-gradient(to top,#0b5130 0 40%,#22c55e 40% 55%,#60a5fa 55% 78%,#f59e0b 78% 100%);
+    }
+    .world-dusk{
+      background:
+        linear-gradient(to top,#0b5130 0 40%,#22c55e 40% 55%,#4f46e5 55% 78%,#0f172a 78% 100%);
+    }
+    .world-night{
+      background:
+        linear-gradient(to top,#052e16 0 40%,#064e3b 40% 55%,#020617 55% 100%);
+    }
+
+    .sky{
+      position:absolute;
+      left:0;right:0;
+      top:0;bottom:40%;
+      pointer-events:none;
+      z-index:0;
+    }
+    .sun,.moon{
+      position:absolute;
+      top:10%;
+      right:12%;
+      width:60px;height:60px;
+      border-radius:50%;
+      opacity:0;
+      transition:opacity .5s ease-out,transform .8s ease-out;
+    }
+    .sun{
+      background:radial-gradient(circle at 30% 30%,#fef9c3 0,#facc15 35%,#f97316 70%);
+      box-shadow:0 0 26px rgba(250,204,21,.9);
+    }
+    .moon{
+      background:radial-gradient(circle at 30% 30%,#e5e7eb 0,#9ca3af 45%,#4b5563 80%);
+      box-shadow:0 0 18px rgba(148,163,184,.9);
+      transform:translateY(10px);
+    }
+    .stars{
+      position:absolute;
+      inset:0;
+      background-image:
+        radial-gradient(#e5e7eb 1px, transparent 1px),
+        radial-gradient(#cbd5f5 1px, transparent 1px);
+      background-size:120px 120px,200px 200px;
+      background-position:0 0,60px 80px;
+      opacity:0;
+      transition:opacity .8s ease-out;
+    }
+
+    .world-day .sun,
+    .world-dawn .sun,
+    .world-dusk .sun{
+      opacity:1;
+    }
+    .world-night .moon,
+    .world-dusk .moon{
+      opacity:1;
+    }
+    .world-night .stars,
+    .world-dusk .stars{
+      opacity:.9;
+    }
+
+    .fence{
+      position:absolute;
+      left:0;right:0;
+      bottom:43%;
+      height:40px;
+      background:repeating-linear-gradient(
+        to right,
+        #b45309 0 12px,
+        #92400e 12px 14px
+      );
+      border-top:3px solid #713f12;
+      border-bottom:3px solid #451a03;
+      box-shadow:0 4px 8px rgba(0,0,0,.5);
+      opacity:.9;
+      z-index:3;
+    }
+
+    .ground{
+      position:absolute;
+      left:0;right:0;
+      bottom:0;
+      height:40%;
+      background:
+        repeating-linear-gradient(45deg,#14532d 0 4px,#166534 4px 8px),
+        radial-gradient(circle at top,#16a34a 0,#14532d 55%,#052e16 100%);
+      z-index:1;
+    }
+
+    /* weather overlays */
+    .cloud,.raindrop,.snowflake{
+      position:absolute;
+      pointer-events:none;
+    }
+    .cloud{
+      width:90px;height:40px;
+      background:radial-gradient(circle at 20% 40%,#f9fafb 0,#e5e7eb 45%,#9ca3af 80%);
+      border-radius:40px;
+      box-shadow:0 8px 18px rgba(15,23,42,.5);
+      opacity:.85;
+      animation:cloud-drift 40s linear infinite;
+      z-index:1;
+    }
+    @keyframes cloud-drift{
+      0%{transform:translateX(-10%)}
+      100%{transform:translateX(110%)}
+    }
+    .raindrop{
+      width:2px;height:22px;
+      background:linear-gradient(to bottom,rgba(191,219,254,.2),rgba(59,130,246,.9));
+      border-radius:999px;
+      opacity:.7;
+      animation:rain-fall 0.9s linear infinite;
+      z-index:1;
+    }
+    @keyframes rain-fall{
+      0%{transform:translateY(-20px)}
+      100%{transform:translateY(120px)}
+    }
+    .snowflake{
+      font-size:1rem;
+      color:#e5e7eb;
+      opacity:.8;
+      animation:snow-fall 4s linear infinite;
+      z-index:1;
+    }
+    @keyframes snow-fall{
+      0%{transform:translateY(-10px)}
+      100%{transform:translateY(120px)}
+    }
+
+    .animal-sprite{
+      position:absolute;
+      transform-origin:50% 100%;
+      cursor:pointer;
+      transition:transform .6s ease-out,left .6s ease-out,top .6s ease-out,filter .3s ease-out;
+      filter:drop-shadow(0 6px 10px rgba(0,0,0,.9));
+      z-index:4;
+    }
+    .animal-sprite.dead{
+      opacity:.4;
+      filter:drop-shadow(0 0 8px rgba(148,163,184,.8)) hue-rotate(-25deg);
+    }
+
+    .speech{
+      position:absolute;
+      transform:translate(-50%,-105%);
+      font-size:.78rem;
+      padding:3px 7px;
+      border-radius:999px;
+      background:rgba(15,23,42,.92);
+      border:1px solid rgba(148,163,184,.8);
+      color:var(--text);
+      white-space:nowrap;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .25s ease-out;
+      z-index:5;
+    }
+    .speech.show{opacity:1}
+
+    .mood{
+      position:absolute;
+      transform:translate(-50%,-150%);
+      font-size:1.3rem;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .25s ease-out,transform .5s ease-out;
+      z-index:5;
+    }
+    .mood.show{
+      opacity:1;
+      transform:translate(-50%,-190%);
+    }
+
+    /* dog sprite */
+    .dog-shape{
+      position:relative;
+      width:90px;
+      height:70px;
+    }
+    .dog-body{
+      position:absolute;
+      left:10px;right:6px;
+      top:20px;bottom:6px;
+      background:#fbbf77;
+      border-radius:45% 50% 40% 40%;
+      box-shadow:0 6px 14px rgba(0,0,0,.6);
+    }
+    .dog-fat .dog-body{
+      transform:scale(1.18,1.12);
+      border-radius:50% 55% 45% 45%;
+    }
+    .dog-skinny .dog-body{
+      transform:scale(.9,.9);
+    }
+    .dog-head{
+      position:absolute;
+      width:40px;height:38px;
+      left:-6px;top:16px;
+      background:#fed7aa;
+      border-radius:60% 40% 45% 40%;
+      box-shadow:0 3px 7px rgba(0,0,0,.35);
+    }
+    .dog-ear{
+      position:absolute;
+      width:18px;height:26px;
+      left:2px;top:-8px;
+      background:#92400e;
+      border-radius:60% 60% 15% 15%;
+      box-shadow:0 3px 6px rgba(0,0,0,.35);
+    }
+    .dog-eye{
+      position:absolute;
+      width:7px;height:7px;
+      border-radius:50%;
+      background:#111827;
+      top:14px;left:16px;
+      box-shadow:0 0 0 2px rgba(15,23,42,.45);
+    }
+    .dog-nose{
+      position:absolute;
+      width:8px;height:6px;
+      border-radius:40%;
+      background:#111827;
+      bottom:7px;left:20px;
+    }
+    .dog-mouth-line{
+      position:absolute;
+      width:16px;height:10px;
+      border-bottom:2px solid #111827;
+      border-radius:0 0 60% 60%;
+      bottom:4px;left:16px;
+    }
+    .dog-ear-spot{
+      position:absolute;
+      width:14px;height:16px;
+      background:#b45309;
+      border-radius:70% 40% 30% 50%;
+      top:0;left:4px;
+      opacity:.7;
+    }
+    .dog-leg{
+      position:absolute;
+      width:9px;height:15px;
+      background:#fbbf77;
+      bottom:0;
+      border-radius:20px;
+      box-shadow:0 2px 4px rgba(0,0,0,.4);
+    }
+    .dog-leg.front{left:22px}
+    .dog-leg.front2{left:33px}
+    .dog-leg.back{right:18px}
+    .dog-leg.back2{right:28px}
+    .dog-tail{
+      position:absolute;
+      width:28px;height:10px;
+      right:4px;top:30px;
+      border-radius:60% 40% 40% 60%;
+      background:#fbbf77;
+      transform-origin:left center;
+      animation:wagtail 1.4s ease-in-out infinite;
+    }
+    @keyframes wagtail{
+      0%,100%{transform:rotate(10deg)}
+      50%{transform:rotate(-22deg)}
+    }
+    .dog-sad .dog-tail{
+      animation:none;
+      transform:rotate(-18deg);
+      opacity:.8;
+    }
+    .dog-ghost .dog-body,
+    .dog-ghost .dog-head,
+    .dog-ghost .dog-ear,
+    .dog-ghost .dog-leg,
+    .dog-ghost .dog-tail{
+      background:rgba(148,163,184,.7);
+      box-shadow:0 6px 14px rgba(148,163,184,.5);
+    }
+    .dog-ghost .dog-eye{background:#020617;box-shadow:none}
+    .dog-ghost .dog-ear-spot{display:none}
+
+    .emoji-animal{
+      font-size:2.2rem;
+    }
+
+    /* yard items */
+    .poo{
+      position:absolute;
+      transform-origin:50% 100%;
+      cursor:pointer;
+      font-size:1.4rem;
+      filter:drop-shadow(0 3px 6px rgba(0,0,0,.8));
+      transition:transform .25s ease-out;
+      z-index:2;
+    }
+    .poo:hover{transform:translate(-50%,-100%) scale(1.15);}
+
+    .toy{
+      position:absolute;
+      transform-origin:50% 100%;
+      font-size:1.6rem;
+      filter:drop-shadow(0 4px 8px rgba(0,0,0,.8));
+      cursor:pointer;
+      z-index:2;
+      transition:transform .2s ease-out;
+    }
+    .toy:hover{transform:translate(-50%,-100%) scale(1.1);}
+
+    .plant{
+      position:absolute;
+      transform-origin:50% 100%;
+      font-size:1.6rem;
+      filter:drop-shadow(0 3px 6px rgba(0,0,0,.8));
+      opacity:.9;
+      cursor:pointer;
+      z-index:2;
+      transition:transform .2s ease-out;
+    }
+    .plant:hover{transform:translate(-50%,-100%) scale(1.05);}
+
+    .house{
+      position:absolute;
+      transform-origin:50% 100%;
+      font-size:1.8rem;
+      filter:drop-shadow(0 4px 8px rgba(0,0,0,.9));
+      cursor:pointer;
+      z-index:2;
+      transition:transform .2s ease-out;
+    }
+    .house:hover{transform:translate(-50%,-100%) scale(1.08);}
+
+    /* Justin the (slightly more realistic) guy behind the fence */
+    .justin{
+      position:absolute;
+      bottom:43%;           /* lines his feet up with fence area */
+      left:-12%;
+      display:flex;
+      align-items:flex-end;
+      gap:8px;
+      transition:left 18s linear;
+      /* no z-index here → children can layer independently */
+      pointer-events:none;
+    }
+
+    .justin-stick{
+      position:relative;
+      width:32px;
+      height:80px;
+      z-index:2;            /* behind fence (fence is z=3) */
+    }
+
+    /* head */
+    .justin-stick .j-head{
+      position:absolute;
+      top:0;
+      left:50%;
+      width:22px;
+      height:22px;
+      border-radius:50%;
+      border:2px solid #e5e7eb;
+      transform:translateX(-50%);
+      background:radial-gradient(circle at 30% 30%,#e5e7eb 0,#9ca3af 45%,#020617 80%);
+      box-shadow:0 0 6px rgba(15,23,42,.9);
+    }
+
+    /* face */
+    .justin-stick .j-face{
+      position:absolute;
+      inset:5px 4px;
+      border-radius:inherit;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-size:7px;
+      color:#020617;
+    }
+    .justin-stick .j-eye{
+      width:4px;
+      height:4px;
+      border-radius:50%;
+      background:#020617;
+    }
+    .justin-stick .j-mouth{
+      flex:1;
+      height:3px;
+      margin:0 3px;
+      border-bottom:2px solid #020617;
+      border-radius:0 0 12px 12px;
+    }
+
+    /* torso / hoodie */
+    .justin-stick .j-body{
+      position:absolute;
+      top:22px;
+      left:50%;
+      width:18px;
+      height:26px;
+      transform:translateX(-50%);
+      background:linear-gradient(180deg,#1e293b,#020617);
+      border-radius:6px;
+      box-shadow:0 3px 6px rgba(0,0,0,.7);
+    }
+
+    /* shoulders & arms */
+    .justin-stick .j-arm{
+      position:absolute;
+      top:26px;
+      left:50%;
+      width:26px;
+      height:3px;
+      background:#e5e7eb;
+      transform-origin:center;
+    }
+    .justin-stick .j-arm-left{
+      transform:translateX(-50%) rotate(-18deg);
+    }
+    .justin-stick .j-arm-right{
+      transform:translateX(-50%) rotate(18deg);
+    }
+
+    /* legs */
+    .justin-stick .j-leg{
+      position:absolute;
+      top:48px;
+      left:50%;
+      width:3px;
+      height:26px;
+      background:#e5e7eb;
+      transform-origin:top center;
+    }
+    .justin-stick .j-leg-left{
+      transform:translateX(-5px) rotate(8deg);
+      animation:justin-walk-leg-left 1s ease-in-out infinite;
+    }
+    .justin-stick .j-leg-right{
+      transform:translateX(4px) rotate(-6deg);
+      animation:justin-walk-leg-right 1s ease-in-out infinite;
+    }
+
+    @keyframes justin-walk-leg-left{
+      0%{transform:translateX(-5px) rotate(8deg);}
+      50%{transform:translateX(-5px) rotate(-6deg);}
+      100%{transform:translateX(-5px) rotate(8deg);}
+    }
+    @keyframes justin-walk-leg-right{
+      0%{transform:translateX(4px) rotate(-6deg);}
+      50%{transform:translateX(4px) rotate(8deg);}
+      100%{transform:translateX(4px) rotate(-6deg);}
+    }
+
+    /* speech bubble ABOVE the fence */
+    .justin-bubble{
+      max-width:260px;
+      font-size:.8rem;
+      padding:4px 9px;
+      border-radius:16px;
+      background:rgba(15,23,42,.95);
+      border:1px solid rgba(148,163,184,.9);
+      color:var(--text);
+      box-shadow:0 8px 16px rgba(0,0,0,.8);
+      pointer-events:auto;
+
+      position:relative;
+      z-index:4;                 /* above fence (z=3) and Justin body */
+      transform:translateY(-145%); /* float above fence line */
+    }
+
+    .justin-bubble::after{
+      content:"";
+      position:absolute;
+      bottom:-6px;
+      left:14px;
+      border-width:6px 6px 0 6px;
+      border-style:solid;
+      border-color:rgba(15,23,42,.95) transparent transparent transparent;
+    }
+
+    /* layout bottom */
+    .layout{
+      display:grid;
+      grid-template-columns:minmax(0,1.2fr) minmax(0,.9fr);
+      gap:10px;
+      margin-top:8px;
+    }
+    @media(max-width:880px){
+      .layout{grid-template-columns:minmax(0,1fr)}
+    }
+    .panel{
+      background:radial-gradient(circle at top left,rgba(15,23,42,.96),rgba(15,23,42,1));
+      border-radius:20px;
+      border:1px solid var(--border);
+      padding:9px 9px 8px;
+      box-shadow:0 10px 30px rgba(0,0,0,.4);
+    }
+
+    .pet-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:7px;
+      margin-top:5px;
+    }
+    .pet-card{
+      background:radial-gradient(circle at top,rgba(15,23,42,.96),rgba(15,23,42,1));
+      border-radius:var(--radius-lg);
+      border:1px solid rgba(55,65,81,.9);
+      padding:7px;
+      position:relative;
+      cursor:pointer;
+      transition:border-color .18s ease,box-shadow .18s ease,transform .12s ease;
+    }
+    .pet-card:hover{
+      transform:translateY(-1px);
+      box-shadow:0 12px 22px rgba(0,0,0,.8);
+    }
+    .pet-card.selected{
+      border-color:rgba(103,232,249,.9);
+      box-shadow:0 0 0 1px rgba(103,232,249,.7),0 12px 22px rgba(0,0,0,.9);
+    }
+    .pet-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:6px;
+    }
+    .pet-main{
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .pet-avatar-small{
+      width:30px;height:30px;
+      border-radius:40%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.3rem;
+      background:radial-gradient(circle at 0 0,rgba(103,232,249,.2),rgba(15,23,42,.96));
+      border:1px solid rgba(148,163,184,.7);
+      box-shadow:0 6px 14px rgba(0,0,0,.65);
+    }
+    .pet-name{
+      font-size:.92rem;
+      font-weight:600;
+      letter-spacing:.03em;
+    }
+    .pet-meta{
+      font-size:.72rem;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+    .pet-rel{
+      font-size:.74rem;
+      color:rgba(250,204,21,.9);
+      text-align:right;
+    }
+    .pet-rel.danger{color:var(--danger)}
+    .pet-badge-dead{
+      position:absolute;
+      top:4px;right:6px;
+      background:rgba(15,23,42,.9);
+      border-radius:var(--radius-pill);
+      padding:2px 8px;
+      border:1px solid rgba(248,113,113,.8);
+      font-size:.7rem;
+      color:var(--danger);
+    }
+
+    .stat-row{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:4px;
+      margin-top:3px;
+    }
+    .stat{font-size:.73rem;}
+    .stat-label{
+      display:flex;
+      justify-content:space-between;
+      color:var(--muted);
+    }
+    .stat-bar{
+      height:6px;
+      border-radius:999px;
+      background:#020617;
+      border:1px solid rgba(31,41,55,.9);
+      overflow:hidden;
+      margin-top:2px;
+    }
+    .stat-fill{
+      height:100%;
+      border-radius:inherit;
+      background:linear-gradient(90deg,#22c55e,#67e8f9);
+      transform-origin:left;
+      transform:scaleX(.5);
+      transition:transform .25s ease-out;
+    }
+    .stat-fill.low{background:linear-gradient(90deg,#f97316,#fb7185)}
+    .stat-fill.mid{background:linear-gradient(90deg,#eab308,#67e8f9)}
+
+    .form-row{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:7px;
+      align-items:end;
+      margin-top:5px;
+    }
+    @media(max-width:680px){
+      .form-row{grid-template-columns:minmax(0,1fr)}
+    }
+    label{
+      font-size:.76rem;
+      color:var(--muted);
+      display:block;
+      margin-bottom:3px;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+    }
+    select,input[type="text"],input[type="range"]{
+      width:100%;
+      padding:5px 8px;
+      border-radius:10px;
+      border:1px solid rgba(55,65,81,.9);
+      background:rgba(15,23,42,.98);
+      color:var(--text);
+      font-size:.86rem;
+      outline:none;
+    }
+    select:focus,input[type="text"]:focus,input[type="range"]:focus{
+      border-color:rgba(103,232,249,.9);
+      box-shadow:0 0 0 1px rgba(103,232,249,.85);
+    }
+
+    .btn-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:6px;
+    }
+    button{
+      border-radius:999px;
+      border:1px solid rgba(103,232,249,.85);
+      background:radial-gradient(circle at 0 0,rgba(103,232,249,.2),rgba(15,23,42,1));
+      color:var(--text);
+      font-size:.78rem;
+      padding:4px 11px;
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      cursor:pointer;
+      box-shadow:0 8px 16px rgba(0,0,0,.7);
+      transition:transform .12s ease,box-shadow .12s ease,background .12s ease;
+      white-space:nowrap;
+    }
+    button.small{padding:3px 9px;font-size:.72rem}
+    button.secondary{
+      border-color:rgba(148,163,184,.9);
+      background:rgba(15,23,42,.98);
+    }
+    button.danger{
+      border-color:rgba(248,113,113,.9);
+      background:rgba(127,29,29,.85);
+    }
+    button:disabled{
+      opacity:.55;
+      cursor:default;
+      box-shadow:none;
+    }
+    button:hover:not(:disabled){
+      transform:translateY(-1px);
+      box-shadow:0 14px 22px rgba(0,0,0,.85);
+    }
+    button:active:not(:disabled){
+      transform:translateY(1px) scale(.99);
+      box-shadow:0 6px 12px rgba(0,0,0,.8);
+    }
+    .btn-icon{font-size:.95rem}
+
+    .toggle{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      user-select:none;
+      font-size:.76rem;
+      color:var(--muted);
+    }
+    .toggle input{
+      width:32px;height:18px;
+      appearance:none;
+      background:rgba(15,23,42,1);
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.9);
+      position:relative;
+      outline:none;
+      cursor:pointer;
+      transition:background .2s ease,border-color .2s ease;
+    }
+    .toggle input::before{
+      content:"";
+      position:absolute;
+      top:1px;left:1px;
+      width:14px;height:14px;
+      border-radius:50%;
+      background:#e5f2ff;
+      box-shadow:0 0 6px rgba(15,23,42,.9);
+      transition:transform .2s ease;
+    }
+    .toggle input:checked{
+      background:rgba(103,232,249,.2);
+      border-color:rgba(103,232,249,.9);
+    }
+    .toggle input:checked::before{
+      transform:translateX(12px);
+    }
+
+    .status-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:6px;
+      margin-top:6px;
+      font-size:.78rem;
+      color:var(--muted);
+      flex-wrap:wrap;
+    }
+    .status-row .error{color:var(--danger)}
+
+    .log{
+      margin-top:6px;
+      background:radial-gradient(circle at 0 0,rgba(15,23,42,.97),rgba(15,23,42,1));
+      border-radius:var(--radius-md);
+      border:1px dashed rgba(55,65,81,.95);
+      padding:6px 8px;
+      max-height:155px;
+      overflow-y:auto;
+      font-size:.78rem;
+      color:var(--muted);
+    }
+    .log-entry{
+      display:flex;
+      justify-content:space-between;
+      gap:6px;
+      padding:1px 0;
+    }
+    .log-entry .time{
+      font-variant-numeric:tabular-nums;
+      color:rgba(148,163,184,.95);
+    }
+    .log-entry .msg{
+      text-align:right;
+      flex:1;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="app-inner">
+      <header>
+        <div>
+          <h1>HabitatGotchi</h1>
+          <div class="tagline">
+            Virtual pets, day/night cycles, weather, houses… and a guy named Justin who thinks we’re in a simulation.
+          </div>
+        </div>
+        <div class="badge">
+          <span class="badge-dot"></span>
+          Time-based • Saved in this browser
+        </div>
+      </header>
+
+      <!-- WORLD -->
+      <section class="world-panel">
+        <div class="panel-title">
+          <span>Backyard Habitat</span>
+          <span class="count"><span id="petCountTop">0</span>/8 animals</span>
+        </div>
+        <div class="yard-wrap">
+          <span class="yard-label">Yard depth:</span>
+          <div class="yard-slider">
+            <input type="range" id="yardSize" min="80" max="150" value="100">
+          </div>
+        </div>
+        <div id="world" class="world">
+          <div class="sky">
+            <div class="sun"></div>
+            <div class="moon"></div>
+            <div class="stars"></div>
+          </div>
+          <div class="fence"></div>
+          <div class="ground"></div>
+        </div>
+      </section>
+
+      <!-- LOWER LAYOUT -->
+      <div class="layout">
+        <!-- LEFT: CARDS -->
+        <section class="panel">
+          <div class="panel-title">
+            <span>Animals</span>
+            <span class="count"><span id="petCount">0</span> active</span>
+          </div>
+          <div id="petGrid" class="pet-grid"></div>
+        </section>
+
+        <!-- RIGHT: CONTROLS -->
+        <section class="panel">
+          <div class="panel-title">
+            <span>Care & Yard</span>
+          </div>
+
+          <div class="form-row">
+            <div>
+              <label for="speciesSelect">Species</label>
+              <select id="speciesSelect">
+                <option value="dog">Dog (chases, playful)</option>
+                <option value="cat">Cat (independent, swats)</option>
+                <option value="rabbit">Rabbit (shy, spooks)</option>
+                <option value="fox">Fox (mischievous chaser)</option>
+              </select>
+            </div>
+            <div>
+              <label for="nameInput">Name</label>
+              <input type="text" id="nameInput" placeholder="e.g. Pixel, Luna" maxlength="18">
+            </div>
+          </div>
+
+          <div class="form-row" style="margin-top:6px;">
+            <div>
+              <label for="locationInput">Location (for vibe)</label>
+              <input type="text" id="locationInput" placeholder="City or nickname">
+            </div>
+            <div>
+              <label for="weatherSelect">Weather</label>
+              <select id="weatherSelect">
+                <option value="auto">Auto (time-based)</option>
+                <option value="clear">Clear</option>
+                <option value="cloudy">Cloudy</option>
+                <option value="rainy">Rainy</option>
+                <option value="snowy">Snowy</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row" style="margin-top:6px;">
+            <div>
+              <label for="justinFreq">Justin walks by</label>
+              <select id="justinFreq">
+                <option value="rare">Rarely</option>
+                <option value="normal">Normal</option>
+                <option value="often">Often</option>
+                <option value="chaos">Chaos mode</option>
+              </select>
+            </div>
+            <div>
+              <label>&nbsp;</label>
+              <button id="addPetBtn"><span class="btn-icon">➕</span>Add Animal</button>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button id="feedBtn"><span class="btn-icon">🍖</span>Feed selected</button>
+            <button id="playBtn"><span class="btn-icon">🎾</span>Play with selected</button>
+            <button id="washBtn"><span class="btn-icon">🧼</span>Wash selected</button>
+            <button id="walkBtn"><span class="btn-icon">🚶‍♂️</span>Walk selected</button>
+            <button id="releaseBtn" class="danger small"><span class="btn-icon">🕊️</span>Release selected</button>
+          </div>
+
+          <div class="btn-row" style="margin-top:4px;">
+            <button id="cleanYardBtn" class="secondary small"><span class="btn-icon">🧹</span>Clean yard (poo)</button>
+            <button id="dropToyBtn" class="secondary small"><span class="btn-icon">🧸</span>Drop toy</button>
+            <button id="addPlantBtn" class="secondary small"><span class="btn-icon">🌱</span>Add plant</button>
+            <button id="addHouseBtn" class="secondary small"><span class="btn-icon">🏠</span>Add animal house</button>
+          </div>
+
+          <div class="btn-row" style="margin-top:4px;">
+            <button id="reviveBtn" class="secondary small" disabled><span class="btn-icon">💗</span>New animal if dead</button>
+            <label class="toggle">
+              <input type="checkbox" id="fastToggle">
+              <span>Fast-forward (testing)</span>
+            </label>
+          </div>
+
+          <div class="status-row">
+            <div id="statusText">Select an animal card to care for it.</div>
+            <button id="clearLogBtn" class="secondary small">Clear log</button>
+          </div>
+
+          <div id="log" class="log"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legendary lines / characters -->
+  <script src="habitat-characters.js"></script>
+
+  <script>
+    const STORAGE_KEY = "habitatgotchi-v3";
+
+    const SPECIES_CONFIG = {
+      dog:    { emoji:"🐶", label:"Dog",    baseRel:"Playful, chases cats.",    weightStart:55 },
+      cat:    { emoji:"🐱", label:"Cat",    baseRel:"Independent and picky.",   weightStart:40 },
+      rabbit: { emoji:"🐰", label:"Rabbit", baseRel:"Shy, spooks easily.",      weightStart:30 },
+      fox:    { emoji:"🦊", label:"Fox",    baseRel:"Mischievous chaser.",      weightStart:45 }
+    };
+
+    // Fallback Justin lines if characters.js isn't loaded for some reason
+    const DEFAULT_JUSTIN_LINES = [
+      "See, the earth is flat.",
+      "I knew we were living in a simulation.",
+      "If this was a bug, QA would’ve caught it… right?",
+      "Have you tried turning reality off and on again?",
+      "Somewhere, a server is logging this walk.",
+      "I’m just an NPC on a coffee break.",
+      "Pretty sure these pets are smarter than my last team.",
+      "If I walk off-screen, do I still exist?",
+      "I updated the terms of service you didn’t read.",
+      "I’m not real, I’m just CSS and anxiety.",
+      "The cats definitely run this place.",
+      "Dog: 1, obedience class: 0.",
+      "I knew those birds were government drones.",
+      "If the earth was round, my legs would be tired by now.",
+      "Congrats, you’ve unlocked the ‘Justin is weird’ achievement.",
+      "Don’t mind me, just questioning reality again.",
+      "Somewhere out there, another Justin is doing this too."
+    ];
+
+    function getJustinLines(){
+      if (window.JUSTIN_LINES && Array.isArray(window.JUSTIN_LINES) && window.JUSTIN_LINES.length){
+        return window.JUSTIN_LINES;
+      }
+      return DEFAULT_JUSTIN_LINES;
+    }
+
+    let state = {
+      lastUpdate: Date.now(),
+      animals: [],
+      poops: [],
+      toys: [],
+      plants: [],
+      houses: [],
+      weatherMode: "auto",
+      locationName: "",
+      justinFrequency: "normal"
+    };
+
+    (function loadState(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(raw){
+          const s = JSON.parse(raw);
+          state.lastUpdate = s.lastUpdate || Date.now();
+          state.weatherMode = s.weatherMode || "auto";
+          state.locationName = s.locationName || "";
+          state.justinFrequency = s.justinFrequency || "normal";
+          state.animals = (s.animals||[]).map(a=>({
+            id: a.id || crypto.randomUUID(),
+            name: a.name || "Buddy",
+            species: a.species in SPECIES_CONFIG ? a.species : "dog",
+            createdAt: a.createdAt || Date.now(),
+            hunger: clamp(a.hunger ?? 100),
+            happiness: clamp(a.happiness ?? 100),
+            energy: clamp(a.energy ?? 100),
+            cleanliness: clamp(a.cleanliness ?? 100),
+            weight: clamp(a.weight ?? (SPECIES_CONFIG[a.species]?.weightStart ?? 50),20,200),
+            health: clamp(a.health ?? 100),
+            alive: a.alive !== false,
+            overweightMinutes: a.overweightMinutes || 0,
+            x: typeof a.x==="number" ? a.x : randRange(10,90),
+            depth: typeof a.depth==="number" ? a.depth : randRange(0,1)
+          }));
+          state.poops = (s.poops||[]).map(p=>({
+            id: p.id || crypto.randomUUID(),
+            x: typeof p.x==="number"?p.x:randRange(10,90),
+            depth: typeof p.depth==="number"?p.depth:randRange(0,1),
+            createdAt: p.createdAt || Date.now()
+          }));
+          state.toys = (s.toys||[]).map(t=>({
+            id: t.id || crypto.randomUUID(),
+            x: typeof t.x==="number"?t.x:randRange(10,90),
+            depth: typeof t.depth==="number"?t.depth:randRange(0,1),
+            createdAt: t.createdAt || Date.now()
+          }));
+          state.plants = (s.plants||[]).map(p=>({
+            id: p.id || crypto.randomUUID(),
+            x: typeof p.x==="number"?p.x:randRange(10,90),
+            depth: typeof p.depth==="number"?p.depth:randRange(0,1),
+            createdAt: p.createdAt || Date.now(),
+            variant: p.variant || (Math.random()<0.5?"tree":"flower")
+          }));
+          state.houses = (s.houses||[]).map(h=>({
+            id: h.id || crypto.randomUUID(),
+            x: typeof h.x==="number"?h.x:randRange(10,90),
+            depth: typeof h.depth==="number"?h.depth:randRange(0,1),
+            createdAt: h.createdAt || Date.now(),
+            variant: h.variant || (Math.random()<0.5?"doghouse":"hut")
+          }));
+        }
+      }catch(e){
+        console.warn("load error",e);
+      }
+    })();
+
+    function saveState(){
+      state.lastUpdate = Date.now();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+    function clamp(v,min=0,max=100){return Math.max(min,Math.min(max,v));}
+    function randRange(min,max){return min + Math.random()*(max-min);}
+
+    const logEl = document.getElementById("log");
+    function addLog(msg){
+      const now = new Date();
+      const t = now.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"});
+      const div = document.createElement("div");
+      div.className = "log-entry";
+      div.innerHTML = `<span class="time">${t}</span><span class="msg">${msg}</span>`;
+      logEl.prepend(div);
+      while(logEl.children.length>120) logEl.removeChild(logEl.lastChild);
+    }
+
+    const fastToggle = document.getElementById("fastToggle");
+
+    function getTimePhase(date=new Date()){
+      const h = date.getHours();
+      if(h >= 6 && h < 8) return "dawn";
+      if(h >= 8 && h < 18) return "day";
+      if(h >= 18 && h < 20) return "dusk";
+      return "night";
+    }
+
+    function getCurrentWeather(date=new Date()){
+      const mode = state.weatherMode || "auto";
+      if(mode !== "auto") return mode;
+      const h = date.getHours();
+      if(h < 9) return "clear";
+      if(h < 13) return "cloudy";
+      if(h < 17) return "rainy";
+      if(h < 20) return "cloudy";
+      return "snowy";
+    }
+
+    function simulateFromLastUpdate(){
+      const now = Date.now();
+      let elapsedMs = now - state.lastUpdate;
+      if(elapsedMs < 5000) return;
+      if(fastToggle.checked) elapsedMs *= 8;
+      let elapsedMinutes = elapsedMs/60000;
+      const rawMinutes = elapsedMinutes;
+      if(elapsedMinutes <= 0) return;
+      elapsedMinutes = Math.min(elapsedMinutes, 24*60);
+      const hours = elapsedMinutes/60;
+
+      const alive = state.animals.filter(a=>a.alive);
+      if(!alive.length){
+        state.lastUpdate = now;
+        return;
+      }
+
+      let hungerDropPerHour = 16;
+      let happyDropPerHour  = 9;
+      let energyDropPerHour = 9;
+      let cleanDropPerHour  = 6;
+
+      const weatherNow = getCurrentWeather(new Date(state.lastUpdate));
+      const hasShelter = state.houses.length > 0;
+
+      if(weatherNow === "rainy"){
+        cleanDropPerHour += 3;
+        if(hasShelter) cleanDropPerHour *= 0.6;
+      }else if(weatherNow === "snowy"){
+        energyDropPerHour += 3;
+        if(hasShelter) energyDropPerHour *= 0.7;
+      }else if(weatherNow === "cloudy"){
+        happyDropPerHour += 1;
+      }else if(weatherNow === "clear"){
+        happyDropPerHour = Math.max(5, happyDropPerHour - 1);
+      }
+
+      alive.forEach(a=>{
+        a.hunger      = clamp(a.hunger - hungerDropPerHour*hours);
+        a.happiness   = clamp(a.happiness - happyDropPerHour*hours);
+        a.energy      = clamp(a.energy - energyDropPerHour*hours);
+        a.cleanliness = clamp(a.cleanliness - cleanDropPerHour*hours);
+
+        if(a.hunger < 25)      a.health = clamp(a.health - 15*hours);
+        if(a.cleanliness < 25) a.health = clamp(a.health - 10*hours);
+        if(a.happiness < 20)   a.health = clamp(a.health - 8*hours);
+
+        if(a.hunger < 40 && a.energy > 40){
+          a.weight = clamp(a.weight - 6*hours, 20, 200);
+        }
+        if(a.hunger > 70 && a.energy < 40){
+          a.weight = clamp(a.weight + 9*hours, 20, 200);
+        }
+
+        if(a.weight >= 140){
+          a.overweightMinutes += rawMinutes;
+          a.health = clamp(a.health - 10*hours);
+        }else{
+          a.overweightMinutes = Math.max(0, a.overweightMinutes - rawMinutes/2);
+        }
+
+        const tooSkinny = a.weight <= 25;
+        const tooFat    = a.weight >= 175 || a.overweightMinutes > 6*60;
+        const zeroStat  = a.health <= 0;
+
+        if(a.alive && (tooSkinny || tooFat || zeroStat)){
+          a.alive = false;
+          if(tooFat)      addLog(`${a.name} the ${a.species} became too overweight and died. 💔`);
+          else if(tooSkinny) addLog(`${a.name} the ${a.species} became too weak and died. 💔`);
+          else            addLog(`${a.name} the ${a.species} died from poor health. 💔`);
+        }
+
+        if(a.alive){
+          const pooRatePerHour = 0.4;
+          if(Math.random() < pooRatePerHour * hours){
+            spawnPooNearAnimal(a);
+          }
+        }
+      });
+
+      if(state.poops.length){
+        const envPenalty = Math.min(state.poops.length*0.4, 8);
+        alive.forEach(a=>{
+          a.cleanliness = clamp(a.cleanliness - envPenalty*hours*0.4);
+          a.health      = clamp(a.health      - envPenalty*hours*0.3);
+        });
+      }
+
+      handleInteractions(hours, rawMinutes);
+      handleToyHappiness(hours);
+
+      state.lastUpdate = now;
+      saveState();
+      render();
+    }
+
+    function spawnPooNearAnimal(a){
+      const x = clamp((a.x||50)+randRange(-6,6),5,95);
+      const depth = clamp((a.depth||0.5)+randRange(-0.05,0.05),0,1);
+      state.poops.push({
+        id: crypto.randomUUID(),
+        x, depth,
+        createdAt: Date.now()
+      });
+    }
+
+    function handleToyHappiness(hours){
+      if(!state.toys.length) return;
+      const alive = state.animals.filter(a=>a.alive);
+      if(!alive.length) return;
+      state.toys.forEach(t=>{
+        alive.forEach(a=>{
+          const dist = Math.abs((a.x||0) - t.x) + Math.abs((a.depth||0)-(t.depth||0))*40;
+          if(dist < 18){
+            a.happiness = clamp(a.happiness + 4*hours + 2);
+            a.energy = clamp(a.energy - 2*hours);
+            showMood(a.id,"❤️");
+          }
+        });
+      });
+      const cut = Date.now() - 10*60*1000;
+      state.toys = state.toys.filter(t=>t.createdAt > cut);
+    }
+
+    function handleInteractions(hours, rawMinutes){
+      const a = state.animals.filter(x=>x.alive);
+      if(a.length < 2) return;
+
+      for(let i=0;i<a.length;i++){
+        for(let j=i+1;j<a.length;j++){
+          const p1 = a[i], p2 = a[j];
+          const dist = Math.abs((p1.x||0) - (p2.x||0)) + Math.abs((p1.depth||0)-(p2.depth||0))*40;
+          if(dist > 18) continue;
+
+          const combo = [p1.species,p2.species].sort().join("-");
+
+          const moveToward = (chaser, target, strength=0.3)=>{
+            const dx = (target.x||50) - (chaser.x||50);
+            const dd = (target.depth||0.5) - (chaser.depth||0.5);
+            chaser.x = clamp((chaser.x||50) + dx*strength,5,95);
+            chaser.depth = clamp((chaser.depth||0.5) + dd*strength,0,1);
+          };
+          const moveAway = (prey, from, strength=0.4)=>{
+            const dx = (prey.x||50) - (from.x||50);
+            const dd = (prey.depth||0.5) - (from.depth||0.5);
+            prey.x = clamp((prey.x||50) + dx*strength,5,95);
+            prey.depth = clamp((prey.depth||0.5) + dd*strength,0,1);
+          };
+
+          switch(combo){
+            case "cat-dog":{
+              let dog = p1.species==="dog"?p1:p2;
+              let cat = p1.species==="cat"?p1:p2;
+              dog.happiness = clamp(dog.happiness + 4*hours);
+              cat.happiness = clamp(cat.happiness - 7*hours);
+              cat.energy = clamp(cat.energy - 5*hours);
+              moveToward(dog,cat,0.35);
+              moveAway(cat,dog,0.5);
+              if(Math.random()<0.25){
+                addLog(`${dog.name} chased ${cat.name}.`);
+                showMood(dog.id,"💨");
+                showMood(cat.id,"😱");
+              }
+              break;
+            }
+            case "cat-rabbit":{
+              let cat2 = p1.species==="cat"?p1:p2;
+              let rabbit = p1.species==="rabbit"?p1:p2;
+              rabbit.happiness = clamp(rabbit.happiness - 6*hours);
+              rabbit.energy = clamp(rabbit.energy - 5*hours);
+              moveAway(rabbit,cat2,0.5);
+              if(Math.random()<0.25){
+                addLog(`${cat2.name} pounced near ${rabbit.name} and scared them.`);
+                showMood(cat2.id,"😼");
+                showMood(rabbit.id,"😨");
+              }
+              break;
+            }
+            case "dog-dog":{
+              if(Math.random()<0.25){
+                p1.happiness = clamp(p1.happiness + 6);
+                p2.happiness = clamp(p2.happiness + 6);
+                p1.energy = clamp(p1.energy - 4);
+                p2.energy = clamp(p2.energy - 4);
+                moveToward(p1,p2,0.2);
+                moveToward(p2,p1,0.2);
+                addLog(`${p1.name} and ${p2.name} play-fought.`);
+                showMood(p1.id,"❤️");
+                showMood(p2.id,"❤️");
+              }
+              break;
+            }
+            case "fox-rabbit":{
+              let fox = p1.species==="fox"?p1:p2;
+              let r2 = p1.species==="rabbit"?p1:p2;
+              r2.happiness = clamp(r2.happiness - 8*hours);
+              r2.energy = clamp(r2.energy - 6*hours);
+              moveToward(fox,r2,0.3);
+              moveAway(r2,fox,0.5);
+              if(Math.random()<0.2){
+                addLog(`${fox.name} stalked ${r2.name}.`);
+                showMood(fox.id,"👀");
+                showMood(r2.id,"💢");
+              }
+              break;
+            }
+            case "cat-fox":{
+              if(Math.random()<0.18){
+                p1.happiness = clamp(p1.happiness - 3);
+                p2.happiness = clamp(p2.happiness - 3);
+                moveAway(p1,p2,0.3);
+                moveAway(p2,p1,0.3);
+                addLog(`${p1.name} and ${p2.name} had a spat.`);
+                showMood(p1.id,"💢");
+                showMood(p2.id,"💢");
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    const worldEl = document.getElementById("world");
+    const yardSize = document.getElementById("yardSize");
+    yardSize.addEventListener("input", ()=>{
+      const scale = yardSize.value/100;
+      worldEl.style.height = (260*scale)+"px";
+    });
+
+    function applyTimeOfDay(){
+      const phase = getTimePhase();
+      worldEl.classList.remove("world-day","world-night","world-dawn","world-dusk");
+      worldEl.classList.add("world-"+phase);
+    }
+
+    function renderWeather(){
+      worldEl.querySelectorAll(".cloud,.raindrop,.snowflake").forEach(el=>el.remove());
+      const w = getCurrentWeather();
+      worldEl.classList.remove("weather-clear","weather-cloudy","weather-rainy","weather-snowy");
+      worldEl.classList.add("weather-"+w);
+
+      if(w === "cloudy" || w === "rainy" || w === "snowy"){
+        const cloudCount = 3;
+        for(let i=0;i<cloudCount;i++){
+          const c = document.createElement("div");
+          c.className = "cloud";
+          c.style.top = (10 + i*8) + "%";
+          c.style.left = (i*30 - 20) + "%";
+          worldEl.appendChild(c);
+        }
+      }
+      if(w === "rainy"){
+        const dropCount = 40;
+        for(let i=0;i<dropCount;i++){
+          const r = document.createElement("div");
+          r.className = "raindrop";
+          r.style.left = (5 + Math.random()*90) + "%";
+          r.style.top = (20 + Math.random()*40) + "%";
+          r.style.animationDelay = (Math.random()*1).toFixed(2)+"s";
+          worldEl.appendChild(r);
+        }
+      }
+      if(w === "snowy"){
+        const flakeCount = 30;
+        for(let i=0;i<flakeCount;i++){
+          const s = document.createElement("div");
+          s.className = "snowflake";
+          s.textContent = "❄️";
+          s.style.left = (5 + Math.random()*90) + "%";
+          s.style.top = (10 + Math.random()*40) + "%";
+          s.style.animationDelay = (Math.random()*4).toFixed(2)+"s";
+          worldEl.appendChild(s);
+        }
+      }
+    }
+
+    function clearWorldSprites(){
+      worldEl.querySelectorAll(".animal-sprite,.speech,.mood,.poo,.toy,.plant,.house").forEach(el=>el.remove());
+      // NOTE: we do NOT remove Justin here so he can keep walking during re-renders
+      worldEl.querySelectorAll(".cloud,.raindrop,.snowflake").forEach(el=>el.remove());
+    }
+
+    function showSpeech(id,text,ms=2000){
+      const el = document.getElementById("speech-"+id);
+      if(!el) return;
+      el.textContent = text;
+      el.classList.add("show");
+      setTimeout(()=>el.classList.remove("show"), ms);
+    }
+
+    function showMood(id,emoji,ms=1800){
+      const el = document.getElementById("mood-"+id);
+      if(!el) return;
+      el.textContent = emoji;
+      el.classList.add("show");
+      setTimeout(()=>el.classList.remove("show"), ms);
+    }
+
+    function depthToScreen(depth){
+      const groundBottom = 88;
+      const fenceLine = 57;
+      const y = groundBottom - (groundBottom - fenceLine)*depth;
+      const scale = 1 - 0.4*depth;
+      return {y,scale};
+    }
+
+    let selectedId = null;
+
+    function renderWorld(){
+      clearWorldSprites();
+      applyTimeOfDay();
+      renderWeather();
+
+      // animals
+      state.animals.forEach(a=>{
+        const sprite = document.createElement("div");
+        sprite.className = "animal-sprite";
+        sprite.id = "sprite-"+a.id;
+        sprite.dataset.id = a.id;
+        const pos = depthToScreen(a.depth ?? 0.5);
+        sprite.style.left = (a.x ?? 50)+"%";
+        sprite.style.top = pos.y+"%";
+        sprite.style.transform = `translate(-50%,-100%) scale(${pos.scale})`;
+        if(!a.alive){sprite.classList.add("dead");}
+
+        if(a.species==="dog"){
+          const wrap = document.createElement("div");
+          wrap.className = "dog-shape";
+
+          const body = document.createElement("div");
+          body.className = "dog-body";
+          wrap.appendChild(body);
+
+          const head = document.createElement("div");
+          head.className = "dog-head";
+
+          // two ears
+          const earL = document.createElement("div");
+          earL.className = "dog-ear dog-ear-left";
+          const earSpot = document.createElement("div");
+          earSpot.className = "dog-ear-spot";
+          earL.appendChild(earSpot);
+
+          const earR = document.createElement("div");
+          earR.className = "dog-ear dog-ear-right";
+
+          // two eyes
+          const eyeL = document.createElement("div");
+          eyeL.className = "dog-eye dog-eye-left";
+          const eyeR = document.createElement("div");
+          eyeR.className = "dog-eye dog-eye-right";
+
+          const nose = document.createElement("div");
+          nose.className = "dog-nose";
+          const mouth = document.createElement("div");
+          mouth.className = "dog-mouth-line";
+
+          head.appendChild(earL);
+          head.appendChild(earR);
+          head.appendChild(eyeL);
+          head.appendChild(eyeR);
+          head.appendChild(nose);
+          head.appendChild(mouth);
+          wrap.appendChild(head);
+
+          ["front","front2","back","back2"].forEach(cls=>{
+            const leg = document.createElement("div");
+            leg.className = "dog-leg "+cls;
+            wrap.appendChild(leg);
+          });
+
+          const tail = document.createElement("div");
+          tail.className = "dog-tail";
+          wrap.appendChild(tail);
+
+          if(!a.alive){
+            wrap.classList.add("dog-ghost");
+          }else{
+            if(a.weight >= 130) wrap.classList.add("dog-fat");
+            else if(a.weight <= 35) wrap.classList.add("dog-skinny");
+            if(a.happiness < 30 || a.health < 40 || a.hunger < 25) wrap.classList.add("dog-sad");
+          }
+          sprite.appendChild(wrap);
+        }else{
+          const span = document.createElement("div");
+          span.className = "emoji-animal";
+          span.textContent = SPECIES_CONFIG[a.species]?.emoji || "❓";
+          sprite.appendChild(span);
+        }
+
+        const bubble = document.createElement("div");
+        bubble.className = "speech";
+        bubble.id = "speech-"+a.id;
+
+        const mood = document.createElement("div");
+        mood.className = "mood";
+        mood.id = "mood-"+a.id;
+
+        worldEl.appendChild(sprite);
+        worldEl.appendChild(bubble);
+        worldEl.appendChild(mood);
+
+        sprite.addEventListener("click", ()=>{
+          selectedId = a.id;
+          render();
+          showSpeech(a.id,"I’m "+a.name);
+        });
+      });
+
+      // poo
+      state.poops.forEach(p=>{
+        const pos = depthToScreen(p.depth);
+        const el = document.createElement("div");
+        el.className = "poo";
+        el.style.left = p.x+"%";
+        el.style.top = pos.y+"%";
+        el.style.transform = "translate(-50%,-100%) scale("+(pos.scale*0.9)+")";
+        el.textContent = "💩";
+        el.title = "Click Clean Yard to remove";
+        el.dataset.id = p.id;
+        worldEl.appendChild(el);
+      });
+
+      // toys (click to pick up)
+      state.toys.forEach(t=>{
+        const pos = depthToScreen(t.depth);
+        const el = document.createElement("div");
+        el.className = "toy";
+        el.style.left = t.x+"%";
+        el.style.top = pos.y+"%";
+        el.style.transform = "translate(-50%,-100%) scale("+pos.scale+")";
+        el.textContent = Math.random()<0.5?"🧸":"⚽";
+        el.title = "Click to pick up toy";
+        el.dataset.id = t.id;
+        el.addEventListener("click",()=>{
+          state.toys = state.toys.filter(x=>x.id!==t.id);
+          addLog("You picked up a toy.");
+          saveState();
+          renderWorld();
+        });
+        worldEl.appendChild(el);
+      });
+
+      // plants (click to remove)
+      state.plants.forEach(p=>{
+        const pos = depthToScreen(p.depth);
+        const el = document.createElement("div");
+        el.className = "plant";
+        el.style.left = p.x+"%";
+        el.style.top = pos.y+"%";
+        el.style.transform = "translate(-50%,-100%) scale("+pos.scale+")";
+        el.textContent = p.variant==="tree"?"🌳":"🌻";
+        el.title = "Click to remove plant";
+        el.dataset.id = p.id;
+        el.addEventListener("click",()=>{
+          state.plants = state.plants.filter(x=>x.id!==p.id);
+          addLog("You removed a plant.");
+          saveState();
+          renderWorld();
+        });
+        worldEl.appendChild(el);
+      });
+
+      // houses (click to remove)
+      state.houses.forEach(h=>{
+        const pos = depthToScreen(h.depth);
+        const el = document.createElement("div");
+        el.className = "house";
+        el.style.left = h.x+"%";
+        el.style.top = pos.y+"%";
+        el.style.transform = "translate(-50%,-100%) scale("+pos.scale+")";
+        let emoji = "🏠";
+        if(h.variant==="hut") emoji = "🏡";
+        if(h.variant==="tent") emoji = "⛺";
+        if(h.variant==="doghouse") emoji = "🐕‍🦺";
+        el.textContent = emoji;
+        el.title = "Click to remove animal house";
+        el.dataset.id = h.id;
+        el.addEventListener("click",()=>{
+          state.houses = state.houses.filter(x=>x.id!==h.id);
+          addLog("You removed an animal house.");
+          saveState();
+          renderWorld();
+        });
+        worldEl.appendChild(el);
+      });
+    }
+
+    const petGrid = document.getElementById("petGrid");
+    const petCountEl = document.getElementById("petCount");
+    const petCountTopEl = document.getElementById("petCountTop");
+    const statusText = document.getElementById("statusText");
+
+    function getRelText(a, all){
+      if(!a.alive) return "Dead. You can replace them with a new animal.";
+      const neighbors = all.filter(x=>x.id!==a.id && x.alive);
+      const dogs = neighbors.filter(x=>x.species==="dog");
+      const cats = neighbors.filter(x=>x.species==="cat");
+      const rabbits = neighbors.filter(x=>x.species==="rabbit");
+      const foxes = neighbors.filter(x=>x.species==="fox");
+
+      if(a.species==="cat"){
+        if(dogs.length) return "Stressed by dogs chasing around.";
+        if(foxes.length) return "Keeps an eye on fox trouble.";
+      }
+      if(a.species==="rabbit"){
+        if(cats.length || foxes.length || dogs.length) return "Nervous around predators.";
+      }
+      if(a.species==="dog"){
+        if(cats.length) return "Would love to chase cats.";
+      }
+      if(a.species==="fox"){
+        if(rabbits.length) return "Very interested in rabbits…";
+      }
+      return SPECIES_CONFIG[a.species]?.baseRel || "";
+    }
+
+    const locationInput   = document.getElementById("locationInput");
+    const weatherSelect   = document.getElementById("weatherSelect");
+    const justinFreqSelect= document.getElementById("justinFreq");
+
+    function render(){
+      const animals = state.animals;
+      const aliveCount = animals.filter(a=>a.alive).length;
+      petCountEl.textContent = aliveCount;
+      petCountTopEl.textContent = animals.length;
+
+      petGrid.innerHTML = "";
+      animals.forEach(a=>{
+        const card = document.createElement("div");
+        card.className = "pet-card";
+        card.dataset.id = a.id;
+        if(a.id === selectedId) card.classList.add("selected");
+        const cfg = SPECIES_CONFIG[a.species] || {emoji:"❓",label:"?"};
+
+        const header = document.createElement("div");
+        header.className = "pet-header";
+
+        const main = document.createElement("div");
+        main.className = "pet-main";
+        main.innerHTML = `
+          <div class="pet-avatar-small">${cfg.emoji}</div>
+          <div>
+            <div class="pet-name">${a.name}</div>
+            <div class="pet-meta">${cfg.label.toUpperCase()}</div>
+          </div>
+        `;
+        header.appendChild(main);
+
+        const relText = getRelText(a, animals);
+        const rel = document.createElement("div");
+        rel.className = /stressed|nervous|predator|trouble|dead/i.test(relText) ? "pet-rel danger" : "pet-rel";
+        rel.textContent = relText;
+        header.appendChild(rel);
+        card.appendChild(header);
+
+        const statRow = document.createElement("div");
+        statRow.className = "stat-row";
+        statRow.appendChild(renderStat("Hunger", a.hunger));
+        statRow.appendChild(renderStat("Happy", a.happiness));
+        statRow.appendChild(renderStat("Energy", a.energy));
+        statRow.appendChild(renderStat("Clean", a.cleanliness));
+        statRow.appendChild(renderStat("Weight", a.weight, 20,200,true));
+        statRow.appendChild(renderStat("Health", a.health));
+        card.appendChild(statRow);
+
+        if(!a.alive){
+          const badge = document.createElement("div");
+          badge.className = "pet-badge-dead";
+          badge.textContent = "Dead";
+          card.appendChild(badge);
+        }
+
+        card.addEventListener("click", ()=>{
+          selectedId = a.id;
+          render();
+        });
+
+        petGrid.appendChild(card);
+      });
+
+      renderWorld();
+      updateStatus();
+
+      locationInput.value = state.locationName || "";
+      weatherSelect.value = state.weatherMode || "auto";
+      justinFreqSelect.value = state.justinFrequency || "normal";
+    }
+
+    function renderStat(label,value,min=0,max=100,customRange=false){
+      const wrap = document.createElement("div");
+      wrap.className = "stat";
+      const labelDiv = document.createElement("div");
+      labelDiv.className = "stat-label";
+      const v = customRange ? Math.round(value) : Math.round(value);
+      labelDiv.innerHTML = `<span>${label}</span><span>${v}</span>`;
+      const bar = document.createElement("div");
+      bar.className = "stat-bar";
+      const fill = document.createElement("div");
+      fill.className = "stat-fill";
+      const frac = clamp((value-min)/(max-min),0,1);
+      fill.style.transform = `scaleX(${frac})`;
+      if(frac<.3) fill.classList.add("low");
+      else if(frac<.6) fill.classList.add("mid");
+      bar.appendChild(fill);
+      wrap.appendChild(labelDiv);
+      wrap.appendChild(bar);
+      return wrap;
+    }
+
+    function updateStatus(){
+      const a = state.animals.find(x=>x.id===selectedId);
+      if(!a){
+        statusText.textContent = "Select an animal card to care for it.";
+        document.getElementById("reviveBtn").disabled = true;
+        setControlsDisabled(true);
+        return;
+      }
+      setControlsDisabled(false);
+      const reviveBtn = document.getElementById("reviveBtn");
+      if(!a.alive){
+        statusText.innerHTML = `<span class="error">${a.name} is dead. You can spawn a new ${a.species} using the button.</span>`;
+        reviveBtn.disabled = false;
+      }else{
+        reviveBtn.disabled = true;
+        if(a.weight >= 150){
+          statusText.innerHTML = `<span class="error">${a.name} is extremely overweight. Walk more and feed less.</span>`;
+        }else if(a.weight >= 130){
+          statusText.textContent = `${a.name} is getting chubby. A bit more exercise would help.`;
+        }else if(a.hunger < 25){
+          statusText.innerHTML = `<span class="error">${a.name} is very hungry.</span>`;
+        }else if(a.happiness < 30){
+          statusText.textContent = `${a.name} feels lonely. Try playing with them.`;
+        }else if(a.cleanliness < 30){
+          statusText.textContent = `${a.name} is very dirty. Time for a wash.`;
+        }else if(state.poops.length){
+          statusText.textContent = `${a.name} doesn’t like the messy yard. Clean up the poo.`;
+        }else{
+          statusText.textContent = `${a.name} is doing okay. Check back once in a while so they stay alive.`;
+        }
+      }
+    }
+
+    function setControlsDisabled(disabled){
+      ["feedBtn","playBtn","washBtn","walkBtn","releaseBtn","cleanYardBtn","dropToyBtn","addPlantBtn","addHouseBtn"].forEach(id=>{
+        document.getElementById(id).disabled = disabled;
+      });
+    }
+
+    function actionTick(){
+      const now = Date.now();
+      const fakeMs = 2*60*1000;
+      state.lastUpdate = now - fakeMs;
+      simulateFromLastUpdate();
+    }
+
+    const addPetBtn       = document.getElementById("addPetBtn");
+    const speciesSelect   = document.getElementById("speciesSelect");
+    const nameInput       = document.getElementById("nameInput");
+    const feedBtn         = document.getElementById("feedBtn");
+    const playBtn         = document.getElementById("playBtn");
+    const washBtn         = document.getElementById("washBtn");
+    const walkBtn         = document.getElementById("walkBtn");
+    const releaseBtn      = document.getElementById("releaseBtn");
+    const reviveBtn       = document.getElementById("reviveBtn");
+    const clearLogBtn     = document.getElementById("clearLogBtn");
+    const cleanYardBtn    = document.getElementById("cleanYardBtn");
+    const dropToyBtn      = document.getElementById("dropToyBtn");
+    const addPlantBtn     = document.getElementById("addPlantBtn");
+    const addHouseBtn     = document.getElementById("addHouseBtn");
+
+    addPetBtn.addEventListener("click",()=>{
+      simulateFromLastUpdate();
+      if(state.animals.length >= 8){
+        statusText.innerHTML = `<span class="error">Backyard is full. Release someone before adding more.</span>`;
+        return;
+      }
+      const species = speciesSelect.value;
+      const cfg = SPECIES_CONFIG[species] || SPECIES_CONFIG.dog;
+      let name = nameInput.value.trim();
+      if(!name){
+        const defaults = {dog:"Buddy",cat:"Luna",rabbit:"Clover",fox:"Rusty"};
+        name = defaults[species] || "Buddy";
+      }
+      const a = {
+        id: crypto.randomUUID(),
+        name,
+        species,
+        createdAt: Date.now(),
+        hunger:100,
+        happiness:100,
+        energy:100,
+        cleanliness:100,
+        weight:cfg.weightStart ?? 50,
+        health:100,
+        alive:true,
+        overweightMinutes:0,
+        x: randRange(10,90),
+        depth: randRange(0,1)
+      };
+      state.animals.push(a);
+      selectedId = a.id;
+      addLog(`You added ${name} the ${species} to the backyard.`);
+      showMood(a.id,"❤️");
+      nameInput.value = "";
+      saveState();
+      render();
+    });
+
+    function getSelected(){
+      return state.animals.find(a=>a.id===selectedId);
+    }
+
+    feedBtn.addEventListener("click",()=>{
+      const a = getSelected(); if(!a || !a.alive) return;
+      actionTick();
+      a.hunger = clamp(a.hunger + 35);
+      a.happiness = clamp(a.happiness + 4);
+      a.cleanliness = clamp(a.cleanliness - 3);
+      a.weight = clamp(a.weight + 6,20,200);
+      addLog(`You fed ${a.name}.`);
+      showMood(a.id,"😋");
+      saveState();
+      render();
+    });
+
+    playBtn.addEventListener("click",()=>{
+      const a = getSelected(); if(!a || !a.alive) return;
+      actionTick();
+      a.happiness = clamp(a.happiness + 25);
+      a.energy = clamp(a.energy - 10);
+      a.hunger = clamp(a.hunger - 5);
+      a.weight = clamp(a.weight - 2,20,200);
+      addLog(`You played with ${a.name}.`);
+      showMood(a.id,"❤️");
+      saveState();
+      render();
+    });
+
+    washBtn.addEventListener("click",()=>{
+      const a = getSelected(); if(!a || !a.alive) return;
+      actionTick();
+      a.cleanliness = clamp(a.cleanliness + 35);
+      a.happiness = clamp(a.happiness - 2);
+      addLog(`You washed ${a.name}.`);
+      showMood(a.id,"🫧");
+      saveState();
+      render();
+    });
+
+    walkBtn.addEventListener("click",()=>{
+      const a = getSelected(); if(!a || !a.alive) return;
+      actionTick();
+      a.energy = clamp(a.energy - 9);
+      a.happiness = clamp(a.happiness + 15);
+      a.hunger = clamp(a.hunger - 7);
+      a.weight = clamp(a.weight - 3,20,200);
+      addLog(`You took ${a.name} for a walk.`);
+      showMood(a.id,"🚶‍♂️");
+      a.depth = clamp(a.depth + randRange(-0.2,0.2),0,1);
+      a.x = clamp((a.x ?? 50) + randRange(-10,10),5,95);
+      saveState();
+      render();
+    });
+
+    releaseBtn.addEventListener("click",()=>{
+      const a = getSelected(); if(!a) return;
+      if(!confirm(`Release ${a.name} from the backyard?`)) return;
+      state.animals = state.animals.filter(x=>x.id!==a.id);
+      addLog(`You released ${a.name}.`);
+      selectedId = null;
+      saveState();
+      render();
+    });
+
+    reviveBtn.addEventListener("click",()=>{
+      const a = getSelected(); if(!a || a.alive) return;
+      const oldSpecies = a.species;
+      const cfg = SPECIES_CONFIG[oldSpecies] || SPECIES_CONFIG.dog;
+      const newAnimal = {
+        id: crypto.randomUUID(),
+        name: a.name,
+        species: oldSpecies,
+        createdAt: Date.now(),
+        hunger:100,
+        happiness:100,
+        energy:100,
+        cleanliness:100,
+        weight:cfg.weightStart ?? 50,
+        health:100,
+        alive:true,
+        overweightMinutes:0,
+        x: randRange(10,90),
+        depth: randRange(0,1)
+      };
+      const idx = state.animals.findIndex(x=>x.id===a.id);
+      if(idx !== -1) state.animals.splice(idx,1,newAnimal);
+      selectedId = newAnimal.id;
+      addLog(`A new ${oldSpecies} named ${newAnimal.name} has joined the backyard.`);
+      showMood(newAnimal.id,"💗");
+      saveState();
+      render();
+    });
+
+    cleanYardBtn.addEventListener("click",()=>{
+      if(!state.poops.length){
+        addLog("The yard is already clean.");
+        return;
+      }
+      const count = state.poops.length;
+      state.poops = [];
+      state.animals.forEach(a=>{
+        if(a.alive){
+          a.cleanliness = clamp(a.cleanliness + 8);
+          a.happiness = clamp(a.happiness + 4);
+        }
+      });
+      addLog(`You cleaned ${count} poo piles from the yard. ✨`);
+      saveState();
+      render();
+    });
+
+    dropToyBtn.addEventListener("click",()=>{
+      simulateFromLastUpdate();
+      if(state.toys.length >= 5){
+        addLog("There are already plenty of toys in the yard.");
+        return;
+      }
+      const toy = {
+        id: crypto.randomUUID(),
+        x: randRange(10,90),
+        depth: randRange(0.1,0.9),
+        createdAt: Date.now()
+      };
+      state.toys.push(toy);
+      addLog("You dropped a toy in the yard.");
+      saveState();
+      renderWorld();
+    });
+
+    addPlantBtn.addEventListener("click",()=>{
+      simulateFromLastUpdate();
+      if(state.plants.length >= 8){
+        addLog("The yard is full of plants for now.");
+        return;
+      }
+      const plant = {
+        id: crypto.randomUUID(),
+        x: randRange(5,95),
+        depth: randRange(0.1,0.9),
+        createdAt: Date.now(),
+        variant: Math.random()<0.6 ? "tree" : "flower"
+      };
+      state.plants.push(plant);
+      addLog("You added a plant to the yard.");
+      saveState();
+      renderWorld();
+    });
+
+    addHouseBtn.addEventListener("click",()=>{
+      simulateFromLastUpdate();
+      if(state.houses.length >= 6){
+        addLog("There are enough animal houses in the yard.");
+        return;
+      }
+      const variants = ["doghouse","hut","tent","hut","doghouse"];
+      const house = {
+        id: crypto.randomUUID(),
+        x: randRange(8,92),
+        depth: randRange(0.15,0.75),
+        createdAt: Date.now(),
+        variant: variants[Math.floor(Math.random()*variants.length)]
+      };
+      state.houses.push(house);
+      addLog("You added an animal house to the yard.");
+      saveState();
+      renderWorld();
+    });
+
+    clearLogBtn.addEventListener("click",()=>{logEl.innerHTML="";});
+
+    locationInput.addEventListener("change",()=>{
+      state.locationName = locationInput.value.trim();
+      saveState();
+      if(state.locationName){
+        addLog(`Location set to "${state.locationName}". (Weather is still simulated in-browser)`);
+      }else{
+        addLog("Location cleared.");
+      }
+    });
+
+    weatherSelect.addEventListener("change",()=>{
+      state.weatherMode = weatherSelect.value;
+      saveState();
+      addLog(`Weather mode set to "${state.weatherMode}".`);
+      renderWorld();
+    });
+
+    justinFreqSelect.addEventListener("change",()=>{
+      state.justinFrequency = justinFreqSelect.value;
+      saveState();
+      addLog(`Justin walk frequency set to "${state.justinFrequency}".`);
+      scheduleJustin();
+    });
+
+    // movement loop – gentle wandering
+    function tickMovement(){
+      state.animals.forEach(a=>{
+        if(!a.alive) return;
+        const stepX = randRange(-3,3);
+        const stepD = randRange(-0.05,0.05);
+        a.x = clamp((a.x ?? 50) + stepX,5,95);
+        a.depth = clamp((a.depth ?? 0.5) + stepD,0,1);
+      });
+      saveState();
+      renderWorld();
+    }
+
+    setInterval(()=>{simulateFromLastUpdate();},15000);
+    setInterval(()=>{tickMovement();},3500);
+    setInterval(()=>{applyTimeOfDay();renderWeather();},60000);
+
+    // Justin engine
+    let justinTimer = null;
+
+    function randomJustinPhrase(){
+      if (typeof pickRandomWalker === "function" && typeof pickCharacterLine === "function") {
+        const id = pickRandomWalker();
+        const line = pickCharacterLine(id);
+        if (line) return line;
+      }
+      const lines = getJustinLines();
+      return lines[Math.floor(Math.random()*lines.length)];
+    }
+
+    function scheduleJustin(){
+      if(justinTimer) clearTimeout(justinTimer);
+      const freq = state.justinFrequency || "normal";
+      let baseMs;
+      switch(freq){
+        case "rare":   baseMs = 120000; break; // ~2 min
+        case "often":  baseMs = 45000;  break; // ~45s
+        case "chaos":  baseMs = 20000;  break; // ~20s
+        default:       baseMs = 30000;  break; // ~30s
+      }
+      const jitter = baseMs*0.3;
+      const delay = baseMs + (Math.random()*2*jitter - jitter);
+      justinTimer = setTimeout(spawnJustin, Math.max(8000,delay));
+    }
+
+    function spawnJustin(){
+      const existing = document.getElementById("justin");
+      if(existing) existing.remove();
+
+      const el = document.createElement("div");
+      el.id = "justin";
+      el.className = "justin";
+      el.style.left = "-25%";
+
+      const stick = document.createElement("div");
+      stick.className = "justin-stick";
+      stick.innerHTML = `
+        <div class="j-head">
+          <div class="j-face">
+            <div class="j-eye"></div>
+            <div class="j-mouth"></div>
+            <div class="j-eye"></div>
+          </div>
+        </div>
+        <div class="j-body"></div>
+        <div class="j-arm j-arm-left"></div>
+        <div class="j-arm j-arm-right"></div>
+        <div class="j-leg j-leg-left"></div>
+        <div class="j-leg j-leg-right"></div>
+      `;
+      el.appendChild(stick);
+
+      const bubble = document.createElement("div");
+      bubble.className = "justin-bubble";
+      bubble.textContent = randomJustinPhrase();
+      el.appendChild(bubble);
+
+      worldEl.appendChild(el);
+
+      requestAnimationFrame(()=>{
+        el.style.left = "135%";
+      });
+
+      const duration = 12000;
+      setTimeout(()=>{
+        el.remove();
+      }, duration + 2500);
+
+      scheduleJustin();
+    }
+
+    simulateFromLastUpdate();
+    render();
+    addLog("HabitatGotchi loaded. Time, day/night, weather, houses, and Justin have been applied.");
+    scheduleJustin();
+  </script>
+</body>
+</html>
