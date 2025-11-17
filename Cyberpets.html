@@ -10,6 +10,134 @@
 
 </head>
 <body>
+  <!-- 🎵 COZY GAME MUSIC PLAYER -->
+<audio id="bgmAudio" src="cozy.mp3" loop preload="auto"></audio>
+
+<div id="musicPanel" style="
+  position:fixed;
+  left:12px;
+  bottom:12px;
+  z-index:9999;
+  padding:8px 10px;
+  border-radius:999px;
+  background:rgba(15,23,42,0.92);
+  border:1px solid rgba(129,140,248,0.9);
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  font-size:13px;
+  color:#e5e7eb;
+  box-shadow:0 0 16px rgba(15,23,42,0.9);
+">
+  <button id="musicToggle" type="button" style="
+    border:none;
+    background:rgba(30,64,175,0.9);
+    color:#e5e7ff;
+    border-radius:999px;
+    padding:4px 10px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    cursor:pointer;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    box-shadow:0 0 10px rgba(59,130,246,0.8);
+  ">
+    <span id="musicIcon">🎧</span>
+    <span id="musicLabel">Music</span>
+  </button>
+  <input id="musicVolume" type="range" min="0" max="100" value="40" style="
+    width:90px;
+  ">
+</div>
+
+<script>
+(() => {
+  const audio       = document.getElementById("bgmAudio");
+  const toggleBtn   = document.getElementById("musicToggle");
+  const iconSpan    = document.getElementById("musicIcon");
+  const labelSpan   = document.getElementById("musicLabel");
+  const volumeSlider= document.getElementById("musicVolume");
+
+  if (!audio || !toggleBtn || !iconSpan || !labelSpan || !volumeSlider) return;
+
+  // Default volume (cozy, not blasting)
+  audio.volume = 0.4;
+  let isMuted = false;
+  let triedAutoplay = false;
+
+  function applyUI() {
+    if (isMuted || audio.volume === 0) {
+      iconSpan.textContent = "🔇";
+      labelSpan.textContent = "Muted";
+    } else {
+      iconSpan.textContent = "🎧";
+      labelSpan.textContent = "Music";
+    }
+  }
+
+  async function safePlay() {
+    try {
+      await audio.play();
+    } catch (err) {
+      console.log("Autoplay blocked until user interacts.", err);
+    }
+  }
+
+  // Try starting on load (some browsers will block it)
+  window.addEventListener("load", () => {
+    triedAutoplay = true;
+    safePlay();
+  });
+
+  // Also try starting when the user first interacts with the page
+  function onFirstInteraction() {
+    if (audio.paused && !isMuted) {
+      safePlay();
+    }
+    document.removeEventListener("pointerdown", onFirstInteraction);
+  }
+  document.addEventListener("pointerdown", onFirstInteraction);
+
+  // Mute / unmute toggle
+  toggleBtn.addEventListener("click", () => {
+    isMuted = !isMuted;
+    audio.muted = isMuted;
+
+    if (!isMuted && audio.paused) {
+      safePlay();
+    }
+    applyUI();
+  });
+
+  // Volume slider (0–100)
+  volumeSlider.addEventListener("input", (ev) => {
+    const val = Number(ev.target.value) || 0;
+    const level = val / 100;
+    audio.volume = level;
+
+    if (val === 0) {
+      isMuted = true;
+      audio.muted = true;
+    } else {
+      if (isMuted) {
+        isMuted = false;
+        audio.muted = false;
+        if (audio.paused) {
+          safePlay();
+        }
+      }
+    }
+    applyUI();
+  });
+
+  applyUI();
+})();
+</script>
+
 <!-- 🔗 SHARE GAME BUTTON (full package) -->
 <button id="shareGameBtn" style="
   position:absolute;
