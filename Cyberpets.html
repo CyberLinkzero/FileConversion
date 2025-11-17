@@ -5,188 +5,27 @@
   <title>Cyber Pets– Backyard Virtual Pets</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="A fenced backyard full of virtual pets. They move, chase, play, poop, and live with day/night, weather, houses, and a weird human named Justin.">
-
-
-  <link rel="stylesheet" href="habitat.css">
   
+  <link rel="stylesheet" href="habitat.css">
 
 </head>
 <body>
-    <!-- 🎵 COZY GAME MUSIC CONTROLLER -->
-<audio id="bgmAudio" src="cozy.mp3" loop preload="auto"></audio>
-
-<div id="musicPanel" style="
-  position:fixed;
-  left:12px;
-  bottom:12px;
-  z-index:9999;
-  padding:8px 10px;
-  border-radius:999px;
-  background:rgba(15,23,42,0.9);
-  border:1px solid rgba(148,163,253,0.7);
-  display:flex;
-  align-items:center;
-  gap:8px;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-  font-size:13px;
-  color:#e5e7eb;
-  box-shadow:0 0 16px rgba(15,23,42,0.9);
-">
-  <button id="musicToggle" style="
-    border:none;
-    background:rgba(30,64,175,0.85);
-    color:#e5e7ff;
-    border-radius:999px;
-    padding:4px 10px;
-    display:flex;
-    align-items:center;
-    gap:6px;
-    cursor:pointer;
-    font-size:12px;
-    font-weight:600;
-    letter-spacing:0.04em;
-    text-transform:uppercase;
-  ">
-    <span id="musicIcon">🎧</span>
-    <span id="musicLabel">Music</span>
-  </button>
-  <input id="musicVolume" type="range" min="0" max="100" value="40" style="
-    width:90px;
-    accent-color:#a855f7;
-  ">
-</div>
-
-<script>
-  const bgmAudio    = document.getElementById("bgmAudio");
-  const musicToggle = document.getElementById("musicToggle");
-  const musicIcon   = document.getElementById("musicIcon");
-  const musicLabel  = document.getElementById("musicLabel");
-  const musicVolume = document.getElementById("musicVolume");
-
-  // default cozy volume
-  bgmAudio.volume = 0.4;
-  let isMuted = false;
-
-  // Try to start music on load (may be blocked until user interacts)
-  window.addEventListener("load", () => {
-    bgmAudio.play().catch(err => {
-      console.log("Autoplay blocked, will start after first click.", err);
-    });
-  });
-
-  // Toggle mute / unmute
-  musicToggle.addEventListener("click", () => {
-    isMuted = !isMuted;
-    bgmAudio.muted = isMuted;
-
-    if (isMuted) {
-      musicIcon.textContent = "🔇";
-      musicLabel.textContent = "Muted";
-    } else {
-      musicIcon.textContent = "🎧";
-      musicLabel.textContent = "Music";
-      // If audio never started because of autoplay, try again
-      if (bgmAudio.paused) {
-        bgmAudio.play().catch(err => console.log("Play failed:", err));
-      }
-    }
-  });
-
-  // Volume slider (also auto-unmutes if moved from 0)
-  musicVolume.addEventListener("input", (e) => {
-    const val = Number(e.target.value) || 0;
-    const level = val / 100;
-    bgmAudio.volume = level;
-
-    if (val === 0) {
-      isMuted = true;
-      bgmAudio.muted = true;
-      musicIcon.textContent = "🔇";
-      musicLabel.textContent = "Muted";
-    } else {
-      if (isMuted) {
-        isMuted = false;
-        bgmAudio.muted = false;
-        musicIcon.textContent = "🎧";
-        musicLabel.textContent = "Music";
-        if (bgmAudio.paused) {
-          bgmAudio.play().catch(err => console.log("Play failed:", err));
-        }
-      }
-    }
-  });
-</script>
- <!-- 🔗 SHARE GAME BUTTON (full package) -->
-<button id="shareGameBtn" style="
-  position:absolute;
-  top:12px;
-  right:12px;
-  z-index:9999;
-  padding:10px 20px;
-  border-radius:14px;
-  border:1px solid #4f46e5;
-  background:rgba(31,41,55,0.75);
-  backdrop-filter:blur(6px);
-  color:#ffffff;
-  font-size:16px;
-  font-weight:600;
-  text-shadow:0 0 8px rgba(99,102,241,0.9);
-  box-shadow:0 0 12px rgba(99,102,241,0.8), inset 0 0 12px rgba(99,102,241,0.3);
-  cursor:pointer;
-  letter-spacing:0.5px;
-  animation:pulseGlow 2s ease-in-out infinite;
-">
-  🔗 Share Game
-</button>
-
-<style>
-@keyframes pulseGlow {
-  0% { box-shadow:0 0 10px rgba(99,102,241,0.7), inset 0 0 10px rgba(99,102,241,0.3); }
-  50% { box-shadow:0 0 18px rgba(129,140,248,1), inset 0 0 15px rgba(99,102,241,0.5); }
-  100% { box-shadow:0 0 10px rgba(99,102,241,0.7), inset 0 0 10px rgba(99,102,241,0.3); }
-}
-</style>
-
-<script>
-const shareGameBtn = document.getElementById("shareGameBtn");
-
-if (shareGameBtn) {
-  shareGameBtn.addEventListener("click", async () => {
-    const url = window.location.href;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "CyberPets Game",
-          text: "Come play my CyberPets Yard!",
-          url: url
-        });
-      } catch (err) {
-        console.log("Share canceled", err);
-      }
-    } else {
-      await navigator.clipboard.writeText(url);
-      alert("Game link copied to clipboard!");
-    }
-  });
-}
-</script>
-  
   <div class="app">
     <div class="app-inner">
       <header>
         <div>
           <h1>Cyber Pets</h1>
           <div class="tagline">
-            Virtual pets, day/night cycles, weather, houses… and a guy named Justin who thinks we’re in a simulation.
+            Virtual pets, day/night cycles, weather, houses… and a guy named Justin who thinks we’re in a simulation. Credits Go To Alyssa D
           </div>
         </div>
         <div class="badge">
           <span class="badge-dot"></span>
           Time-based • Saved in this browser
         </div>
-      </header>
-    
+      </header> 
+
+
       <!-- WORLD -->
       <section class="world-panel">
         <div class="panel-title">
@@ -306,7 +145,6 @@ if (shareGameBtn) {
             <button id="dropToyBtn" class="secondary small"><span class="btn-icon">🧸</span>Drop toy</button>
             <button id="addPlantBtn" class="secondary small"><span class="btn-icon">🌱</span>Add plant</button>
             <button id="addHouseBtn" class="secondary small"><span class="btn-icon">🏠</span>Add animal house</button>
-            <button id="clearHazardsBtn" class="secondary small"><span class="btn-icon">⚠️</span>Remove Hazards</button>
           </div>
 
           <div class="btn-row" style="margin-top:4px;">
@@ -315,6 +153,10 @@ if (shareGameBtn) {
 
           <div class="btn-row" style="margin-top:4px;">
             <button id="reviveBtn" class="secondary small" disabled><span class="btn-icon">💗</span>New animal if dead</button>
+            <label class="toggle">
+              <input type="checkbox" id="fastToggle">
+              <span>Fast-forward (testing)</span>
+            </label>
           </div>
 
           <div class="status-row">
@@ -881,35 +723,6 @@ function handleInteractions(hours, rawMinutes){
 
 // --------- world render ----------
 const worldEl = document.getElementById("world");
-worldEl.addEventListener("click",(ev)=>{
-      const target = ev.target;
-      if(!target || !target.classList.contains("hazard")) return;
-      const id = target.dataset.id;
-      if(!id) return;
-      const hazards = state.hazards || [];
-      const h = hazards.find(x=>x.id===id);
-      if(!h) return;
-
-      const alive = state.animals.filter(a=>a.alive);
-      if(alive.length){
-        let best = alive[0];
-        let bestD = Infinity;
-        alive.forEach(a=>{
-          const dist = Math.abs((a.x||0)-(h.x||50)) + Math.abs((a.depth||0.5)-(h.depth||0.5))*40;
-          if(dist < bestD){
-            bestD = dist;
-            best = a;
-          }
-        });
-        best.xp = (best.xp||0) + 15;
-        showMood(best.id,"✅");
-      }
-
-      state.hazards = hazards.filter(x=>x.id!==id);
-      addLog("You removed something dangerous from the yard.");
-      saveState();
-      renderWorld();
-    });
 const yardSize = document.getElementById("yardSize");
 yardSize.addEventListener("input", ()=>{
   const scale = yardSize.value/100;
@@ -1796,7 +1609,6 @@ const cleanYardBtn    = document.getElementById("cleanYardBtn");
 const dropToyBtn      = document.getElementById("dropToyBtn");
 const addPlantBtn     = document.getElementById("addPlantBtn");
 const addHouseBtn     = document.getElementById("addHouseBtn");
-const clearHazardsBtn  = document.getElementById("clearHazardsBtn");
 
 addPetBtn.addEventListener("click",()=>{
   simulateFromLastUpdate();
@@ -1942,36 +1754,6 @@ reviveBtn.addEventListener("click",()=>{
   saveState();
   render();
 });
-
-if(clearHazardsBtn){
-  clearHazardsBtn.addEventListener("click",()=>{
-    const hazards = state.hazards || [];
-    if(!hazards.length){
-      addLog("No Justin hazards in the yard right now.");
-      return;
-    }
-    const alive = state.animals.filter(a=>a.alive);
-    hazards.forEach(h=>{
-      if(alive.length){
-        let best = alive[0];
-        let bestD = Infinity;
-        alive.forEach(a=>{
-          const dist = Math.abs((a.x||0)-(h.x||50)) + Math.abs((a.depth||0.5)-(h.depth||0.5))*40;
-          if(dist < bestD){
-            bestD = dist;
-            best = a;
-          }
-        });
-        best.xp = (best.xp||0) + 10;
-        showMood(best.id,"🧹");
-      }
-    });
-    state.hazards = [];
-    addLog("You cleaned up all of Justin's hazards.");
-    saveState();
-    renderWorld();
-  });
-}
 
 cleanYardBtn.addEventListener("click",()=>{
   if(!state.poops.length){
