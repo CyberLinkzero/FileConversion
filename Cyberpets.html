@@ -1,240 +1,4 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Cyber Pets– Backyard Virtual Pets</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="A fenced backyard full of virtual pets. They move, chase, play, poop, and live with day/night, weather, houses, and a weird human named Justin.
-    Credits to Alyssa D for game design adnd game play">
-
-
-  <link rel="stylesheet" href="habitat.css">
-  
-
-</head>
-<body>
-   
- <!-- 🔗 SHARE GAME BUTTON (full package) -->
-<button id="shareGameBtn" style="
-  position:absolute;
-  top:12px;
-  right:12px;
-  z-index:9999;
-  padding:10px 20px;
-  border-radius:14px;
-  border:1px solid #4f46e5;
-  background:rgba(31,41,55,0.75);
-  backdrop-filter:blur(6px);
-  color:#ffffff;
-  font-size:16px;
-  font-weight:600;
-  text-shadow:0 0 8px rgba(99,102,241,0.9);
-  box-shadow:0 0 12px rgba(99,102,241,0.8), inset 0 0 12px rgba(99,102,241,0.3);
-  cursor:pointer;
-  letter-spacing:0.5px;
-  animation:pulseGlow 2s ease-in-out infinite;
-">
-  🔗 Share Game
-</button>
-
-<style>
-@keyframes pulseGlow {
-  0% { box-shadow:0 0 10px rgba(99,102,241,0.7), inset 0 0 10px rgba(99,102,241,0.3); }
-  50% { box-shadow:0 0 18px rgba(129,140,248,1), inset 0 0 15px rgba(99,102,241,0.5); }
-  100% { box-shadow:0 0 10px rgba(99,102,241,0.7), inset 0 0 10px rgba(99,102,241,0.3); }
-}
-</style>
-
 <script>
-const shareGameBtn = document.getElementById("shareGameBtn");
-
-if (shareGameBtn) {
-  shareGameBtn.addEventListener("click", async () => {
-    const url = window.location.href;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "CyberPets Game",
-          text: "Come play my CyberPets Yard!",
-          url: url
-        });
-      } catch (err) {
-        console.log("Share canceled", err);
-      }
-    } else {
-      await navigator.clipboard.writeText(url);
-      alert("Game link copied to clipboard!");
-    }
-  });
-}
-</script>
-  
-  <div class="app">
-    <div class="app-inner">
-      <header>
-        <div>
-          <h1>Cyber Pets</h1>
-          <div class="tagline">
-            Virtual pets, day/night cycles, weather, houses… and a guy named Justin who thinks we’re in a simulation.
-          </div>
-        </div>
-        <div class="badge">
-          <span class="badge-dot"></span>
-          Time-based • Saved in this browser
-        </div>
-      </header>
-    
-      <!-- WORLD -->
-      <section class="world-panel">
-        <div class="panel-title">
-          <span>Backyard Habitat</span>
-          <span class="count"><span id="petCountTop">0</span>/8 animals</span>
-        </div>
-        <div class="yard-wrap">
-          <span class="yard-label">Yard depth:</span>
-          <div class="yard-slider">
-            <input type="range" id="yardSize" min="80" max="150" value="100">
-          </div>
-        </div>
-        <div id="world" class="world">
-          <div class="sky">
-            <div class="sun"></div>
-            <div class="moon"></div>
-            <div class="stars"></div>
-          </div>
-          <div class="fence"></div>
-          <div class="ground"></div>
-          <div id="miniGameOverlay" class="mini-overlay" hidden>
-            <div class="mini-inner">
-              <div class="mini-header">
-                <span class="mini-title">Catch the Treats!</span>
-                <button id="miniCloseBtn" class="mini-close" type="button">✕</button>
-              </div>
-              <div class="mini-body">
-                <p class="mini-instructions">Click the falling treats before they hit the ground. Each one gives your selected animal XP and happiness.</p>
-                <div class="mini-hud">
-                  <span>Time: <span id="miniTime">15</span>s</span>
-                  <span>Score: <span id="miniScore">0</span></span>
-                </div>
-                <div id="miniField" class="mini-field"></div>
-                <button id="miniStartBtn" class="mini-start" type="button">Start Mini-game</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- LOWER LAYOUT -->
-      <div class="layout">
-        <!-- LEFT: CARDS -->
-        <section class="panel">
-          <div class="panel-title">
-            <span>Animals</span>
-            <span class="count"><span id="petCount">0</span> active</span>
-          </div>
-          <div id="petGrid" class="pet-grid"></div>
-        </section>
-
-        <!-- RIGHT: CONTROLS -->
-        <section class="panel">
-          <div class="panel-title">
-            <span>Care & Yard</span>
-          </div>
-
-          <div class="form-row">
-            <div>
-              <label for="speciesSelect">Species</label>
-              <select id="speciesSelect">
-                <option value="dog">Dog (chases, playful)</option>
-                <option value="cat">Cat (independent, swats)</option>
-                <option value="rabbit">Rabbit (shy, spooks)</option>
-                <option value="fox">Fox (mischievous chaser)</option>
-              </select>
-            </div>
-            <div>
-              <label for="nameInput">Name</label>
-              <input type="text" id="nameInput" placeholder="e.g. Pixel, Luna" maxlength="18">
-            </div>
-          </div>
-
-          <div class="form-row" style="margin-top:6px;">
-            <div>
-              <label for="locationInput">Location (for vibe)</label>
-              <input type="text" id="locationInput" placeholder="City or nickname">
-            </div>
-            <div>
-              <label for="weatherSelect">Weather</label>
-              <select id="weatherSelect">
-                <option value="auto">Auto (time-based)</option>
-                <option value="clear">Clear</option>
-                <option value="cloudy">Cloudy</option>
-                <option value="rainy">Rainy</option>
-                <option value="snowy">Snowy</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row" style="margin-top:6px;">
-            <div>
-              <label for="justinFreq">Justin walks by</label>
-              <select id="justinFreq">
-                <option value="rare">Rarely</option>
-                <option value="normal">Normal</option>
-                <option value="often">Often</option>
-                <option value="chaos">Chaos mode</option>
-              </select>
-            </div>
-            <div>
-              <label>&nbsp;</label>
-              <button id="addPetBtn"><span class="btn-icon">➕</span>Add Animal</button>
-            </div>
-          </div>
-
-          <div class="btn-row">
-            <button id="feedBtn"><span class="btn-icon">🍖</span>Feed selected</button>
-            <button id="playBtn"><span class="btn-icon">🎾</span>Play with selected</button>
-            <button id="washBtn"><span class="btn-icon">🧼</span>Wash selected</button>
-            <button id="walkBtn"><span class="btn-icon">🚶‍♂️</span>Walk selected</button>
-            <button id="releaseBtn" class="danger small"><span class="btn-icon">🕊️</span>Release selected</button>
-          </div>
-
-          <div class="btn-row" style="margin-top:4px;">
-            <button id="cleanYardBtn" class="secondary small"><span class="btn-icon">🧹</span>Clean yard (poo)</button>
-            <button id="dropToyBtn" class="secondary small"><span class="btn-icon">🧸</span>Drop toy</button>
-            <button id="addPlantBtn" class="secondary small"><span class="btn-icon">🌱</span>Add plant</button>
-            <button id="addHouseBtn" class="secondary small"><span class="btn-icon">🏠</span>Add animal house</button>
-            <button id="clearHazardsBtn" class="secondary small"><span class="btn-icon">⚠️</span>Remove Hazards</button>
-          </div>
-
-          <div class="btn-row" style="margin-top:4px;">
-            <button id="miniGameBtn" class="secondary small"><span class="btn-icon">⭐</span>Mini-game: Catch treats</button>
-          </div>
-
-          <div class="btn-row" style="margin-top:4px;">
-            <button id="reviveBtn" class="secondary small" disabled><span class="btn-icon">💗</span>New animal if dead</button>
-          </div>
-
-          <div class="status-row">
-            <div id="statusText">Select an animal card to care for it.</div>
-            <button id="clearLogBtn" class="secondary small">Clear log</button>
-          </div>
-
-          <div id="hazardHud" class="hazard-hud" hidden>
-            <div class="hazard-hud-title">Justin danger in yard</div>
-            <div id="hazardHudList" class="hazard-hud-list"></div>
-          </div>
-
-          <div id="log" class="log"></div>
-        </section>
-      </div>
-    </div>
-  </div>
-
-  <!-- Legendary lines / characters -->
-  <script src="habitat-characters.js"></script>
-
-  <script>
 // habitat-main.js
 
 const STORAGE_KEY = "habitatgotchi-v3";
@@ -258,8 +22,6 @@ function pickPersonality(species){
   return list[Math.floor(Math.random()*list.length)];
 }
 
-
-
 let state = {
   lastUpdate: Date.now(),
   animals: [],
@@ -269,13 +31,13 @@ let state = {
   houses: [],
   weatherMode: "auto",
   locationName: "",
-  justinFrequency: "normal"
+  justinFrequency: "normal",
+  hazards: []
 };
 
 // --------- helpers ---------
 function clamp(v,min=0,max=100){return Math.max(min,Math.min(max,v));}
 function randRange(min,max){return min + Math.random()*(max-min);}
-
 
 function getLevelFromXP(xp){
   xp = xp||0;
@@ -288,8 +50,8 @@ function getXpProgress(xp){
   const lvl = getLevelFromXP(xp);
   const base = 20;
   const currentThreshold = base * (lvl*lvl);
-  const nextThreshold = base * ((lvl+1)*(lvl+1));
-  const into = Math.max(0, xp - currentThreshold);
+  const nextThreshold    = base * ((lvl+1)*(lvl+1));
+  const into   = Math.max(0, xp - currentThreshold);
   const needed = Math.max(0, nextThreshold - currentThreshold);
   return {
     level: lvl,
@@ -300,10 +62,12 @@ function getXpProgress(xp){
     needed
   };
 }
+
 function getLevelBonusMinutes(a){
   const lvl = getLevelFromXP(a.xp||0);
   return lvl * 5; // 5 minutes extra per level
 }
+
 function formatMinutesToCountdown(mins){
   if(!isFinite(mins) || mins <= 0) return "now";
   const total = Math.floor(mins);
@@ -317,7 +81,6 @@ function formatMinutesToCountdown(mins){
 
 function estimateTimeToDeathMinutes(a){
   if(!a || !a.alive) return 0;
-  // very rough estimate so player has a warning window
   const hungerDropPerHour = 16; // base rate used in simulateFromLastUpdate
   const lvlBonusMin = getLevelBonusMinutes(a);
   const hungerMinutes =
@@ -333,16 +96,18 @@ function estimateTimeToDeathMinutes(a){
   if(!isFinite(best)) return hungerMinutes || 0;
   return Math.max(0, best);
 }
+
 // --------- load state ----------
 (function loadState(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
     if(raw){
       const s = JSON.parse(raw);
-      state.lastUpdate = s.lastUpdate || Date.now();
-      state.weatherMode = s.weatherMode || "auto";
-      state.locationName = s.locationName || "";
+      state.lastUpdate      = s.lastUpdate || Date.now();
+      state.weatherMode     = s.weatherMode || "auto";
+      state.locationName    = s.locationName || "";
       state.justinFrequency = s.justinFrequency || "normal";
+
       state.animals = (s.animals||[]).map(a=>({
         id: a.id || crypto.randomUUID(),
         name: a.name || "Buddy",
@@ -361,18 +126,21 @@ function estimateTimeToDeathMinutes(a){
         xp: typeof a.xp === "number" ? a.xp : 0,
         personality: a.personality || pickPersonality(a.species || "dog")
       }));
+
       state.poops = (s.poops||[]).map(p=>({
         id: p.id || crypto.randomUUID(),
         x: typeof p.x==="number"?p.x:randRange(10,90),
         depth: typeof p.depth==="number"?p.depth:randRange(0,1),
         createdAt: p.createdAt || Date.now()
       }));
+
       state.toys = (s.toys||[]).map(t=>({
         id: t.id || crypto.randomUUID(),
         x: typeof t.x==="number"?t.x:randRange(10,90),
         depth: typeof t.depth==="number"?t.depth:randRange(0,1),
         createdAt: t.createdAt || Date.now()
       }));
+
       state.plants = (s.plants||[]).map(p=>({
         id: p.id || crypto.randomUUID(),
         x: typeof p.x==="number"?p.x:randRange(10,90),
@@ -380,6 +148,7 @@ function estimateTimeToDeathMinutes(a){
         createdAt: p.createdAt || Date.now(),
         variant: p.variant || (Math.random()<0.5?"tree":"flower")
       }));
+
       state.houses = (s.houses||[]).map(h=>({
         id: h.id || crypto.randomUUID(),
         x: typeof h.x==="number"?h.x:randRange(10,90),
@@ -387,11 +156,20 @@ function estimateTimeToDeathMinutes(a){
         createdAt: h.createdAt || Date.now(),
         variant: h.variant || (Math.random()<0.5?"doghouse":"hut")
       }));
+
+      state.hazards = (s.hazards||[]).map(h=>({
+        id: h.id || crypto.randomUUID(),
+        type: h.type || "can",
+        x: typeof h.x==="number"?h.x:randRange(10,90),
+        depth: typeof h.depth==="number"?h.depth:randRange(0,1),
+        createdAt: h.createdAt || Date.now()
+      }));
     }
   }catch(e){
     console.warn("load error",e);
   }
 })();
+
 function saveState(){
   state.lastUpdate = Date.now();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -401,7 +179,9 @@ function saveState(){
 const logEl = document.getElementById("log");
 function addLog(msg){
   const now = new Date();
-  const t = now.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  const t = now.toLocaleTimeString([], {
+    hour:"2-digit",minute:"2-digit",second:"2-digit"
+  });
   const div = document.createElement("div");
   div.className = "log-entry";
   div.innerHTML = `<span class="time">${t}</span><span class="msg">${msg}</span>`;
@@ -409,7 +189,7 @@ function addLog(msg){
   while(logEl.children.length>120) logEl.removeChild(logEl.lastChild);
 }
 
-const fastToggle = document.getElementById("fastToggle");
+const fastToggle = document.getElementById("fastToggle"); // may be null; we guard it
 
 function getTimePhase(date=new Date()){
   const h = date.getHours();
@@ -423,7 +203,7 @@ function getCurrentWeather(date=new Date()){
   const mode = state.weatherMode || "auto";
   if(mode !== "auto") return mode;
   const h = date.getHours();
-  if(h < 9) return "clear";
+  if(h < 9)  return "clear";
   if(h < 13) return "cloudy";
   if(h < 17) return "rainy";
   if(h < 20) return "cloudy";
@@ -435,9 +215,14 @@ function simulateFromLastUpdate(){
   const now = Date.now();
   let elapsedMs = now - state.lastUpdate;
   if(elapsedMs < 2000) return;
-  if(fastToggle.checked) elapsedMs *= 8;
+
+  // ✅ Guard fastToggle so it doesn't crash when not present
+  if (fastToggle && fastToggle.checked) {
+    elapsedMs *= 8;
+  }
+
   let elapsedMinutes = elapsedMs/60000;
-  const rawMinutes = elapsedMinutes;
+  const rawMinutes   = elapsedMinutes;
   if(elapsedMinutes <= 0) return;
   elapsedMinutes = Math.min(elapsedMinutes, 24*60);
   const hours = elapsedMinutes/60;
@@ -468,14 +253,12 @@ function simulateFromLastUpdate(){
     happyDropPerHour = Math.max(5, happyDropPerHour - 1);
   }
 
-
   alive.forEach(a=>{
-    // passive XP for surviving time
     if(a.alive){
-      a.xp = (a.xp||0) + Math.round(10 * hours);
+      a.xp = (a.xp||0) + Math.round(10 * hours); // passive survival XP
     }
     const lvlBonusMin = getLevelBonusMinutes(a);
-    const lvlFactor = 1 + (getLevelFromXP(a.xp||0) * 0.05);
+    const lvlFactor   = 1 + (getLevelFromXP(a.xp||0) * 0.05);
 
     a.hunger      = clamp(a.hunger - hungerDropPerHour*hours);
     a.happiness   = clamp(a.happiness - happyDropPerHour*hours);
@@ -506,8 +289,8 @@ function simulateFromLastUpdate(){
 
     if(a.alive && (tooSkinny || tooFat || zeroStat)){
       a.alive = false;
-      if(tooFat)      addLog(`${a.name} the ${a.species} became too overweight and died. 💔`);
-      else if(tooSkinny) addLog(`${a.name} the ${a.species} became too weak and died. 💔`);
+      if(tooFat)        addLog(`${a.name} the ${a.species} became too overweight and died. 💔`);
+      else if(tooSkinny)addLog(`${a.name} the ${a.species} became too weak and died. 💔`);
       else              addLog(`${a.name} the ${a.species} died from poor health. 💔`);
     }
 
@@ -546,18 +329,16 @@ function spawnPooNearAnimal(a){
   });
 }
 
-
 function spawnPeeAtFence(a){
   if(!a || !a.alive) return;
   const pos = depthToScreen(Math.min(1, (a.depth||0.9) + 0.04));
   const el = document.createElement("div");
   el.className = "pee";
   el.style.left = (a.x || 50) + "%";
-  el.style.top = pos.y + "%";
+  el.style.top  = pos.y + "%";
   worldEl.appendChild(el);
   setTimeout(()=>{ el.remove(); }, 4200);
 }
-
 
 function handleToyHappiness(hours){
   if(!state.toys.length) return;
@@ -568,7 +349,7 @@ function handleToyHappiness(hours){
       const dist = Math.abs((a.x||0) - t.x) + Math.abs((a.depth||0)-(t.depth||0))*40;
       if(dist < 18){
         a.happiness = clamp(a.happiness + 4*hours + 2);
-        a.energy = clamp(a.energy - 2*hours);
+        a.energy    = clamp(a.energy - 2*hours);
         showMood(a.id,"❤️");
       }
     });
@@ -578,31 +359,31 @@ function handleToyHappiness(hours){
 }
 
 function handleHazards(hours, rawMinutes){
-  if(!state.hazards || !state.hazards.length) return;
+  const hazards = state.hazards || [];
+  if(!hazards.length) return;
   const alive = state.animals.filter(a=>a.alive);
   if(!alive.length) return;
 
-  state.hazards.forEach(h=>{
-    // find closest animal
+  hazards.forEach(h=>{
     let closest = null;
     let bestDist = Infinity;
     alive.forEach(a=>{
-      const dist = Math.abs((a.x||0) - (h.x||50)) + Math.abs((a.depth||0.5)-(h.depth||0.5))*40;
+      const dist = Math.abs((a.x||0) - (h.x||50)) +
+                   Math.abs((a.depth||0.5)-(h.depth||0.5))*40;
       if(dist < bestDist){
         bestDist = dist;
-        closest = a;
+        closest  = a;
       }
     });
     if(!closest || bestDist > 18) return;
 
-    // apply effect based on hazard type
     if(h.type === "can"){
-      closest.health = clamp(closest.health - 6*hours);
+      closest.health    = clamp(closest.health - 6*hours);
       closest.happiness = clamp(closest.happiness - 8);
-      closest.hunger = clamp(closest.hunger - 5);
+      closest.hunger    = clamp(closest.hunger - 5);
       if(Math.random()<0.25) addLog(`${closest.name} sniffed Justin's old can and felt sick.`);
     }else if(h.type === "sparkler"){
-      closest.health = clamp(closest.health - 18*hours);
+      closest.health    = clamp(closest.health - 18*hours);
       closest.happiness = clamp(closest.happiness - 6);
       if(Math.random()<0.3) addLog(`${closest.name} got too close to Justin's sparkler!`);
     }else if(h.type === "spoiledFood"){
@@ -612,9 +393,8 @@ function handleHazards(hours, rawMinutes){
     }
   });
 
-  // auto-clear very old hazards
   const cutoff = Date.now() - 30*60*1000;
-  state.hazards = state.hazards.filter(h=>h.createdAt > cutoff);
+  state.hazards = hazards.filter(h=>h.createdAt > cutoff);
 }
 
 function maybeTriggerMicroStory(hours, rawMinutes){
@@ -622,13 +402,13 @@ function maybeTriggerMicroStory(hours, rawMinutes){
   const gapMin = (now - (state.lastStoryAt||0))/60000;
   const alive = state.animals.filter(a=>a.alive);
   if(alive.length < 2) return;
-  if(gapMin < 8) return; // at least 8 min apart
+  if(gapMin < 8) return;
   if(Math.random() > 0.45) return;
 
-  const dogs = alive.filter(a=>a.species==="dog");
-  const foxes = alive.filter(a=>a.species==="fox");
+  const dogs    = alive.filter(a=>a.species==="dog");
+  const foxes   = alive.filter(a=>a.species==="fox");
   const rabbits = alive.filter(a=>a.species==="rabbit");
-  const cats = alive.filter(a=>a.species==="cat");
+  const cats    = alive.filter(a=>a.species==="cat");
 
   if(dogs.length && (cats.length || foxes.length)){
     const d = dogs[Math.floor(Math.random()*dogs.length)];
@@ -663,7 +443,6 @@ function maybeTriggerMicroStory(hours, rawMinutes){
     return;
   }
 
-  // fallback: pick any two
   if(alive.length >= 2){
     const a = alive[Math.floor(Math.random()*alive.length)];
     const b = alive[Math.floor(Math.random()*alive.length)];
@@ -685,7 +464,8 @@ function handleInteractions(hours, rawMinutes){
   for(let i=0;i<a.length;i++){
     for(let j=i+1;j<a.length;j++){
       const p1 = a[i], p2 = a[j];
-      const dist = Math.abs((p1.x||0) - (p2.x||0)) + Math.abs((p1.depth||0)-(p2.depth||0))*40;
+      const dist = Math.abs((p1.x||0) - (p2.x||0)) +
+                   Math.abs((p1.depth||0)-(p2.depth||0))*40;
       if(dist > 18) continue;
 
       const combo = [p1.species,p2.species].sort().join("-");
@@ -693,14 +473,14 @@ function handleInteractions(hours, rawMinutes){
       const moveToward = (chaser, target, strength=0.3)=>{
         const dx = (target.x||50) - (chaser.x||50);
         const dd = (target.depth||0.5) - (chaser.depth||0.5);
-        chaser.x = clamp((chaser.x||50) + dx*strength,5,95);
-        chaser.depth = clamp((chaser.depth||0.5) + dd*strength,0,1);
+        chaser.x    = clamp((chaser.x||50) + dx*strength,5,95);
+        chaser.depth= clamp((chaser.depth||0.5) + dd*strength,0,1);
       };
       const moveAway = (prey, from, strength=0.4)=>{
         const dx = (prey.x||50) - (from.x||50);
         const dd = (prey.depth||0.5) - (from.depth||0.5);
-        prey.x = clamp((prey.x||50) + dx*strength,5,95);
-        prey.depth = clamp((prey.depth||0.5) + dd*strength,0,1);
+        prey.x    = clamp((prey.x||50) + dx*strength,5,95);
+        prey.depth= clamp((prey.depth||0.5) + dd*strength,0,1);
       };
 
       switch(combo){
@@ -709,7 +489,7 @@ function handleInteractions(hours, rawMinutes){
           let cat = p1.species==="cat"?p1:p2;
           dog.happiness = clamp(dog.happiness + 4*hours);
           cat.happiness = clamp(cat.happiness - 7*hours);
-          cat.energy = clamp(cat.energy - 5*hours);
+          cat.energy    = clamp(cat.energy - 5*hours);
           moveToward(dog,cat,0.35);
           moveAway(cat,dog,0.5);
           if(Math.random()<0.25){
@@ -720,10 +500,10 @@ function handleInteractions(hours, rawMinutes){
           break;
         }
         case "cat-rabbit":{
-          let cat2 = p1.species==="cat"?p1:p2;
+          let cat2   = p1.species==="cat"?p1:p2;
           let rabbit = p1.species==="rabbit"?p1:p2;
           rabbit.happiness = clamp(rabbit.happiness - 6*hours);
-          rabbit.energy = clamp(rabbit.energy - 5*hours);
+          rabbit.energy    = clamp(rabbit.energy - 5*hours);
           moveAway(rabbit,cat2,0.5);
           if(Math.random()<0.25){
             addLog(`${cat2.name} pounced near ${rabbit.name} and scared them.`);
@@ -736,8 +516,8 @@ function handleInteractions(hours, rawMinutes){
           if(Math.random()<0.25){
             p1.happiness = clamp(p1.happiness + 6);
             p2.happiness = clamp(p2.happiness + 6);
-            p1.energy = clamp(p1.energy - 4);
-            p2.energy = clamp(p2.energy - 4);
+            p1.energy    = clamp(p1.energy - 4);
+            p2.energy    = clamp(p2.energy - 4);
             moveToward(p1,p2,0.2);
             moveToward(p2,p1,0.2);
             addLog(`${p1.name} and ${p2.name} play-fought.`);
@@ -748,9 +528,9 @@ function handleInteractions(hours, rawMinutes){
         }
         case "fox-rabbit":{
           let fox = p1.species==="fox"?p1:p2;
-          let r2 = p1.species==="rabbit"?p1:p2;
+          let r2  = p1.species==="rabbit"?p1:p2;
           r2.happiness = clamp(r2.happiness - 8*hours);
-          r2.energy = clamp(r2.energy - 6*hours);
+          r2.energy    = clamp(r2.energy - 6*hours);
           moveToward(fox,r2,0.3);
           moveAway(r2,fox,0.5);
           if(Math.random()<0.2){
@@ -779,35 +559,38 @@ function handleInteractions(hours, rawMinutes){
 
 // --------- world render ----------
 const worldEl = document.getElementById("world");
+
 worldEl.addEventListener("click",(ev)=>{
-      const target = ev.target;
-      if(!target || !target.classList.contains("hazard")) return;
-      const id = target.dataset.id;
-      if(!id) return;
-      const hazards = state.hazards || [];
-      const h = hazards.find(x=>x.id===id);
-      if(!h) return;
+  const target = ev.target;
+  if(!target || !target.classList.contains("hazard")) return;
+  const id = target.dataset.id;
+  if(!id) return;
+  const hazards = state.hazards || [];
+  const h = hazards.find(x=>x.id===id);
+  if(!h) return;
 
-      const alive = state.animals.filter(a=>a.alive);
-      if(alive.length){
-        let best = alive[0];
-        let bestD = Infinity;
-        alive.forEach(a=>{
-          const dist = Math.abs((a.x||0)-(h.x||50)) + Math.abs((a.depth||0.5)-(h.depth||0.5))*40;
-          if(dist < bestD){
-            bestD = dist;
-            best = a;
-          }
-        });
-        best.xp = (best.xp||0) + 15;
-        showMood(best.id,"✅");
+  const alive = state.animals.filter(a=>a.alive);
+  if(alive.length){
+    let best = alive[0];
+    let bestD = Infinity;
+    alive.forEach(a=>{
+      const dist = Math.abs((a.x||0)-(h.x||50)) +
+                   Math.abs((a.depth||0.5)-(h.depth||0.5))*40;
+      if(dist < bestD){
+        bestD = dist;
+        best  = a;
       }
-
-      state.hazards = hazards.filter(x=>x.id!==id);
-      addLog("You removed something dangerous from the yard.");
-      saveState();
-      renderWorld();
     });
+    best.xp = (best.xp||0) + 15;
+    showMood(best.id,"✅");
+  }
+
+  state.hazards = hazards.filter(x=>x.id!==id);
+  addLog("You removed something dangerous from the yard.");
+  saveState();
+  renderWorld();
+});
+
 const yardSize = document.getElementById("yardSize");
 yardSize.addEventListener("input", ()=>{
   const scale = yardSize.value/100;
@@ -831,7 +614,7 @@ function renderWeather(){
     for(let i=0;i<cloudCount;i++){
       const c = document.createElement("div");
       c.className = "cloud";
-      c.style.top = (10 + i*8) + "%";
+      c.style.top  = (10 + i*8) + "%";
       c.style.left = (i*30 - 20) + "%";
       worldEl.appendChild(c);
     }
@@ -842,7 +625,7 @@ function renderWeather(){
       const r = document.createElement("div");
       r.className = "raindrop";
       r.style.left = (5 + Math.random()*90) + "%";
-      r.style.top = (20 + Math.random()*40) + "%";
+      r.style.top  = (20 + Math.random()*40) + "%";
       r.style.animationDelay = (Math.random()*1).toFixed(2)+"s";
       worldEl.appendChild(r);
     }
@@ -854,7 +637,7 @@ function renderWeather(){
       s.className = "snowflake";
       s.textContent = "❄️";
       s.style.left = (5 + Math.random()*90) + "%";
-      s.style.top = (10 + Math.random()*40) + "%";
+      s.style.top  = (10 + Math.random()*40) + "%";
       s.style.animationDelay = (Math.random()*4).toFixed(2)+"s";
       worldEl.appendChild(s);
     }
@@ -862,8 +645,7 @@ function renderWeather(){
 }
 
 function clearWorldSprites(){
-  worldEl.querySelectorAll(".animal-sprite,.speech,.mood,.poo,.toy,.plant,.house").forEach(el=>el.remove());
-  // NOTE: we do NOT remove Justin here so he can keep walking during re-renders
+  worldEl.querySelectorAll(".animal-sprite,.speech,.mood,.poo,.toy,.plant,.house,.pee").forEach(el=>el.remove());
   worldEl.querySelectorAll(".cloud,.raindrop,.snowflake").forEach(el=>el.remove());
 }
 
@@ -882,9 +664,9 @@ function showMood(id,emoji,ms=1800){
   el.classList.add("show");
   setTimeout(()=>el.classList.remove("show"), ms);
 }
+
 function maybeShowThought(a){
   if(!a || !a.alive) return;
-  // Don't spam: 25% chance when called
   if(Math.random() > 0.25) return;
 
   let msg = null;
@@ -899,33 +681,23 @@ function maybeShowThought(a){
     msg = "I need a nap soon. 😴";
   }
 
-  // Personality spice
   const p = a.personality;
   if(!msg && p){
-    if(p === "needy" && Math.random() < 0.7){
-      msg = "Hey, look at me! 🐾";
-    }else if(p === "aloof" && Math.random() < 0.6){
-      msg = "I’ll allow your presence. 😼";
-    }else if(p === "hyper" && Math.random() < 0.6){
-      msg = "Can we run again? 💨";
-    }else if(p === "lazy" && Math.random() < 0.6){
-      msg = "Too comfy to move… 🛋️";
-    }else if(p === "shy" && Math.random() < 0.6){
-      msg = "Everything is a little scary. 🐾";
-    }
+    if(p === "needy"  && Math.random()<0.7) msg = "Hey, look at me! 🐾";
+    else if(p === "aloof"  && Math.random()<0.6) msg = "I’ll allow your presence. 😼";
+    else if(p === "hyper"  && Math.random()<0.6) msg = "Can we run again? 💨";
+    else if(p === "lazy"   && Math.random()<0.6) msg = "Too comfy to move… 🛋️";
+    else if(p === "shy"    && Math.random()<0.6) msg = "Everything is a little scary. 🐾";
   }
 
   if(!msg) return;
   showSpeech(a.id, msg, 2600);
 }
 
-
-
 function depthToScreen(depth){
   const groundBottom = 88;
-  const fenceLine = 57;
+  const fenceLine    = 57;
   const y = groundBottom - (groundBottom - fenceLine)*depth;
-  // Slightly larger, smoother-looking critters front-to-back
   const scale = 1.25 - 0.35*depth; // depth 0 → 1.25, depth 1 → 0.90
   return {y,scale};
 }
@@ -945,11 +717,10 @@ function renderWorld(){
     sprite.dataset.id = a.id;
     const pos = depthToScreen(a.depth ?? 0.5);
     sprite.style.left = (a.x ?? 50)+"%";
-    sprite.style.top = pos.y+"%";
+    sprite.style.top  = pos.y+"%";
     sprite.style.transform = `translate(-50%,-100%) scale(${pos.scale})`;
     if(!a.alive){sprite.classList.add("dead");}
 
-    
     if(a.species==="dog"){
       const wrap = document.createElement("div");
       wrap.className = "dog-shape";
@@ -1033,7 +804,6 @@ function renderWorld(){
       head.appendChild(nose);
       wrap.appendChild(head);
 
-      // legs
       ["front","front2","back","back2"].forEach(cls=>{
         const leg = document.createElement("div");
         leg.className = "critter-leg "+cls;
@@ -1054,20 +824,9 @@ function renderWorld(){
       sprite.appendChild(wrap);
     }
 
-
-    // floating timer showing rough time until danger
-    const lvlVal = getLevelFromXP(a.xp||0);
-    const bonusMin = getLevelBonusMinutes(a);
-    const tmins = estimateTimeToDeathMinutes(a);
-    if(a.alive && isFinite(tmins) && tmins > 0){
-      const timerEl = document.createElement("div");
-      timerEl.className = "death-timer";
-      timerEl.textContent = formatMinutesToCountdown(tmins);
-      timerEl.title = `Level ${lvlVal} (+${bonusMin} min life)`;
-      if(tmins < 15) timerEl.classList.add("danger");
-      else if(tmins < 40) timerEl.classList.add("warn");
-      sprite.appendChild(timerEl);
-    }
+    const lvlVal    = getLevelFromXP(a.xp||0);
+    const bonusMin  = getLevelBonusMinutes(a);
+    const tmins     = estimateTimeToDeathMinutes(a);
 
     if(a.alive){
       const lvlBadge = document.createElement("div");
@@ -1080,7 +839,8 @@ function renderWorld(){
       const timerEl = document.createElement("div");
       timerEl.className = "death-timer";
       timerEl.textContent = formatMinutesToCountdown(tmins);
-      if(tmins < 15) timerEl.classList.add("danger");
+      timerEl.title = `Level ${lvlVal} (+${bonusMin} min life)`;
+      if(tmins < 15)      timerEl.classList.add("danger");
       else if(tmins < 40) timerEl.classList.add("warn");
       sprite.appendChild(timerEl);
     }
@@ -1110,7 +870,7 @@ function renderWorld(){
     const el = document.createElement("div");
     el.className = "poo";
     el.style.left = p.x+"%";
-    el.style.top = pos.y+"%";
+    el.style.top  = pos.y+"%";
     el.style.transform = "translate(-50%,-100%) scale("+(pos.scale*0.9)+")";
     el.textContent = "💩";
     el.title = "Click Clean Yard to remove";
@@ -1118,13 +878,13 @@ function renderWorld(){
     worldEl.appendChild(el);
   });
 
-  // toys (click to pick up)
+  // toys
   state.toys.forEach(t=>{
     const pos = depthToScreen(t.depth);
     const el = document.createElement("div");
     el.className = "toy";
     el.style.left = t.x+"%";
-    el.style.top = pos.y+"%";
+    el.style.top  = pos.y+"%";
     el.style.transform = "translate(-50%,-100%) scale("+pos.scale+")";
     el.textContent = Math.random()<0.5?"🧸":"⚽";
     el.title = "Click to pick up toy";
@@ -1138,13 +898,13 @@ function renderWorld(){
     worldEl.appendChild(el);
   });
 
-  // plants (click to remove)
+  // plants
   state.plants.forEach(p=>{
     const pos = depthToScreen(p.depth);
     const el = document.createElement("div");
     el.className = "plant";
     el.style.left = p.x+"%";
-    el.style.top = pos.y+"%";
+    el.style.top  = pos.y+"%";
     el.style.transform = "translate(-50%,-100%) scale("+pos.scale+")";
     el.textContent = p.variant==="tree"?"🌳":"🌻";
     el.title = "Click to remove plant";
@@ -1158,18 +918,18 @@ function renderWorld(){
     worldEl.appendChild(el);
   });
 
-  // houses (click to remove)
+  // houses
   state.houses.forEach(h=>{
     const pos = depthToScreen(h.depth);
     const el = document.createElement("div");
     el.className = "house";
     el.style.left = h.x+"%";
-    el.style.top = pos.y+"%";
+    el.style.top  = pos.y+"%";
     el.style.transform = "translate(-50%,-100%) scale("+pos.scale+")";
     let emoji = "🏠";
-    if(h.variant==="hut") emoji = "🏡";
-    if(h.variant==="tent") emoji = "⛺";
-    if(h.variant==="doghouse") emoji = "🐕‍🦺";
+    if(h.variant==="hut")      emoji = "🏡";
+    else if(h.variant==="tent")     emoji = "⛺";
+    else if(h.variant==="doghouse") emoji = "🐕‍🦺";
     el.textContent = emoji;
     el.title = "Click to remove animal house";
     el.dataset.id = h.id;
@@ -1180,8 +940,9 @@ function renderWorld(){
       renderWorld();
     });
     worldEl.appendChild(el);
+  });
 
-  // hazards (Justin danger items)
+  // hazards (Justin danger items) – separate from houses
   (state.hazards||[]).forEach(h=>{
     const pos = depthToScreen(h.depth||0.5);
     const el = document.createElement("div");
@@ -1189,44 +950,25 @@ function renderWorld(){
     if(h.type) cls += " " + ("haz-"+h.type);
     el.className = cls;
     el.style.left = (h.x||50)+"%";
-    el.style.top = pos.y+"%";
+    el.style.top  = pos.y+"%";
     el.style.transform = "translate(-50%,-100%) scale("+(pos.scale*1.05)+")";
     let symbol = "❗";
-    if(h.type === "can") symbol = "🥫";
-    else if(h.type === "sparkler") symbol = "✨";
-    else if(h.type === "spoiledFood") symbol = "🍕";
+    if(h.type === "can")         symbol = "🥫";
+    else if(h.type === "sparkler")   symbol = "✨";
+    else if(h.type === "spoiledFood")symbol = "🍕";
     el.textContent = symbol;
     el.title = "Click to remove before pets get hurt";
     el.dataset.id = h.id;
-    el.addEventListener("click",()=>{
-      // reward nearest alive pet with XP for being saved
-      const alive = state.animals.filter(a=>a.alive);
-      if(alive.length){
-        let best = alive[0];
-        let bestD = Infinity;
-        alive.forEach(a=>{
-          const dist = Math.abs((a.x||0)-(h.x||50)) + Math.abs((a.depth||0.5)-(h.depth||0.5))*40;
-          if(dist < bestD){
-            bestD = dist;
-            best = a;
-          }
-        });
-        best.xp = (best.xp||0) + 15;
-        showMood(best.id,"✅");
-      }
-      state.hazards = state.hazards.filter(x=>x.id!==h.id);
-      addLog("You removed something dangerous from the yard.");
-      saveState();
-      renderWorld();
-    });
     worldEl.appendChild(el);
   });
-  });
+
   renderHazardHud();
 }
 
-
 // Hazard HUD renderer
+const hazardHud     = document.getElementById("hazardHud");
+const hazardHudList = document.getElementById("hazardHudList");
+
 function renderHazardHud(){
   if(!hazardHud || !hazardHudList) return;
   const hazards = state.hazards || [];
@@ -1246,9 +988,9 @@ function renderHazardHud(){
     const emojiSpan = document.createElement("span");
     emojiSpan.className = "emoji";
     let symbol = "❗";
-    if(h.type === "can") symbol = "🥫";
-    else if(h.type === "sparkler") symbol = "✨";
-    else if(h.type === "spoiledFood") symbol = "🍕";
+    if(h.type === "can")         symbol = "🥫";
+    else if(h.type === "sparkler")   symbol = "✨";
+    else if(h.type === "spoiledFood")symbol = "🍕";
     emojiSpan.textContent = symbol;
 
     const labelSpan = document.createElement("span");
@@ -1258,13 +1000,12 @@ function renderHazardHud(){
     pill.appendChild(emojiSpan);
     pill.appendChild(labelSpan);
     pill.addEventListener("click",()=>{
-      // brief highlight of all hazards to help locate
       document.querySelectorAll(".hazard").forEach(el=>{
         el.style.transition = "transform .2s ease, filter .2s ease";
-        el.style.filter = "drop-shadow(0 0 12px rgba(248,250,252,1))";
-        el.style.transform = "translate(-50%,-100%) scale(1.4)";
+        el.style.filter     = "drop-shadow(0 0 12px rgba(248,250,252,1))";
+        el.style.transform  = "translate(-50%,-100%) scale(1.4)";
         setTimeout(()=>{
-          el.style.filter = "";
+          el.style.filter    = "";
           el.style.transform = "";
         }, 550);
       });
@@ -1274,62 +1015,57 @@ function renderHazardHud(){
   });
 }
 
-
-
 // --------- pet list ----------
-const petGrid = document.getElementById("petGrid");
-const hazardHud = document.getElementById("hazardHud");
-const hazardHudList = document.getElementById("hazardHudList");
-const petCountEl = document.getElementById("petCount");
-const petCountTopEl = document.getElementById("petCountTop");
-const statusText = document.getElementById("statusText");
-
+const petGrid      = document.getElementById("petGrid");
+const petCountEl   = document.getElementById("petCount");
+const petCountTopEl= document.getElementById("petCountTop");
+const statusText   = document.getElementById("statusText");
 
 // Mini-game elements
-const miniOverlay = document.getElementById("miniGameOverlay");
-const miniField   = document.getElementById("miniField");
-const miniTimeEl  = document.getElementById("miniTime");
-const miniScoreEl = document.getElementById("miniScore");
+const miniOverlay  = document.getElementById("miniGameOverlay");
+const miniField    = document.getElementById("miniField");
+const miniTimeEl   = document.getElementById("miniTime");
+const miniScoreEl  = document.getElementById("miniScore");
 const miniStartBtn = document.getElementById("miniStartBtn");
 const miniCloseBtn = document.getElementById("miniCloseBtn");
 const miniGameBtn  = document.getElementById("miniGameBtn");
 
-let miniTimer = null;
-let miniCountdown = 15;
-let miniScore = 0;
-let miniActive = false;
+let miniTimer      = null;
+let miniCountdown  = 15;
+let miniScore      = 0;
+let miniActive     = false;
 let miniSpawnTimer = null;
 
 function showMiniOverlay(){
-      if(!miniOverlay) return;
-      miniOverlay.hidden = false;
-      miniOverlay.style.display = "flex";
-    }
-    function hideMiniOverlay(){
-      if(!miniOverlay) return;
-      miniOverlay.hidden = true;
-      miniOverlay.style.display = "none";
-    }
+  if(!miniOverlay) return;
+  miniOverlay.hidden      = false;
+  miniOverlay.style.display = "flex";
+}
+function hideMiniOverlay(){
+  if(!miniOverlay) return;
+  miniOverlay.hidden      = true;
+  miniOverlay.style.display = "none";
+}
 
 function resetMiniGameHUD(){
   miniCountdown = 15;
-  miniScore = 0;
-  if(miniTimeEl) miniTimeEl.textContent = miniCountdown;
+  miniScore     = 0;
+  if(miniTimeEl)  miniTimeEl.textContent  = miniCountdown;
   if(miniScoreEl) miniScoreEl.textContent = miniScore;
 }
 
 function endMiniGame(){
   miniActive = false;
-  if(miniTimer) clearInterval(miniTimer);
+  if(miniTimer)      clearInterval(miniTimer);
   if(miniSpawnTimer) clearInterval(miniSpawnTimer);
-  miniTimer = null;
+  miniTimer      = null;
   miniSpawnTimer = null;
   if(miniStartBtn) miniStartBtn.disabled = false;
 
   const a = getSelected && getSelected();
   if(a && a.alive && miniScore > 0){
     const bonusXP = miniScore * 4;
-    a.xp = (a.xp||0) + bonusXP;
+    a.xp        = (a.xp||0) + bonusXP;
     a.happiness = clamp(a.happiness + miniScore*3);
     addLog(`Mini-game: ${a.name} earned ${bonusXP} XP and had fun catching treats!`);
     showMood(a.id, "⭐");
@@ -1342,13 +1078,13 @@ function spawnMiniTreat(){
   if(!miniActive || !miniField) return;
   const treat = document.createElement("div");
   treat.className = "mini-treat";
-  const startX = Math.random()*90+5;
+  const startX    = Math.random()*90+5;
   treat.style.left = startX + "%";
-  treat.style.top = "-10%";
+  treat.style.top  = "-10%";
   miniField.appendChild(treat);
 
   const fallDuration = 1600 + Math.random()*900;
-  const createdAt = performance.now();
+  const createdAt    = performance.now();
 
   function step(now){
     if(!miniActive) { treat.remove(); return; }
@@ -1373,17 +1109,17 @@ function spawnMiniTreat(){
 
 function startMiniGame(){
   if(!miniOverlay || !miniField) return;
-  showMiniOverlay();
   const a = getSelected && getSelected();
   if(!a || !a.alive){
     addLog("Select a living animal to play the mini-game with.");
+    showMiniOverlay(); // still show instructions
     return;
   }
 
+  showMiniOverlay();
   miniField.innerHTML = "";
   resetMiniGameHUD();
   miniActive = true;
-  miniOverlay.hidden = false;
   if(miniStartBtn) miniStartBtn.disabled = true;
 
   if(miniTimer) clearInterval(miniTimer);
@@ -1423,13 +1159,13 @@ if(miniStartBtn){
 function getRelText(a, all){
   if(!a.alive) return "Dead. You can replace them with a new animal.";
   const neighbors = all.filter(x=>x.id!==a.id && x.alive);
-  const dogs = neighbors.filter(x=>x.species==="dog");
-  const cats = neighbors.filter(x=>x.species==="cat");
+  const dogs    = neighbors.filter(x=>x.species==="dog");
+  const cats    = neighbors.filter(x=>x.species==="cat");
   const rabbits = neighbors.filter(x=>x.species==="rabbit");
-  const foxes = neighbors.filter(x=>x.species==="fox");
+  const foxes   = neighbors.filter(x=>x.species==="fox");
 
   if(a.species==="cat"){
-    if(dogs.length) return "Stressed by dogs chasing around.";
+    if(dogs.length)  return "Stressed by dogs chasing around.";
     if(foxes.length) return "Keeps an eye on fox trouble.";
   }
   if(a.species==="rabbit"){
@@ -1444,9 +1180,9 @@ function getRelText(a, all){
   return SPECIES_CONFIG[a.species]?.baseRel || "";
 }
 
-const locationInput   = document.getElementById("locationInput");
-const weatherSelect   = document.getElementById("weatherSelect");
-const justinFreqSelect= document.getElementById("justinFreq");
+const locationInput    = document.getElementById("locationInput");
+const weatherSelect    = document.getElementById("weatherSelect");
+const justinFreqSelect = document.getElementById("justinFreq");
 
 function render(){
   const animals = [...state.animals].sort((a,b)=>{
@@ -1455,34 +1191,17 @@ function render(){
     return (a.createdAt||0) - (b.createdAt||0);
   });
   const aliveCount = animals.filter(a=>a.alive).length;
-  petCountEl.textContent = aliveCount;
+  petCountEl.textContent    = aliveCount;
   petCountTopEl.textContent = animals.length;
-
 
   petGrid.innerHTML = "";
 
-  // move care controls (feed/play/wash/walk/release) into the selected animal card
-  const feedBtn = document.getElementById("feedBtn");
-  let careRow = null;
-  if(feedBtn){
-    careRow = feedBtn.closest(".btn-row");
-    if(careRow){
-      // remember original home on first run
-      if(!window.__careHome){
-        window.__careHome = {
-          parent: careRow.parentElement,
-          next: careRow.nextElementSibling
-        };
-      }
-    }
-  }
-
   animals.forEach(a=>{
     const card = document.createElement("div");
-    card.className = "pet-card";
-    card.dataset.id = a.id;
+    card.className   = "pet-card";
+    card.dataset.id  = a.id;
     if(a.id === selectedId) card.classList.add("selected");
-    const cfg = SPECIES_CONFIG[a.species] || {emoji:"❓",label:"?"};
+    const cfg   = SPECIES_CONFIG[a.species] || {emoji:"❓",label:"?"};
     const xpVal = a.xp || 0;
     const xpProg = getXpProgress(xpVal);
     const remaining = Math.max(0, xpProg.nextThreshold - xpVal);
@@ -1492,7 +1211,6 @@ function render(){
     } else {
       xpLabel = `Lvl ${xpProg.level} • ${xpVal} XP • ${remaining} to next`;
     }
-
 
     const header = document.createElement("div");
     header.className = "pet-header";
@@ -1526,7 +1244,6 @@ function render(){
     statRow.appendChild(renderStat("Health", a.health));
     card.appendChild(statRow);
 
-    // Per-card care actions
     const actions = document.createElement("div");
     actions.className = "pet-card-actions";
     actions.innerHTML = `
@@ -1542,10 +1259,10 @@ function render(){
       selectedId = a.id;
     };
 
-    const cardFeed = actions.querySelector(".card-feed");
-    const cardPlay = actions.querySelector(".card-play");
-    const cardWash = actions.querySelector(".card-wash");
-    const cardWalk = actions.querySelector(".card-walk");
+    const cardFeed    = actions.querySelector(".card-feed");
+    const cardPlay    = actions.querySelector(".card-play");
+    const cardWash    = actions.querySelector(".card-wash");
+    const cardWalk    = actions.querySelector(".card-walk");
     const cardRelease = actions.querySelector(".card-release");
 
     if(cardFeed && feedBtn){
@@ -1584,15 +1301,12 @@ function render(){
       });
     }
 
-
     if(!a.alive){
       const badge = document.createElement("div");
       badge.className = "pet-badge-dead";
       badge.textContent = "Dead";
       card.appendChild(badge);
     }
-    // careRow stays in the Care panel; no reparenting into cards
-
 
     card.addEventListener("click", ()=>{
       selectedId = a.id;
@@ -1600,15 +1314,13 @@ function render(){
     });
 
     petGrid.appendChild(card);
-
   });
-
 
   renderWorld();
   updateStatus();
 
-  locationInput.value = state.locationName || "";
-  weatherSelect.value = state.weatherMode || "auto";
+  locationInput.value    = state.locationName || "";
+  weatherSelect.value    = state.weatherMode || "auto";
   justinFreqSelect.value = state.justinFrequency || "normal";
 }
 
@@ -1617,7 +1329,7 @@ function renderStat(label,value,min=0,max=100,customRange=false){
   wrap.className = "stat";
   const labelDiv = document.createElement("div");
   labelDiv.className = "stat-label";
-  const v = customRange ? Math.round(value) : Math.round(value);
+  const v = Math.round(value);
   labelDiv.innerHTML = `<span>${label}</span><span>${v}</span>`;
   const bar = document.createElement("div");
   bar.className = "stat-bar";
@@ -1625,7 +1337,7 @@ function renderStat(label,value,min=0,max=100,customRange=false){
   fill.className = "stat-fill";
   const frac = clamp((value-min)/(max-min),0,1);
   fill.style.transform = `scaleX(${frac})`;
-  if(frac<.3) fill.classList.add("low");
+  if(frac<.3)      fill.classList.add("low");
   else if(frac<.6) fill.classList.add("mid");
   bar.appendChild(fill);
   wrap.appendChild(labelDiv);
@@ -1635,14 +1347,16 @@ function renderStat(label,value,min=0,max=100,customRange=false){
 
 function updateStatus(){
   const a = state.animals.find(x=>x.id===selectedId);
+  const reviveBtn = document.getElementById("reviveBtn");
   if(!a){
     statusText.textContent = "Select an animal card to care for it.";
-    document.getElementById("reviveBtn").disabled = true;
+    if(reviveBtn) reviveBtn.disabled = true;
     setControlsDisabled(true);
     return;
   }
   setControlsDisabled(false);
-  const reviveBtn = document.getElementById("reviveBtn");
+  if(!reviveBtn) return;
+
   if(!a.alive){
     statusText.innerHTML = `<span class="error">${a.name} is dead. You can spawn a new ${a.species} using the button.</span>`;
     reviveBtn.disabled = false;
@@ -1667,8 +1381,10 @@ function updateStatus(){
 }
 
 function setControlsDisabled(disabled){
-  ["feedBtn","playBtn","washBtn","walkBtn","releaseBtn","cleanYardBtn","dropToyBtn","addPlantBtn","addHouseBtn"].forEach(id=>{
-    document.getElementById(id).disabled = disabled;
+  ["feedBtn","playBtn","washBtn","walkBtn","releaseBtn",
+   "cleanYardBtn","dropToyBtn","addPlantBtn","addHouseBtn"].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.disabled = disabled;
   });
 }
 
@@ -1694,7 +1410,7 @@ const cleanYardBtn    = document.getElementById("cleanYardBtn");
 const dropToyBtn      = document.getElementById("dropToyBtn");
 const addPlantBtn     = document.getElementById("addPlantBtn");
 const addHouseBtn     = document.getElementById("addHouseBtn");
-const clearHazardsBtn  = document.getElementById("clearHazardsBtn");
+const clearHazardsBtn = document.getElementById("clearHazardsBtn");
 
 addPetBtn.addEventListener("click",()=>{
   simulateFromLastUpdate();
@@ -1742,12 +1458,11 @@ function getSelected(){
 feedBtn.addEventListener("click",()=>{
   const a = getSelected(); if(!a || !a.alive) return;
   actionTick();
-  a.hunger = clamp(a.hunger + 35);
-  a.happiness = clamp(a.happiness + 4);
+  a.hunger      = clamp(a.hunger + 35);
+  a.happiness   = clamp(a.happiness + 4);
   a.cleanliness = clamp(a.cleanliness - 3);
-  a.weight = clamp(a.weight + 6,20,200);
-  
-  if(a.alive) a.xp = (a.xp||0) + 3;
+  a.weight      = clamp(a.weight + 6,20,200);
+  a.xp          = (a.xp||0) + 3;
   addLog(`You fed ${a.name}.`);
   showMood(a.id,"😋");
   saveState();
@@ -1758,11 +1473,10 @@ playBtn.addEventListener("click",()=>{
   const a = getSelected(); if(!a || !a.alive) return;
   actionTick();
   a.happiness = clamp(a.happiness + 25);
-  a.energy = clamp(a.energy - 10);
-  a.hunger = clamp(a.hunger - 5);
-  a.weight = clamp(a.weight - 2,20,200);
-  
-  if(a.alive) a.xp = (a.xp||0) + 5;
+  a.energy    = clamp(a.energy - 10);
+  a.hunger    = clamp(a.hunger - 5);
+  a.weight    = clamp(a.weight - 2,20,200);
+  a.xp        = (a.xp||0) + 5;
   addLog(`You played with ${a.name}.`);
   showMood(a.id,"❤️");
   saveState();
@@ -1773,9 +1487,8 @@ washBtn.addEventListener("click",()=>{
   const a = getSelected(); if(!a || !a.alive) return;
   actionTick();
   a.cleanliness = clamp(a.cleanliness + 35);
-  a.happiness = clamp(a.happiness - 2);
-  
-  if(a.alive) a.xp = (a.xp||0) + 3;
+  a.happiness   = clamp(a.happiness - 2);
+  a.xp          = (a.xp||0) + 3;
   addLog(`You washed ${a.name}.`);
   showMood(a.id,"🫧");
   saveState();
@@ -1785,16 +1498,15 @@ washBtn.addEventListener("click",()=>{
 walkBtn.addEventListener("click",()=>{
   const a = getSelected(); if(!a || !a.alive) return;
   actionTick();
-  a.energy = clamp(a.energy - 9);
+  a.energy  = clamp(a.energy - 9);
   a.happiness = clamp(a.happiness + 15);
-  a.hunger = clamp(a.hunger - 7);
-  a.weight = clamp(a.weight - 3,20,200);
-  
-  if(a.alive) a.xp = (a.xp||0) + 6;
+  a.hunger  = clamp(a.hunger - 7);
+  a.weight  = clamp(a.weight - 3,20,200);
+  a.xp      = (a.xp||0) + 6;
   addLog(`You took ${a.name} for a walk.`);
   showMood(a.id,"🚶‍♂️");
   a.depth = clamp(a.depth + randRange(-0.2,0.2),0,1);
-  a.x = clamp((a.x ?? 50) + randRange(-10,10),5,95);
+  a.x     = clamp((a.x ?? 50) + randRange(-10,10),5,95);
   saveState();
   render();
 });
@@ -1828,9 +1540,7 @@ reviveBtn.addEventListener("click",()=>{
     overweightMinutes:0,
     x: randRange(10,90),
     depth: randRange(0,1),
-    // D: reset progression on revive
-    xp: 0,
-    level: 0
+    xp: 0 // reset XP to 0 on revive
   };
   const idx = state.animals.findIndex(x=>x.id===a.id);
   if(idx !== -1) state.animals.splice(idx,1,newAnimal);
@@ -1854,10 +1564,11 @@ if(clearHazardsBtn){
         let best = alive[0];
         let bestD = Infinity;
         alive.forEach(a=>{
-          const dist = Math.abs((a.x||0)-(h.x||50)) + Math.abs((a.depth||0.5)-(h.depth||0.5))*40;
+          const dist = Math.abs((a.x||0)-(h.x||50)) +
+                       Math.abs((a.depth||0.5)-(h.depth||0.5))*40;
           if(dist < bestD){
             bestD = dist;
-            best = a;
+            best  = a;
           }
         });
         best.xp = (best.xp||0) + 10;
@@ -1881,7 +1592,7 @@ cleanYardBtn.addEventListener("click",()=>{
   state.animals.forEach(a=>{
     if(a.alive){
       a.cleanliness = clamp(a.cleanliness + 8);
-      a.happiness = clamp(a.happiness + 4);
+      a.happiness   = clamp(a.happiness + 4);
     }
   });
   addLog(`You cleaned ${count} poo piles from the yard. ✨`);
@@ -1976,18 +1687,16 @@ justinFreqSelect.addEventListener("change",()=>{
 function tickMovement(){
   state.animals.forEach(a=>{
     if(!a.alive) return;
-    // smaller steps for smoother wander, still using CSS transitions
     const stepX = randRange(-1.5,1.5);
     const stepD = randRange(-0.03,0.03);
-    a.x = clamp((a.x ?? 50) + stepX,5,95);
-    a.depth = clamp((a.depth ?? 0.5) + stepD,0,1);
+    a.x    = clamp((a.x ?? 50) + stepX,5,95);
+    a.depth= clamp((a.depth ?? 0.5) + stepD,0,1);
   });
   saveState();
   renderWorld();
 }
 
 setInterval(()=>{simulateFromLastUpdate();},15000);
-// slightly faster + smoother movement updates
 setInterval(()=>{tickMovement();},2200);
 setInterval(()=>{applyTimeOfDay();renderWeather();},60000);
 
@@ -1999,13 +1708,13 @@ function scheduleJustin(){
   const freq = state.justinFrequency || "normal";
   let baseMs;
   switch(freq){
-    case "rare":   baseMs = 120000; break; // ~2 min
-    case "often":  baseMs = 45000;  break; // ~45s
-    case "chaos":  baseMs = 20000;  break; // ~20s
-    default:       baseMs = 70000;  break; // ~70s
+    case "rare":   baseMs = 120000; break;
+    case "often":  baseMs = 45000;  break;
+    case "chaos":  baseMs = 20000;  break;
+    default:       baseMs = 70000;  break;
   }
   const jitter = baseMs*0.3;
-  const delay = baseMs + (Math.random()*2*jitter - jitter);
+  const delay  = baseMs + (Math.random()*2*jitter - jitter);
   justinTimer = setTimeout(spawnJustin, Math.max(8000,delay));
 }
 
@@ -2032,20 +1741,18 @@ function spawnJustin(){
 
   const bubble = document.createElement("div");
   bubble.className = "justin-bubble";
-  // 🔥 this pulls from habitat-characters.js (common + legendary)
   bubble.textContent = (window.pickCharacterLine
     ? window.pickCharacterLine("justin")
     : "I’m supposed to say something profound here.");
   el.appendChild(bubble);
 
-  
   // chance for Justin to drop something dangerous into the yard
   if(!state.hazards) state.hazards = [];
   const roll = Math.random();
   let hazardType = null;
-  if(roll < 0.2) hazardType = "can";
-  else if(roll < 0.32) hazardType = "sparkler";
-  else if(roll < 0.46) hazardType = "spoiledFood";
+  if(roll < 0.2)        hazardType = "can";
+  else if(roll < 0.32)  hazardType = "sparkler";
+  else if(roll < 0.46)  hazardType = "spoiledFood";
 
   if(hazardType){
     const alive = state.animals.filter(a=>a.alive);
@@ -2067,7 +1774,7 @@ function spawnJustin(){
     renderWorld();
   }
 
-worldEl.appendChild(el);
+  worldEl.appendChild(el);
 
   requestAnimationFrame(()=>{
     el.style.left = "115%";
@@ -2086,9 +1793,4 @@ simulateFromLastUpdate();
 render();
 addLog("Cyber Pets loaded. Time, day/night, weather, houses, and Justin have been applied.");
 scheduleJustin();
-
 </script>
-
-
-</body>
-</html>
