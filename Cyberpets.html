@@ -2225,25 +2225,6 @@ addLog("Cyber Pets loaded. Time, day/night, weather, houses, and Justin have bee
 scheduleJustin();
 
 </script>
-    // Defer Tawk.to after load/idle for better INP
-  window.addEventListener('load', ()=>{
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(()=>{
-        var s=document.createElement('script');
-        s.async=true; s.src='https://embed.tawk.to/6906c86e40b306194f3da6e5/1j917ts2m';
-        s.charset='UTF-8'; s.crossOrigin='anonymous';
-        document.head.appendChild(s);
-      }, {timeout:3000});
-    } else {
-      setTimeout(()=>{
-        var s=document.createElement('script');
-        s.async=true; s.src='https://embed.tawk.to/6906c86e40b306194f3da6e5/1j917ts2m';
-        s.charset='UTF-8'; s.crossOrigin='anonymous';
-        document.head.appendChild(s);
-      }, 2500);
-    }
-  });
-})();
-</script>
+   
 </body>
 </html>
