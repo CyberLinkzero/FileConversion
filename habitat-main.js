@@ -542,6 +542,36 @@ function handleInteractions(hours, rawMinutes){
 
 // --------- world render ----------
 const worldEl = document.getElementById("world");
+worldEl.addEventListener("click",(ev)=>{
+  const target = ev.target;
+  if(!target || !target.classList.contains("hazard")) return;
+  const id = target.dataset.id;
+  if(!id) return;
+  const hazards = state.hazards || [];
+  const h = hazards.find(x=>x.id===id);
+  if(!h) return;
+
+  // reward nearest alive pet
+  const alive = state.animals.filter(a=>a.alive);
+  if(alive.length){
+    let best = alive[0];
+    let bestD = Infinity;
+    alive.forEach(a=>{
+      const dist = Math.abs((a.x||0)-(h.x||50)) + Math.abs((a.depth||0.5)-(h.depth||0.5))*40;
+      if(dist < bestD){
+        bestD = dist;
+        best = a;
+      }
+    });
+    best.xp = (best.xp||0) + 15;
+    showMood(best.id,"✅");
+  }
+
+  state.hazards = hazards.filter(x=>x.id!==id);
+  addLog("You removed something dangerous from the yard.");
+  saveState();
+  renderWorld();
+});
 const yardSize = document.getElementById("yardSize");
 yardSize.addEventListener("input", ()=>{
   const scale = yardSize.value/100;
@@ -1425,6 +1455,7 @@ const cleanYardBtn    = document.getElementById("cleanYardBtn");
 const dropToyBtn      = document.getElementById("dropToyBtn");
 const addPlantBtn     = document.getElementById("addPlantBtn");
 const addHouseBtn     = document.getElementById("addHouseBtn");
+const clearHazardsBtn  = document.getElementById("clearHazardsBtn");
 
 addPetBtn.addEventListener("click",()=>{
   simulateFromLastUpdate();
@@ -1570,6 +1601,36 @@ reviveBtn.addEventListener("click",()=>{
   saveState();
   render();
 });
+
+if(clearHazardsBtn){
+  clearHazardsBtn.addEventListener("click",()=>{
+    const hazards = state.hazards || [];
+    if(!hazards.length){
+      addLog("No Justin hazards in the yard right now.");
+      return;
+    }
+    const alive = state.animals.filter(a=>a.alive);
+    hazards.forEach(h=>{
+      if(alive.length){
+        let best = alive[0];
+        let bestD = Infinity;
+        alive.forEach(a=>{
+          const dist = Math.abs((a.x||0)-(h.x||50)) + Math.abs((a.depth||0.5)-(h.depth||0.5))*40;
+          if(dist < bestD){
+            bestD = dist;
+            best = a;
+          }
+        });
+        best.xp = (best.xp||0) + 10;
+        showMood(best.id,"🧹");
+      }
+    });
+    state.hazards = [];
+    addLog("You cleaned up all of Justin's hazards.");
+    saveState();
+    renderWorld();
+  });
+}
 
 cleanYardBtn.addEventListener("click",()=>{
   if(!state.poops.length){

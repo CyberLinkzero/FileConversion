@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Cyber Pets – Backyard Virtual Pets</title>
+  <title>HabitatGotchi – Backyard Virtual Pets</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="A fenced backyard full of virtual pets. They move, chase, play, poop, and live with day/night, weather, houses, and a weird human named Justin.">
   
@@ -14,7 +14,7 @@
     <div class="app-inner">
       <header>
         <div>
-          <h1>Cyber Pets</h1>
+          <h1>HabitatGotchi</h1>
           <div class="tagline">
             Virtual pets, day/night cycles, weather, houses… and a guy named Justin who thinks we’re in a simulation.
           </div>
@@ -28,8 +28,8 @@
       <div style="padding:6px 10px;border-radius:10px;
         background:rgba(15,23,42,0.9);border:1px solid rgba(96,165,250,0.9);
         color:#e5f2ff;font-size:12px;display:inline-flex;gap:8px;align-items:center;">
-        <span style="font-weight:600;">Cyber Pets</span>
-        <span style="opacity:.8;"></span>
+        <span style="font-weight:600;">Cyberpets ABCD Upgrade v6</span>
+        <span style="opacity:.8;">Level, current XP, and XP to next level now visible</span>
       </div>
     </section>
     
@@ -38,7 +38,7 @@
 <div style="position:fixed;right:12px;top:8px;padding:4px 10px;border-radius:999px;
 background:rgba(15,23,42,0.9);border:1px solid rgba(96,165,250,0.9);color:#e5f2ff;
 font-size:11px;z-index:9999;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;">
-  
+  Cyberpets ABCD v2 (XP + Hazards + Moon Coin)
 </div>
 
 
@@ -161,6 +161,7 @@ font-size:11px;z-index:9999;font-family:system-ui,-apple-system,Segoe UI,Roboto,
             <button id="dropToyBtn" class="secondary small"><span class="btn-icon">🧸</span>Drop toy</button>
             <button id="addPlantBtn" class="secondary small"><span class="btn-icon">🌱</span>Add plant</button>
             <button id="addHouseBtn" class="secondary small"><span class="btn-icon">🏠</span>Add animal house</button>
+            <button id="clearHazardsBtn" class="secondary small"><span class="btn-icon">⚠️</span>Remove Justin hazards</button>
           </div>
 
           <div class="btn-row" style="margin-top:4px;">
@@ -181,7 +182,7 @@ font-size:11px;z-index:9999;font-family:system-ui,-apple-system,Segoe UI,Roboto,
           </div>
 
           <div id="hazardHud" class="hazard-hud" hidden>
-            <div class="hazard-hud-title">danger in yard</div>
+            <div class="hazard-hud-title">Justin danger in yard</div>
             <div id="hazardHudList" class="hazard-hud-list"></div>
           </div>
 
@@ -739,6 +740,35 @@ function handleInteractions(hours, rawMinutes){
 
 // --------- world render ----------
 const worldEl = document.getElementById("world");
+worldEl.addEventListener("click",(ev)=>{
+      const target = ev.target;
+      if(!target || !target.classList.contains("hazard")) return;
+      const id = target.dataset.id;
+      if(!id) return;
+      const hazards = state.hazards || [];
+      const h = hazards.find(x=>x.id===id);
+      if(!h) return;
+
+      const alive = state.animals.filter(a=>a.alive);
+      if(alive.length){
+        let best = alive[0];
+        let bestD = Infinity;
+        alive.forEach(a=>{
+          const dist = Math.abs((a.x||0)-(h.x||50)) + Math.abs((a.depth||0.5)-(h.depth||0.5))*40;
+          if(dist < bestD){
+            bestD = dist;
+            best = a;
+          }
+        });
+        best.xp = (best.xp||0) + 15;
+        showMood(best.id,"✅");
+      }
+
+      state.hazards = hazards.filter(x=>x.id!==id);
+      addLog("You removed something dangerous from the yard.");
+      saveState();
+      renderWorld();
+    });
 const yardSize = document.getElementById("yardSize");
 yardSize.addEventListener("input", ()=>{
   const scale = yardSize.value/100;
@@ -1625,6 +1655,7 @@ const cleanYardBtn    = document.getElementById("cleanYardBtn");
 const dropToyBtn      = document.getElementById("dropToyBtn");
 const addPlantBtn     = document.getElementById("addPlantBtn");
 const addHouseBtn     = document.getElementById("addHouseBtn");
+const clearHazardsBtn  = document.getElementById("clearHazardsBtn");
 
 addPetBtn.addEventListener("click",()=>{
   simulateFromLastUpdate();
@@ -1770,6 +1801,36 @@ reviveBtn.addEventListener("click",()=>{
   saveState();
   render();
 });
+
+if(clearHazardsBtn){
+  clearHazardsBtn.addEventListener("click",()=>{
+    const hazards = state.hazards || [];
+    if(!hazards.length){
+      addLog("No Justin hazards in the yard right now.");
+      return;
+    }
+    const alive = state.animals.filter(a=>a.alive);
+    hazards.forEach(h=>{
+      if(alive.length){
+        let best = alive[0];
+        let bestD = Infinity;
+        alive.forEach(a=>{
+          const dist = Math.abs((a.x||0)-(h.x||50)) + Math.abs((a.depth||0.5)-(h.depth||0.5))*40;
+          if(dist < bestD){
+            bestD = dist;
+            best = a;
+          }
+        });
+        best.xp = (best.xp||0) + 10;
+        showMood(best.id,"🧹");
+      }
+    });
+    state.hazards = [];
+    addLog("You cleaned up all of Justin's hazards.");
+    saveState();
+    renderWorld();
+  });
+}
 
 cleanYardBtn.addEventListener("click",()=>{
   if(!state.poops.length){
@@ -1984,7 +2045,7 @@ worldEl.appendChild(el);
 // --------- boot ---------
 simulateFromLastUpdate();
 render();
-addLog("Cyber Pets loaded. Time, day/night, weather, houses, and Justin have been applied.");
+addLog("HabitatGotchi loaded. Time, day/night, weather, houses, and Justin have been applied.");
 scheduleJustin();
 
 </script>
