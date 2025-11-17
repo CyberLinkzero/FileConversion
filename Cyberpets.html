@@ -5,29 +5,7 @@
   <title>Cyber Pets– Backyard Virtual Pets</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="A fenced backyard full of virtual pets. They move, chase, play, poop, and live with day/night, weather, houses, and a weird human named Justin.">
-  
-  const shareGameBtn = document.getElementById("shareGameBtn");
 
-if (shareGameBtn) {
-  shareGameBtn.addEventListener("click", async () => {
-    const url = window.location.href;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "CyberPets Game",
-          text: "Come play my CyberPets Yard!",
-          url: url
-        });
-      } catch (err) {
-        console.log("Share canceled", err);
-      }
-    } else {
-      await navigator.clipboard.writeText(url);
-      alert("Game link copied to clipboard!");
-    }
-  });
-}
 
   <link rel="stylesheet" href="habitat.css">
   
