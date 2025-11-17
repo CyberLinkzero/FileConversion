@@ -9,6 +9,20 @@ const SPECIES_CONFIG = {
   fox:    { emoji:"🦊", label:"Fox",    baseRel:"Mischievous chaser.",      weightStart:45 }
 };
 
+const PERSONALITIES = {
+  dog:    ["goofy","needy","hyper","lazy","curious"],
+  cat:    ["aloof","cuddly","chaotic","judgy","gremlin"],
+  rabbit: ["shy","gentle","skittish","snacky"],
+  fox:    ["sneaky","playful","cautious","gremlin"]
+};
+
+function pickPersonality(species){
+  const list = PERSONALITIES[species] || ["chill"];
+  return list[Math.floor(Math.random()*list.length)];
+}
+
+
+
 let state = {
   lastUpdate: Date.now(),
   animals: [],
@@ -25,6 +39,63 @@ let state = {
 function clamp(v,min=0,max=100){return Math.max(min,Math.min(max,v));}
 function randRange(min,max){return min + Math.random()*(max-min);}
 
+
+function getLevelFromXP(xp){
+  xp = xp||0;
+  if(xp <= 0) return 0;
+  return Math.floor(Math.sqrt(xp/20));
+}
+
+function getXpProgress(xp){
+  xp = xp||0;
+  const lvl = getLevelFromXP(xp);
+  const base = 20;
+  const currentThreshold = base * (lvl*lvl);
+  const nextThreshold = base * ((lvl+1)*(lvl+1));
+  const into = Math.max(0, xp - currentThreshold);
+  const needed = Math.max(0, nextThreshold - currentThreshold);
+  return {
+    level: lvl,
+    current: xp,
+    currentThreshold,
+    nextThreshold,
+    into,
+    needed
+  };
+}
+function getLevelBonusMinutes(a){
+  const lvl = getLevelFromXP(a.xp||0);
+  return lvl * 5; // 5 minutes extra per level
+}
+function formatMinutesToCountdown(mins){
+  if(!isFinite(mins) || mins <= 0) return "now";
+  const total = Math.floor(mins);
+  const d = Math.floor(total / (60*24));
+  const h = Math.floor((total % (60*24)) / 60);
+  const m = total % 60;
+  if(d > 0) return `${d}d ${h}h`;
+  if(h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+
+function estimateTimeToDeathMinutes(a){
+  if(!a || !a.alive) return 0;
+  // very rough estimate so player has a warning window
+  const hungerDropPerHour = 16; // base rate used in simulateFromLastUpdate
+  const lvlBonusMin = getLevelBonusMinutes(a);
+  const hungerMinutes =
+    a.hunger > 0 ? (a.hunger / hungerDropPerHour) * 60 : 0;
+
+  const overweightLimit = 6*60 + lvlBonusMin;
+  let overweightMinutes = Infinity;
+  if(a.weight >= 140){
+    const remaining = overweightLimit - (a.overweightMinutes||0);
+    overweightMinutes = remaining > 0 ? remaining : 0;
+  }
+  const best = Math.min(hungerMinutes || Infinity, overweightMinutes || Infinity);
+  if(!isFinite(best)) return hungerMinutes || 0;
+  return Math.max(0, best);
+}
 // --------- load state ----------
 (function loadState(){
   try{
@@ -49,7 +120,9 @@ function randRange(min,max){return min + Math.random()*(max-min);}
         alive: a.alive !== false,
         overweightMinutes: a.overweightMinutes || 0,
         x: typeof a.x==="number" ? a.x : randRange(10,90),
-        depth: typeof a.depth==="number" ? a.depth : randRange(0,1)
+        depth: typeof a.depth==="number" ? a.depth : randRange(0,1),
+        xp: typeof a.xp === "number" ? a.xp : 0,
+        personality: a.personality || pickPersonality(a.species || "dog")
       }));
       state.poops = (s.poops||[]).map(p=>({
         id: p.id || crypto.randomUUID(),
@@ -82,7 +155,6 @@ function randRange(min,max){return min + Math.random()*(max-min);}
     console.warn("load error",e);
   }
 })();
-
 function saveState(){
   state.lastUpdate = Date.now();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -125,7 +197,7 @@ function getCurrentWeather(date=new Date()){
 function simulateFromLastUpdate(){
   const now = Date.now();
   let elapsedMs = now - state.lastUpdate;
-  if(elapsedMs < 5000) return;
+  if(elapsedMs < 2000) return;
   if(fastToggle.checked) elapsedMs *= 8;
   let elapsedMinutes = elapsedMs/60000;
   const rawMinutes = elapsedMinutes;
@@ -159,15 +231,23 @@ function simulateFromLastUpdate(){
     happyDropPerHour = Math.max(5, happyDropPerHour - 1);
   }
 
+
   alive.forEach(a=>{
+    // passive XP for surviving time
+    if(a.alive){
+      a.xp = (a.xp||0) + Math.round(10 * hours);
+    }
+    const lvlBonusMin = getLevelBonusMinutes(a);
+    const lvlFactor = 1 + (getLevelFromXP(a.xp||0) * 0.05);
+
     a.hunger      = clamp(a.hunger - hungerDropPerHour*hours);
     a.happiness   = clamp(a.happiness - happyDropPerHour*hours);
     a.energy      = clamp(a.energy - energyDropPerHour*hours);
     a.cleanliness = clamp(a.cleanliness - cleanDropPerHour*hours);
 
-    if(a.hunger < 25)      a.health = clamp(a.health - 15*hours);
-    if(a.cleanliness < 25) a.health = clamp(a.health - 10*hours);
-    if(a.happiness < 20)   a.health = clamp(a.health - 8*hours);
+    if(a.hunger < 25)      a.health = clamp(a.health - (15*hours)/lvlFactor);
+    if(a.cleanliness < 25) a.health = clamp(a.health - (10*hours)/lvlFactor);
+    if(a.happiness < 20)   a.health = clamp(a.health - (8*hours)/lvlFactor);
 
     if(a.hunger < 40 && a.energy > 40){
       a.weight = clamp(a.weight - 6*hours, 20, 200);
@@ -178,20 +258,20 @@ function simulateFromLastUpdate(){
 
     if(a.weight >= 140){
       a.overweightMinutes += rawMinutes;
-      a.health = clamp(a.health - 10*hours);
+      a.health = clamp(a.health - (10*hours)/lvlFactor);
     }else{
       a.overweightMinutes = Math.max(0, a.overweightMinutes - rawMinutes/2);
     }
 
     const tooSkinny = a.weight <= 25;
-    const tooFat    = a.weight >= 175 || a.overweightMinutes > 6*60;
+    const tooFat    = a.weight >= 175 || a.overweightMinutes > (6*60 + lvlBonusMin);
     const zeroStat  = a.health <= 0;
 
     if(a.alive && (tooSkinny || tooFat || zeroStat)){
       a.alive = false;
       if(tooFat)      addLog(`${a.name} the ${a.species} became too overweight and died. 💔`);
       else if(tooSkinny) addLog(`${a.name} the ${a.species} became too weak and died. 💔`);
-      else            addLog(`${a.name} the ${a.species} died from poor health. 💔`);
+      else              addLog(`${a.name} the ${a.species} died from poor health. 💔`);
     }
 
     if(a.alive){
@@ -211,7 +291,8 @@ function simulateFromLastUpdate(){
   }
 
   handleInteractions(hours, rawMinutes);
-  handleToyHappiness(hours);
+  handleHazards(hours, rawMinutes);
+  maybeTriggerMicroStory(hours, rawMinutes);
 
   state.lastUpdate = now;
   saveState();
@@ -227,6 +308,19 @@ function spawnPooNearAnimal(a){
     createdAt: Date.now()
   });
 }
+
+
+function spawnPeeAtFence(a){
+  if(!a || !a.alive) return;
+  const pos = depthToScreen(Math.min(1, (a.depth||0.9) + 0.04));
+  const el = document.createElement("div");
+  el.className = "pee";
+  el.style.left = (a.x || 50) + "%";
+  el.style.top = pos.y + "%";
+  worldEl.appendChild(el);
+  setTimeout(()=>{ el.remove(); }, 4200);
+}
+
 
 function handleToyHappiness(hours){
   if(!state.toys.length) return;
@@ -244,6 +338,107 @@ function handleToyHappiness(hours){
   });
   const cut = Date.now() - 10*60*1000;
   state.toys = state.toys.filter(t=>t.createdAt > cut);
+}
+
+function handleHazards(hours, rawMinutes){
+  if(!state.hazards || !state.hazards.length) return;
+  const alive = state.animals.filter(a=>a.alive);
+  if(!alive.length) return;
+
+  state.hazards.forEach(h=>{
+    // find closest animal
+    let closest = null;
+    let bestDist = Infinity;
+    alive.forEach(a=>{
+      const dist = Math.abs((a.x||0) - (h.x||50)) + Math.abs((a.depth||0.5)-(h.depth||0.5))*40;
+      if(dist < bestDist){
+        bestDist = dist;
+        closest = a;
+      }
+    });
+    if(!closest || bestDist > 18) return;
+
+    // apply effect based on hazard type
+    if(h.type === "can"){
+      closest.health = clamp(closest.health - 6*hours);
+      closest.happiness = clamp(closest.happiness - 8);
+      closest.hunger = clamp(closest.hunger - 5);
+      if(Math.random()<0.25) addLog(`${closest.name} sniffed Justin's old can and felt sick.`);
+    }else if(h.type === "sparkler"){
+      closest.health = clamp(closest.health - 18*hours);
+      closest.happiness = clamp(closest.happiness - 6);
+      if(Math.random()<0.3) addLog(`${closest.name} got too close to Justin's sparkler!`);
+    }else if(h.type === "spoiledFood"){
+      closest.health = clamp(closest.health - 12*hours);
+      closest.hunger = clamp(closest.hunger - 10);
+      if(Math.random()<0.3) addLog(`${closest.name} ate something gross Justin threw over the fence.`);
+    }
+  });
+
+  // auto-clear very old hazards
+  const cutoff = Date.now() - 30*60*1000;
+  state.hazards = state.hazards.filter(h=>h.createdAt > cutoff);
+}
+
+function maybeTriggerMicroStory(hours, rawMinutes){
+  const now = Date.now();
+  const gapMin = (now - (state.lastStoryAt||0))/60000;
+  const alive = state.animals.filter(a=>a.alive);
+  if(alive.length < 2) return;
+  if(gapMin < 8) return; // at least 8 min apart
+  if(Math.random() > 0.45) return;
+
+  const dogs = alive.filter(a=>a.species==="dog");
+  const foxes = alive.filter(a=>a.species==="fox");
+  const rabbits = alive.filter(a=>a.species==="rabbit");
+  const cats = alive.filter(a=>a.species==="cat");
+
+  if(dogs.length && (cats.length || foxes.length)){
+    const d = dogs[Math.floor(Math.random()*dogs.length)];
+    addLog(`${d.name} paced along the fence, guarding the backyard from trouble.`);
+    showMood(d.id,"🛡️");
+    d.xp = (d.xp||0)+12;
+    state.lastStoryAt = now;
+    return;
+  }
+
+  if(foxes.length && rabbits.length){
+    const f = foxes[Math.floor(Math.random()*foxes.length)];
+    const r = rabbits[Math.floor(Math.random()*rabbits.length)];
+    addLog(`${f.name} tried to sneak near ${r.name}'s snacks, but you kept an eye on them.`);
+    showMood(f.id,"🦊");
+    showMood(r.id,"😳");
+    f.xp = (f.xp||0)+8;
+    r.xp = (r.xp||0)+8;
+    state.lastStoryAt = now;
+    return;
+  }
+
+  if(cats.length && dogs.length){
+    const c = cats[Math.floor(Math.random()*cats.length)];
+    const d = dogs[Math.floor(Math.random()*dogs.length)];
+    addLog(`${c.name} and ${d.name} shared a quiet moment watching the sky together.`);
+    showMood(c.id,"🌙");
+    showMood(d.id,"🌙");
+    c.xp = (c.xp||0)+6;
+    d.xp = (d.xp||0)+6;
+    state.lastStoryAt = now;
+    return;
+  }
+
+  // fallback: pick any two
+  if(alive.length >= 2){
+    const a = alive[Math.floor(Math.random()*alive.length)];
+    const b = alive[Math.floor(Math.random()*alive.length)];
+    if(a.id !== b.id){
+      addLog(`${a.name} wandered over to ${b.name} and they quietly shared the yard for a while.`);
+      showMood(a.id,"💞");
+      showMood(b.id,"💞");
+      a.xp = (a.xp||0)+5;
+      b.xp = (b.xp||0)+5;
+      state.lastStoryAt = now;
+    }
+  }
 }
 
 function handleInteractions(hours, rawMinutes){
@@ -421,12 +616,51 @@ function showMood(id,emoji,ms=1800){
   el.classList.add("show");
   setTimeout(()=>el.classList.remove("show"), ms);
 }
+function maybeShowThought(a){
+  if(!a || !a.alive) return;
+  // Don't spam: 25% chance when called
+  if(Math.random() > 0.25) return;
+
+  let msg = null;
+
+  if(a.hunger < 35){
+    msg = "I could really use a snack… 🍖";
+  }else if(a.happiness < 35){
+    msg = "Play with me? 🎾";
+  }else if(a.cleanliness < 35){
+    msg = "I feel kinda gross… 🧼";
+  }else if(a.energy < 30){
+    msg = "I need a nap soon. 😴";
+  }
+
+  // Personality spice
+  const p = a.personality;
+  if(!msg && p){
+    if(p === "needy" && Math.random() < 0.7){
+      msg = "Hey, look at me! 🐾";
+    }else if(p === "aloof" && Math.random() < 0.6){
+      msg = "I’ll allow your presence. 😼";
+    }else if(p === "hyper" && Math.random() < 0.6){
+      msg = "Can we run again? 💨";
+    }else if(p === "lazy" && Math.random() < 0.6){
+      msg = "Too comfy to move… 🛋️";
+    }else if(p === "shy" && Math.random() < 0.6){
+      msg = "Everything is a little scary. 🐾";
+    }
+  }
+
+  if(!msg) return;
+  showSpeech(a.id, msg, 2600);
+}
+
+
 
 function depthToScreen(depth){
   const groundBottom = 88;
   const fenceLine = 57;
   const y = groundBottom - (groundBottom - fenceLine)*depth;
-  const scale = 1 - 0.4*depth;
+  // Slightly larger, smoother-looking critters front-to-back
+  const scale = 1.25 - 0.35*depth; // depth 0 → 1.25, depth 1 → 0.90
   return {y,scale};
 }
 
@@ -449,24 +683,54 @@ function renderWorld(){
     sprite.style.transform = `translate(-50%,-100%) scale(${pos.scale})`;
     if(!a.alive){sprite.classList.add("dead");}
 
+    
     if(a.species==="dog"){
       const wrap = document.createElement("div");
       wrap.className = "dog-shape";
-      const body = document.createElement("div"); body.className="dog-body"; wrap.appendChild(body);
-      const head = document.createElement("div"); head.className="dog-head";
-      const ear = document.createElement("div"); ear.className="dog-ear";
-      const earSpot = document.createElement("div"); earSpot.className="dog-ear-spot"; ear.appendChild(earSpot);
-      const eye = document.createElement("div"); eye.className="dog-eye";
-      const nose = document.createElement("div"); nose.className="dog-nose";
-      const mouth = document.createElement("div"); mouth.className="dog-mouth-line";
-      head.appendChild(ear); head.appendChild(eye); head.appendChild(nose); head.appendChild(mouth);
+
+      const body = document.createElement("div");
+      body.className="dog-body";
+      wrap.appendChild(body);
+
+      const head = document.createElement("div");
+      head.className="dog-head";
+
+      const earLeft = document.createElement("div");
+      earLeft.className="dog-ear dog-ear-left";
+      const earLeftSpot = document.createElement("div");
+      earLeftSpot.className="dog-ear-spot";
+      earLeft.appendChild(earLeftSpot);
+
+      const earRight = document.createElement("div");
+      earRight.className="dog-ear dog-ear-right";
+
+      const eyeLeft = document.createElement("div");
+      eyeLeft.className="dog-eye dog-eye-left";
+      const eyeRight = document.createElement("div");
+      eyeRight.className="dog-eye dog-eye-right";
+
+      const nose = document.createElement("div");
+      nose.className="dog-nose";
+      const mouth = document.createElement("div");
+      mouth.className="dog-mouth-line";
+
+      head.appendChild(earLeft);
+      head.appendChild(earRight);
+      head.appendChild(eyeLeft);
+      head.appendChild(eyeRight);
+      head.appendChild(nose);
+      head.appendChild(mouth);
       wrap.appendChild(head);
+
       ["front","front2","back","back2"].forEach(cls=>{
         const leg = document.createElement("div");
         leg.className = "dog-leg "+cls;
         wrap.appendChild(leg);
       });
-      const tail = document.createElement("div"); tail.className="dog-tail"; wrap.appendChild(tail);
+
+      const tail = document.createElement("div");
+      tail.className="dog-tail";
+      wrap.appendChild(tail);
 
       if(!a.alive) wrap.classList.add("dog-ghost");
       else{
@@ -475,11 +739,84 @@ function renderWorld(){
         if(a.happiness < 30 || a.health < 40 || a.hunger < 25) wrap.classList.add("dog-sad");
       }
       sprite.appendChild(wrap);
+
     }else{
-      const span = document.createElement("div");
-      span.className = "emoji-animal";
-      span.textContent = SPECIES_CONFIG[a.species]?.emoji || "❓";
-      sprite.appendChild(span);
+      const wrap = document.createElement("div");
+      wrap.className = "critter-shape critter-"+(a.species||"pet");
+
+      const body = document.createElement("div");
+      body.className = "critter-body";
+      wrap.appendChild(body);
+
+      const head = document.createElement("div");
+      head.className = "critter-head";
+      const earLeft = document.createElement("div");
+      earLeft.className = "critter-ear ear-left";
+      const earRight = document.createElement("div");
+      earRight.className = "critter-ear ear-right";
+      const eyeLeft = document.createElement("div");
+      eyeLeft.className = "critter-eye eye-left";
+      const eyeRight = document.createElement("div");
+      eyeRight.className = "critter-eye eye-right";
+      const nose = document.createElement("div");
+      nose.className = "critter-nose";
+      head.appendChild(earLeft);
+      head.appendChild(earRight);
+      head.appendChild(eyeLeft);
+      head.appendChild(eyeRight);
+      head.appendChild(nose);
+      wrap.appendChild(head);
+
+      // legs
+      ["front","front2","back","back2"].forEach(cls=>{
+        const leg = document.createElement("div");
+        leg.className = "critter-leg "+cls;
+        wrap.appendChild(leg);
+      });
+
+      const tail = document.createElement("div");
+      tail.className = "critter-tail";
+      wrap.appendChild(tail);
+
+      if(!a.alive) wrap.classList.add("critter-ghost");
+      else{
+        if(a.weight >= 130) wrap.classList.add("critter-fat");
+        else if(a.weight <= 35) wrap.classList.add("critter-skinny");
+        if(a.happiness < 30 || a.health < 40 || a.hunger < 25) wrap.classList.add("critter-sad");
+      }
+
+      sprite.appendChild(wrap);
+    }
+
+
+    // floating timer showing rough time until danger
+    const lvlVal = getLevelFromXP(a.xp||0);
+    const bonusMin = getLevelBonusMinutes(a);
+    const tmins = estimateTimeToDeathMinutes(a);
+    if(a.alive && isFinite(tmins) && tmins > 0){
+      const timerEl = document.createElement("div");
+      timerEl.className = "death-timer";
+      timerEl.textContent = formatMinutesToCountdown(tmins);
+      timerEl.title = `Level ${lvlVal} (+${bonusMin} min life)`;
+      if(tmins < 15) timerEl.classList.add("danger");
+      else if(tmins < 40) timerEl.classList.add("warn");
+      sprite.appendChild(timerEl);
+    }
+
+    if(a.alive){
+      const lvlBadge = document.createElement("div");
+      lvlBadge.className = "lvl-badge";
+      lvlBadge.textContent = `Lv ${lvlVal}`;
+      sprite.appendChild(lvlBadge);
+    }
+
+    if(a.alive && isFinite(tmins) && tmins > 0){
+      const timerEl = document.createElement("div");
+      timerEl.className = "death-timer";
+      timerEl.textContent = formatMinutesToCountdown(tmins);
+      if(tmins < 15) timerEl.classList.add("danger");
+      else if(tmins < 40) timerEl.classList.add("warn");
+      sprite.appendChild(timerEl);
     }
 
     const bubble = document.createElement("div");
@@ -577,14 +914,242 @@ function renderWorld(){
       renderWorld();
     });
     worldEl.appendChild(el);
+
+  // hazards (Justin danger items)
+  (state.hazards||[]).forEach(h=>{
+    const pos = depthToScreen(h.depth||0.5);
+    const el = document.createElement("div");
+    let cls = "hazard";
+    if(h.type) cls += " " + ("haz-"+h.type);
+    el.className = cls;
+    el.style.left = (h.x||50)+"%";
+    el.style.top = pos.y+"%";
+    el.style.transform = "translate(-50%,-100%) scale("+(pos.scale*1.05)+")";
+    let symbol = "❗";
+    if(h.type === "can") symbol = "🥫";
+    else if(h.type === "sparkler") symbol = "✨";
+    else if(h.type === "spoiledFood") symbol = "🍕";
+    el.textContent = symbol;
+    el.title = "Click to remove before pets get hurt";
+    el.dataset.id = h.id;
+    el.addEventListener("click",()=>{
+      // reward nearest alive pet with XP for being saved
+      const alive = state.animals.filter(a=>a.alive);
+      if(alive.length){
+        let best = alive[0];
+        let bestD = Infinity;
+        alive.forEach(a=>{
+          const dist = Math.abs((a.x||0)-(h.x||50)) + Math.abs((a.depth||0.5)-(h.depth||0.5))*40;
+          if(dist < bestD){
+            bestD = dist;
+            best = a;
+          }
+        });
+        best.xp = (best.xp||0) + 15;
+        showMood(best.id,"✅");
+      }
+      state.hazards = state.hazards.filter(x=>x.id!==h.id);
+      addLog("You removed something dangerous from the yard.");
+      saveState();
+      renderWorld();
+    });
+    worldEl.appendChild(el);
+  });
+  });
+  renderHazardHud();
+}
+
+// Hazard HUD renderer
+function renderHazardHud(){
+  if(!hazardHud || !hazardHudList) return;
+  const hazards = state.hazards || [];
+  if(!hazards.length){
+    hazardHud.hidden = true;
+    hazardHud.style.display = "none";
+    hazardHudList.innerHTML = "";
+    return;
+  }
+  hazardHud.hidden = false;
+  hazardHud.style.display = "flex";
+  hazardHudList.innerHTML = "";
+  hazards.forEach(h=>{
+    const pill = document.createElement("button");
+    pill.type = "button";
+    pill.className = "hazard-hud-pill";
+    const emojiSpan = document.createElement("span");
+    emojiSpan.className = "emoji";
+    let symbol = "❗";
+    if(h.type === "can") symbol = "🥫";
+    else if(h.type === "sparkler") symbol = "✨";
+    else if(h.type === "spoiledFood") symbol = "🍕";
+    emojiSpan.textContent = symbol;
+
+    const labelSpan = document.createElement("span");
+    labelSpan.className = "label";
+    labelSpan.textContent = "In yard";
+
+    pill.appendChild(emojiSpan);
+    pill.appendChild(labelSpan);
+    pill.addEventListener("click",()=>{
+      // brief highlight of all hazards to help locate
+      document.querySelectorAll(".hazard").forEach(el=>{
+        el.style.transition = "transform .2s ease, filter .2s ease";
+        el.style.filter = "drop-shadow(0 0 12px rgba(248,250,252,1))";
+        el.style.transform = "translate(-50%,-100%) scale(1.4)";
+        setTimeout(()=>{
+          el.style.filter = "";
+          el.style.transform = "";
+        }, 550);
+      });
+    });
+
+    hazardHudList.appendChild(pill);
   });
 }
 
 // --------- pet list ----------
 const petGrid = document.getElementById("petGrid");
+const hazardHud = document.getElementById("hazardHud");
+const hazardHudList = document.getElementById("hazardHudList");
 const petCountEl = document.getElementById("petCount");
 const petCountTopEl = document.getElementById("petCountTop");
 const statusText = document.getElementById("statusText");
+
+
+// Mini-game elements
+const miniOverlay = document.getElementById("miniGameOverlay");
+const miniField   = document.getElementById("miniField");
+const miniTimeEl  = document.getElementById("miniTime");
+const miniScoreEl = document.getElementById("miniScore");
+const miniStartBtn = document.getElementById("miniStartBtn");
+const miniCloseBtn = document.getElementById("miniCloseBtn");
+const miniGameBtn  = document.getElementById("miniGameBtn");
+
+let miniTimer = null;
+let miniCountdown = 15;
+let miniScore = 0;
+let miniActive = false;
+let miniSpawnTimer = null;
+
+function showMiniOverlay(){
+  if(!miniOverlay) return;
+  miniOverlay.hidden = false;
+  miniOverlay.style.display = "flex";
+}
+function hideMiniOverlay(){
+  if(!miniOverlay) return;
+  miniOverlay.hidden = true;
+  miniOverlay.style.display = "none";
+}
+
+function resetMiniGameHUD(){
+  miniCountdown = 15;
+  miniScore = 0;
+  if(miniTimeEl) miniTimeEl.textContent = miniCountdown;
+  if(miniScoreEl) miniScoreEl.textContent = miniScore;
+}
+
+function endMiniGame(){
+  miniActive = false;
+  if(miniTimer) clearInterval(miniTimer);
+  if(miniSpawnTimer) clearInterval(miniSpawnTimer);
+  miniTimer = null;
+  miniSpawnTimer = null;
+  if(miniStartBtn) miniStartBtn.disabled = false;
+
+  const a = getSelected && getSelected();
+  if(a && a.alive && miniScore > 0){
+    const bonusXP = miniScore * 4;
+    a.xp = (a.xp||0) + bonusXP;
+    a.happiness = clamp(a.happiness + miniScore*3);
+    addLog(`Mini-game: ${a.name} earned ${bonusXP} XP and had fun catching treats!`);
+    showMood(a.id, "⭐");
+    saveState();
+    render();
+  }
+}
+
+function spawnMiniTreat(){
+  if(!miniActive || !miniField) return;
+  const treat = document.createElement("div");
+  treat.className = "mini-treat";
+  const startX = Math.random()*90+5;
+  treat.style.left = startX + "%";
+  treat.style.top = "-10%";
+  miniField.appendChild(treat);
+
+  const fallDuration = 1600 + Math.random()*900;
+  const createdAt = performance.now();
+
+  function step(now){
+    if(!miniActive) { treat.remove(); return; }
+    const t = (now - createdAt)/fallDuration;
+    if(t >= 1){
+      treat.remove();
+      return;
+    }
+    const y = -10 + t*120;
+    treat.style.top = y + "%";
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+
+  treat.addEventListener("click", ()=>{
+    if(!miniActive) return;
+    miniScore += 1;
+    if(miniScoreEl) miniScoreEl.textContent = miniScore;
+    treat.remove();
+  });
+}
+
+function startMiniGame(){
+  if(!miniOverlay || !miniField) return;
+  showMiniOverlay();
+  const a = getSelected && getSelected();
+  if(!a || !a.alive){
+    addLog("Select a living animal to play the mini-game with.");
+    return;
+  }
+
+  miniField.innerHTML = "";
+  resetMiniGameHUD();
+  miniActive = true;
+  miniOverlay.hidden = false;
+  if(miniStartBtn) miniStartBtn.disabled = true;
+
+  if(miniTimer) clearInterval(miniTimer);
+  miniTimer = setInterval(()=>{
+    miniCountdown -= 1;
+    if(miniTimeEl) miniTimeEl.textContent = Math.max(0, miniCountdown);
+    if(miniCountdown <= 0){
+      endMiniGame();
+      hideMiniOverlay();
+    }
+  }, 1000);
+
+  if(miniSpawnTimer) clearInterval(miniSpawnTimer);
+  miniSpawnTimer = setInterval(()=>{
+    spawnMiniTreat();
+  }, 450);
+}
+
+if(miniGameBtn){
+  miniGameBtn.addEventListener("click", ()=>{
+    resetMiniGameHUD();
+    showMiniOverlay();
+  });
+}
+if(miniCloseBtn){
+  miniCloseBtn.addEventListener("click", ()=>{
+    hideMiniOverlay();
+    if(miniActive) endMiniGame();
+  });
+}
+if(miniStartBtn){
+  miniStartBtn.addEventListener("click", ()=>{
+    startMiniGame();
+  });
+}
 
 function getRelText(a, all){
   if(!a.alive) return "Dead. You can replace them with a new animal.";
@@ -615,18 +1180,50 @@ const weatherSelect   = document.getElementById("weatherSelect");
 const justinFreqSelect= document.getElementById("justinFreq");
 
 function render(){
-  const animals = state.animals;
+  const animals = [...state.animals].sort((a,b)=>{
+    if(a.id === selectedId && b.id !== selectedId) return -1;
+    if(b.id === selectedId && a.id !== selectedId) return 1;
+    return (a.createdAt||0) - (b.createdAt||0);
+  });
   const aliveCount = animals.filter(a=>a.alive).length;
   petCountEl.textContent = aliveCount;
   petCountTopEl.textContent = animals.length;
 
+
   petGrid.innerHTML = "";
+
+  // move care controls (feed/play/wash/walk/release) into the selected animal card
+  const feedBtn = document.getElementById("feedBtn");
+  let careRow = null;
+  if(feedBtn){
+    careRow = feedBtn.closest(".btn-row");
+    if(careRow){
+      // remember original home on first run
+      if(!window.__careHome){
+        window.__careHome = {
+          parent: careRow.parentElement,
+          next: careRow.nextElementSibling
+        };
+      }
+    }
+  }
+
   animals.forEach(a=>{
     const card = document.createElement("div");
     card.className = "pet-card";
     card.dataset.id = a.id;
     if(a.id === selectedId) card.classList.add("selected");
     const cfg = SPECIES_CONFIG[a.species] || {emoji:"❓",label:"?"};
+    const xpVal = a.xp || 0;
+    const xpProg = getXpProgress(xpVal);
+    const remaining = Math.max(0, xpProg.nextThreshold - xpVal);
+    let xpLabel;
+    if (xpProg.level <= 0) {
+      xpLabel = `Lvl 0 • ${xpVal} XP`;
+    } else {
+      xpLabel = `Lvl ${xpProg.level} • ${xpVal} XP • ${remaining} to next`;
+    }
+
 
     const header = document.createElement("div");
     header.className = "pet-header";
@@ -637,7 +1234,8 @@ function render(){
       <div class="pet-avatar-small">${cfg.emoji}</div>
       <div>
         <div class="pet-name">${a.name}</div>
-        <div class="pet-meta">${cfg.label.toUpperCase()}</div>
+        <div class="pet-meta">${cfg.label.toUpperCase()} • ${(a.personality||"chill")}</div>
+        <div class="pet-meta pet-meta-level">${xpLabel}</div>
       </div>
     `;
     header.appendChild(main);
@@ -659,12 +1257,73 @@ function render(){
     statRow.appendChild(renderStat("Health", a.health));
     card.appendChild(statRow);
 
+    // Per-card care actions
+    const actions = document.createElement("div");
+    actions.className = "pet-card-actions";
+    actions.innerHTML = `
+      <button class="btn-xs card-feed" type="button"><span class="btn-icon">🍖</span>Feed</button>
+      <button class="btn-xs card-play" type="button"><span class="btn-icon">🎾</span>Play</button>
+      <button class="btn-xs card-wash" type="button"><span class="btn-icon">🧼</span>Wash</button>
+      <button class="btn-xs card-walk" type="button"><span class="btn-icon">🚶‍♂️</span>Walk</button>
+      <button class="btn-xs card-release danger" type="button"><span class="btn-icon">🕊️</span>Release</button>
+    `;
+    card.appendChild(actions);
+
+    const ensureSelected = () => {
+      selectedId = a.id;
+    };
+
+    const cardFeed = actions.querySelector(".card-feed");
+    const cardPlay = actions.querySelector(".card-play");
+    const cardWash = actions.querySelector(".card-wash");
+    const cardWalk = actions.querySelector(".card-walk");
+    const cardRelease = actions.querySelector(".card-release");
+
+    if(cardFeed && feedBtn){
+      cardFeed.addEventListener("click",(ev)=>{
+        ev.stopPropagation();
+        ensureSelected();
+        feedBtn.click();
+      });
+    }
+    if(cardPlay && playBtn){
+      cardPlay.addEventListener("click",(ev)=>{
+        ev.stopPropagation();
+        ensureSelected();
+        playBtn.click();
+      });
+    }
+    if(cardWash && washBtn){
+      cardWash.addEventListener("click",(ev)=>{
+        ev.stopPropagation();
+        ensureSelected();
+        washBtn.click();
+      });
+    }
+    if(cardWalk && walkBtn){
+      cardWalk.addEventListener("click",(ev)=>{
+        ev.stopPropagation();
+        ensureSelected();
+        walkBtn.click();
+      });
+    }
+    if(cardRelease && releaseBtn){
+      cardRelease.addEventListener("click",(ev)=>{
+        ev.stopPropagation();
+        ensureSelected();
+        releaseBtn.click();
+      });
+    }
+
+
     if(!a.alive){
       const badge = document.createElement("div");
       badge.className = "pet-badge-dead";
       badge.textContent = "Dead";
       card.appendChild(badge);
     }
+    // careRow stays in the Care panel; no reparenting into cards
+
 
     card.addEventListener("click", ()=>{
       selectedId = a.id;
@@ -672,7 +1331,9 @@ function render(){
     });
 
     petGrid.appendChild(card);
+
   });
+
 
   renderWorld();
   updateStatus();
@@ -792,7 +1453,8 @@ addPetBtn.addEventListener("click",()=>{
     alive:true,
     overweightMinutes:0,
     x: randRange(10,90),
-    depth: randRange(0,1)
+    depth: randRange(0,1),
+    xp: 0
   };
   state.animals.push(a);
   selectedId = a.id;
@@ -814,6 +1476,8 @@ feedBtn.addEventListener("click",()=>{
   a.happiness = clamp(a.happiness + 4);
   a.cleanliness = clamp(a.cleanliness - 3);
   a.weight = clamp(a.weight + 6,20,200);
+  
+  if(a.alive) a.xp = (a.xp||0) + 3;
   addLog(`You fed ${a.name}.`);
   showMood(a.id,"😋");
   saveState();
@@ -827,6 +1491,8 @@ playBtn.addEventListener("click",()=>{
   a.energy = clamp(a.energy - 10);
   a.hunger = clamp(a.hunger - 5);
   a.weight = clamp(a.weight - 2,20,200);
+  
+  if(a.alive) a.xp = (a.xp||0) + 5;
   addLog(`You played with ${a.name}.`);
   showMood(a.id,"❤️");
   saveState();
@@ -838,6 +1504,8 @@ washBtn.addEventListener("click",()=>{
   actionTick();
   a.cleanliness = clamp(a.cleanliness + 35);
   a.happiness = clamp(a.happiness - 2);
+  
+  if(a.alive) a.xp = (a.xp||0) + 3;
   addLog(`You washed ${a.name}.`);
   showMood(a.id,"🫧");
   saveState();
@@ -851,6 +1519,8 @@ walkBtn.addEventListener("click",()=>{
   a.happiness = clamp(a.happiness + 15);
   a.hunger = clamp(a.hunger - 7);
   a.weight = clamp(a.weight - 3,20,200);
+  
+  if(a.alive) a.xp = (a.xp||0) + 6;
   addLog(`You took ${a.name} for a walk.`);
   showMood(a.id,"🚶‍♂️");
   a.depth = clamp(a.depth + randRange(-0.2,0.2),0,1);
@@ -887,12 +1557,15 @@ reviveBtn.addEventListener("click",()=>{
     alive:true,
     overweightMinutes:0,
     x: randRange(10,90),
-    depth: randRange(0,1)
+    depth: randRange(0,1),
+    // D: reset progression on revive
+    xp: 0,
+    level: 0
   };
   const idx = state.animals.findIndex(x=>x.id===a.id);
   if(idx !== -1) state.animals.splice(idx,1,newAnimal);
   selectedId = newAnimal.id;
-  addLog(`A new ${oldSpecies} named ${newAnimal.name} has joined the backyard.`);
+  addLog(`A new ${oldSpecies} named ${newAnimal.name} has joined the backyard at Level 0.`);
   showMood(newAnimal.id,"💗");
   saveState();
   render();
@@ -1003,8 +1676,9 @@ justinFreqSelect.addEventListener("change",()=>{
 function tickMovement(){
   state.animals.forEach(a=>{
     if(!a.alive) return;
-    const stepX = randRange(-3,3);
-    const stepD = randRange(-0.05,0.05);
+    // smaller steps for smoother wander, still using CSS transitions
+    const stepX = randRange(-1.5,1.5);
+    const stepD = randRange(-0.03,0.03);
     a.x = clamp((a.x ?? 50) + stepX,5,95);
     a.depth = clamp((a.depth ?? 0.5) + stepD,0,1);
   });
@@ -1013,7 +1687,8 @@ function tickMovement(){
 }
 
 setInterval(()=>{simulateFromLastUpdate();},15000);
-setInterval(()=>{tickMovement();},3500);
+// slightly faster + smoother movement updates
+setInterval(()=>{tickMovement();},2200);
 setInterval(()=>{applyTimeOfDay();renderWeather();},60000);
 
 // --------- Justin engine (uses pickCharacterLine from habitat-characters.js) ---------
@@ -1063,7 +1738,36 @@ function spawnJustin(){
     : "I’m supposed to say something profound here.");
   el.appendChild(bubble);
 
-  worldEl.appendChild(el);
+  
+  // chance for Justin to drop something dangerous into the yard
+  if(!state.hazards) state.hazards = [];
+  const roll = Math.random();
+  let hazardType = null;
+  if(roll < 0.2) hazardType = "can";
+  else if(roll < 0.32) hazardType = "sparkler";
+  else if(roll < 0.46) hazardType = "spoiledFood";
+
+  if(hazardType){
+    const alive = state.animals.filter(a=>a.alive);
+    let hx = 50, hd = 0.5;
+    if(alive.length){
+      const target = alive[Math.floor(Math.random()*alive.length)];
+      hx = clamp((target.x||50)+randRange(-10,10),5,95);
+      hd = clamp((target.depth||0.5)+randRange(-0.1,0.1),0,1);
+    }
+    state.hazards.push({
+      id: crypto.randomUUID(),
+      type: hazardType,
+      x: hx,
+      depth: hd,
+      createdAt: Date.now()
+    });
+    addLog(`Justin carelessly dropped something in the yard. Click it before the animals get hurt.`);
+    saveState();
+    renderWorld();
+  }
+
+worldEl.appendChild(el);
 
   requestAnimationFrame(()=>{
     el.style.left = "115%";

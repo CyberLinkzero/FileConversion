@@ -177,6 +177,30 @@ h1{
   opacity:0;
   transition:opacity .5s ease-out,transform .8s ease-out;
 }
+
+.sun{
+  background:radial-gradient(circle at 30% 30%,#fef9c3 0,#facc15 35%,#f97316 70%);
+  box-shadow:0 0 26px rgba(250,204,21,.9);
+  border:3px solid rgba(251,191,36,.8);
+  transform-origin:center center;
+  animation:sun-spin-coin 16s linear infinite;
+}
+@keyframes sun-spin-coin{
+  0%{transform:translateZ(0) rotateY(0deg) scaleX(1);}
+  25%{transform:translateZ(0) rotateY(90deg) scaleX(.25);}
+  50%{transform:translateZ(0) rotateY(180deg) scaleX(1);}
+  75%{transform:translateZ(0) rotateY(270deg) scaleX(.25);}
+  100%{transform:translateZ(0) rotateY(360deg) scaleX(1);}
+}
+.moon{
+  position:absolute;
+  top:10%;
+  right:12%;
+  width:60px;height:60px;
+  border-radius:50%;
+  opacity:0;
+  transition:opacity .5s ease-out,transform .8s ease-out;
+}
 .sun{
   background:radial-gradient(circle at 30% 30%,#fef9c3 0,#facc15 35%,#f97316 70%);
   box-shadow:0 0 26px rgba(250,204,21,.9);
@@ -199,13 +223,19 @@ h1{
 }
 
 .world-day .sun,
-.world-dawn .sun,
-.world-dusk .sun{
+.world-dawn .sun{
   opacity:1;
 }
 .world-night .moon,
 .world-dusk .moon{
   opacity:1;
+}
+/* ensure opposite body is hidden so only one shows */
+.world-day .moon,
+.world-dawn .moon,
+.world-night .sun,
+.world-dusk .sun{
+  opacity:0;
 }
 .world-night .stars,
 .world-dusk .stars{
@@ -350,8 +380,8 @@ h1{
 }
 .dog-head{
   position:absolute;
-  width:50px;height:40px;
-  left:-6px;top:8px;
+  width:54px;height:40px;
+  left:-2px;top:8px;
   background:#fed7aa;
   border-radius:55% 55% 50% 50%;
   box-shadow:0 3px 7px rgba(0,0,0,.35);
@@ -367,12 +397,12 @@ h1{
   box-shadow:0 3px 6px rgba(0,0,0,.35);
 }
 .dog-ear-left{
-  left:0;
-  transform:rotate(-8deg);
+  left:-4px;
+  transform:rotate(-10deg);
 }
 .dog-ear-right{
-  right:0;
-  transform:rotate(8deg);
+  right:-4px;
+  transform:rotate(10deg);
 }
 .dog-ear-spot{
   position:absolute;
@@ -392,8 +422,8 @@ h1{
   top:16px;
   box-shadow:0 0 0 2px rgba(15,23,42,.45);
 }
-.dog-eye-left{ left:8px; }
-.dog-eye-right{ right:8px; }
+.dog-eye-left{ left:10px; }
+.dog-eye-right{ right:10px; }
 
 .dog-nose{
   position:absolute;
@@ -454,6 +484,153 @@ h1{
 .dog-ghost .dog-eye{background:#020617;box-shadow:none}
 .dog-ghost .dog-ear-spot{display:none}
 
+
+/* generic critter base for cat/rabbit/fox */
+.critter-shape{
+  position:relative;
+  width:86px;
+  height:66px;
+}
+.critter-body{
+  position:absolute;
+  left:12px;right:8px;
+  top:22px;bottom:8px;
+  background:#e5e7eb;
+  border-radius:50% 52% 45% 45%;
+  box-shadow:0 6px 14px rgba(0,0,0,.55);
+}
+.critter-head{
+  position:absolute;
+  width:42px;height:32px;
+  left:0;top:14px;
+  background:#e5e7eb;
+  border-radius:55% 45% 48% 52%;
+  box-shadow:0 4px 10px rgba(0,0,0,.45);
+}
+.critter-ear{
+  position:absolute;
+  width:16px;height:20px;
+  top:-10px;
+  background:#cbd5f5;
+  border-radius:60% 60% 25% 25%;
+  box-shadow:0 3px 6px rgba(0,0,0,.35);
+}
+.critter-ear.ear-left{left:0;}
+.critter-ear.ear-right{right:0;}
+.critter-eye{
+  position:absolute;
+  width:6px;height:6px;
+  background:#020617;
+  border-radius:50%;
+  top:45%;
+  box-shadow:0 0 0 2px rgba(248,250,252,.35);
+}
+.critter-eye.eye-left{left:26%;}
+.critter-eye.eye-right{right:26%;}
+.critter-nose{
+  position:absolute;
+  width:10px;height:7px;
+  background:#111827;
+  border-radius:50% 50% 60% 60%;
+  bottom:8px;left:50%;
+  transform:translateX(-50%);
+}
+
+.critter-leg{
+  position:absolute;
+  width:10px;height:16px;
+  background:#e5e7eb;
+  bottom:2px;
+  border-radius:0 0 40% 40%;
+  box-shadow:0 4px 6px rgba(0,0,0,.45);
+}
+.critter-leg.front{left:26px;}
+.critter-leg.front2{left:40px;}
+.critter-leg.back{right:28px;}
+.critter-leg.back2{right:14px;}
+
+.critter-tail{
+  position:absolute;
+  width:26px;height:10px;
+  right:0;top:26px;
+  background:#e5e7eb;
+  border-radius:60% 80% 40% 60%;
+  transform-origin:left center;
+  transform:rotate(28deg);
+  box-shadow:0 4px 10px rgba(0,0,0,.4);
+}
+
+/* species tweaks */
+.critter-cat .critter-body{
+  background:#e5e7eb;
+}
+.critter-cat .critter-head,
+.critter-cat .critter-leg,
+.critter-cat .critter-tail{
+  background:#cbd5f5;
+}
+.critter-cat .critter-ear{
+  background:#fbbf77;
+}
+.critter-cat .critter-tail{
+  border-radius:70% 90% 40% 80%;
+  transform:rotate(18deg);
+}
+
+.critter-rabbit .critter-ear{
+  height:28px;
+  width:14px;
+  border-radius:60% 60% 40% 40%;
+}
+.critter-rabbit .critter-body{
+  border-radius:60% 60% 50% 52%;
+}
+.critter-rabbit .critter-tail{
+  width:16px;height:16px;
+  right:4px;top:30px;
+  border-radius:50%;
+}
+
+.critter-fox .critter-body{
+  background:#f97316;
+}
+.critter-fox .critter-head{
+  background:#fb923c;
+  border-radius:48% 52% 40% 55%;
+}
+.critter-fox .critter-ear{
+  background:#7c2d12;
+}
+.critter-fox .critter-tail{
+  background:#f97316;
+  border-radius:40% 90% 40% 90%;
+}
+.critter-fox .critter-tail::after{
+  content:"";
+  position:absolute;
+  right:2px;top:2px;
+  width:10px;height:10px;
+  border-radius:50%;
+  background:#fee2e2;
+}
+
+.critter-fat .critter-body{
+  transform:scale(1.15,1.12);
+}
+.critter-skinny .critter-body{
+  transform:scale(.9,1);
+}
+.critter-sad .critter-eye{
+  top:48%;
+}
+.critter-ghost .critter-body,
+.critter-ghost .critter-head,
+.critter-ghost .critter-leg,
+.critter-ghost .critter-tail,
+.critter-ghost .critter-ear{
+  background:rgba(148,163,184,.75);
+  box-shadow:0 4px 10px rgba(148,163,184,.5);
+}
 .emoji-animal{
   font-size:2.2rem;
 }
@@ -505,70 +682,112 @@ h1{
 .house:hover{transform:translate(-50%,-100%) scale(1.08);}
 
 /* Justin the stick figure */
+
 .justin{
   position:absolute;
-  bottom:52%;
+  bottom:50%;
   left:-12%;
   display:flex;
   align-items:flex-end;
   gap:8px;
   transition:left 10s linear;
-  z-index:2; /* behind fence */
+  z-index:4; /* above fence so bubble is visible */
   pointer-events:none;
 }
 .justin-stick{
   position:relative;
-  width:26px;
-  height:60px;
+  width:32px;
+  height:70px;
 }
+/* cartoon African-style Justin */
 .justin-stick .j-head{
   position:absolute;
   top:0;left:50%;
-  width:18px;height:18px;
-  border-radius:50%;
-  border:2px solid #e5e7eb;
+  width:26px;height:26px;
   transform:translateX(-50%);
-  background:rgba(15,23,42,.9);
+  background:radial-gradient(circle at 30% 25%,#fed7aa 0,#fbbf77 45%,#ea580c 100%);
+  border-radius:50%;
+  box-shadow:0 0 0 2px rgba(15,23,42,.9);
+}
+/* simple cartoon hair */
+.justin-stick .j-head::before{
+  content:"";
+  position:absolute;
+  top:-3px;left:2px;right:2px;
+  height:10px;
+  background:linear-gradient(to right,#0f172a,#020617);
+  border-radius:12px 12px 6px 6px;
+}
+
+/* tiny cartoon eyes + smile */
+.justin-stick .j-head::after{
+  content:"";
+  position:absolute;
+  left:6px;right:6px;top:11px;
+  height:6px;
+  background:
+    radial-gradient(circle at 20% 50%,#020617 0, #020617 45%, transparent 46%),
+    radial-gradient(circle at 80% 50%,#020617 0, #020617 45%, transparent 46%);
+}
+.justin-stick .j-face-smile{
+  position:absolute;
+  left:50%;top:17px;
+  width:12px;height:6px;
+  transform:translateX(-50%);
+  border-bottom:2px solid rgba(15,23,42,.9);
+  border-radius:0 0 12px 12px;
 }
 .justin-stick .j-body{
   position:absolute;
-  top:18px;left:50%;
-  width:2px;height:24px;
-  background:#e5e7eb;
+  top:22px;left:50%;
+  width:26px;height:26px;
   transform:translateX(-50%);
+  background:linear-gradient(145deg,#0ea5e9,#1d4ed8);
+  border-radius:8px;
+  box-shadow:0 6px 10px rgba(0,0,0,.6);
+}
+.justin-stick .j-body::after{
+  content:"";
+  position:absolute;
+  inset:5px 6px;
+  border-radius:6px;
+  background:radial-gradient(circle at top,#e5f2ff33,#67e8f933);
 }
 .justin-stick .j-arm{
   position:absolute;
-  top:22px;
-  width:22px;height:2px;
-  background:#e5e7eb;
+  top:24px;
+  width:22px;height:3px;
+  background:#4b3a27;
 }
 .justin-stick .j-arm-left{
   left:50%;
   transform-origin:right center;
-  transform:translateX(-50%) rotate(-20deg);
+  transform:translateX(-2px) rotate(14deg);
 }
 .justin-stick .j-arm-right{
-  right:50%;
+  left:50%;
   transform-origin:left center;
-  transform:translateX(50%) rotate(20deg);
+  transform:translateX(-18px) rotate(-12deg);
 }
 .justin-stick .j-leg{
   position:absolute;
   top:40px;
-  width:2px;height:20px;
-  background:#e5e7eb;
+  width:3px;height:26px;
+  background:#111827;
   left:50%;
 }
 .justin-stick .j-leg-left{
   transform-origin:top center;
-  transform:translateX(-6px) rotate(10deg);
+  transform:translateX(-7px) rotate(8deg);
 }
 .justin-stick .j-leg-right{
   transform-origin:top center;
-  transform:translateX(4px) rotate(-8deg);
+  transform:translateX(5px) rotate(-6deg);
 }
 .justin-bubble{
+  position:relative;
+  z-index:5;
+
   max-width:220px;
   font-size:.78rem;
   padding:4px 8px;
@@ -862,4 +1081,309 @@ button:active:not(:disabled){
   position:relative;
   margin-bottom:18px;
   z-index:6;
+}
+
+.hazard{
+  position:absolute;
+  font-size:1.4rem;
+  text-shadow:0 0 6px rgba(0,0,0,.8);
+  cursor:pointer;
+  z-index:2;
+}
+.hazard:hover{
+  transform:translate(-50%,-100%) scale(1.1);
+}
+.pet-meta-level{
+  font-size:.82rem;
+  color:var(--accent);
+  font-weight:600;
+  letter-spacing:.08em;
+}
+
+.pet-actions-slot{
+  margin-top:6px;
+  padding-top:4px;
+  border-top:1px dashed rgba(55,65,81,.7);
+}
+
+.pet-card-actions{
+  margin-top:6px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:4px;
+}
+.btn-xs{
+  font-size:.7rem;
+  padding:2px 6px;
+  border-radius:999px;
+  border:1px solid rgba(75,85,99,.9);
+  background:rgba(15,23,42,.95);
+  color:#e5f2ff;
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  cursor:pointer;
+}
+.btn-xs .btn-icon{
+  font-size:.8rem;
+}
+.btn-xs.danger{
+  border-color:var(--danger);
+  color:var(--danger);
+}
+.pet-card.selected{
+  border-color:var(--accent);
+  box-shadow:0 0 0 1px rgba(103,232,249,.4), var(--shadow);
+}
+
+.death-timer{
+  position:absolute;
+  bottom:100%;
+  left:50%;
+  transform:translate(-50%,-4px);
+  padding:2px 6px;
+  font-size:.65rem;
+  border-radius:var(--radius-pill);
+  background:rgba(15,23,42,.92);
+  border:1px solid rgba(55,65,81,.9);
+  color:var(--text);
+  box-shadow:0 0 10px rgba(15,23,42,.8);
+  pointer-events:none;
+}
+.death-timer.warn{
+  border-color:#facc15;
+  color:#fde68a;
+}
+.death-timer.danger{
+  border-color:var(--danger);
+  color:#fecaca;
+  box-shadow:0 0 12px rgba(248,113,113,.6);
+}
+
+@keyframes moon-coin-spin{
+  0%{
+    transform:translateY(10px) rotateY(0deg);
+  }
+  50%{
+    transform:translateY(10px) rotateY(180deg) scaleX(.25);
+  }
+  100%{
+    transform:translateY(10px) rotateY(360deg);
+  }
+}
+
+.world-night .moon{
+  opacity:1;
+  animation:moon-coin-spin 14s linear infinite;
+  transform-origin:center center;
+}
+.world-day .moon,
+.world-dawn .moon{
+  opacity:0;
+}
+
+
+.mini-overlay{
+  position:absolute;
+  inset:4% 4% auto 4%;
+  background:rgba(0,0,0,0.75);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:20;
+}
+.mini-inner{
+  background:var(--panel);
+  border-radius:18px;
+  padding:16px 18px 18px;
+  box-shadow:0 12px 40px rgba(0,0,0,0.7);
+  width:100%;
+  max-width:420px;
+  border:1px solid var(--accent);
+}
+.mini-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:8px;
+}
+.mini-title{
+  font-weight:600;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  font-size:.9rem;
+  color:var(--accent);
+}
+.mini-close{
+  border:none;
+  background:transparent;
+  color:var(--muted);
+  font-size:1.1rem;
+  cursor:pointer;
+}
+.mini-body{
+  font-size:.9rem;
+}
+.mini-instructions{
+  margin:0 0 8px;
+  color:var(--muted);
+}
+.mini-hud{
+  display:flex;
+  justify-content:space-between;
+  font-size:.85rem;
+  margin-bottom:6px;
+}
+.mini-field{
+  position:relative;
+  overflow:hidden;
+  border-radius:12px;
+  border:1px dashed var(--line);
+  height:180px;
+  margin-bottom:8px;
+  background:radial-gradient(circle at 50% 0,#1f2933,#020617);
+}
+.mini-treat{
+  position:absolute;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.1rem;
+  background:rgba(55,180,120,0.9);
+  box-shadow:0 0 8px rgba(0,0,0,0.6);
+  transform:translate(-50%,-50%);
+  cursor:pointer;
+}
+.mini-treat::before{
+  content:"🍖";
+}
+.mini-start{
+  width:100%;
+  border-radius:999px;
+  border:none;
+  padding:8px 10px;
+  font-size:.9rem;
+  cursor:pointer;
+  background:linear-gradient(90deg,var(--accent),var(--accent-soft));
+  color:white;
+}
+
+/* Level badge floated over animals */
+.lvl-badge{
+  position:absolute;
+  top:-4px;
+  left:50%;
+  transform:translate(-50%,-100%);
+  background:rgba(15,23,42,0.95);
+  border-radius:999px;
+  padding:2px 7px;
+  font-size:.7rem;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  border:1px solid rgba(148,163,253,0.9);
+  color:#e5e7ff;
+  pointer-events:none;
+}
+@media (max-width:768px){
+  .mini-overlay{
+    inset:6% 3% auto 3%;
+  }
+  .mini-field{
+    height:150px;
+  }
+}
+
+
+/* Upgraded Justin hazards: big, glowing, animated */
+.hazard{
+  position:absolute;
+  font-size:2.2rem;
+  text-shadow:0 0 8px rgba(0,0,0,.9), 0 0 16px rgba(220,38,38,.7);
+  cursor:pointer;
+  z-index:8;
+  animation:hazard-pulse .85s ease-in-out infinite alternate;
+}
+.hazard.sparkler{
+  text-shadow:0 0 10px rgba(248,250,252,.9),0 0 20px rgba(250,204,21,.9);
+}
+.hazard.can{
+  text-shadow:0 0 10px rgba(15,23,42,.9),0 0 18px rgba(59,130,246,.8);
+}
+.hazard.spoiledFood{
+  text-shadow:0 0 8px rgba(22,101,52,.9),0 0 18px rgba(34,197,94,.85);
+}
+.hazard:hover{
+  transform:translate(-50%,-100%) scale(1.25) translateY(-2px);
+}
+
+@keyframes hazard-pulse{
+  from{ transform:translate(-50%,-100%) scale(1.1) translateY(0); }
+  to{ transform:translate(-50%,-100%) scale(1.25) translateY(-4px); }
+}
+
+/* Hazard HUD */
+.hazard-hud{
+  margin:6px 0 10px;
+  padding:6px 8px;
+  border-radius:10px;
+  border:1px dashed rgba(248,113,113,.8);
+  background:linear-gradient(90deg,rgba(30,64,175,.8),rgba(127,29,29,.7));
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  font-size:.78rem;
+}
+.hazard-hud-title{
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#fee2e2;
+  white-space:nowrap;
+}
+.hazard-hud-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.hazard-hud-pill{
+  border-radius:999px;
+  padding:2px 8px;
+  background:rgba(15,23,42,.9);
+  border:1px solid rgba(254,226,226,.8);
+  color:#fee2e2;
+  display:flex;
+  align-items:center;
+  gap:4px;
+  cursor:pointer;
+}
+.hazard-hud-pill span.emoji{
+  font-size:1rem;
+}
+.hazard-hud-pill span.label{
+  opacity:.9;
+}
+.hazard-hud-pill:hover{
+  box-shadow:0 0 12px rgba(248,250,252,.5);
+}
+
+
+/* === Justin hazard SUPER-VISIBLE override === */
+.hazard{
+  position:absolute;
+  font-size:2.4rem;
+  text-shadow:0 0 8px rgba(0,0,0,.95),0 0 18px rgba(248,113,113,.9);
+  cursor:pointer;
+  z-index:7; /* above animals (4) and poo/toys (2) */
+  animation:hazard-pulse .8s ease-in-out infinite alternate;
+  transform:translate(-50%,-100%) scale(1.1);
+}
+.hazard:hover{
+  transform:translate(-50%,-100%) scale(1.35);
+}
+@keyframes hazard-pulse{
+  from{ transform:translate(-50%,-100%) scale(1.1); }
+  to{ transform:translate(-50%,-100%) scale(1.28); }
 }
