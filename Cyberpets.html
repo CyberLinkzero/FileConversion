@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Cyber Pets – Backyard Virtual Pets</title>
+  <title>HabitatGotchi – Backyard Virtual Pets</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="A fenced backyard full of virtual pets. They move, chase, play, poop, and live with day/night, weather, houses, and a weird human named Justin.">
   
@@ -14,7 +14,7 @@
     <div class="app-inner">
       <header>
         <div>
-          <h1>Cyber Pets</h1>
+          <h1>HabitatGotchi</h1>
           <div class="tagline">
             Virtual pets, day/night cycles, weather, houses… and a guy named Justin who thinks we’re in a simulation.
           </div>
@@ -1116,10 +1116,12 @@ function renderWorld(){
   (state.hazards||[]).forEach(h=>{
     const pos = depthToScreen(h.depth||0.5);
     const el = document.createElement("div");
-    el.className = "hazard";
+    let cls = "hazard";
+    if(h.type) cls += " " + ("haz-"+h.type);
+    el.className = cls;
     el.style.left = (h.x||50)+"%";
     el.style.top = pos.y+"%";
-    el.style.transform = "translate(-50%,-100%) scale("+(pos.scale*0.9)+")";
+    el.style.transform = "translate(-50%,-100%) scale("+(pos.scale*1.05)+")";
     let symbol = "❗";
     if(h.type === "can") symbol = "🥫";
     else if(h.type === "sparkler") symbol = "✨";
@@ -1151,10 +1153,64 @@ function renderWorld(){
     worldEl.appendChild(el);
   });
   });
+  renderHazardHud();
 }
+
+
+// Hazard HUD renderer
+function renderHazardHud(){
+  if(!hazardHud || !hazardHudList) return;
+  const hazards = state.hazards || [];
+  if(!hazards.length){
+    hazardHud.hidden = true;
+    hazardHud.style.display = "none";
+    hazardHudList.innerHTML = "";
+    return;
+  }
+  hazardHud.hidden = false;
+  hazardHud.style.display = "flex";
+  hazardHudList.innerHTML = "";
+  hazards.forEach(h=>{
+    const pill = document.createElement("button");
+    pill.type = "button";
+    pill.className = "hazard-hud-pill";
+    const emojiSpan = document.createElement("span");
+    emojiSpan.className = "emoji";
+    let symbol = "❗";
+    if(h.type === "can") symbol = "🥫";
+    else if(h.type === "sparkler") symbol = "✨";
+    else if(h.type === "spoiledFood") symbol = "🍕";
+    emojiSpan.textContent = symbol;
+
+    const labelSpan = document.createElement("span");
+    labelSpan.className = "label";
+    labelSpan.textContent = "In yard";
+
+    pill.appendChild(emojiSpan);
+    pill.appendChild(labelSpan);
+    pill.addEventListener("click",()=>{
+      // brief highlight of all hazards to help locate
+      document.querySelectorAll(".hazard").forEach(el=>{
+        el.style.transition = "transform .2s ease, filter .2s ease";
+        el.style.filter = "drop-shadow(0 0 12px rgba(248,250,252,1))";
+        el.style.transform = "translate(-50%,-100%) scale(1.4)";
+        setTimeout(()=>{
+          el.style.filter = "";
+          el.style.transform = "";
+        }, 550);
+      });
+    });
+
+    hazardHudList.appendChild(pill);
+  });
+}
+
+
 
 // --------- pet list ----------
 const petGrid = document.getElementById("petGrid");
+const hazardHud = document.getElementById("hazardHud");
+const hazardHudList = document.getElementById("hazardHudList");
 const petCountEl = document.getElementById("petCount");
 const petCountTopEl = document.getElementById("petCountTop");
 const statusText = document.getElementById("statusText");

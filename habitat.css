@@ -1387,3 +1387,5 @@ button:active:not(:disabled){
   from{ transform:translate(-50%,-100%) scale(1.1); }
   to{ transform:translate(-50%,-100%) scale(1.28); }
 }
+
+.hazard{pointer-events:auto;}
