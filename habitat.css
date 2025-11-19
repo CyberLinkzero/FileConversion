@@ -1384,6 +1384,18 @@ button:active:not(:disabled){
   transform:translate(-50%,-100%) scale(1.35);
 }
 @keyframes hazard-pulse{
+  /* Force CyberPets layout to be centered on FileConverter.run global grid */
+.app {
+  display: flex !important;
+  justify-content: center !important;
+  width: 100% !important;
+  grid-column: 1 / -1 !important;
+}
+
+.cyberpets-footer {
+  grid-column: 1 / -1 !important;
+}
+
   from{ transform:translate(-50%,-100%) scale(1.1); }
   to{ transform:translate(-50%,-100%) scale(1.28); }
 }
