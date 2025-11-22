@@ -183,14 +183,8 @@ function getTimePhase(date=new Date()){
 }
 
 function getCurrentWeather(date=new Date()){
-  const mode = state.weatherMode || "auto";
-  if(mode !== "auto") return mode;
-  const h = date.getHours();
-  if(h < 9) return "clear";
-  if(h < 13) return "cloudy";
-  if(h < 17) return "rainy";
-  if(h < 20) return "cloudy";
-  return "snowy";
+  // Simplified: always clear skies; only day/night changes apply via time-of-day.
+  return "clear";
 }
 
 // --------- simulation ----------
@@ -573,10 +567,11 @@ worldEl.addEventListener("click",(ev)=>{
   renderWorld();
 });
 const yardSize = document.getElementById("yardSize");
-yardSize.addEventListener("input", ()=>{
-  const scale = yardSize.value/100;
-  worldEl.style.height = (260*scale)+"px";
-});
+if(worldEl){
+  // Max height so mini-game fits comfortably
+  worldEl.style.height = "600px";
+  worldEl.style.maxHeight = "600px";
+}
 
 function applyTimeOfDay(){
   const phase = getTimePhase();
@@ -1719,12 +1714,10 @@ locationInput.addEventListener("change",()=>{
   }
 });
 
-weatherSelect.addEventListener("change",()=>{
-  state.weatherMode = weatherSelect.value;
-  saveState();
-  addLog(`Weather mode set to "${state.weatherMode}".`);
-  renderWorld();
-});
+if(weatherSelect){
+  // Weather selection disabled: always clear.
+  weatherSelect.disabled = true;
+}
 
 justinFreqSelect.addEventListener("change",()=>{
   state.justinFrequency = justinFreqSelect.value;
@@ -1749,7 +1742,7 @@ function tickMovement(){
 
 setInterval(()=>{simulateFromLastUpdate();},15000);
 // slightly faster + smoother movement updates
-setInterval(()=>{tickMovement();},2200);
+setInterval(()=>{tickMovement();},600); // smoother, more continuous movement
 setInterval(()=>{applyTimeOfDay();renderWeather();},60000);
 
 // --------- Justin engine (uses pickCharacterLine from habitat-characters.js) ---------
