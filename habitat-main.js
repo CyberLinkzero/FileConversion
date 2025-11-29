@@ -225,54 +225,24 @@ function simulateFromLastUpdate(){
     happyDropPerHour = Math.max(5, happyDropPerHour - 1);
   }
 
-  alive.forEach(a=>{
-    // XP & level before
-    const xpBefore    = a.xp || 0;
-    const levelBefore = getLevelFromXP(xpBefore);
 
+  alive.forEach(a=>{
     // passive XP for surviving time
     if(a.alive){
       a.xp = (a.xp||0) + Math.round(10 * hours);
     }
-
     const lvlBonusMin = getLevelBonusMinutes(a);
-    const lvlFactor   = 1 + (getLevelFromXP(a.xp||0) * 0.05);
+    const lvlFactor = 1 + (getLevelFromXP(a.xp||0) * 0.05);
 
-    // base decay
     a.hunger      = clamp(a.hunger - hungerDropPerHour*hours);
     a.happiness   = clamp(a.happiness - happyDropPerHour*hours);
     a.energy      = clamp(a.energy - energyDropPerHour*hours);
     a.cleanliness = clamp(a.cleanliness - cleanDropPerHour*hours);
 
-    // NEW: gentle passive recovery if well cared for
-    if(a.alive){
-      const wellFed   = a.hunger > 50;
-      const clean     = a.cleanliness > 50;
-      const healthy   = a.health > 50;
-      const notExhausted = a.energy < 80;
-
-      if(wellFed && clean && healthy && notExhausted){
-        const energyRegenPerHour = 5;
-        a.energy = clamp(a.energy + energyRegenPerHour * hours);
-      }
-
-      const veryWellFed   = a.hunger > 60;
-      const veryClean     = a.cleanliness > 60;
-      const prettyHappy   = a.happiness > 50;
-      const quiteHealthy  = a.health > 60;
-
-      if(veryWellFed && veryClean && prettyHappy && quiteHealthy){
-        const happyRegenPerHour = 3;
-        a.happiness = clamp(a.happiness + happyRegenPerHour * hours);
-      }
-    }
-
-    // health penalties
     if(a.hunger < 25)      a.health = clamp(a.health - (15*hours)/lvlFactor);
     if(a.cleanliness < 25) a.health = clamp(a.health - (10*hours)/lvlFactor);
     if(a.happiness < 20)   a.health = clamp(a.health - (8*hours)/lvlFactor);
 
-    // weight changes
     if(a.hunger < 40 && a.energy > 40){
       a.weight = clamp(a.weight - 6*hours, 20, 200);
     }
@@ -280,8 +250,6 @@ function simulateFromLastUpdate(){
       a.weight = clamp(a.weight + 9*hours, 20, 200);
     }
 
-    // overweight tracking
-    if(a.overweightMinutes == null) a.overweightMinutes = 0;
     if(a.weight >= 140){
       a.overweightMinutes += rawMinutes;
       a.health = clamp(a.health - (10*hours)/lvlFactor);
@@ -293,38 +261,21 @@ function simulateFromLastUpdate(){
     const tooFat    = a.weight >= 175 || a.overweightMinutes > (6*60 + lvlBonusMin);
     const zeroStat  = a.health <= 0;
 
-    // death checks
     if(a.alive && (tooSkinny || tooFat || zeroStat)){
       a.alive = false;
-      if(tooFat)         addLog(`${a.name} the ${a.species} became too overweight and died. 💔`);
+      if(tooFat)      addLog(`${a.name} the ${a.species} became too overweight and died. 💔`);
       else if(tooSkinny) addLog(`${a.name} the ${a.species} became too weak and died. 💔`);
-      else               addLog(`${a.name} the ${a.species} died from poor health. 💔`);
+      else              addLog(`${a.name} the ${a.species} died from poor health. 💔`);
     }
 
-    // poo spawn
     if(a.alive){
       const pooRatePerHour = 0.4;
       if(Math.random() < pooRatePerHour * hours){
         spawnPooNearAnimal(a);
       }
     }
-
-    // NEW: level-up heal AFTER all stat adjustments & death checks
-    const xpAfter    = a.xp || 0;
-    const levelAfter = getLevelFromXP(xpAfter);
-
-    if(a.alive && levelAfter > levelBefore){
-      a.hunger      = 100;
-      a.happiness   = 100;
-      a.energy      = 100;
-      a.cleanliness = 100;
-      a.health      = 100;
-      addLog(`${a.name} reached level ${levelAfter}! All stats restored. ⭐`);
-      showMood(a.id,"⭐");
-    }
   });
 
-  // environment penalties from poo
   if(state.poops.length){
     const envPenalty = Math.min(state.poops.length*0.4, 8);
     alive.forEach(a=>{
@@ -1479,9 +1430,14 @@ function setControlsDisabled(disabled){
 
 function actionTick(){
   const now = Date.now();
-  const fakeMs = 30*1000; // shorter fake time so care actions are more noticeable
+  const fakeMs = 2*60*1000;
   state.lastUpdate = now - fakeMs;
   simulateFromLastUpdate();
+}
+
+
+function debugPetSnapshot(a) {
+  return `Hunger:${Math.round(a.hunger)} Weight:${Math.round(a.weight)} XP:${a.xp || 0}`;
 }
 
 // --------- controls ----------
@@ -1544,35 +1500,54 @@ function getSelected(){
   return state.animals.find(a=>a.id===selectedId);
 }
 
-feedBtn.addEventListener("click",()=>{
-  const a = getSelected(); if(!a || !a.alive) return;
-  actionTick();
-  a.hunger = clamp(a.hunger + 35);
-  a.happiness = clamp(a.happiness + 4);
-  a.cleanliness = clamp(a.cleanliness - 3);
-  a.weight = clamp(a.weight + 6,20,200);
-  
-  if(a.alive) a.xp = (a.xp||0) + 3;
-  addLog(`You fed ${a.name}.`);
-  showMood(a.id,"😋");
+feedBtn.addEventListener("click", () => {
+  const a = getSelected();
+  if (!a || !a.alive) {
+    addLog("Select a living pet first, then press Feed.");
+    return;
+  }
+
+  const before = debugPetSnapshot(a);
+
+  a.hunger      = clamp(a.hunger + 35, 0, 100);
+  a.happiness   = clamp(a.happiness + 4, 0, 100);
+  a.cleanliness = clamp(a.cleanliness - 3, 0, 100);
+  a.weight      = clamp((a.weight || 0) + 6, 20, 200);
+  a.xp          = (a.xp || 0) + 5;
+
+  const after = debugPetSnapshot(a);
+
+  addLog(`You fed ${a.name}. ${before} → ${after}`);
+  showMood(a.id, "😋");
   saveState();
   render();
 });
 
-playBtn.addEventListener("click",()=>{
-  const a = getSelected(); if(!a || !a.alive) return;
-  actionTick();
-  a.happiness = clamp(a.happiness + 25);
-  a.energy = clamp(a.energy - 10);
-  a.hunger = clamp(a.hunger - 5);
-  a.weight = clamp(a.weight - 2,20,200);
-  
-  if(a.alive) a.xp = (a.xp||0) + 5;
-  addLog(`You played with ${a.name}.`);
-  showMood(a.id,"❤️");
+playBtn.addEventListener("click", () => {
+  const a = getSelected();
+  if (!a || !a.alive) {
+    addLog("Select a living pet first, then press Play.");
+    return;
+  }
+
+  const before = debugPetSnapshot(a);
+
+  // Playing: big happiness boost, some energy + hunger cost, small weight loss
+  a.happiness = clamp(a.happiness + 25, 0, 100);
+  a.energy    = clamp(a.energy - 10, 0, 100);
+  a.hunger    = clamp(a.hunger - 5, 0, 100);
+  a.weight    = clamp((a.weight || 0) - 2, 20, 200);
+  a.xp        = (a.xp || 0) + 5;
+
+  const after = debugPetSnapshot(a);
+
+  addLog(`You played with ${a.name}. ${before} → ${after}`);
+  showMood(a.id, "❤️");
   saveState();
   render();
 });
+
+
 
 washBtn.addEventListener("click",()=>{
   const a = getSelected(); if(!a || !a.alive) return;
@@ -1587,22 +1562,33 @@ washBtn.addEventListener("click",()=>{
   render();
 });
 
-walkBtn.addEventListener("click",()=>{
-  const a = getSelected(); if(!a || !a.alive) return;
-  actionTick();
-  a.energy = clamp(a.energy - 9);
-  a.happiness = clamp(a.happiness + 15);
-  a.hunger = clamp(a.hunger - 7);
-  a.weight = clamp(a.weight - 3,20,200);
-  
-  if(a.alive) a.xp = (a.xp||0) + 6;
-  addLog(`You took ${a.name} for a walk.`);
-  showMood(a.id,"🚶‍♂️");
-  a.depth = clamp(a.depth + randRange(-0.2,0.2),0,1);
-  a.x = clamp((a.x ?? 50) + randRange(-10,10),5,95);
+walkBtn.addEventListener("click", () => {
+  const a = getSelected();
+  if (!a || !a.alive) {
+    addLog("Select a living pet first, then press Walk.");
+    return;
+  }
+
+  const before = debugPetSnapshot(a);
+
+  // Walking: good happiness, bigger energy + hunger cost, more weight loss
+  a.energy    = clamp(a.energy - 9, 0, 100);
+  a.happiness = clamp(a.happiness + 15, 0, 100);
+  a.hunger    = clamp(a.hunger - 7, 0, 100);
+  a.weight    = clamp((a.weight || 0) - 3, 20, 200);
+  a.xp        = (a.xp || 0) + 6;
+
+  const after = debugPetSnapshot(a);
+
+  addLog(`You took ${a.name} for a walk. ${before} → ${after}`);
+  showMood(a.id, "🚶‍♂️");
+  a.depth = clamp(a.depth + randRange(-0.2, 0.2), 0, 1);
+  a.x     = clamp((a.x ?? 50) + randRange(-10, 10), 5, 95);
   saveState();
   render();
 });
+
+
 
 releaseBtn.addEventListener("click",()=>{
   const a = getSelected(); if(!a) return;
@@ -1870,7 +1856,7 @@ function spawnJustin(){
     renderWorld();
   }
 
-  worldEl.appendChild(el);
+worldEl.appendChild(el);
 
   requestAnimationFrame(()=>{
     el.style.left = "115%";
