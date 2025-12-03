@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>GrazeCart Inventory Console Download – FileConverter.run</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Download the GrazeCart Inventory + Orders Console – Cyber Edition. Easily download your GrazeCart inventory to a spreadsheet, edit quantities and prices, and upload changes back with one click." />
+  
+  <!-- Optional: Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #020617;
+      --bg-alt: #020617;
+      --card: #020617;
+      --card-soft: #020617;
+      --accent: #38bdf8;
+      --accent-soft: #1d4ed8;
+      --accent-purple: #a855f7;
+      --border-soft: rgba(148, 163, 184, 0.3);
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --danger: #f97373;
+      --success: #22c55e;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1f2937 0, #020617 50%, #000 100%);
+      color: var(--text);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .page-wrap {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+      background: linear-gradient(to right, rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.95));
+      backdrop-filter: blur(18px);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+
+    .nav {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-pill {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #38bdf8, #4f46e5 40%, #000 75%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      color: #e5e7eb;
+      box-shadow: 0 0 18px rgba(56, 189, 248, 0.5);
+    }
+
+    .brand-text-primary {
+      font-weight: 600;
+      font-size: 16px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #e5e7eb;
+    }
+
+    .brand-text-secondary {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .nav-right {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .nav-link {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .nav-link:hover {
+      border-color: rgba(148, 163, 184, 0.4);
+      color: #e5e7eb;
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .nav-link-primary {
+      border-color: rgba(56, 189, 248, 0.7);
+      background: radial-gradient(circle at top left, #38bdf8, #1d4ed8);
+      color: #eff6ff;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.45);
+    }
+
+    .nav-link-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.7);
+    }
+
+    main {
+      flex: 1;
+    }
+
+    .hero {
+      max-width: 1100px;
+      margin: 35px auto 30px;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+      gap: 28px;
+      align-items: center;
+    }
+
+    @media (max-width: 880px) {
+      .hero {
+        grid-template-columns: minmax(0, 1fr);
+        margin-top: 24px;
+      }
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 3px 9px 3px 3px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .hero-eyebrow-pill {
+      border-radius: 999px;
+      padding: 3px 7px;
+      background: radial-gradient(circle at top left, #38bdf8, #a855f7);
+      font-weight: 600;
+      color: #0b1020;
+    }
+
+    .hero-title {
+      font-size: clamp(28px, 4vw, 34px);
+      line-height: 1.1;
+      font-weight: 700;
+      margin: 0 0 12px;
+    }
+
+    .hero-highlight {
+      background: linear-gradient(to right, #38bdf8, #a855f7);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      max-width: 520px;
+      margin-bottom: 18px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .btn-primary {
+      border-radius: 999px;
+      padding: 10px 18px;
+      border: 1px solid rgba(56, 189, 248, 0.8);
+      background: radial-gradient(circle at top left, #38bdf8, #1d4ed8);
+      color: #eff6ff;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      cursor: pointer;
+      box-shadow: 0 0 18px rgba(56, 189, 248, 0.7);
+      text-decoration: none;
+    }
+
+    .btn-primary span.icon {
+      font-size: 17px;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 22px rgba(56, 189, 248, 0.9);
+    }
+
+    .btn-ghost {
+      border-radius: 999px;
+      padding: 9px 14px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: radial-gradient(circle at bottom, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.98));
+      color: var(--muted);
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .btn-ghost span.icon {
+      font-size: 16px;
+    }
+
+    .btn-ghost:hover {
+      color: #e5e7eb;
+      border-color: rgba(148, 163, 184, 0.8);
+      background: rgba(15, 23, 42, 0.96);
+    }
+
+    .hero-meta {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .hero-meta strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .hero-card {
+      border-radius: 24px;
+      padding: 18px 18px 16px;
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 60%),
+        radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.18), transparent 60%),
+        linear-gradient(to bottom right, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.98));
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow:
+        0 0 45px rgba(15, 23, 42, 0.9),
+        0 0 40px rgba(56, 189, 248, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .hero-card-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(34, 197, 94, 0.6);
+      background: rgba(21, 128, 61, 0.15);
+      color: #bbf7d0;
+      font-size: 11px;
+    }
+
+    .hero-card-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .hero-card-text {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .hero-card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      font-size: 11px;
+    }
+
+    .pill {
+      border-radius: 999px;
+      padding: 6px 9px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .pill-label {
+      color: var(--muted);
+    }
+
+    .pill-value {
+      color: #e5e7eb;
+      font-weight: 500;
+    }
+
+    .pill-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+    }
+
+    .pill-dot.green {
+      background: var(--success);
+      box-shadow: 0 0 8px rgba(34, 197, 94, 0.8);
+    }
+
+    .pill-dot.blue {
+      background: #38bdf8;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.8);
+    }
+
+    .pill-dot.purple {
+      background: #a855f7;
+      box-shadow: 0 0 8px rgba(168, 85, 247, 0.8);
+    }
+
+    .section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 10px 20px 26px;
+    }
+
+    .section h2 {
+      font-size: 20px;
+      margin: 0 0 8px;
+    }
+
+    .section p {
+      font-size: 14px;
+      color: var(--muted);
+      margin: 0 0 8px;
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+      gap: 22px;
+      align-items: flex-start;
+    }
+
+    @media (max-width: 880px) {
+      .section-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      border-radius: 22px;
+      padding: 18px 18px 16px;
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.10), transparent 60%),
+        linear-gradient(to bottom right, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.98));
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow:
+        0 0 35px rgba(15, 23, 42, 0.9),
+        0 0 28px rgba(15, 23, 42, 0.9);
+      font-size: 13px;
+    }
+
+    .card h3 {
+      font-size: 16px;
+      margin: 0 0 6px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .steps {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0 0;
+      counter-reset: step;
+    }
+
+    .steps li {
+      position: relative;
+      padding-left: 30px;
+      margin-bottom: 8px;
+    }
+
+    .steps li::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 2px;
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: radial-gradient(circle at top left, #38bdf8, #1d4ed8);
+      color: #eff6ff;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
+    }
+
+    .steps strong {
+      color: #e5e7eb;
+    }
+
+    code {
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      padding: 2px 5px;
+      border-radius: 6px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      color: #fee2e2;
+    }
+
+    .video-frame {
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow: 0 0 26px rgba(15, 23, 42, 0.9);
+      background: #020617;
+      aspect-ratio: 16 / 9;
+    }
+
+    .video-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .faq-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .faq-item {
+      border-radius: 16px;
+      padding: 12px 12px 10px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      font-size: 13px;
+    }
+
+    .faq-item h4 {
+      margin: 0 0 4px;
+      font-size: 13px;
+    }
+
+    footer {
+      border-top: 1px solid rgba(15, 23, 42, 0.9);
+      padding: 14px 20px 18px;
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+  <header>
+    <nav class="nav">
+      <div class="nav-left">
+        <div class="brand-pill">FC</div>
+        <div>
+          <div class="brand-text-primary">FileConverter.run</div>
+          <div class="brand-text-secondary">Tools for creators & operators</div>
+        </div>
+      </div>
+      <div class="nav-right">
+        <a href="/" class="nav-link">← Back to FileConverter.run</a>
+        <a href="#how-to" class="nav-link">How it works</a>
+        <a href="#smartscreen" class="nav-link">Windows help</a>
+        <a href="#download" class="nav-link nav-link-primary">Download app</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero" id="download">
+      <div>
+        <div class="hero-eyebrow">
+          <span class="hero-eyebrow-pill">New</span>
+          GrazeCart Inventory Console · Cyber Edition
+        </div>
+        <h1 class="hero-title">
+          Download, edit in a spreadsheet, and
+          <span class="hero-highlight">sync your GrazeCart inventory in minutes.</span>
+        </h1>
+        <p class="hero-subtitle">
+          This Windows app lets you download all your GrazeCart products into a spreadsheet,
+          update quantities and prices in Excel or Google Sheets, and upload changes back to GrazeCart
+          with a single click.
+        </p>
+        <div class="hero-actions">
+          <!-- TODO: update href to your real download URL -->
+          <a href="/downloads/GrazeCart_Inventory_Console.exe" class="btn-primary">
+            <span class="icon">⬇</span>
+            <span>Download GrazeCart Inventory Console (Windows)</span>
+          </a>
+          <a href="#how-to" class="btn-ghost">
+            <span class="icon">🎥</span>
+            <span>See how it works</span>
+          </a>
+        </div>
+        <div class="hero-meta">
+          <strong>Tip:</strong> If Windows says “This app might be unsafe”, click
+          <code>More info → Run anyway</code> (details in the Windows help section below).
+        </div>
+      </div>
+
+      <aside class="hero-card" aria-label="App summary">
+        <div class="hero-card-header">
+          <span>GrazeCart Inventory · Local Control</span>
+          <span class="hero-card-badge">
+            <span style="font-size: 13px;">●</span>
+            Inventory sync ready
+          </span>
+        </div>
+        <div class="hero-card-title">
+          Spreadsheet-based inventory + price management
+        </div>
+        <div class="hero-card-text">
+          Download, edit, and re-upload all your products and price groups using your
+          existing spreadsheet workflow.
+        </div>
+        <div class="hero-card-grid">
+          <div class="pill">
+            <span class="pill-label">Inventory source</span>
+            <span class="pill-value">GrazeCart API</span>
+            <span class="pill-dot blue"></span>
+          </div>
+          <div class="pill">
+            <span class="pill-label">Edit mode</span>
+            <span class="pill-value">Spreadsheet</span>
+            <span class="pill-dot.purple pill-dot purple"></span>
+          </div>
+          <div class="pill">
+            <span class="pill-label">Sync type</span>
+            <span class="pill-value">Download & upload</span>
+            <span class="pill-dot green"></span>
+          </div>
+          <div class="pill">
+            <span class="pill-label">Platform</span>
+            <span class="pill-value">Windows 10/11</span>
+            <span class="pill-dot blue"></span>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- HOW TO -->
+    <section class="section" id="how-to">
+      <h2>How the GrazeCart Inventory Console works</h2>
+      <p>
+        This app was built to make it easy to keep your GrazeCart inventory and pricing
+        up to date using a spreadsheet. Here’s the basic workflow:
+      </p>
+
+      <div class="section-grid">
+        <div class="card">
+          <div class="badge">Step-by-step workflow</div>
+          <h3>1. Download your current inventory</h3>
+          <ul class="steps">
+            <li>
+              <strong>Open the app</strong> and log in with your GrazeCart API details (or however your setup is configured).
+            </li>
+            <li>
+              Click the <strong>Download Inventory</strong> button. The app fetches your live products from GrazeCart,
+              including product IDs, names, quantities, and price groups.
+            </li>
+            <li>
+              The inventory is saved as a spreadsheet file (for example: <code>grazecart_inventory_export.xlsx</code>).
+            </li>
+          </ul>
+
+          <h3 style="margin-top: 14px;">2. Edit quantities & prices in a spreadsheet</h3>
+          <ul class="steps">
+            <li>
+              Open the exported file in <strong>Excel, Google Sheets, or LibreOffice</strong>.
+            </li>
+            <li>
+              Update your <strong>quantities</strong> (stock levels) and <strong>prices</strong> directly in the rows.
+            </li>
+            <li>
+              You can also add <strong>new inventory entries</strong> by inserting new rows following the same format.
+            </li>
+            <li>
+              Save the file when you’re done editing.
+            </li>
+          </ul>
+
+          <h3 style="margin-top: 14px;">3. Re-upload changes to GrazeCart</h3>
+          <ul class="steps">
+            <li>
+              Back in the app, choose the updated spreadsheet file.
+            </li>
+            <li>
+              Click <strong>Upload / Sync</strong>. The app reads your changes and sends the new quantities and prices
+              back to GrazeCart.
+            </li>
+            <li>
+              The log panel in the app shows you which products were updated successfully and flags any errors
+              (for example: missing IDs or invalid values).
+            </li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="badge">Video walkthrough</div>
+          <h3>Watch the app in action</h3>
+          <p>
+            Prefer to see it visually? Here’s a full walkthrough showing how to download, edit, and re-upload
+            your GrazeCart inventory using the console.
+          </p>
+          <div class="video-frame">
+            <!-- TODO: Replace with your real YouTube embed.
+                 Example: <iframe src="https://www.youtube.com/embed/VIDEO_ID" ...></iframe> -->
+            <div class="video-placeholder">
+              Embed your YouTube tutorial here.<br />
+              Example:<br />
+              <code>&lt;iframe src="https://www.youtube.com/embed/VIDEO_ID" frameborder="0" allowfullscreen&gt;&lt;/iframe&gt;</code>
+            </div>
+          </div>
+
+          <h3 style="margin-top: 14px;">Tips for a smooth workflow</h3>
+          <ul class="steps">
+            <li>
+              Keep a backup copy of each exported spreadsheet before editing, so you always have a restore point.
+            </li>
+            <li>
+              Use filters in your spreadsheet to quickly find products, price groups, or shipping tiers.
+            </li>
+            <li>
+              If you manage <strong>seasonal pricing</strong> or <strong>shipping tiers</strong>, you can prep changes
+              ahead of time and sync them when you’re ready.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- WINDOWS / SMARTSCREEN HELP -->
+    <section class="section" id="smartscreen">
+      <h2>Windows says “This app might be a virus” – what does that mean?</h2>
+      <p>
+        Because this is a brand-new desktop app distributed outside of the Microsoft Store,
+        Windows may show a SmartScreen warning like:
+        <strong>“Windows protected your PC”</strong> or “Unrecognized app”.
+        This doesn’t mean the app is malicious – it simply means Windows has not seen it enough times yet
+        to automatically trust it.
+      </p>
+
+      <div class="faq-grid">
+        <div class="faq-item">
+          <h4>How to run the app anyway</h4>
+          <p>
+            When you see the blue SmartScreen window:
+          </p>
+          <ul style="padding-left: 18px; margin: 4px 0;">
+            <li>Click <strong>More info</strong>.</li>
+            <li>Confirm the app name is your GrazeCart Inventory Console.</li>
+            <li>Click <strong>Run anyway</strong>.</li>
+          </ul>
+          <p style="margin-top: 4px;">
+            After that, the app will open normally.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <h4>If Defender quarantines or removes it</h4>
+          <p>
+            Rarely, Windows Defender may quarantine a brand-new unsigned EXE (especially PyInstaller apps).
+            If that happens:
+          </p>
+          <ul style="padding-left: 18px; margin: 4px 0;">
+            <li>Open <strong>Windows Security → Virus & threat protection</strong>.</li>
+            <li>Click <strong>Protection history</strong>.</li>
+            <li>Find the entry for the app and choose <strong>Allow on device</strong> or <strong>Restore</strong>.</li>
+          </ul>
+        </div>
+
+        <div class="faq-item">
+          <h4>How to stop Windows from blocking it again</h4>
+          <p>
+            To keep Windows from interfering while you work:
+          </p>
+          <ul style="padding-left: 18px; margin: 4px 0;">
+            <li>Open <strong>Windows Security → Virus & threat protection</strong>.</li>
+            <li>Click <strong>Manage settings</strong>.</li>
+            <li>Scroll to <strong>Exclusions</strong> and add an exclusion for the app’s folder.</li>
+          </ul>
+          <p style="margin-top: 4px;">
+            This tells Defender to ignore that app or folder.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <h4>Why does this happen?</h4>
+          <p>
+            Windows uses reputation and code-signing to decide which apps are “known”.
+            New apps from small developers often show warnings until they are code-signed
+            and gain enough reputation over time. This is normal for custom tools like this one.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    &copy; <span id="year"></span> FileConverter.run · GrazeCart Inventory Console – Cyber Edition.
+    Built to make inventory and price updates fast, spreadsheet-friendly, and under your control.
+  </footer>
+</div>
+
+<script>
+  // Simple year updater
+  document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
