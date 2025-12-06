@@ -25,7 +25,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Image Converter & Resizer — PNG, JPEG, WebP, AVIF | FileConverter.run</title>
-  <meta name="description" content="Convert and resize images privately in your browser. PNG/JPEG/WebP/AVIF, batch processing, transparency preserved, and no uploads.">
+  <meta name="description" content="Convert and resize images privately in your browser. PNG/JPEG/WebP/AVIF, batch processing, transparency preserved, icon sizes like 16x16 and 32x32, and no uploads.">
   <link rel="stylesheet" href="site.css"/>
 
   <style>
@@ -40,8 +40,15 @@
       animation:cyberPulse 3s ease-in-out infinite alternate, gradientShift 6s linear infinite;
       background-size:400% auto;
     }
-    @keyframes cyberPulse{from{ text-shadow:0 0 4px rgba(125,211,252,.25),0 0 8px rgba(125,211,252,.18),0 0 12px rgba(167,139,250,.12)} to{ text-shadow:0 0 10px rgba(125,211,252,.6),0 0 20px rgba(125,211,252,.4),0 0 30px rgba(255,0,255,.28)}}
-    @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    @keyframes cyberPulse{
+      from{ text-shadow:0 0 4px rgba(125,211,252,.25),0 0 8px rgba(125,211,252,.18),0 0 12px rgba(167,139,250,.12)}
+      to{   text-shadow:0 0 10px rgba(125,211,252,.6),0 0 20px rgba(125,211,252,.4),0 0 30px rgba(255,0,255,.28)}
+    }
+    @keyframes gradientShift{
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
     header p.sub{opacity:.9;margin:0 0 10px;color:#e5e7eb}
 
     nav.tabs{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:10px 12px;border-top:1px solid #1f2430;border-bottom:1px solid #1f2430;}
@@ -65,7 +72,11 @@
     }
     #fc-actions button:hover{background:var(--brand);color:#0f1117;cursor:pointer}
     #fc-results{margin-top:14px;min-height:60px;background:#0f1117;border:1px solid var(--line);border-radius:10px;padding:10px}
-    #fc-log{margin-top:10px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size:.9rem; color:#cbd5e1; white-space:pre-wrap; background:#0c1624; border:1px solid var(--line); border-radius:8px; padding:10px}
+    #fc-log{
+      margin-top:10px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size:.9rem; color:#cbd5e1; white-space:pre-wrap; background:#0c1624; border:1px solid var(--line); border-radius:8px; padding:10px
+    }
+    .icon-hint{font-size:.85rem;color:var(--muted);margin-top:4px}
 
     /* AdSense-friendly info */
     .info{max-width:1100px;margin:18px auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;color:#e6edf3}
@@ -100,6 +111,7 @@
         <span class="chip">HEIC → JPG</span><span class="chip">PNG ↔ JPG</span>
         <span class="chip">PNG/WebP Transparency</span><span class="chip">Batch Convert</span>
         <span class="chip">Resize & Compress</span><span class="chip">AVIF/WebP</span>
+        <span class="chip">Icon PNGs 16 / 32 / 64px</span>
       </div>
     </div>
 
@@ -117,6 +129,7 @@
       <li>Convert PNG ↔ JPG ↔ WebP without uploads — perfect for e-commerce, resumes, and social posts.</li>
       <li>Batch compress large photos while keeping them crisp for the web.</li>
       <li>Keep transparency for product cutouts (PNG/WebP) and export AVIF for ultra-small pages.</li>
+      <li>Generate square PNG icons (16×16, 32×32, 64×64 or custom) for favicons and app shortcuts.</li>
     </ul>
     <p style="color:var(--muted)">Everything runs locally in your browser for privacy and speed.</p>
   </section>
@@ -145,7 +158,22 @@
           </label>
           <label>Max width <input type="number" id="fc-maxw" placeholder="e.g., 1600"></label>
           <label>Max height <input type="number" id="fc-maxh" placeholder="e.g., 1600"></label>
+
+          <!-- Icon controls -->
+          <label style="display:flex;align-items:center;gap:4px;">
+            <input type="checkbox" id="fc-icon-mode">
+            Also generate icons
+          </label>
+          <label>Icon sizes
+            <input type="text" id="fc-icon-sizes" value="16,32,64" size="10" placeholder="16,32,64">
+          </label>
+          <!-- /Icon controls -->
+
           <button id="fc-convert" type="button">Convert Selected</button>
+        </div>
+
+        <div class="icon-hint">
+          Tip: Icon sizes are in pixels. Try <strong>16</strong> for classic favicons, <strong>32</strong> for high-DPI tabs, and <strong>64</strong>+ for shortcuts.
         </div>
 
         <div id="fc-results" aria-live="polite">Results will appear here after conversion.</div>
@@ -161,6 +189,7 @@
           <li>Right-size: set max width/height to your largest display size for faster pages.</li>
           <li>Transparency: use PNG/WebP for product cutouts and UI.</li>
           <li>Smart quality: start JPEG/WebP around 80–85; raise only if needed.</li>
+          <li>Icons: enable “Also generate icons” to get ready-to-use 16×16, 32×32, 64×64 PNGs for favicons and app launchers.</li>
         </ul>
       </div>
     </section>
@@ -187,7 +216,14 @@
     const logEl = $('fc-log');
     const resultsEl = $('fc-results');
 
-    function log(msg){ logEl.textContent += msg + '\\n'; logEl.scrollTop = logEl.scrollHeight; }
+    // Icon controls
+    const iconModeEl = $('fc-icon-mode');
+    const iconSizesEl = $('fc-icon-sizes');
+
+    function log(msg){
+      logEl.textContent += msg + '\n';
+      logEl.scrollTop = logEl.scrollHeight;
+    }
     function clearLog(){ logEl.textContent=''; }
 
     function getQuality01(){
@@ -201,7 +237,9 @@
     }
     function scaleWH(w,h,mw,mh){
       if ((mw<=0 && mh<=0) || ((mw<=0 || w<=mw) && (mh<=0 || h<=mh))) return {w,h};
-      const rW = mw>0 ? mw/w : 1, rH = mh>0 ? mh/h : 1, r = Math.min(rW, rH);
+      const rW = mw>0 ? mw/w : 1;
+      const rH = mh>0 ? mh/h : 1;
+      const r = Math.min(rW, rH);
       return { w: Math.max(1, Math.round(w*r)), h: Math.max(1, Math.round(h*r)) };
     }
     function chosenMimeAndExt(fmt){
@@ -234,19 +272,70 @@
       return card;
     }
 
+    // Parse "16,32,64" → [16,32,64]
+    function parseIconSizes(str){
+      if (!str) return [16,32,64];
+      const nums = String(str)
+        .split(/[xX,\/\s]+/)
+        .map(v => parseInt(v, 10))
+        .filter(v => Number.isFinite(v) && v > 0 && v <= 4096);
+      const unique = Array.from(new Set(nums));
+      return unique.length ? unique.sort((a,b)=>a-b) : [16,32,64];
+    }
+
     async function loadImageFromFile(file){
       const url = URL.createObjectURL(file);
       // Prefer createImageBitmap when available (faster, fewer CORS quirks)
       try{
         const bmp = await createImageBitmap(file);
-        return { w:bmp.width, h:bmp.height, draw:(c)=>c.getContext('2d').drawImage(bmp,0,0,c.width,c.height), release:()=>bmp.close(), url };
+        return {
+          w:bmp.width,
+          h:bmp.height,
+          source:bmp,
+          isBitmap:true,
+          draw:(c)=>c.getContext('2d').drawImage(bmp,0,0,c.width,c.height),
+          release:()=>bmp.close(),
+          url
+        };
       }catch{
         // Fallback to Image()
-        const img = await new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=(e)=>rej(e); im.src=url; });
-        return { w:img.naturalWidth, h:img.naturalHeight, draw:(c)=>c.getContext('2d').drawImage(img,0,0,c.width,c.height), release:()=>{}, url };
+        const img = await new Promise((res,rej)=>{
+          const im=new Image();
+          im.onload=()=>res(im);
+          im.onerror=(e)=>rej(e);
+          im.src=url;
+        });
+        return {
+          w:img.naturalWidth,
+          h:img.naturalHeight,
+          source:img,
+          isBitmap:false,
+          draw:(c)=>c.getContext('2d').drawImage(img,0,0,c.width,c.height),
+          release:()=>{},
+          url
+        };
       }
     }
-    function canvasOf(w,h){ const c=document.createElement('canvas'); c.width=w; c.height=h; return c; }
+    function canvasOf(w,h){
+      const c=document.createElement('canvas'); c.width=w; c.height=h; return c;
+    }
+
+    // Draw centered, square icon from original source
+    function drawIconCanvas(src, size){
+      const canvas = canvasOf(size, size);
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,size,size);
+
+      const scale = size / Math.max(src.w, src.h);
+      const dw = src.w * scale;
+      const dh = src.h * scale;
+      const dx = (size - dw) / 2;
+      const dy = (size - dh) / 2;
+
+      ctx.drawImage(src.source, dx, dy, dw, dh);
+      return canvas;
+    }
+
     async function canvasToBlobSmart(canvas, mime, q){
       // Try requested mime
       let blob = await new Promise(res=>canvas.toBlob(res, mime, q));
@@ -268,12 +357,22 @@
       resultsEl.innerHTML = '';
       try{
         const files = Array.from(($('fc-files').files||[]));
-        if(!files.length){ alert('Choose one or more images first.'); return; }
+        if(!files.length){
+          alert('Choose one or more images first.');
+          return;
+        }
         const fmt = $('fc-format').value || 'jpeg';
         const { mime, ext } = chosenMimeAndExt(fmt);
         const q = getQuality01();
         const { mw, mh } = getMaxes();
+
+        const iconMode = iconModeEl && iconModeEl.checked;
+        const iconSizes = iconMode ? parseIconSizes(iconSizesEl && iconSizesEl.value) : [];
+
         log(`Requested: ${fmt.toUpperCase()} (mime: ${mime}), quality=${q}`);
+        if (iconMode && iconSizes.length){
+          log(`Icon mode: ON — sizes: ${iconSizes.join(', ')}px (PNG)`);
+        }
 
         for (const f of files){
           try{
@@ -296,8 +395,23 @@
             const outUrl = URL.createObjectURL(outBlob);
             const meta = `Input: ${f.name} | ${src.w}×${src.h} → ${w}×${h} | Output: ${outExt.toUpperCase()}`;
             resultsEl.appendChild(resultCard(outName, meta, outUrl));
-            src.release();
             log(`Done: ${outName}`);
+
+            // Icon PNGs
+            if (iconMode && iconSizes.length){
+              log(`Generating icons for ${f.name}…`);
+              for (const size of iconSizes){
+                const iconCanvas = drawIconCanvas(src, size);
+                const iconBlob = await canvasToBlobSmart(iconCanvas, 'image/png', 1.0);
+                const iconUrl = URL.createObjectURL(iconBlob);
+                const iconName = `${base}-${size}x${size}.png`;
+                const iconMeta = `ICON: ${size}×${size} PNG from ${f.name}`;
+                resultsEl.appendChild(resultCard(iconName, iconMeta, iconUrl));
+                log(`Icon generated: ${iconName}`);
+              }
+            }
+
+            src.release();
           }catch(e){
             log(`❌ ${f.name}: ${e && e.message ? e.message : e}`);
           }
