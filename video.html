@@ -58,18 +58,6 @@ s0.parentNode.insertBefore(s1,s0);
     @media (max-width: 920px){ main{ grid-template-columns:1fr; } }
   </style>
 
-  <!-- Optional: visitor log to Google Sheets (replace URL to enable) -->
-  <script>
-    (async () => {
-      const SHEET_WEB_APP_URL = "https://script.google.com/macros/s/REPLACE_WITH_YOURS/exec";
-      if (!SHEET_WEB_APP_URL.includes("REPLACE_WITH_YOURS")) return;
-      try {
-        const ip = await fetch("https://ipapi.co/json").then(r=>r.json()).catch(()=> ({}));
-        const body = { timestamp:new Date().toISOString(), ...ip, user_agent:navigator.userAgent, page:location.href, referrer:document.referrer||"" };
-        await fetch(SHEET_WEB_APP_URL, { method:"POST", mode:"no-cors", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body) });
-      } catch(_) {}
-    })();
-  </script>
 
   <!-- FFmpeg v0.12 polyfill: ESM core + same-origin worker -->
   <script type="module">
