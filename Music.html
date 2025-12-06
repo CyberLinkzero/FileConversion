@@ -6,15 +6,15 @@
   <meta charset="utf-8">
   <title> Music → Tabs, Sheet, Vocals & Auto-Lyrics(Local + Cached) Coming Soon Under Construction </title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Analyze once, render Tabs or Sheet instantly. 100% local with OPFS caching. Optional vocal melody and local auto-lyrics via localhost helper Under Constructiion.">
+  <meta name="description" content="Analyze once, render Tabs or...nd local auto-lyrics via localhost helper Under Constructiion.">
   <style>
     :root{--bg:#0f1117;--panel:#121826;--ink:#e5f2ff;--muted:#9aa4b2;--line:#263044;--cyan:#67e8f9;--vio:#a78bfa}
     *{box-sizing:border-box} html,body{height:100%}
     body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial}
     header{padding:22px 16px;text-align:center;border-bottom:1px solid #1f2430}
-    h1{margin:0;font-size:28px;background:linear-gradient(90deg,var(--cyan),var(--vio));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    h1{margin:0;font-size:28px;background:linear-gradient(90deg,...webkit-background-clip:text;-webkit-text-fill-color:transparent}
     .wrap{max-width:1200px;margin:0 auto;padding:18px 16px 64px}
-    .card{background:linear-gradient(180deg,#121826,#0b1220);border:1px solid var(--line);border-radius:16px;box-shadow:0 0 24px rgba(103,232,249,.14)}
+    .card{background:linear-gradient(180deg,#121826,#0b1220);bor...e);border-radius:16px;box-shadow:0 0 24px rgba(103,232,249,.14)}
     .pad{padding:18px}
     .row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
     @media (max-width:1000px){.row{grid-template-columns:1fr}}
@@ -23,34 +23,39 @@
     .drop.drag{border-color:var(--cyan);background:rgba(103,232,249,.06)}
     .chips{display:flex;flex-wrap:wrap;gap:8px}
     .chip{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--line);padding:8px 12px;border-radius:999px}
-    textarea{width:100%;min-height:120px;resize:vertical;border-radius:12px;padding:12px 14px;background:#0a1424;border:1px solid #263044;color:var(--ink)}
+    textarea{width:100%;min-height:120px;resize:vertical;border-...px;background:#0a1424;border:1px solid #263044;color:var(--ink)}
     .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
-    .btn{border:0;padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:700;background:linear-gradient(90deg,var(--cyan),var(--vio));color:#07101a}
-    .btn.sec{background:#0a1424;color:var(--ink);border:1px solid #263044}
-    .btn.ghost{background:transparent;border:1px dashed var(--line);color:var(--muted)}
-    .btn:disabled{opacity:.6;cursor:not-allowed}
-    .bar{height:8px;background:#0a1424;border:1px solid #263044;border-radius:999px;overflow:hidden;margin-top:10px}
-    .bar>i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),var(--vio));transition:width .25s}
-    pre{margin:10px 0 0;padding:12px;border:1px dashed var(--line);border-radius:12px;background:#07101a;color:#cfe6ff;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;max-height:240px;overflow:auto;white-space:pre-wrap}
-    .muted{color:var(--muted)}
-    #scoreWrap{margin-top:16px;background:#0a1424;border:1px solid #263044;border-radius:12px;padding:12px}
-    .badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:#cfe6ff}
-    /* Modal */
-    #transcriber-modal{display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:99999;}
-    #transcriber-card{max-width:640px; margin:10vh auto; background:#121826; color:#e5f2ff; border:1px solid #263044; border-radius:16px; padding:18px;}
-    .btn{cursor:pointer}
+    .btn{border:0;padding:10px 16px;border-radius:12px;cursor:po...background:linear-gradient(90deg,var(--cyan),var(--vio));color:#0b1120;font-weight:600}
+    .btn.outline{background:transparent;border:1px solid var(--line);color:var(--ink)}
+    .btn[disabled]{opacity:.5;cursor:default}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11px;border:1px solid #1f2937;background:#020617}
+    .badge span{font-size:14px}
+    .badge .dot{width:8px;height:8px;border-radius:999px;background:var(--cyan)}
+    .badge .x{cursor:pointer;font-size:12px}
+    .log{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;background:#020617;border-radius:12px;padding:10px;max-height:220px;overflow:auto;border:1px solid #111827;white-space:pre-wrap}
+    .progress{width:100%;height:8px;background:#020617;border-radius:999px;overflow:hidden;border:1px solid #111827;margin-top:6px}
+    .progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--vio));transition:width .22s ease-out}
+    .mode-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+    .mode-row label{font-size:13px;display:flex;align-items:center;gap:6px;color:var(--muted)}
+    .mode-row input[type="radio"]{accent-color:var(--cyan)}
+    .stack{display:flex;flex-direction:column;gap:12px}
+    .preview-wrap{border:1px dashed #1f2937;border-radius:12px;padding:12px;min-height:120px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;background:#020617}
+    canvas{max-width:100%;background:#020617;border-radius:8px;border:1px solid #111827}
+    .small-note{font-size:12px;color:var(--muted);margin-top:4px}
+    .badge-lite{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+    .hidden{display:none}
+    .tagline{margin:6px 0 0;color:#9ca3af;font-size:13px}
+    .pill{display:inline-flex;align-items:center;gap:6px; padding:4px 10px;border-radius:999px;background:#020617;border:1px solid #1f2937;font-size:11px;color:#9ca3af}
+    .pill strong{color:#e5e7eb;font-weight:600;font-size:11px}
+    .auto-lyrics-cols{display:grid;grid-template-columns:1.2fr 1fr;gap:12px}
+    @media (max-width:900px){.auto-lyrics-cols{grid-template-columns:1fr}}
+    .warn{color:#fbbf24;font-size:12px}
   </style>
 </head>
 <body>
 <header>
-  
-
-
-  <h1>Music → Tabs, Sheet, Vocals & Auto-Lyrics (Local) Under Construction</h1>
-  <p class="muted" style="margin:.3rem 0 0">Analyze once, render instantly. 100% on your device. OPFS cache. Optional local auto-lyrics.</p>
-
-  <div data-nav-placeholder></div>
-  <script src="nav-loader.js" defer></script>
+  <h1>Music → Tabs & Sheet (Under Construction)</h1>
+  <p class="tagline">Drop in an audio file, analyze once, then export guitar/bass/piano tabs or a simple lead sheet. Local auto-lyrics helper coming soon.</p>
   <script src="js/utils.js"></script>
 </header>
 
@@ -58,105 +63,143 @@
   <div class="card"><div class="pad">
     <div class="row">
       <div>
-        <label class="title">Audio/Video file</label>
-        <input id="file" type="file" accept="audio/*,video/*" hidden>
+        <label class="title">Audio file</label>
+        <input id="file" type="file" accept="audio/*" hidden>
         <div id="drop" class="drop" aria-label="Choose file" tabindex="0" role="button">
           <div>Drag & drop here</div>
-          <div style="margin-top:8px">
-            <button id="pickBtn" type="button" class="btn sec" style="padding:8px 12px">Browse…</button>
+          <div style="font-size:12px;color:#9ca3af;margin-top:4px">
+            or <button id="pickBtn" type="button" class="btn outline" style="padding:4px 10px;font-size:12px;border-radius:999px">Browse</button>
           </div>
-          <div id="fname" class="muted" style="margin-top:6px"></div>
+          <div style="margin-top:6px;font-size:12px;color:#6b7280">
+            MP3, WAV, FLAC, etc. (up to ~10 minutes)
+          </div>
         </div>
-
-        <div class="chips" style="margin-top:10px">
-          <span id="cacheBadge" class="badge" style="display:none">Cached analysis found</span>
-          <button id="useCache" class="btn sec" style="display:none">Use cached analysis</button>
-          <button id="clearCache" class="btn sec" style="display:none">Clear cache</button>
+        <div style="margin-top:8px;font-size:12px">
+          <span class="badge-lite">Selected: <span id="fname">none</span></span>
+          <span id="cacheBadge" class="badge" style="margin-left:8px;display:none">
+            <span class="dot"></span><span>Cached analysis</span>
+          </span>
         </div>
-
-        <label class="title" style="margin-top:14px">Output</label>
-        <div class="chips">
-          <label class="chip"><input type="radio" name="mode" value="tabs" checked> Tabs</label>
-          <label class="chip"><input type="radio" name="mode" value="sheet"> Sheet music</label>
-          <label class="chip"><input type="checkbox" id="vocals"> Include vocal melody (notes)</label>
+        <div class="actions" style="margin-top:10px">
+          <button id="analyzeBtn" class="btn">Analyze (one pass)</button>
+          <button id="abortBtn" class="btn outline" disabled>Abort</button>
+          <button id="useCache" class="btn outline" style="display:none">Use cached analysis</button>
+          <button id="clearCache" class="btn outline" style="display:none">Clear cache</button>
         </div>
-
-        <div class="chips" style="margin-top:8px">
-          <label class="chip"><input type="checkbox" id="auto-lyrics"> Auto-transcribe lyrics (local)</label>
-        </div>
-
-        <label class="title" style="margin-top:14px">Segmentation (fallback)</label>
-        <div class="chips">
-          <label class="chip">
-            <span>Force split every</span>
-            <select id="force-split" style="background:#0a1424;border:1px solid #263044;color:#e5f2ff;border-radius:10px;padding:6px 10px;margin-left:8px">
-              <option value="0">— none —</option>
-              <option value="2">2s</option>
-              <option value="4" selected>4s</option>
-              <option value="8">8s</option>
-            </select>
-          </label>
-        </div>
-
-        <label class="title" style="margin-top:14px">Tabs instruments</label>
-        <div class="chips" id="chips">
-          <label class="chip"><input type="checkbox" value="guitar" checked> Guitar</label>
-          <label class="chip"><input type="checkbox" value="bass"> Bass</label>
-          <label class="chip"><input type="checkbox" value="piano"> Piano</label>
-          <label class="chip"><input type="checkbox" value="drums"> Drums</label>
-        </div>
-
-        <label class="title" style="margin-top:14px">Exports</label>
-        <div class="chips">
-          <label class="chip"><input type="checkbox" id="fmt-md" checked> Markdown (.md)</label>
-          <label class="chip"><input type="checkbox" id="fmt-txt"> Text Tabs (.txt)</label>
-          <label class="chip"><input type="checkbox" id="fmt-json"> JSON (.json)</label>
-          <label class="chip"><input type="checkbox" id="fmt-vtt"> WebVTT (.vtt)</label>
+        <div class="progress"><div id="fill" class="progress-fill"></div></div>
+        <div class="small-note" id="status">Idle.</div>
+        <div class="small-note">
+          <span class="pill"><strong>Tip:</strong> Analyze once, then tweak export options and hit <strong>Render Output</strong>.</span>
         </div>
       </div>
 
       <div>
-        <label class="title">Lyrics (optional)</label>
-        <textarea id="lyrics" placeholder="Paste lyrics to sync under notes… (auto-lyrics will overwrite this)"></textarea>
-        <div id="scoreWrap" style="display:none">
-          <div id="score"></div>
+        <label class="title">Mode</label>
+        <div class="mode-row" id="modeRow">
+          <label><input type="radio" name="mode" value="tabs" checked> Tabs (guitar / bass / piano / drums)</label>
+          <label><input type="radio" name="mode" value="sheet"> Sheet music (lead + chords)</label>
+        </div>
+
+        <div id="tabsOptions" class="stack" style="margin-top:10px">
+          <div class="chips" id="chips">
+            <label class="chip"><input type="checkbox" id="guit" checked> Guitar</label>
+            <label class="chip"><input type="checkbox" id="bassChk" checked> Bass</label>
+            <label class="chip"><input type="checkbox" id="pianoChk"> Piano</label>
+            <label class="chip"><input type="checkbox" id="drumsChk"> Drums</label>
+          </div>
+          <div class="small-note">
+            Guitar tabs use simple open-chord shapes; bass and piano are simplified backing patterns, not transcription-perfect.
+          </div>
+        </div>
+
+        <div id="sheetOptions" class="stack" style="margin-top:10px;display:none">
+          <label class="chip">
+            <input type="checkbox" id="vocals" checked>
+            Include vocal melody (YIN pitch estimation)
+          </label>
+          <div class="small-note">
+            Uses a simple mono-vocal assumption and quantizes to a basic 4/4 lead sheet — good for sketching ideas, not exact scores.
+          </div>
+        </div>
+
+        <label class="title" style="margin-top:12px">Export formats</label>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="fmt-md" checked> Markdown</label>
+          <label class="chip"><input type="checkbox" id="fmt-txt"> Plain text</label>
+          <label class="chip"><input type="checkbox" id="fmt-json"> JSON chords</label>
+          <label class="chip"><input type="checkbox" id="fmt-vtt"> WebVTT (chords per span)</label>
+        </div>
+
+        <label class="title" style="margin-top:12px">Lyrics (optional)</label>
+        <textarea id="lyrics" placeholder="Paste or type lyrics here for ChordPro / sheet alignment..."></textarea>
+        <div class="auto-lyrics-cols small-note">
+          <div>
+            <label class="chip">
+              <input type="checkbox" id="auto-lyrics">
+              Try local auto-lyrics (Whisper via localhost helper)
+            </label>
+            <div class="warn">
+              Requires a small local Python server (downloads below). Not needed if you paste lyrics manually.
+            </div>
+          </div>
+          <div>
+            <label class="title" style="margin-top:0">Force chord split</label>
+            <select id="force-split">
+              <option value="0">Auto (let the model decide)</option>
+              <option value="2">Every 2 seconds</option>
+              <option value="4">Every 4 seconds</option>
+              <option value="8">Every 8 seconds</option>
+            </select>
+            <div class="small-note">Helps make chords more regular for simple songs.</div>
+          </div>
         </div>
       </div>
     </div>
+  </div></div>
 
-    <div class="actions">
-      <button id="convert" class="btn">Analyze (one pass)</button>
-      <button id="render" class="btn sec" disabled>Render Output</button>
-      <button id="abort" class="btn sec" disabled>Abort</button>
-      <span id="status" class="muted"></span>
+  <div class="card" style="margin-top:18px"><div class="pad">
+    <div class="row">
+      <div>
+        <label class="title">Output / Preview</label>
+        <div id="scoreWrap" class="preview-wrap" style="display:none">
+          <canvas id="score" width="1000" height="220"></canvas>
+        </div>
+        <pre id="preview" class="preview-wrap" style="margin-top:10px"></pre>
+        <div class="actions">
+          <button id="renderBtn" class="btn outline" disabled>Render Output</button>
+        </div>
+        <div class="small-note">
+          Markdown and text are downloaded as files. Sheet music preview is shown above (no file download yet).
+        </div>
+      </div>
+      <div>
+        <label class="title">Log</label>
+        <div id="log" class="log"></div>
+      </div>
     </div>
-    <div class="bar"><i id="progress-fill"></i></div>
-    <pre id="log"></pre>
   </div></div>
 </div>
 
-<!-- Permission / Setup Modal -->
-<div id="transcriber-modal">
-  <div id="transcriber-card">
-    <h3 style="margin:0 0 8px; background:linear-gradient(90deg,#67e8f9,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
-      Allow local lyrics transcription?
-    </h3>
-    <p style="color:#9aa4b2; margin:.5rem 0 1rem;">
-      We can auto-transcribe lyrics <strong>fully on your device</strong>. We’ll help set up a tiny local tool
-      (Python + Whisper) and connect to it at <code>http://127.0.0.1:8765</code>. Nothing leaves your computer.
+<!-- Local transcriber setup modal -->
+<div id="transcriber-modal" style="position:fixed;inset:0;background:rgba(15,23,42,.82);display:none;align-items:center;justify-content:center;z-index:50">
+  <div style="background:#020617;border-radius:18px;border:1px solid #1f2937;padding:18px;max-width:520px;width:100%;color:#e5e7eb">
+    <h2 style="margin:0 0 6px;font-size:18px">Enable local auto-lyrics helper?</h2>
+    <p style="margin:0 0 10px;font-size:13px;color:#9ca3af">
+      This downloads a small Python script that runs <strong>Whisper</strong> on your machine and exposes
+      <code>http://127.0.0.1:8765</code> for this page only. No audio is uploaded anywhere.
     </p>
-    <ol style="margin:0 0 1rem 1.2rem; color:#cfe6ff;">
-      <li>We’ll download a small setup script for your OS.</li>
-      <li>You run it once (it may install Python/pip if missing).</li>
-      <li>It starts a safe local server; this page will detect it automatically.</li>
-    </ol>
-    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-      <button id="allow-setup" class="btn" style="padding:10px 14px;">Allow & Download</button>
-      <button id="deny-setup" class="btn sec" style="padding:10px 14px;">Not now</button>
+    <div class="small-note" id="probe-status">Checking for running helper…</div>
+    <div id="setup-steps" style="margin-top:10px;display:none;font-size:13px">
+      <ol style="padding-left:18px;line-height:1.4">
+        <li>Unzip the helper folder.</li>
+        <li>Run the start script (<code>.bat</code> on Windows, <code>.sh</code> on Mac/Linux).</li>
+        <li>Wait until the console shows “server listening on 127.0.0.1:8765”.</li>
+      </ol>
+      <p class="small-note">Once running, auto-lyrics can be reused for multiple songs.</p>
     </div>
-    <div id="setup-steps" style="display:none; margin-top:12px; color:#9aa4b2;">
-      <p><strong>Next:</strong> Run the downloaded script. Keep this page open — we’ll auto-detect when the server is ready.</p>
-      <p id="probe-status">Probing <code>127.0.0.1:8765</code>…</p>
+    <div class="actions" style="margin-top:12px">
+      <button id="allow-setup" class="btn">Download helper</button>
+      <button id="deny-setup" class="btn outline">Not now</button>
     </div>
   </div>
 </div>
@@ -177,21 +220,23 @@ async function loadVexFlowOnce(){
 }
 
 /* ========= UI refs ========= */
-const drop = document.querySelector('#drop');
-const fileEl = document.querySelector('#file');
-const fname = document.querySelector('#fname');
-const chips = document.querySelector('#chips');
-const lyrics = document.querySelector('#lyrics');
-const analyzeBtn = document.querySelector('#convert');
-const renderBtn  = document.querySelector('#render');
-const abortBtn = document.querySelector('#abort');
-const statusEl = document.querySelector('#status');
-const logEl = document.querySelector('#log');
-const fill = document.querySelector('#progress-fill');
-const scoreWrap = document.querySelector('#scoreWrap');
-const scoreDiv = document.querySelector('#score');
-const fmtMD   = document.querySelector('#fmt-md');
-const fmtTXT  = document.querySelector('#fmt-txt');
+...
+const fname = document.getElementById('fname');
+const logEl = document.getElementById('log');
+const statusEl = document.getElementById('status');
+const fill = document.getElementById('fill');
+const scoreWrap = document.getElementById('scoreWrap');
+const scoreCanvas = document.getElementById('score');
+const previewEl = document.getElementById('preview');
+const analyzeBtn = document.getElementById('analyzeBtn');
+const renderBtn = document.getElementById('renderBtn');
+const abortBtn = document.getElementById('abortBtn');
+const chips = document.getElementById('chips');
+const tabsOptions = document.getElementById('tabsOptions');
+const sheetOptions = document.getElementById('sheetOptions');
+const lyrics = document.getElementById('lyrics');
+const fmtMd   = document.querySelector('#fmt-md');
+const fmtTxt  = document.querySelector('#fmt-txt');
 const fmtJSON = document.querySelector('#fmt-json');
 const fmtVTT  = document.querySelector('#fmt-vtt');
 const vocalsChk = document.querySelector('#vocals');
@@ -212,7 +257,7 @@ const getMode = () => (document.querySelector('input[name="mode"]:checked')?.val
 /* ========= Small utils ========= */
 const setProgress = p => fill.style.width = Math.max(0,Math.min(100,p)) + '%';
 const tick = () => new Promise(r=>setTimeout(r,0));
-function makeLog(el){ let buf=[],s=false; return (msg)=>{ buf.push(msg); if(!s){ s=true; setTimeout(()=>{ el.textContent+=buf.join('\n')+'\n'; el.scrollTop=el.scrollHeight; buf=[]; s=false; },50);} }; }
+function makeLog(el){ let buf=[],s=false; return (msg)=>{ buf.push(msg); if(!s){ s=true; setTimeout(()=>{ el.textContent += (el.textContent?'\n':'')+buf.join('\n'); el.scrollTop=el.scrollHeight; buf=[]; s=false; },50);} }; }
 const log = makeLog(logEl);
 const pad = (n,l=2)=> String(n).padStart(l,'0');
 const fmtTime = (t)=>{ const m=Math.floor(t/60), s=Math.floor(t%60), ms=Math.round((t-Math.floor(t))*1000); return `${pad(m)}:${pad(s)}.${pad(ms,3)}`; };
@@ -226,6 +271,9 @@ function setCurrentFile(file){
   currentFile = file || null;
   fname.textContent = currentFile ? (currentFile.name || '') : '';
 }
+function getCurrentFile(){
+  return currentFile || (fileEl.files && fileEl.files[0]) || null;
+}
 
 /* ========= File input UX ========= */
 
@@ -235,26 +283,6 @@ drop.addEventListener('click', (e)=>{
   log('Drop zone clicked → opening file picker');
   fileEl.value = '';
   fileEl.click();
-});
-
-/* Explicit Browse button */
-if (pickBtn){
-  pickBtn.addEventListener('click', (e)=>{
-    e.stopPropagation();
-    log('Browse button clicked → opening file picker');
-    fileEl.value = '';
-    fileEl.click();
-  });
-}
-
-/* Keyboard accessibility */
-drop.addEventListener('keydown', (e)=>{
-  if(e.key === 'Enter' || e.key === ' '){
-    e.preventDefault();
-    log('Drop zone keypress → opening file picker');
-    fileEl.value = '';
-    fileEl.click();
-  }
 });
 
 /* File chosen via OS dialog */
@@ -282,6 +310,25 @@ drop.addEventListener('drop', (e)=>{
   }
 });
 
+/* Explicit Browse button */
+if (pickBtn){
+  pickBtn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    log('Browse button clicked → opening file picker');
+    fileEl.value = '';
+    fileEl.click();
+  });
+}
+
+/* Keyboard accessibility */
+drop.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter' || e.key === ' '){
+    e.preventDefault();
+    fileEl.value = '';
+    fileEl.click();
+  }
+});
+
 /* ========= Audio helpers ========= */
 async function decodeWithWebAudio(arrayBuf){
   const ac = new (window.AudioContext||window.webkitAudioContext)();
@@ -293,7 +340,15 @@ async function decodeWithWebAudio(arrayBuf){
   return { sr, mono, duration: audio.duration };
 }
 async function decodeViaFFmpeg(file){
-  const { createFFmpeg, fetchFile } = await import('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js');
+  const mod = await import('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js');
+
+  const createFFmpeg = mod.createFFmpeg || (mod.default && mod.default.createFFmpeg);
+  const fetchFile    = mod.fetchFile    || (mod.default && mod.default.fetchFile);
+
+  if (!createFFmpeg || !fetchFile) {
+    throw new Error('FFmpeg module did not expose createFFmpeg/fetchFile as expected.');
+  }
+
   const ffmpeg = createFFmpeg({ log:false });
   await ffmpeg.load();
   ffmpeg.FS('writeFile','in', await fetchFile(file));
@@ -305,17 +360,17 @@ async function decodeViaFFmpeg(file){
 function validateFile(file, maxMB=200){
   if(!file) throw new Error('No file selected.');
   const mb = file.size/(1024*1024);
-  if(mb>maxMB) throw new Error(`File too large (${mb.toFixed(1)} MB). Limit ${maxMB} MB.`);
+  if(mb>maxMB) throw new Error(`File too large (${mb.toFixed(1)}MB). Limit ${maxMB}MB.`);
 }
-
-/* ========= Batching & workers ========= */
-function frameAudioInChunks(mono, sr, win=4096, hop=2048, framesPerChunk=192){
-  const chunks=[]; let frames=[];
-  for(let i=0;i+win<=mono.length;i+=hop){
-    frames.push(mono.subarray(i,i+win).slice());
-    if(frames.length===framesPerChunk){ chunks.push(frames); frames=[]; }
+function segmentAudio(mono, sr, win=4096, hop=2048){
+  const chunks = [];
+  let start = 0;
+  const hopSamples = hop;
+  while(start + win <= mono.length){
+    const frames = mono.slice(start, start+win);
+    chunks.push(frames);
+    start += hopSamples;
   }
-  if(frames.length) chunks.push(frames);
   return { chunks, hop, sr, win };
 }
 function makeChordWorkerPool(n){
@@ -329,7 +384,7 @@ function makeChordWorkerPool(n){
       const onMsg = (e)=>{
         if(e.data?.id!==id) return;
         w.removeEventListener('message', onMsg);
-        resolve(e.data.labels);
+        resolve(e.data.labels||[]);
       };
       w.addEventListener('message', onMsg);
       if(signal){
@@ -341,36 +396,42 @@ function makeChordWorkerPool(n){
       w.postMessage({ id, frames, sr }, frames.map(f=>f.buffer));
     });
   }
-  function terminate(){ ws.forEach(w=>w.terminate()); }
-  return { runBatch, size:n, terminate };
+  return {
+    runBatch,
+    terminate(){
+      for(const w of ws){ try{ w.terminate(); }catch{} }
+    }
+  };
 }
 function yinWorker(){
   const url = new URL('./workers/yin-worker.js', import.meta.url);
   const w = new Worker(url, {type:'module'});
   let nextId=0;
   return {
-    run: (mono, sr, hopSamples, signal)=> new Promise((resolve,reject)=>{
-      const id = nextId++;
-      const onMsg = (e)=>{
-        if(e.data?.id!==id) return;
-        w.removeEventListener('message', onMsg);
-        resolve(e.data.notes||[]);
-      };
-      w.addEventListener('message', onMsg);
-      if(signal){
-        signal.addEventListener('abort', ()=>{
+    run(mono, sr, hopSamples, signal){
+      return new Promise((resolve,reject)=>{
+        const id = nextId++;
+        const onMsg = (e)=>{
+          if(e.data?.id!==id) return;
           w.removeEventListener('message', onMsg);
-          reject(new DOMException('Aborted','AbortError'));
-        }, {once:true});
-      }
-      w.postMessage({ id, mono, sr, hopSamples }, [mono.buffer]);
-    }),
+          resolve(e.data.notes||[]);
+        };
+        w.addEventListener('message', onMsg);
+        if(signal){
+          signal.addEventListener('abort', ()=>{
+            w.removeEventListener('message', onMsg);
+            reject(new DOMException('Aborted','AbortError'));
+          }, {once:true});
+        }
+        w.postMessage({ id, mono, sr, hopSamples }, [mono.buffer]);
+      });
+    },
     terminate(){ try{ w.terminate(); }catch{} }
   };
 }
 
 /* ========= Smoothing / derivations ========= */
-function mergeMicroSpans(spans, minDur = 0.20, maxSpanSec = 0){
+function mergeMicroSpans(spans, minDur = 0.35, maxSpanSec = 0){
   if (!spans || spans.length === 0) return spans;
 
   const merged = [];
@@ -391,15 +452,15 @@ function mergeMicroSpans(spans, minDur = 0.20, maxSpanSec = 0){
   const out = [];
   for (const m of merged){
     let t = m.start;
-    while (t + maxSpanSec < m.end){
-      out.push({ start: t, end: t + maxSpanSec, label: m.label });
-      t += maxSpanSec;
+    while (t < m.end){
+      const end = Math.min(m.end, t + maxSpanSec);
+      out.push({ start: t, end, label: m.label });
+      t = end;
     }
-    if (t < m.end) out.push({ start: t, end: m.end, label: m.label });
   }
   return out;
 }
-const NAMES = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
+const NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 function guessKey(spans){
   if(!spans || !spans.length) return "—";
   const w={}; for(const s of spans){ const root=s.label.replace('m',''); w[root]=(w[root]||0)+(s.end-s.start); }
@@ -409,9 +470,51 @@ function guessKey(spans){
 }
 
 /* ========= Tabs helpers ========= */
+
+// Lines = [e, B, G, D, A, E]
 function padLine(arr, width, fill='-'){ while(arr.length < width) arr.push(fill); }
 function makeLines(template){ return template.split("\n").map(s => s.split("")); }
 function joinLines(lines){ return lines.map(a => a.join("")).join("\n"); }
+
+// Basic open-chord shapes for guitar, in order [e, B, G, D, A, E]
+const GUITAR_SHAPES = {
+  'C' : ['0','1','0','2','3','x'],  // x32010
+  'G' : ['3','0','0','0','2','3'],  // 320003
+  'D' : ['2','3','2','0','x','x'],  // xx0232
+  'Em': ['0','0','0','2','2','0'],  // 022000
+  'Am': ['0','1','2','2','0','x'],  // x02210
+  'E' : ['0','0','1','2','2','0'],  // 022100
+  'A' : ['0','2','2','2','0','x'],  // x02220
+  'F' : ['1','1','2','3','3','1']   // 133211 (barre)
+};
+
+function simplifyChordLabel(label){
+  if (!label) return '';
+  label = label.trim();
+
+  // Strip things like /G, 7, maj7, sus, etc.
+  // Root = [A-G][#|b]?, quality = rest
+  const m = label.match(/^([A-G][b#]?)(.*)$/);
+  if (!m) return label;
+
+  const root = m[1];
+  let rest = (m[2] || '').toLowerCase();
+
+  let isMinor = false;
+  if (rest.startsWith('m') && !rest.startsWith('maj')) {
+    isMinor = true;
+  }
+
+  return root + (isMinor ? 'm' : '');
+}
+
+function getGuitarShapeFor(label){
+  const key = simplifyChordLabel(label);
+  if (GUITAR_SHAPES[key]) return GUITAR_SHAPES[key];
+  // Fallback: treat unknown chord as C shape
+  return GUITAR_SHAPES['C'];
+}
+
 function guitarTabsFromChords(spans){
   let lines = makeLines(
     "e|----------------|----------------|\n" +
@@ -422,16 +525,33 @@ function guitarTabsFromChords(spans){
     "E|----------------|----------------|"
   );
   if (!spans || !spans.length) return joinLines(lines);
+
   const end = spans[spans.length - 1].end || 1;
+
   for (const s of spans){
+    const shape = getGuitarShapeFor(s.label);
+    // Map time → column
     const col = 2 + Math.floor((s.start / end) * 60);
-    const digits = String((s.label.charCodeAt(0) % 12));
-    lines.forEach(line => padLine(line, col + digits.length + 1, '-'));
-    const lineIdx = 5;
-    for (let i = 0; i < digits.length; i++) lines[lineIdx][col + i] = digits[i];
+
+    // Ensure enough width for this column
+    lines.forEach(line => padLine(line, col + 2, '-'));
+
+    // lines indices: 0=e,1=B,2=G,3=D,4=A,5=E
+    for (let stringIdx = 0; stringIdx < 6; stringIdx++){
+      const fret = shape[stringIdx];
+      if (fret === null || fret === undefined) continue;
+
+      // Show 'x' for muted, '0' for open, digit for fretted
+      const ch = String(fret);
+      if (ch === '') continue;
+
+      lines[stringIdx][col] = ch;
+    }
   }
+
   return joinLines(lines);
 }
+
 function bassTabsFromChords(spans){
   let lines = makeLines(
     "G|----------------|----------------|\n" +
@@ -440,58 +560,45 @@ function bassTabsFromChords(spans){
     "E|----------------|----------------|"
   );
   if (!spans || !spans.length) return joinLines(lines);
-  const end = spans[spans.length - 1].end || 1; let useA=false;
+
+  const end = spans[spans.length - 1].end || 1;
+  let useA = false;
   for (const s of spans){
     const col = 2 + Math.floor((s.start / end) * 60);
-    const lineIdx = useA ? 2 : 3; useA = !useA;
+    const lineIdx = useA ? 2 : 3; // Alternate between A and E
+    useA = !useA;
     lines.forEach(line => padLine(line, col + 2, '-'));
-    lines[lineIdx][col] = '3';
+    lines[lineIdx][col] = '3'; // simple 3rd fret bass hit
   }
   return joinLines(lines);
 }
+
 function pianoNotesFromChords(spans){
   if (!spans || !spans.length) return ["RH: —", "LH: —"];
-  const names = spans.map(s=>s.label);
+  const names = spans.map(s=> simplifyChordLabel(s.label));
   return [
     "RH: " + names.map(n=> n.endsWith("m") ? (n.replace('m','')+'m triad') : (n+' triad')).join("  "),
     "LH: " + names.map(n=> n.replace('m','')+"2").join("  ")
   ];
 }
-function drumGrid(){ const patt=(k)=>Array.from({length:16},(_,i)=>k(i)?'x':'-').join(''); return ["Kick | "+patt(i=>i%4===0), "Snare| "+patt(i=>i%8===4), "HH   | "+patt(i=>i%2===0)]; }
 
-function buildChordProText(spans, lyricsText, duration){
-  if(!spans || !spans.length){ return lyricsText?.trim() ? lyricsText.trim() : "[Intro] —"; }
-  if(!lyricsText) return "[Intro] " + spans.slice(0,4).map(s=>s.label).join("  ");
-  const words = lyricsText.trim().split(/\s+/); if(words.length===0) return lyricsText;
-  const per = (duration||words.length)/Math.max(1,words.length);
-  let res="", idx=0;
-  for(let w=0;w<words.length;w++){
-    const t = w*per;
-    while(idx+1<spans.length && spans[idx+1].start<=t) idx++;
-    const add = (w===0) || (spans[idx].start<=t && (idx===0?true:spans[idx].start>(w-1)*per));
-    res += (add?`[${spans[idx].label}]`:"")+words[w]+((w%12===11)?"\n":" ");
-  }
-  return res.trim();
+function drumGrid(){
+  const patt=(k)=>Array.from({length:16},(_,i)=>k(i)?'x':'-').join('');
+  return [
+    "Kick | "+patt(i=>i%4===0),
+    "Snare| "+patt(i=>i%8===4),
+    "HH   | "+patt(i=>i%2===0)
+  ];
 }
 function toMarkdown(title, spans, g=null, b=null, p=null, d=null, chordPro=null){
   const L=[]; L.push(`# ${title} — Tabs & Chords`,'');
-
   if(chordPro){ L.push('## Lyrics + Chords','```chordpro',chordPro,'```',''); }
   if(g){ L.push('## Guitar Tabs','```',g,'```',''); }
   if(b){ L.push('## Bass Tabs','```',b,'```',''); }
   if(p?.length){ L.push('## Piano (notes)',...p.map(x=>'- '+x),''); }
   if(d?.length){ L.push('## Drums (grid)',...d.map(x=>'`'+x+'`'),''); }
   L.push('## Chord Timeline','', ...(spans||[]).map(c=>`- ${fmtTime(c.start)}–${fmtTime(c.end)}: **${c.label}**`),'');
-
   return L.join('\n');
-}
-function toPlainTabs(g=null,b=null,p=null,d=null){
-  const o=[];
-  if(g){o.push('GUITAR',g,'');}
-  if(b){o.push('BASS',b,'');}
-  if(p?.length){o.push('PIANO',...p,'');}
-  if(d?.length){o.push('DRUMS',...d,'');}
-  return o.join('\n');
 }
 function toJSONFile(title, spans, meta={}){ return JSON.stringify({title,chords:spans,meta},null,2); }
 function toWebVTT(spans){
@@ -501,65 +608,292 @@ function toWebVTT(spans){
     const z=(n,l=2)=>String(n).padStart(l,'0');
     return `${z(h)}:${z(m)}:${z(s)}.${z(ms,3)}`;
   };
-  (spans||[]).forEach((c,i)=>{
-    L.push(String(i+1));
-    L.push(`${to(c.start)} --> ${to(c.end)}`);
-    L.push(c.label,'');
-  });
+  for(const s of spans||[]){
+    L.push(`${to(s.start)} --> ${to(s.end)}`, s.label, '');
+  }
   return L.join('\n');
 }
-function downloadText(filename, text){
-  const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename;
-  document.body.appendChild(a); a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),0); a.remove();
+function downloadBlob(name, blob){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=name;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);
+}
+function chordProFromSpansAndLyrics(spans, lyricsText, totalSec){
+  if(!spans || !spans.length || !lyricsText) return null;
+  const words = lyricsText.trim().split(/\s+/);
+  if(!words.length) return null;
+  const per = totalSec / Math.max(words.length,1);
+  let res='', idx=0;
+  for(let w=0; w<words.length; w++){
+    const t = w*per;
+    while(idx+1<spans.length && spans[idx+1].start<=t) idx++;
+    const add = (w===0) || (spans[idx].start<=t && (idx===0?true:spans[idx].start>(w-1)*per));
+    res += (add?`[${spans[idx].label}]`:"")+words[w]+((w%12===11)?"\n":" ");
+  }
+  return res.trim();
 }
 
-/* ========= Sheet (VexFlow) ========= */
-const secToBeats = (t,bpm)=> (t*bpm)/60;
-function quantizeToNearestDur(beats){
-  if (beats >= 0.75) return { dur:'q', beats:1 };
-  if (beats >= 0.375) return { dur:'8', beats:0.5 };
-  return { dur:'16', beats:0.25 };
+/* ========= Global state ========= */
+let analyzed = null;          // { title, duration, sr, hop, spans[], melody[], bpm, key, fileMeta }
+let controller=null, pool=null, vWorker=null;
+let sessionMono = null;
+
+/* ========= Mode & toggles re-render ========= */
+for (const el of document.querySelectorAll('input[name="mode"], #vocals, #auto-lyrics')) {
+  el.addEventListener('change', ()=> { if (analyzed) renderFromCache(); });
 }
+chips.addEventListener('change', ()=> { if (analyzed && getMode()==='tabs') renderFromCache(); });
+
+useCacheBtn.onclick = async ()=>{
+  const c = await readCache();
+  if (!c){
+    await showCacheUI();
+    return;
+  }
+  analyzed = c;
+  renderBtn.disabled = false;
+  log('Loaded cached analysis.');
+  renderFromCache();
+};
+clearCacheBtn.onclick = async ()=>{
+  await clearCache();
+  await showCacheUI();
+  log('Cache cleared.');
+};
+
+/* ========= Analyze once ========= */
+analyzeBtn.addEventListener('click', analyzeOnce);
+abortBtn.addEventListener('click', ()=> controller?.abort());
+
+async function analyzeOnce(){
+  const file = getCurrentFile();
+  try{ validateFile(file); }catch(e){ alert(e.message); return; }
+  controller = new AbortController();
+  analyzeBtn.disabled = true; renderBtn.disabled = true; abortBtn.disabled = true;
+  scoreWrap.style.display='none'; logEl.textContent=''; setProgress(3); statusEl.textContent='Decoding…';
+
+  try{
+    let dec;
+    try{ dec = await decodeWithWebAudio(await file.arrayBuffer()); }
+    catch{
+      log('Native decode failed → ffmpeg.wasm…');
+      dec = await decodeViaFFmpeg(file);
+    }
+    sessionMono = dec.mono;
+    const sr = dec.sr, duration = dec.duration;
+    if(duration>600) throw new Error(`Audio too long (${duration.toFixed(0)}s). Limit 600s.`);
+    abortBtn.disabled = false;
+
+    setProgress(15); statusEl.textContent='Framing & feature extraction…';
+
+    const { chunks, hop } = segmentAudio(sessionMono, sr, 4096, 2048);
+    if(!chunks.length) throw new Error('No audio data.');
+
+    const nWorkers = Math.max(2, Math.min(4, navigator.hardwareConcurrency || 4));
+    pool = makeChordWorkerPool(nWorkers);
+
+    const batchSize = Math.ceil(chunks.length / nWorkers);
+    const batches = [];
+    for(let i=0;i<chunks.length;i+=batchSize){
+      batches.push(chunks.slice(i, i+batchSize));
+    }
+
+    const labels = [];
+    let processed=0;
+    for(const b of batches){
+      const l = await pool.runBatch(b, sr, controller.signal);
+      labels.push(...l);
+      processed += b.length;
+      setProgress(15 + 45 * (processed/chunks.length));
+      await tick();
+    }
+    pool.terminate(); pool=null;
+
+    const hopSec = hop/sr;
+    const spans=[];
+    let cur=null, s=0;
+    const toTime = (i)=> i*hopSec;
+    for(let i=0;i<labels.length;i++){
+      if(cur===null){
+        cur=labels[i]; s=i;
+      }else if(labels[i]!==cur){
+        spans.push({start:toTime(s), end:toTime(i), label:cur});
+        cur=labels[i]; s=i;
+      }
+    }
+    spans.push({start:toTime(s), end:toTime(labels.length), label:cur});
+
+    const forcedSec = Number(splitSel?.value || 0);
+    spans = mergeMicroSpans(spans, 0.35, forcedSec);
+    if ((!spans || spans.length <= 1) && forcedSec === 0) {
+      spans = mergeMicroSpans(spans, 0.35, 4);
+    }
+
+    log(`Chord spans: ${spans.length}`);
+
+    const title = (file.name||'Song').replace(/\.[^.]+$/,'');
+    const bpm   = 100;
+    const key   = guessKey(spans);
+    const fileMeta = {
+      name: file.name || '',
+      size: file.size || 0,
+      lastModified: file.lastModified || null
+    };
+
+    let melody = [];
+    if (vocalsChk.checked){
+      vWorker = vWorker || yinWorker();
+      statusEl.textContent='Estimating vocal melody…';
+      melody = await vWorker.run(sessionMono, sr, 2048, controller.signal);
+      log(`Vocal notes: ${melody.length}`);
+    }
+
+    analyzed = { title, duration, sr, hop:2048, spans, melody, bpm, key, fileMeta };
+    await writeCache(analyzed);
+    await showCacheUI();
+
+    setProgress(85);
+    statusEl.textContent='Analysis done.';
+    renderBtn.disabled = false;
+    log('Preview:\n'+spans.slice(0,8).map(s=>`[${fmtTime(s.start)}–${fmtTime(s.end)}] ${s.label}`).join('\n'));
+  }catch(err){
+    if(err.name==='AbortError'){ statusEl.textContent='Canceled.'; log('⚠️ Aborted by user'); }
+    else { statusEl.textContent='Failed.'; log('❌ '+err.message); }
+  }finally{
+    analyzeBtn.disabled=false; abortBtn.disabled=true; controller=null;
+    setProgress(100);
+  }
+}
+
+/* ========= Render from cache ========= */
+renderBtn.addEventListener('click', ()=>{
+  log('▶️ Render clicked');
+  if(!analyzed){ alert('No analysis yet. Click Analyze first.'); return; }
+  renderFromCache();
+});
+async function renderFromCache(){
+  const mode = getMode();
+  const { title, spans, duration, melody } = analyzed || {};
+  if(!spans || !spans.length){ previewEl.textContent='(No chord data)'; return; }
+
+  if(mode==='sheet'){
+    scoreWrap.style.display='block';
+    previewEl.textContent='';
+    await safeRenderSheet({
+      title,
+      bpm: analyzed.bpm || 100,
+      melody: vocalsChk.checked ? (melody || []) : [],
+      chords: spans,
+      lyricsText: (lyrics.value||'').trim()
+    });
+    return;
+  }
+
+  scoreWrap.style.display='none';
+
+  const sel = {
+    guitar: document.getElementById('guit')?.checked,
+    bass  : document.getElementById('bassChk')?.checked,
+    piano : document.getElementById('pianoChk')?.checked,
+    drums : document.getElementById('drumsChk')?.checked
+  };
+
+  const g = sel.guitar ? guitarTabsFromChords(analyzed.spans) : null;
+  const b = sel.bass   ? bassTabsFromChords(analyzed.spans)   : null;
+  const p = sel.piano  ? pianoNotesFromChords(analyzed.spans) : null;
+  const d = sel.drums  ? drumGrid()                           : null;
+  const chordPro = chordProFromSpansAndLyrics(analyzed.spans, (lyrics.value||'').trim(), analyzed.duration);
+
+  const any = fmtMd.checked || fmtTxt.checked || fmtJSON.checked || fmtVTT.checked;
+  if(!any){
+    log('ℹ️ No export format selected. Tick Markdown/Text/JSON/VTT and click Render.');
+    return;
+  }
+
+  if(fmtMd.checked){
+    const md = toMarkdown(title, spans, g, b, p, d, chordPro);
+    downloadBlob(`${title || 'song'}-tabs.md`, new Blob([md],{type:'text/markdown'}));
+  }
+  if(fmtTxt.checked){
+    const parts=[];
+    if(g){parts.push('GUITAR',g,'');}
+    if(b){parts.push('BASS',b,'');}
+    if(p?.length){parts.push('PIANO',...p,'');}
+    if(d?.length){parts.push('DRUMS',...d,'');}
+    const txt = parts.join('\n');
+    downloadBlob(`${title || 'song'}-tabs.txt`, new Blob([txt],{type:'text/plain'}));
+  }
+  if(fmtJSON.checked){
+    const meta = { duration, bpm: analyzed.bpm, key: analyzed.key };
+    const json = toJSONFile(title, spans, meta);
+    downloadBlob(`${title || 'song'}-chords.json`, new Blob([json],{type:'application/json'}));
+  }
+  if(fmtVTT.checked){
+    const vtt = toWebVTT(spans);
+    downloadBlob(`${title || 'song'}-chords.vtt`, new Blob([vtt],{type:'text/vtt'}));
+  }
+
+  const preview = toMarkdown(title, spans, g, b, p, d, chordPro);
+  previewEl.textContent = preview;
+}
+
+/* ========= Sheet music rendering ========= */
 function pitchToVexKey(midi){
-  const names=['c','c#','d','eb','e','f','f#','g','ab','a','bb','b'];
-  const n=Math.round(midi);
-  const name=names[(n+1200)%12];
-  const octave=Math.floor(n/12)-1;
-  return `${name}/${octave}`;
+  const stepNames = ['c','c#','d','d#','e','f','f#','g','g#','a','a#','b'];
+  const step = stepNames[midi % 12];
+  const octave = Math.floor(midi/12) - 1;
+  return `${step}/${octave}`;
+}
+function quantizeToNearestDur(beats){
+  const DURATIONS = [
+    { dur:'w',  beats:4 },
+    { dur:'h',  beats:2 },
+    { dur:'q',  beats:1 },
+    { dur:'8',  beats:0.5 },
+    { dur:'16', beats:0.25 }
+  ];
+  let best=DURATIONS[0], bestDiff=Infinity;
+  for(const d of DURATIONS){
+    const diff=Math.abs(d.beats-beats);
+    if(diff<bestDiff){bestDiff=diff;best=d;}
+  }
+  return best;
 }
 function syllabify(text){
   if(!text) return [];
-  const words=text.trim().split(/\s+/);
+  const words = text.trim().split(/\s+/);
   const out=[];
   for(const w of words){
-    if(w.length<=6) out.push(w);
-    else {
-      const mid=Math.floor(w.length/2);
-      out.push(w.slice(0,mid)+'-', w.slice(mid));
-    }
+    const parts = w.split(/(?<=[aeiouyAEIOUY])/);
+    for(const p of parts){ if(p) out.push(p); }
   }
   return out;
 }
+async function renderSheet({ title, bpm=100, melody=[], chords=[], lyricsText='' }){
+  const VFLocal = (await loadVexFlowOnce());
+  const canvas = scoreCanvas;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-async function renderSheet({ title, bpm=100, melody=[], chords=[], lyricsText="" }){
-  const Flow = await loadVexFlowOnce();
-  const VFLocal = Flow;
-
-  scoreWrap.style.display = 'block';
-  scoreDiv.innerHTML = '';
-  const renderer = new VFLocal.Renderer(scoreDiv, VFLocal.Renderer.Backends.SVG);
-  renderer.resize(1000, 260);
+  const renderer = new VFLocal.Renderer(canvas, VFLocal.Renderer.Backends.CANVAS);
+  renderer.resize(canvas.width, canvas.height);
   const context = renderer.getContext();
-  context.setFont('Arial', 10, 'normal');
-  const stave = new VFLocal.Stave(10, 20, 980);
+  context.setFont('Arial', 12, '').setFillStyle('#e5e7eb');
+
+  const stave = new VFLocal.Stave(30, 40, 920);
   stave.addClef('treble').addTimeSignature('4/4');
   stave.setContext(context).draw();
 
   const notes = [];
-  const beatsPerSec = bpm / 60;
-  if (melody.length) {
-    for (const n of melody){
+  const secToBeats = (sec, bpm)=> (sec*bpm)/60;
+
+  if (melody && melody.length){
+    const totalBeats = secToBeats(melody[melody.length-1].end || melody[melody.length-1].time || 0, bpm);
+    const beatsPerSec = bpm/60;
+    for(const n of melody){
       const durBeats = (n.end - n.start) * beatsPerSec;
       const q = quantizeToNearestDur(durBeats);
       const key = pitchToVexKey(n.midi);
@@ -631,10 +965,22 @@ async function clearCache(){
 
 async function showCacheUI(){
   const c = await readCache();
-  const has = !!c;
-  cacheBadge.style.display = has ? 'inline-flex' : 'none';
-  useCacheBtn.style.display = has ? 'inline-block' : 'none';
+  const file = getCurrentFile();
+
+  let has = false;
+  if (c && c.fileMeta && file) {
+    has =
+      c.fileMeta.name === (file.name || '') &&
+      c.fileMeta.size === (file.size || 0);
+  }
+
+  cacheBadge.style.display    = has ? 'inline-flex'  : 'none';
+  useCacheBtn.style.display   = has ? 'inline-block' : 'none';
   clearCacheBtn.style.display = has ? 'inline-block' : 'none';
+
+  if (!has && c && c.fileMeta && file) {
+    log(`ℹ️ Cached analysis is for "${c.fileMeta.name}", current file is "${file.name}". Cache hidden.`);
+  }
 }
 
 /* ========= Local lyrics helper ========= */
@@ -653,19 +999,39 @@ async function isServerUp(timeoutMs=800){
     return false;
   }
 }
+function detectPlatform(){
+  const p = navigator.platform.toLowerCase();
+  if (p.includes('win')) return 'win';
+  if (p.includes('mac')) return 'mac';
+  return 'nix';
+}
+const WIN_ZIP = './whisper-helper-win.zip';
+const NIX_ZIP = './whisper-helper-nix.zip';
+const WIN_BAT = './start_transcriber.bat';
+const WIN_PS1 = './start_transcriber.ps1';
+const NIX_SH  = './start_transcriber.sh';
+
 function downloadSetupScript(){
-  const SERVER_URL = '/local-transcriber/server.py';
-  const WIN_BAT    = '/local-transcriber/start_transcriber.bat';
-  const WIN_PS1    = '/local-transcriber/start_transcriber.ps1';
-  const NIX_SH     = '/local-transcriber/start_transcriber.sh';
+  const plat = detectPlatform();
+  const a = document.createElement('a');
+  a.style.display='none';
+  document.body.appendChild(a);
+  if (plat === 'win'){
+    a.href = WIN_ZIP;
+    a.download = 'whisper-helper-win.zip';
+  } else if (plat === 'mac'){
+    a.href = NIX_ZIP;
+    a.download = 'whisper-helper-mac.zip';
+  } else {
+    a.href = NIX_ZIP;
+    a.download = 'whisper-helper-nix.zip';
+  }
+  a.click();
+  a.remove();
 
-  const a1 = document.createElement('a');
-  a1.href = SERVER_URL; a1.download = 'server.py';
-  document.body.appendChild(a1); a1.click(); a1.remove();
-
-  const ua = navigator.userAgent || '';
-  const isWin = ua.includes('Windows');
+  const isWin = plat === 'win';
   const a2 = document.createElement('a');
+  a2.style.display='none';
   if (isWin) {
     a2.href = WIN_BAT; a2.download = 'start_transcriber.bat';
     document.body.appendChild(a2); a2.click(); a2.remove();
@@ -694,9 +1060,12 @@ async function ensureLocalTranscriberPermissionFlow(){
           probeEl.textContent = '✅ Local server detected.';
           setTimeout(()=>{ modal.style.display='none'; resolve(true); }, 600);
         }else{
-          probeEl.textContent = `Probing 127.0.0.1:8765… (attempt ${tries})`;
+          if (tries>20){
+            clearInterval(poll);
+            probeEl.textContent = '❌ Still no server detected. Please check the console window.';
+          }
         }
-      }, 1200);
+      }, 1000);
     };
     denyBtn.onclick = ()=>{
       modal.style.display = 'none';
@@ -711,251 +1080,108 @@ async function ensureLocalTranscriberOrAsk(){
 async function transcribeLocally_viaServer(file){
   const fd = new FormData();
   fd.append('file', file, file.name || 'audio.wav');
-  const res = await fetch(LOCAL_URL + '/transcribe', { method:'POST', body: fd });
-  if (!res.ok) throw new Error('Local transcription failed');
+  const res = await fetch(LOCAL_URL + '/transcribe', {
+    method:'POST',
+    body:fd
+  });
+  if (!res.ok) throw new Error(`Server responded ${res.status}`);
   return await res.json();
 }
 function alignWordsToNotes(words, notes){
-  if (!Array.isArray(words) || !Array.isArray(notes) || !notes.length) return [];
-  const out = []; let j = 0;
-  for (const n of notes){
-    while (j+1 < words.length && Math.abs(words[j+1].start - n.start) < Math.abs(words[j].start - n.start)) j++;
-    const txt = (words[j]?.text || '').trim();
-    out.push(txt); j = Math.min(j+1, words.length-1);
+  if(!words || !words.length || !notes || !notes.length) return [];
+  const out=[];
+  let j=0;
+  for(const n of notes){
+    const t=n.start || n.time || 0;
+    while(j+1<words.length && words[j+1].time<=t) j++;
+    out.push(words[j].word);
   }
   return out;
 }
 
-/* ========= Global state ========= */
-let analyzed = null;          // { title, duration, sr, hop, spans[], melody[], bpm, key }
-let controller=null, pool=null, vWorker=null;
-let sessionMono = null;
-
-/* ========= Mode & toggles re-render ========= */
-for (const el of document.querySelectorAll('input[name="mode"], #vocals, #auto-lyrics')) {
-  el.addEventListener('change', ()=> { if (analyzed) renderFromCache(); });
-}
-chips.addEventListener('change', ()=> { if (analyzed && getMode()==='tabs') renderFromCache(); });
-
-useCacheBtn.onclick = async ()=>{
-  const c = await readCache();
-  if (!c){
-    await showCacheUI();
-    return;
+/* ========= Auto-lyrics integration ========= */
+autoLyricsChk.addEventListener('change', async ()=>{
+  if (!autoLyricsChk.checked) return;
+  const ok = await ensureLocalTranscriberOrAsk();
+  if (!ok){
+    autoLyricsChk.checked = false;
+    log('Local auto-lyrics disabled (helper not enabled).');
+  } else {
+    log('Local auto-lyrics helper ready.');
   }
-  analyzed = c;
-  renderBtn.disabled = false;
-  log('Loaded cached analysis.');
-  renderFromCache();
-};
-clearCacheBtn.onclick = async ()=>{
-  await clearCache();
-  await showCacheUI();
-  log('Cache cleared.');
-};
-
-/* ========= Analyze once ========= */
-analyzeBtn.addEventListener('click', analyzeOnce);
-abortBtn.addEventListener('click', ()=> controller?.abort());
-
-async function analyzeOnce(){
-  const file = currentFile || (fileEl.files && fileEl.files[0]);
-  try{ validateFile(file); }catch(e){ alert(e.message); return; }
-  controller = new AbortController();
-  analyzeBtn.disabled = true; renderBtn.disabled = true; abortBtn.disabled = true;
-  scoreWrap.style.display='none'; logEl.textContent=''; setProgress(3); statusEl.textContent='Decoding…';
-
-  try{
-    let dec;
-    try{ dec = await decodeWithWebAudio(await file.arrayBuffer()); }
-    catch{
-      log('Native decode failed → ffmpeg.wasm…');
-      dec = await decodeViaFFmpeg(file);
-    }
-    sessionMono = dec.mono;
-    const sr = dec.sr, duration = dec.duration;
-    if(duration>600) throw new Error(`Audio too long (${duration.toFixed(0)}s). Limit 600s.`);
-    abortBtn.disabled = false;
-
-    statusEl.textContent='Framing…'; setProgress(10);
-    const { chunks } = frameAudioInChunks(sessionMono, sr, 4096, 2048, 192);
-    const total = chunks.length; log(`Framed into ${total} batches (${chunks[0]?.length||0} frames each).`);
-
-    const cores = navigator.hardwareConcurrency || 4;
-    pool = pool || makeChordWorkerPool(Math.min(cores, 4));
-    statusEl.textContent='Analyzing chords…';
-
-    const labels = []; let done=0;
-    for(let i=0;i<chunks.length;i+=pool.size){
-      if(controller.signal.aborted) throw new DOMException('Aborted','AbortError');
-      const wave = chunks.slice(i, i+pool.size);
-      const res = await Promise.all(wave.map(b => pool.runBatch(b, sr, controller.signal)));
-      res.forEach(arr => labels.push(...arr));
-      done += wave.length;
-      setProgress(10 + Math.floor(55 * done/total));
-      statusEl.textContent = `Analyzing chords… ${done}/${total}`;
-      log(`✔️ Batch ${done}/${total} complete`);
-      await tick();
-    }
-
-    const toTime = (idx)=> idx*2048/sr;
-    let spans=[];
-    if(labels.length){
-      let cur=labels[0], s=0;
-      for(let i=1;i<labels.length;i++){
-        if(labels[i]!==cur){
-          spans.push({start:toTime(s), end:toTime(i), label:cur});
-          cur=labels[i]; s=i;
-        }
-      }
-      spans.push({start:toTime(s), end:toTime(labels.length), label:cur});
-    }
-
-    const forcedSec = Number(splitSel?.value || 0);
-    spans = mergeMicroSpans(spans, 0.20, forcedSec);
-    if ((!spans || spans.length <= 1) && forcedSec === 0) {
-      spans = mergeMicroSpans(spans, 0.20, 4);
-    }
-
-    log(`Chord spans: ${spans.length}`);
-
-    const title = (file.name||'Song').replace(/\.[^.]+$/,'');
-    const bpm   = 100;
-    const key   = guessKey(spans);
-
-    let melody = [];
-    if (vocalsChk.checked){
-      vWorker = vWorker || yinWorker();
-      statusEl.textContent='Estimating vocal melody…';
-      melody = await vWorker.run(sessionMono, sr, 2048, controller.signal);
-      log(`Vocal notes: ${melody.length}`);
-    }
-
-    analyzed = { title, duration, sr, hop:2048, spans, melody, bpm, key };
-    await writeCache(analyzed);
-    await showCacheUI();
-
-    setProgress(85);
-    statusEl.textContent='Analysis done.';
-    renderBtn.disabled = false;
-    log('Preview:\n'+spans.slice(0,8).map(s=>`[${fmtTime(s.start)}–${fmtTime(s.end)}] ${s.label}`).join('\n'));
-  }catch(err){
-    if(err.name==='AbortError'){ statusEl.textContent='Canceled.'; log('⚠️ Aborted by user'); }
-    else { statusEl.textContent='Failed.'; log('❌ '+err.message); }
-  }finally{
-    analyzeBtn.disabled=false; abortBtn.disabled=true; controller=null;
-    setProgress(100);
-  }
-}
-
-/* ========= Render from cache ========= */
-renderBtn.addEventListener('click', ()=>{
-  log('▶️ Render clicked');
-  renderFromCache().catch(e => log('❌ Render failed: ' + e.message));
 });
 
-async function renderFromCache(){
-  if(!analyzed){
-    const c = await readCache();
-    if(!c){ log('No analysis available.'); return; }
-    analyzed=c;
-  }
+/* Trigger auto-lyrics + re-render when needed */
+async function maybeRunAutoLyrics(){
+  const file = getCurrentFile();
+  if (!file) return;
+  const wants = autoLyricsChk.checked;
+  if (!wants) return;
 
-  if (getMode()==='sheet' && vocalsChk.checked && (!analyzed.melody || analyzed.melody.length===0)){
-    if (sessionMono){
-      try{
-        statusEl.textContent='Estimating vocal melody…'; setProgress(75);
-        vWorker = vWorker || yinWorker();
-        const notes = await vWorker.run(sessionMono, analyzed.sr, analyzed.hop, new AbortController().signal);
-        analyzed.melody = notes;
-        await writeCache(analyzed);
-        log(`Vocal notes: ${notes.length}`);
-      }catch(e){ log('⚠️ Melody estimation skipped: '+e.message); }
-    } else {
-      log('ℹ️ Melody not computed in analysis and raw audio not kept; re-run Analyze with vocals toggled.');
-    }
-  }
+  const ok = await ensureLocalTranscriberOrAsk();
+  if (!ok) return;
 
+  try{
+    statusEl.textContent='Transcribing lyrics locally…'; setProgress(90);
+    const { text='', words=[] } = await transcribeLocally_viaServer(file);
+    const aligned = alignWordsToNotes(words, analyzed.melody || []);
+    const autoLyrics = aligned && aligned.length ? aligned.join(' ') : text;
+    lyrics.value = autoLyrics;
+    log('Auto-lyrics updated from local server.');
+  }catch(err){
+    log('❌ Auto-lyrics failed: '+err.message);
+  }
+}
+
+/* Hook render to maybe run auto-lyrics if in sheet+vocals+auto mode */
+const _origRenderFromCache = renderFromCache;
+renderFromCache = async function(){
   const mode = getMode();
-  if (mode === 'tabs'){
-    const sel = [...document.querySelectorAll('#chips input:checked')].map(i=>i.value);
-    const g = sel.includes('guitar') ? guitarTabsFromChords(analyzed.spans) : null;
-    const b = sel.includes('bass')   ? bassTabsFromChords(analyzed.spans)   : null;
-    const p = sel.includes('piano')  ? pianoNotesFromChords(analyzed.spans) : null;
-    const d = sel.includes('drums')  ? drumGrid() : null;
-    const chordPro = buildChordProText(analyzed.spans, (lyrics.value||'').trim(), analyzed.duration);
-
-    scoreWrap.style.display='none';
-    statusEl.textContent='Rendered Tabs.';
-
-    let any = false;
-    if(fmtMD.checked){
-      any=true;
-      downloadText(`${analyzed.title}_tabs.md`,  toMarkdown(analyzed.title, analyzed.spans, g, b, p, d, chordPro));
+  if (mode === 'sheet' && vocalsChk.checked && autoLyricsChk.checked){
+    const file = getCurrentFile();
+    if (!file){
+      alert('No file selected for auto-lyrics.');
+      return;
     }
-    if(fmtTXT.checked){
-      any=true;
-      downloadText(`${analyzed.title}_tabs.txt`, toPlainTabs(g, b, p, d));
+    const ok = await ensureLocalTranscriberOrAsk();
+    if (!ok){
+      autoLyricsChk.checked = false;
+      return _origRenderFromCache();
     }
-    if(fmtJSON.checked){
-      any=true;
-      downloadText(`${analyzed.title}_chords.json`, toJSONFile(analyzed.title, analyzed.spans, { key: analyzed.key, bpm: analyzed.bpm }));
-    }
-    if(fmtVTT.checked){
-      any=true;
-      downloadText(`${analyzed.title}_chords.vtt`, toWebVTT(analyzed.spans));
-    }
-    if(!any) log('ℹ️ No export format selected. Tick Markdown/Text/JSON/VTT and click Render.');
-  } else {
-    const wantAutoLyrics = autoLyricsChk.checked;
-    const haveMelody = Array.isArray(analyzed.melody) && analyzed.melody.length>0;
-
-    const draw = async (lyricsText) => {
+    async function draw(autoText){
+      if (autoText) lyrics.value = autoText;
+      scoreWrap.style.display='block';
+      previewEl.textContent='';
       await safeRenderSheet({
         title: analyzed.title,
-        bpm: analyzed.bpm,
-        melody: vocalsChk.checked ? (analyzed.melody||[]) : [],
-        chords: analyzed.spans,
-        lyricsText: lyricsText ?? (lyrics.value||'').trim()
+        bpm: analyzed.bpm || 100,
+        melody: analyzed.melody || [],
+        chords: analyzed.spans || [],
+        lyricsText: (lyrics.value||'').trim()
       });
-      statusEl.textContent='Rendered Sheet.';
-    };
-
-    if (wantAutoLyrics){
-      const file = currentFile || (fileEl.files && fileEl.files[0]);
-      if (!file){
-        log('⚠️ Select an audio/video file first to auto-transcribe.');
-        await draw('');
-        return;
-      }
-
-      if (!haveMelody && sessionMono){
-        try{
-          statusEl.textContent='Estimating vocal melody…'; setProgress(76);
-          vWorker = vWorker || yinWorker();
-          const notes = await vWorker.run(sessionMono, analyzed.sr, analyzed.hop, new AbortController().signal);
-          analyzed.melody = notes; await writeCache(analyzed);
-          log(`Vocal notes: ${notes.length}`);
-        }catch(e){ log('⚠️ Melody estimation skipped: '+e.message); }
-      }
-
-      const ok = await ensureLocalTranscriberOrAsk();
-      if (!ok){ await draw(''); return; }
-
-      try{
-        statusEl.textContent='Transcribing lyrics locally…'; setProgress(90);
-        const { words=[] } = await transcribeLocally_viaServer(file);
-        const aligned = alignWordsToNotes(words, analyzed.melody || []);
-        const autoLyrics = aligned.join(' ');
-        await draw(autoLyrics);
-        lyrics.value = autoLyrics;
-      }catch(err){
-        log('❌ Auto-lyrics failed: '+err.message);
-        await draw('');
-      }
-    } else {
-      await draw();
     }
+    const ok2 = await isServerUp();
+    if (!ok2){
+      const ok3 = await ensureLocalTranscriberPermissionFlow();
+      if (!ok3){
+        autoLyricsChk.checked = false;
+        return _origRenderFromCache();
+      }
+    }
+
+    try{
+      statusEl.textContent='Transcribing lyrics locally…'; setProgress(90);
+      const { words=[] } = await transcribeLocally_viaServer(file);
+      const aligned = alignWordsToNotes(words, analyzed.melody || []);
+      const autoLyrics = aligned.join(' ');
+      await draw(autoLyrics);
+      lyrics.value = autoLyrics;
+    }catch(err){
+      log('❌ Auto-lyrics failed: '+err.message);
+      await draw('');
+    }
+  } else {
+    await _origRenderFromCache();
   }
 }
 
