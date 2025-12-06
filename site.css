@@ -42,3 +42,12 @@ footer{border-top:1px solid var(--line);padding:18px 20px;color:var(--muted)}
 .progress{width:100%;height:10px;border-radius:999px;background:#0c1320;border:1px solid var(--line);overflow:hidden;margin-top:8px}
 .progress>.bar{height:100%;width:0%;background:linear-gradient(90deg,var(--brand),var(--accent));transition:width .15s linear}
 .progress-label{margin-top:6px;color:var(--muted);font-size:.9rem}
+
+/* --- CATEGORY DROPDOWN NAVIGATION --- */
+.tab-group { position: relative; }
+.group-label { cursor: pointer; font-weight: 600; color: #7dd3fc; }
+.dropdown { display:none; position:absolute; background:#1a1f2c; border:1px solid #263044;
+  border-radius:10px; min-width:220px; padding:10px; z-index:9999; }
+.tab-group:hover .dropdown { display:block; }
+.dropdown .tab { display:block; padding:8px 10px; border-radius:8px; margin-bottom:4px; color:#e5e7eb; white-space:nowrap; }
+.dropdown .tab:hover { background:#263044; }
