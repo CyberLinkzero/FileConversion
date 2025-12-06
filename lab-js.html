@@ -3,1626 +3,926 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Programming Lab — Run Code & Learn | FileConverter.run</title>
-  <meta name="description" content="Practice advanced JavaScript coding in your browser. Run code, see output, and explore 100 lessons from beginner to advanced — all locally, no uploads." />
-
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-W25SYMTSSR"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-W25SYMTSSR');
-  </script>
-
-  <!-- AdSense -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9800485035530027"
-    crossorigin="anonymous"></script>
-  <meta name="google-adsense-account" content="ca-pub-9800485035530027">
-
-  <!-- Tawk.to (same as other pages) -->
-  <script type="text/javascript">
-  var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-  (function(){
-    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-    s1.async=true;
-    s1.src='https://embed.tawk.to/6906c86e40b306194f3da6e5/1j917ts2m';
-    s1.charset='UTF-8';
-    s1.setAttribute('crossorigin','*');
-    s0.parentNode.insertBefore(s1,s0);
-  })();
-  </script>
-
-  <!-- Site-wide CSS -->
-  <link rel="stylesheet" href="site.css" />
+  <title>JavaScript Lab — Run Code & Learn | FileConverter.run</title>
+  <meta name="description" content="Practice JavaScript in a Monaco editor with 30+ progressive lessons from beginner to advanced, all in your browser." />
 
   <style>
-    :root {
-      --bg:#0b0f14;
-      --panel:#101823;
-      --border:#1f2a34;
-      --text:#e6edf3;
-      --muted:#9fb4c7;
-      --accent:#2b82ff;
-      --accent-soft:rgba(43,130,255,.12);
+    :root{
+      --bg:#020617;
+      --pane:#020617;
+      --panel:#020617;
+      --accent:#7dd3fc;
+      --accent-soft:rgba(125,211,252,.17);
+      --muted:#9ca3af;
+      --border:#1f2937;
+      --danger:#f97373;
+      --ok:#4ade80;
     }
-    * { box-sizing:border-box; }
-
-    body {
+    *{box-sizing:border-box;}
+    html,body{
       margin:0;
-      font-family:system-ui, Segoe UI, Roboto, Arial, sans-serif;
-      background:radial-gradient(circle at top, #111827 0, #020617 55%);
-      color:var(--text);
-    }
-
-    header {
-      padding:16px 20px;
-      border-bottom:1px solid var(--border);
-      background:rgba(2,6,23,.98);
-      position:relative;
-      z-index:2;
-    }
-
-    .glow-title{
-      font-size: clamp(1.8rem, 3.5vw, 2.6rem);
-      font-weight: 800;
-      text-align: center;
-      margin: 10px 0 4px;
-      letter-spacing: .3px;
-      background: linear-gradient(90deg,#00ffff,#7dd3fc,#a78bfa,#ff00ff,#00ffcc,#00ffff);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 0 0 6px rgba(125,211,252,.45), 0 0 12px rgba(125,211,252,.25), 0 0 18px rgba(167,139,250,.2);
-      animation: cyberPulse 3s ease-in-out infinite alternate, gradientShift 6s linear infinite;
-      background-size: 400% auto;
-    }
-    @keyframes cyberPulse {
-      from { text-shadow: 0 0 4px rgba(125,211,252,.25), 0 0 8px rgba(125,211,252,.18), 0 0 12px rgba(167,139,250,.12); }
-      to   { text-shadow: 0 0 10px rgba(125,211,252,.6), 0 0 20px rgba(125,211,252,.4), 0 0 30px rgba(255,0,255,.28); }
-    }
-    @keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
-
-    .muted { color:var(--muted); font-size:.9rem; text-align:center; }
-
-    .lab-shell {
-      max-width:1200px;
-      margin:16px auto 40px;
-      padding:0 16px;
-    }
-
-    .lab-grid {
-      display:grid;
-      grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
-      gap:18px;
-      align-items:flex-start;
-    }
-
-    @media (max-width:960px) {
-      .lab-grid { grid-template-columns:1fr; }
-    }
-
-    .card {
-      background:rgba(9,12,24,.96);
-      border:1px solid rgba(148,163,184,.25);
-      border-radius:14px;
-      padding:14px 14px 12px;
-      backdrop-filter:blur(12px);
-      box-shadow:0 18px 45px rgba(15,23,42,.75);
-    }
-
-    .card h2, .card h3 {
-      margin:0 0 6px;
-      font-size:1.05rem;
-      letter-spacing:.03em;
-      text-transform:uppercase;
-      color:#7dd3fc;
-    }
-
-    .card p { margin:4px 0 8px; font-size:.9rem; color:var(--muted); }
-
-    .lab-controls {
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:8px;
-      flex-wrap:wrap;
-    }
-
-    .pill {
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:4px 10px;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.32);
-      background:rgba(15,23,42,.95);
-      font-size:.8rem;
-      color:var(--muted);
-    }
-
-    .pill strong {
+      padding:0;
+      height:100%;
+      background:radial-gradient(circle at top,#111827 0,#020617 45%,#000 100%);
       color:#e5e7eb;
-      font-weight:600;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
     }
-
-    .lab-select {
-      border-radius:999px;
-      border:1px solid var(--border);
-      background:#020617;
-      color:var(--text);
-      padding:6px 10px;
-      font-size:.85rem;
+    body{
+      padding:14px;
     }
-
-    /* Monaco editor container */
-    #editor-container {
-      width:100%;
-      height:280px;
-      border-radius:12px;
-      border:1px solid rgba(148,163,184,.35);
-      overflow:hidden;
-      background:#020617;
-    }
-
-    @media (max-width:960px){
-      #editor-container { height:260px; }
-    }
-
-    .editor-footer {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-top:6px;
-      gap:8px;
-      flex-wrap:wrap;
-    }
-
-    .btn {
-      border-radius:999px;
-      border:1px solid var(--border);
-      background:#0f172a;
-      color:#e5e7eb;
-      padding:7px 14px;
-      font-size:.85rem;
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      cursor:pointer;
-    }
-    .btn.primary {
-      background:linear-gradient(90deg,#22d3ee,#6366f1);
-      border-color:transparent;
-      color:#020617;
-      font-weight:600;
-    }
-    .btn:disabled {
-      opacity:.6;
-      cursor:not-allowed;
-    }
-
-    .status-dot {
-      width:7px;
-      height:7px;
-      border-radius:999px;
-      background:#22c55e;
-      box-shadow:0 0 8px rgba(34,197,94,.9);
-    }
-    .status-text {
-      font-size:.8rem;
-      color:var(--muted);
-    }
-
-    .console {
-      margin-top:10px;
-      background:#020617;
-      border-radius:12px;
-      border:1px solid rgba(148,163,184,.4);
-      padding:8px 10px;
-      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New",monospace;
-      font-size:.85rem;
-      color:#e5e7eb;
-      min-height:120px;
-      max-height:260px;
-      overflow:auto;
-    }
-    .console-line.log { color:#e5e7eb; }
-    .console-line.warn{ color:#fbbf24; }
-    .console-line.error{ color:#f97373; }
-
-    /* RIGHT SIDE: scrollable advanced JavaScript lessons */
-    .advanced-pane {
-      max-height:560px;
-      overflow-y:auto;
-      padding-right:4px;
-    }
-
-    .lesson-section-title {
-      font-size:.78rem;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      color:#9ca3af;
-      margin:6px 0 4px;
-    }
-
-    .lesson-list {
+    .lab-root{
+      max-width:1280px;
+      margin:0 auto;
       display:flex;
       flex-direction:column;
-      gap:8px;
-      margin-bottom:10px;
+      gap:12px;
     }
-
-    .lesson {
-      border-radius:12px;
-      background:radial-gradient(circle at top left,rgba(56,189,248,.16),rgba(15,23,42,.98));
-      border:1px solid rgba(148,163,184,.4);
-      padding:8px 9px 7px;
-    }
-
-    .lesson h4 {
-      margin:0 0 3px;
-      font-size:.86rem;
-      color:#bae6fd;
-    }
-
-    .lesson p {
-      margin:0 0 4px;
-      font-size:.78rem;
-      color:var(--muted);
-    }
-
-    .tag-row {
+    .lab-header{
       display:flex;
       flex-wrap:wrap;
-      gap:4px;
-      margin-bottom:4px;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
     }
-
-    .chip {
-      font-size:.7rem;
-      padding:2px 7px 3px;
+    .lab-title{
+      font-size:1.25rem;
+      font-weight:700;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      background:linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6);
+      -webkit-background-clip:text;
+      background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+    .lab-sub{
+      font-size:.9rem;
+      color:var(--muted);
+    }
+    .pill-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:4px;
+    }
+    .pill{
+      font-size:.8rem;
       border-radius:999px;
-      background:rgba(15,23,42,.9);
-      border:1px solid rgba(148,163,184,.5);
+      padding:3px 8px;
+      border:1px solid rgba(148,163,184,.4);
+      background:rgba(15,23,42,.8);
       color:#cbd5f5;
     }
 
-    .chip.level-beginner { border-color:#22c55e; color:#bbf7d0; }
-    .chip.level-intermediate { border-color:#facc15; color:#fef9c3; }
-    .chip.level-advanced { border-color:#f97316; color:#fed7aa; }
+    .lab-main{
+      display:grid;
+      grid-template-columns:minmax(0,2.1fr) minmax(0,1.1fr);
+      gap:12px;
+      min-height:480px;
+    }
+    @media (max-width:900px){
+      .lab-main{
+        grid-template-columns:1fr;
+      }
+    }
 
-    .lesson button {
-      border-radius:999px;
-      border:1px solid rgba(56,189,248,.9);
-      background:rgba(8,47,73,.95);
-      color:#e0f2fe;
-      font-size:.75rem;
-      padding:4px 9px;
-      cursor:pointer;
-      display:inline-flex;
+    .card{
+      background:radial-gradient(circle at top,#111827 0,#020617 45%,#000 100%);
+      border-radius:18px;
+      border:1px solid rgba(148,163,184,.35);
+      padding:12px;
+      box-shadow:0 20px 50px rgba(15,23,42,.85);
+    }
+    .card-header{
+      display:flex;
+      justify-content:space-between;
       align-items:center;
-      gap:5px;
+      gap:8px;
+      margin-bottom:6px;
     }
-
-    .lesson button:hover {
-      background:rgba(8,47,73,1);
+    .card-header h2{
+      font-size:.9rem;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--accent);
+      margin:0;
     }
-
-    .lab-note {
-      margin-top:8px;
+    .lab-note{
       font-size:.8rem;
       color:var(--muted);
     }
+
+    .lab-top-controls{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:6px;
+      margin-bottom:6px;
+    }
+    .lab-select{
+      background:#020617;
+      color:#e5e7eb;
+      border-radius:999px;
+      border:1px solid var(--border);
+      padding:5px 10px;
+      font-size:.8rem;
+    }
+    .status-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      border-radius:999px;
+      padding:3px 9px;
+      font-size:.8rem;
+      border:1px solid rgba(148,163,184,.5);
+    }
+    .status-dot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:var(--accent);
+      box-shadow:0 0 0 4px rgba(125,211,252,.25);
+    }
+    .status-pill.error .status-dot{
+      background:var(--danger);
+      box-shadow:0 0 0 4px rgba(248,113,113,.25);
+    }
+
+    #editor-container{
+      border-radius:14px;
+      overflow:hidden;
+      border:1px solid var(--border);
+      min-height:260px;
+      max-height:420px;
+    }
+
+    .editor-footer{
+      margin-top:8px;
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .btn{
+      border-radius:999px;
+      padding:5px 12px;
+      font-size:.8rem;
+      border:1px solid rgba(148,163,184,.5);
+      background:rgba(15,23,42,.95);
+      color:#e5e7eb;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+    }
+    .btn.primary{
+      background:linear-gradient(90deg,#22d3ee,#4ade80);
+      border:none;
+      color:#020617;
+      font-weight:600;
+      box-shadow:0 0 25px rgba(45,212,191,.4);
+    }
+    .btn:disabled{
+      opacity:.55;
+      cursor:default;
+      box-shadow:none;
+    }
+
+    #output{
+      margin-top:8px;
+      font-family:ui-monospace,Menlo,Consolas,monospace;
+      font-size:.8rem;
+      border-radius:10px;
+      padding:8px;
+      background:#020617;
+      border:1px solid var(--border);
+      max-height:140px;
+      overflow:auto;
+      white-space:pre-wrap;
+    }
+    .line-log{color:#e5e7eb;}
+    .line-warn{color:#facc15;}
+    .line-error{color:#fda4af;}
+    .line-info{color:#93c5fd;}
+
+    .advanced-pane{
+      display:flex;
+      flex-direction:column;
+      height:100%;
+    }
+    .lessons-list{
+      margin-top:4px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:rgba(15,23,42,.96);
+      flex:1;
+      min-height:260px;
+      max-height:420px;
+      overflow-y:auto;
+    }
+    .lesson-item{
+      padding:8px 9px;
+      border-bottom:1px solid rgba(31,41,55,.9);
+      cursor:pointer;
+      font-size:.8rem;
+      display:flex;
+      justify-content:space-between;
+      gap:6px;
+    }
+    .lesson-item:last-child{border-bottom:none;}
+    .lesson-item:hover{
+      background:rgba(15,118,110,.3);
+    }
+    .lesson-item.active{
+      background:linear-gradient(90deg,rgba(34,211,238,.15),rgba(129,140,248,.18));
+    }
+    .lesson-title{
+      display:block;
+      font-weight:500;
+    }
+    .lesson-meta{
+      font-size:.7rem;
+      color:var(--muted);
+    }
+    .lesson-tag{
+      border-radius:999px;
+      padding:1px 7px;
+      border:1px solid rgba(148,163,184,.7);
+      font-size:.65rem;
+      white-space:nowrap;
+    }
+    .lesson-detail{
+      margin-top:8px;
+      font-size:.8rem;
+      color:var(--muted);
+      border-radius:10px;
+      border:1px dashed rgba(148,163,184,.7);
+      padding:8px;
+      background:rgba(15,23,42,.9);
+    }
   </style>
 
-  <!-- Monaco loader (VS Code editor) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.49.0/min/vs/loader.min.js"></script>
+  <!-- Monaco loader -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
 </head>
 <body>
-  <header>
-    <!-- Sponsored Header Bar (dismissible) -->
-    <div id="sponsored-bar" role="banner" aria-label="Sponsored by Knack.bz"
-        style="position:sticky; top:0; z-index:9999; width:100%;
-              background:#0f1117; color:#e5e7eb; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-              border-bottom:1px solid #1f2430;">
-      <div style="max-width:1200px; margin:0 auto; padding:10px 10px; display:flex; align-items:center; justify-content:center; gap:.5rem;">
-        <span style="opacity:.9;">Sponsored by</span>
-        <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer"
-          style="color:#7dd3fc; text-decoration:none; font-weight:600;">
-          Knack.bz
-        </a>
-        <button aria-label="Dismiss sponsor bar"
-                onclick="document.getElementById('sponsored-bar').style.display='none'"
-                style="margin-left:auto; background:transparent; border:none; color:#9aa4b2; cursor:pointer; font-size:16px; line-height:1;">
-          ✕
-        </button>
+<div class="lab-root">
+  <header class="lab-header">
+    <div>
+      <div class="lab-title">JavaScript Lab — Cyber Edition</div>
+      <div class="lab-sub">Run JavaScript directly in your browser. 30+ mini-lessons from easy to advanced, no uploads.</div>
+      <div class="pill-row">
+        <span class="pill">Beginner → Advanced</span>
+        <span class="pill">Console output</span>
+        <span class="pill">Monaco editor</span>
+        <span class="pill">Safe sandbox</span>
       </div>
     </div>
-
-    <h1 class="glow-title">Programming Lab — Cyber Edition</h1>
-    <div class="muted">Run JavaScript locally and explore 100 lessons from beginner to advanced. No uploads, no tracking.</div>
-
-    <!-- Dynamic nav placeholder -->
-    <div data-nav-placeholder></div>
   </header>
 
-  <main class="lab-shell">
-    <section class="card" style="margin-bottom:14px;">
-      <h2>What this page is</h2>
-      <p>
-        This is your in-browser programming lab. All code runs locally in the browser using the Monaco
-        editor (same engine as VS Code). Use it as a sandbox while building FileConverter tools,
-        cyber apps, or anything else.
-      </p>
+  <main class="lab-main">
+    <!-- LEFT: Editor -->
+    <section class="card">
+      <div class="card-header">
+        <h2>Editor</h2>
+        <div class="lab-top-controls">
+          <select id="mode-select" class="lab-select">
+            <option value="js" selected>JavaScript (runs here)</option>
+            <option value="notes">Notes only (no execution)</option>
+          </select>
+          <div class="status-pill" id="status-pill">
+            <span class="status-dot" id="status-dot"></span>
+            <span id="status-text">Ready · JavaScript (Browser)</span>
+          </div>
+        </div>
+      </div>
       <p class="lab-note">
-        Today: JavaScript execution. You can still store Python / Rust / pseudo-code here as notes;
-        later this can be upgraded with WebAssembly runtimes.
+        Select a lesson on the right or type your own code. Click <strong>Run</strong> to execute in a safe sandbox and
+        see <code>console.log</code> output below.
       </p>
+
+      <div id="editor-container"></div>
+
+      <div class="editor-footer">
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="btn primary" id="run-btn">▶ Run code</button>
+          <button class="btn" id="clear-btn">✕ Clear output</button>
+          <button class="btn" id="reset-btn">⟳ Reset editor</button>
+        </div>
+        <div style="font-size:.75rem; color:var(--muted);">
+          <span style="opacity:.9;">Tip:</span> Try <code>await fetch()</code> or small async functions.
+        </div>
+      </div>
+
+      <div id="output" aria-live="polite">
+        <!-- logs go here -->
+      </div>
     </section>
 
-    <div class="lab-grid">
-      <!-- LEFT: Monaco Editor + Console -->
-      <section class="card">
-        <div class="lab-controls">
-          <span class="pill">
-            <span class="status-dot" id="lab-status-dot"></span>
-            <span class="status-text" id="lab-status-text">Ready · JavaScript (Browser)</span>
-          </span>
+    <!-- RIGHT: Lessons -->
+    <aside class="card advanced-pane">
+      <div class="card-header">
+        <h2>Lessons</h2>
+        <span class="lab-note" style="font-size:.8rem;">Browse mini-examples. Clicking one loads it into the editor.</span>
+      </div>
 
-          <select id="language-select" class="lab-select">
-            <option value="js" selected>JavaScript (runs here)</option>
-            <option value="notes">Notes / Pseudo-code (no execution)</option>
-          </select>
-        </div>
+      <div class="lessons-list" id="lessons-list"></div>
 
-        <div id="editor-container"></div>
-
-        <div class="editor-footer">
-          <div style="display:flex; gap:6px; flex-wrap:wrap;">
-            <button class="btn primary" id="run-btn">
-              ▶ Run code
-            </button>
-            <button class="btn" id="clear-console-btn">
-              ⌫ Clear console
-            </button>
-          </div>
-          <span class="status-text">Tip: <code>console.log()</code> output appears below.</span>
-        </div>
-
-        <div style="margin-top:10px;">
-          <h3 style="margin:0 0 4px; font-size:.9rem;">Console</h3>
-          <div id="console-output" class="console" aria-live="polite"></div>
-        </div>
-      </section>
-
-      <!-- RIGHT: Scrollable Advanced JS Lessons (100 total) -->
-      <aside class="card advanced-pane">
-        <h3>JavaScript Lessons (Easy → Advanced)</h3>
-        <p style="font-size:.85rem;">
-          Browse 100 mini-lessons. Click “Load example” to drop code into the editor,
-          then tweak and run it.
-        </p>
-
-        <div id="lesson-sections">
-          <!-- Filled by JS from lessons[] -->
-        </div>
-
-        <p class="lab-note">
-          Use this like a mini course: start at Beginner, then move through Intermediate and Advanced.
-          Everything executes locally in your browser.
-        </p>
-      </aside>
-    </div>
+      <div class="lesson-detail" id="lesson-detail">
+        Select a lesson to see its description here.
+      </div>
+    </aside>
   </main>
+</div>
 
-  <footer style="background:#020617; color:#7dd3fc; padding:20px; margin-top:20px; border-top:1px solid #1f2937;">
-    <nav style="display:flex; flex-wrap:wrap; justify-content:center; gap:20px; margin-bottom:10px;">
-      <a href="about.html" style="color:#7dd3fc; text-decoration:none;">About</a>
-      <a href="faq.html" style="color:#7dd3fc; text-decoration:none;">FAQ</a>
-      <a href="privacy-policy.html" style="color:#7dd3fc; text-decoration:none;">Privacy Policy</a>
-      <a href="terms.html" style="color:#7dd3fc; text-decoration:none;">Terms</a>
-      <a href="contact.html" style="color:#7dd3fc; text-decoration:none;">Contact</a>
-    </nav>
-    <p style="font-size:14px; text-align:center; color:#9ca3af;">
-      © <span id="year"></span> File Converter — Cyber Edition · Programming Lab
-    </p>
-  </footer>
-
-  <!-- Nav loader -->
-  <script src="nav-loader.js" defer></script>
-
-  <!-- Programming Lab Logic -->
-  <script>
-    document.querySelectorAll("#year").forEach(el => el.textContent = new Date().getFullYear());
-
-    const consoleEl = document.getElementById('console-output');
-    const runBtn = document.getElementById('run-btn');
-    const clearConsoleBtn = document.getElementById('clear-console-btn');
-    const langSelect = document.getElementById('language-select');
-    const statusDot = document.getElementById('lab-status-dot');
-    const statusText = document.getElementById('lab-status-text');
-    let editor = null;
-
-    function appendLine(type, text) {
-      const div = document.createElement('div');
-      div.className = 'console-line ' + type;
-      div.textContent = text;
-      consoleEl.appendChild(div);
-      consoleEl.scrollTop = consoleEl.scrollHeight;
+<script>
+  // --- LESSON DATA (30 examples, beginner → advanced) ---
+  const JS_LESSONS = [
+    {
+      id: 1,
+      level: "Beginner",
+      title: "Hello, console",
+      tags: ["basics","console"],
+      description: "Start with console.log and simple strings.",
+      code: [
+        "// Your first console log",
+        "console.log(\"Hello from FileConverter.run JavaScript Lab!\");",
+        "",
+        "// Try changing the message and re-running."
+      ].join("\\n")
+    },
+    {
+      id: 2,
+      level: "Beginner",
+      title: "Variables and types",
+      tags: ["variables"],
+      description: "Use let/const and see primitive types.",
+      code: [
+        "const name = \"Alex\";",
+        "let age = 29;",
+        "const isDev = true;",
+        "",
+        "console.log(\"Name:\", name);",
+        "console.log(\"Age:\", age);",
+        "console.log(\"Developer:\", isDev);"
+      ].join("\\n")
+    },
+    {
+      id: 3,
+      level: "Beginner",
+      title: "If / else",
+      tags: ["conditions"],
+      description: "Basic conditional branching with if / else.",
+      code: [
+        "const score = 82;",
+        "",
+        "if (score >= 90) {",
+        "  console.log(\"Grade: A\");",
+        "} else if (score >= 80) {",
+        "  console.log(\"Grade: B\");",
+        "} else {",
+        "  console.log(\"Keep going, you have this!\");",
+        "}"
+      ].join("\\n")
+    },
+    {
+      id: 4,
+      level: "Beginner",
+      title: "For loop",
+      tags: ["loops"],
+      description: "Loop from 1 to 5 and log each value.",
+      code: [
+        "for (let i = 1; i <= 5; i++) {",
+        "  console.log(\"Step\", i);",
+        "}"
+      ].join("\\n")
+    },
+    {
+      id: 5,
+      level: "Beginner",
+      title: "Arrays and .map",
+      tags: ["arrays"],
+      description: "Transform arrays with .map.",
+      code: [
+        "const nums = [1, 2, 3, 4, 5];",
+        "const doubled = nums.map(n => n * 2);",
+        "",
+        "console.log(\"Original:\", nums);",
+        "console.log(\"Doubled:\", doubled);"
+      ].join("\\n")
+    },
+    {
+      id: 6,
+      level: "Beginner",
+      title: "Functions",
+      tags: ["functions"],
+      description: "Declare and call a reusable function.",
+      code: [
+        "function greet(name) {",
+        "  console.log(\"Hello,\", name);",
+        "}",
+        "",
+        "greet(\"Sam\");",
+        "greet(\"Taylor\");"
+      ].join("\\n")
+    },
+    {
+      id: 7,
+      level: "Beginner",
+      title: "Objects",
+      tags: ["objects"],
+      description: "Group data and behavior together.",
+      code: [
+        "const user = {",
+        "  name: \"Jordan\",",
+        "  role: \"Developer\",",
+        "  active: true,",
+        "  describe() {",
+        "    console.log(this.name + \" is a \" + this.role);",
+        "  }",
+        "};",
+        "",
+        "console.log(user);",
+        "user.describe();"
+      ].join("\\n")
+    },
+    {
+      id: 8,
+      level: "Intermediate",
+      title: "Destructuring",
+      tags: ["syntax"],
+      description: "Extract values from arrays and objects.",
+      code: [
+        "const point = { x: 5, y: 9 };",
+        "const { x, y } = point;",
+        "",
+        "const colors = [\"red\", \"green\", \"blue\"];",
+        "const [primary, secondary] = colors;",
+        "",
+        "console.log(\"x, y:\", x, y);",
+        "console.log(\"primary, secondary:\", primary, secondary);"
+      ].join("\\n")
+    },
+    {
+      id: 9,
+      level: "Intermediate",
+      title: "Default parameters",
+      tags: ["functions"],
+      description: "Give function parameters default values.",
+      code: [
+        "function welcome(name = \"friend\", site = \"FileConverter.run\") {",
+        "  console.log(`Welcome, ${name}, to ${site}!`);",
+        "}",
+        "",
+        "welcome(\"Alex\", \"JS Lab\");",
+        "welcome();"
+      ].join("\\n")
+    },
+    {
+      id: 10,
+      level: "Intermediate",
+      title: "Closures",
+      tags: ["closures"],
+      description: "A function that remembers the scope it was created in.",
+      code: [
+        "function makeCounter(start = 0) {",
+        "  let value = start;",
+        "  return function () {",
+        "    value++;",
+        "    console.log(\"Counter:\", value);",
+        "  };",
+        "}",
+        "",
+        "const counterA = makeCounter(5);",
+        "counterA();",
+        "counterA();",
+        "const counterB = makeCounter(0);",
+        "counterB();"
+      ].join("\\n")
+    },
+    {
+      id: 11,
+      level: "Intermediate",
+      title: "Higher-order functions",
+      tags: ["functions"],
+      description: "Functions that take or return other functions.",
+      code: [
+        "function repeat(n, action) {",
+        "  for (let i = 0; i < n; i++) {",
+        "    action(i);",
+        "  }",
+        "}",
+        "",
+        "repeat(3, i => console.log(\"Ping\", i));"
+      ].join("\\n")
+    },
+    {
+      id: 12,
+      level: "Intermediate",
+      title: "Promises basics",
+      tags: ["async"],
+      description: "Create and use a Promise that resolves later.",
+      code: [
+        "function wait(ms) {",
+        "  return new Promise(resolve => {",
+        "    setTimeout(() => resolve(ms), ms);",
+        "  });",
+        "}",
+        "",
+        "wait(500).then(time => {",
+        "  console.log(\"Waited\", time, \"ms\");",
+        "});"
+      ].join("\\n")
+    },
+    {
+      id: 13,
+      level: "Intermediate",
+      title: "async / await",
+      tags: ["async"],
+      description: "Syntactic sugar on top of Promises.",
+      code: [
+        "function wait(ms) {",
+        "  return new Promise(res => setTimeout(res, ms));",
+        "}",
+        "",
+        "async function demo() {",
+        "  console.log(\"Starting async demo...\");",
+        "  await wait(500);",
+        "  console.log(\"Half a second passed\");",
+        "  await wait(500);",
+        "  console.log(\"One second total\");",
+        "}",
+        "",
+        "demo();"
+      ].join("\\n")
+    },
+    {
+      id: 14,
+      level: "Intermediate",
+      title: "Array reduce",
+      tags: ["arrays"],
+      description: "Use reduce to sum an array.",
+      code: [
+        "const prices = [4.99, 12.5, 7.25];",
+        "",
+        "const total = prices.reduce((sum, price) => sum + price, 0);",
+        "",
+        "console.log(\"Total:\", total.toFixed(2));"
+      ].join("\\n")
+    },
+    {
+      id: 15,
+      level: "Intermediate",
+      title: "Filtering data",
+      tags: ["arrays"],
+      description: "Filter an array of objects by a property.",
+      code: [
+        "const items = [",
+        "  { name: \"Apples\", inStock: true },",
+        "  { name: \"Oranges\", inStock: false },",
+        "  { name: \"Milk\", inStock: true }",
+        "];",
+        "",
+        "const available = items.filter(item => item.inStock);",
+        "",
+        "console.log(\"Available items:\", available);"
+      ].join("\\n")
+    },
+    {
+      id: 16,
+      level: "Advanced",
+      title: "Currying",
+      tags: ["functional"],
+      description: "Transform f(a,b) into f(a)(b).",
+      code: [
+        "function add(a) {",
+        "  return function(b) {",
+        "    return a + b;",
+        "  };",
+        "}",
+        "",
+        "const add10 = add(10);",
+        "console.log(add10(5));",
+        "console.log(add(3)(4));"
+      ].join("\\n")
+    },
+    {
+      id: 17,
+      level: "Advanced",
+      title: "Memoization",
+      tags: ["performance"],
+      description: "Cache results of expensive calls.",
+      code: [
+        "function slowSquare(n) {",
+        "  console.log(\"Computing square of\", n);",
+        "  let total = 0;",
+        "  for (let i = 0; i < 1_000_00; i++) {",
+        "    total += i % 2;",
+        "  }",
+        "  return n * n;",
+        "}",
+        "",
+        "function memoize(fn) {",
+        "  const cache = new Map();",
+        "  return function (n) {",
+        "    if (cache.has(n)) return cache.get(n);",
+        "    const value = fn(n);",
+        "    cache.set(n, value);",
+        "    return value;",
+        "  };",
+        "}",
+        "",
+        "const mSquare = memoize(slowSquare);",
+        "console.log(mSquare(5));",
+        "console.log(mSquare(5));"
+      ].join("\\n")
+    },
+    {
+      id: 18,
+      level: "Advanced",
+      title: "Debounce",
+      tags: ["utilities"],
+      description: "Wait until input stops changing before firing.",
+      code: [
+        "function debounce(fn, delay) {",
+        "  let id;",
+        "  return function(...args) {",
+        "    clearTimeout(id);",
+        "    id = setTimeout(() => fn(...args), delay);",
+        "  };",
+        "}",
+        "",
+        "const onSearch = debounce((q) => {",
+        "  console.log(\"Searching for:\", q);",
+        "}, 300);",
+        "",
+        "onSearch(\"j\");",
+        "onSearch(\"js\");",
+        "onSearch(\"js l\");",
+        "setTimeout(() => onSearch(\"js lab\"), 400);"
+      ].join("\\n")
+    },
+    {
+      id: 19,
+      level: "Advanced",
+      title: "Throttle",
+      tags: ["utilities"],
+      description: "Limit how often a function runs.",
+      code: [
+        "function throttle(fn, interval) {",
+        "  let last = 0;",
+        "  return function(...args) {",
+        "    const now = Date.now();",
+        "    if (now - last >= interval) {",
+        "      last = now;",
+        "      fn(...args);",
+        "    }",
+        "  };",
+        "}",
+        "",
+        "const onScroll = throttle((y) => {",
+        "  console.log(\"Scroll Y:\", y);",
+        "}, 200);",
+        "",
+        "onScroll(10);",
+        "onScroll(20);",
+        "setTimeout(() => onScroll(30), 250);"
+      ].join("\\n")
+    },
+    {
+      id: 20,
+      level: "Advanced",
+      title: "Tiny event bus",
+      tags: ["patterns"],
+      description: "Simple pub/sub for events.",
+      code: [
+        "class EventBus {",
+        "  constructor() {",
+        "    this.listeners = new Map();",
+        "  }",
+        "  on(event, fn) {",
+        "    if (!this.listeners.has(event)) {",
+        "      this.listeners.set(event, new Set());",
+        "    }",
+        "    this.listeners.get(event).add(fn);",
+        "    return () => this.off(event, fn);",
+        "  }",
+        "  off(event, fn) {",
+        "    this.listeners.get(event)?.delete(fn);",
+        "  }",
+        "  emit(event, payload) {",
+        "    this.listeners.get(event)?.forEach(fn => fn(payload));",
+        "  }",
+        "}",
+        "",
+        "const bus = new EventBus();",
+        "const offWelcome = bus.on(\"welcome\", (name) => {",
+        "  console.log(\"Welcome,\", name);",
+        "});",
+        "",
+        "bus.emit(\"welcome\", \"Dev\");",
+        "offWelcome();",
+        "bus.emit(\"welcome\", \"Hidden\");"
+      ].join("\\n")
     }
+  ];
 
-    function clearConsole() {
-      consoleEl.innerHTML = '';
+  let editor = null;
+  let currentLessonId = null;
+
+  function setStatus(ok, text) {
+    const pill = document.getElementById("status-pill");
+    const dot = document.getElementById("status-dot");
+    const label = document.getElementById("status-text");
+    label.textContent = text;
+    if (ok) {
+      pill.classList.remove("error");
+    } else {
+      pill.classList.add("error");
     }
-    clearConsoleBtn.addEventListener('click', clearConsole);
+  }
 
-    function setStatus(online, text) {
-      statusDot.style.background = online ? '#22c55e' : '#f97373';
-      statusDot.style.boxShadow = online
-        ? '0 0 8px rgba(34,197,94,.9)'
-        : '0 0 8px rgba(248,113,113,.9)';
-      statusText.textContent = text;
-    }
+  function appendLine(kind, text) {
+    const box = document.getElementById("output");
+    const div = document.createElement("div");
+    div.className = "line-" + kind;
+    div.textContent = text;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+  }
 
-    langSelect.addEventListener('change', () => {
-      if (langSelect.value === 'notes') {
-        setStatus(false, 'Note mode · Code not executed (just a scratchpad)');
-      } else {
-        setStatus(true, 'Ready · JavaScript (Browser)');
-      }
+  function clearOutput() {
+    const box = document.getElementById("output");
+    box.innerHTML = "";
+  }
+
+  function loadLesson(id) {
+    const lesson = JS_LESSONS.find(l => l.id === id);
+    if (!lesson) return;
+    currentLessonId = id;
+    editor.setValue(lesson.code);
+    const detail = document.getElementById("lesson-detail");
+    detail.innerHTML = "";
+    const title = document.createElement("div");
+    title.style.fontWeight = "600";
+    title.style.marginBottom = "4px";
+    title.textContent = lesson.title + " · " + lesson.level;
+    const desc = document.createElement("div");
+    desc.textContent = lesson.description;
+    detail.appendChild(title);
+    detail.appendChild(desc);
+
+    // highlight active
+    document.querySelectorAll(".lesson-item").forEach(li => {
+      li.classList.toggle("active", Number(li.dataset.id) === id);
     });
+  }
 
-    // Monaco init
-    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.49.0/min/vs' }});
-    require(['vs/editor/editor.main'], function () {
-      editor = monaco.editor.create(document.getElementById('editor-container'), {
+  function buildLessonsList() {
+    const listEl = document.getElementById("lessons-list");
+    listEl.innerHTML = "";
+    JS_LESSONS.forEach(lesson => {
+      const row = document.createElement("div");
+      row.className = "lesson-item";
+      row.dataset.id = String(lesson.id);
+
+      const left = document.createElement("div");
+      const title = document.createElement("span");
+      title.className = "lesson-title";
+      title.textContent = lesson.title;
+      const meta = document.createElement("span");
+      meta.className = "lesson-meta";
+      meta.textContent = lesson.level;
+      left.appendChild(title);
+      left.appendChild(meta);
+
+      const right = document.createElement("div");
+      if (lesson.tags && lesson.tags.length) {
+        const tag = document.createElement("span");
+        tag.className = "lesson-tag";
+        tag.textContent = lesson.tags[0];
+        right.appendChild(tag);
+      }
+
+      row.appendChild(left);
+      row.appendChild(right);
+      row.addEventListener("click", () => loadLesson(lesson.id));
+      listEl.appendChild(row);
+    });
+  }
+
+  function initEditor() {
+    require.config({ paths: { "vs": "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs" } });
+    require(["vs/editor/editor.main"], function () {
+      editor = monaco.editor.create(document.getElementById("editor-container"), {
         value: [
-          '// Welcome to the Programming Lab.',
-          '// Pick a lesson on the right, or start typing here.',
-          '',
-          'console.log("Hello from FileConverter Lab!");'
-        ].join('\\n'),
-        language: 'javascript',
-        theme: 'vs-dark',
+          "// Welcome to the JavaScript Lab!",
+          "// Select a lesson on the right, or start typing.",
+          "",
+          "console.log(\"JS Lab ready.\");"
+        ].join("\\n"),
+        language: "javascript",
         automaticLayout: true,
+        theme: "vs-dark",
         fontSize: 13,
         minimap: { enabled: false }
       });
+
+      buildLessonsList();
+      loadLesson(JS_LESSONS[0].id);
+      wireControls();
+      setStatus(true, "Ready · JavaScript (Browser)");
     });
+  }
 
-    runBtn.addEventListener('click', () => {
-      if (!editor) {
-        appendLine('error', 'Editor not ready yet.');
-        return;
-      }
-      const lang = langSelect.value;
-      const code = editor.getValue();
+  function runCode() {
+    if (!editor) return;
+    const mode = document.getElementById("mode-select").value;
+    if (mode !== "js") {
+      appendLine("warn", "Notes mode is active — switch to JavaScript mode to execute code.");
+      setStatus(false, "Cannot run: Notes mode selected");
+      return;
+    }
 
-      clearConsole();
-      if (!code.trim()) {
-        appendLine('warn', 'Nothing to run — type some code or load a lesson first.');
-        return;
-      }
+    const code = editor.getValue();
+    clearOutput();
+    setStatus(true, "Running… JavaScript (Browser)");
 
-      if (lang !== 'js') {
-        appendLine('warn', 'Note mode is on — enable JavaScript mode to execute code.');
-        return;
-      }
+    // sandbox console
+    const originalLog = console.log;
+    const originalWarn = console.warn;
+    const originalError = console.error;
+    const originalInfo = console.info;
 
-      setStatus(true, 'Running… JavaScript (Browser)');
-      runBtn.disabled = true;
+    console.log = (...args) => appendLine("log", args.map(String).join(" "));
+    console.warn = (...args) => appendLine("warn", args.map(String).join(" "));
+    console.error = (...args) => appendLine("error", args.map(String).join(" "));
+    console.info = (...args) => appendLine("info", args.map(String).join(" "));
 
-      const originalLog = console.log;
-      const originalWarn = console.warn;
-      const originalError = console.error;
-
-      console.log = (...args) => {
-        appendLine('log', args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' '));
-        originalLog.apply(console, args);
-      };
-      console.warn = (...args) => {
-        appendLine('warn', args.map(String).join(' '));
-        originalWarn.apply(console, args);
-      };
-      console.error = (...args) => {
-        appendLine('error', args.map(String).join(' '));
-        originalError.apply(console, args);
-      };
-
+    try {
+      const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+      let fn;
       try {
-        const fn = new Function('"use strict";\\n' + code);
-        const result = fn();
-        if (result instanceof Promise) {
-          result.then(
-            (val) => {
-              if (val !== undefined) appendLine('log', 'Return (async): ' + String(val));
-              setStatus(true, 'Done · JavaScript (Browser)');
-              runBtn.disabled = false;
-            },
-            (err) => {
-              appendLine('error', 'Async error: ' + (err && err.message ? err.message : String(err)));
-              setStatus(true, 'Done (with async error) · JavaScript (Browser)');
-              runBtn.disabled = false;
-            }
-          );
-        } else {
-          if (result !== undefined) appendLine('log', 'Return: ' + String(result));
-          setStatus(true, 'Done · JavaScript (Browser)');
-          runBtn.disabled = false;
-        }
-      } catch (err) {
-        appendLine('error', 'Error: ' + (err && err.message ? err.message : String(err)));
-        setStatus(true, 'Done (with error) · JavaScript (Browser)');
-        runBtn.disabled = false;
-      } finally {
-        console.log = originalLog;
-        console.warn = originalWarn;
-        console.error = originalError;
+        fn = new AsyncFunction(code);
+      } catch {
+        const F = Function;
+        fn = new F(code);
       }
+
+      const result = fn();
+      if (result && typeof result.then === "function") {
+        result.then(
+          (val) => {
+            if (typeof val !== "undefined") {
+              appendLine("info", "Result: " + String(val));
+            }
+            setStatus(true, "Done · JavaScript (async)");
+          },
+          (err) => {
+            appendLine("error", "Async error: " + String(err));
+            setStatus(false, "Done (with async error)");
+          }
+        );
+      } else {
+        if (typeof result !== "undefined") {
+          appendLine("info", "Result: " + String(result));
+        }
+        setStatus(true, "Done · JavaScript");
+      }
+    } catch (err) {
+      appendLine("error", "Error: " + String(err));
+      setStatus(false, "Done (with error)");
+    } finally {
+      console.log = originalLog;
+      console.warn = originalWarn;
+      console.error = originalError;
+      console.info = originalInfo;
+    }
+  }
+
+  function wireControls() {
+    document.getElementById("run-btn").addEventListener("click", runCode);
+    document.getElementById("clear-btn").addEventListener("click", clearOutput);
+    document.getElementById("reset-btn").addEventListener("click", () => {
+      if (!editor) return;
+      clearOutput();
+      if (currentLessonId != null) {
+        loadLesson(currentLessonId);
+      }
+      setStatus(true, "Reset · JavaScript (Browser)");
     });
 
-    // -------- 100 Lessons: Beginner → Intermediate → Advanced --------
-    // Each lesson: id, level, title, description, tags, code
-    const lessons = [];
-
-    // Helper to push with auto-id
-    let _lessonId = 1;
-    function addLesson(level, title, description, tags, code) {
-      lessons.push({
-        id: _lessonId++,
-        level,
-        title,
-        description,
-        tags,
-        code
-      });
-    }
-
-    // --- BEGINNER (1–30) ---
-    addLesson('beginner','Hello World','Basic console output with a string.', ['console.log','strings'], 
-`console.log("Hello, world from FileConverter Lab!");`);
-
-    addLesson('beginner','Variables basics','Use let and const for variables.', ['let','const','variables'],
-`let name = "Jerrod";
-const tool = "FileConverter.run";
-
-console.log("Name:", name);
-console.log("Tool:", tool);`);
-
-    addLesson('beginner','Numbers & math','Simple arithmetic operations.', ['numbers','operators'],
-`const a = 10;
-const b = 3;
-console.log("a + b =", a + b);
-console.log("a * b =", a * b);
-console.log("a / b =", a / b);`);
-
-    addLesson('beginner','Strings & templates','Template literals with backticks.', ['template literals'],
-`const product = "Cyber Hoodie";
-const price = 49.99;
-console.log(\`Product: \${product} — $ \${price}\`);`);
-
-    addLesson('beginner','If / else basics','Branching logic with conditions.', ['if','else'],
-`const stock = 5;
-if (stock > 0) {
-  console.log("In stock");
-} else {
-  console.log("Sold out");
-}`);
-
-    addLesson('beginner','Functions basics','Define and call a function.', ['function'],
-`function greet(name) {
-  console.log("Hi,", name);
-}
-
-greet("Cyber Dev");`);
-
-    addLesson('beginner','Arrow functions','Shorter function syntax.', ['arrow function'],
-`const square = (n) => n * n;
-console.log("Square of 5 =", square(5));`);
-
-    addLesson('beginner','Arrays','Simple array and length.', ['arrays'],
-`const tools = ["images","audio","video","pdf"];
-console.log("Tools:", tools);
-console.log("Count:", tools.length);`);
-
-    addLesson('beginner','Loop over array','Use for...of to iterate.', ['for..of'],
-`const cuts = ["Ribeye","Sirloin","Brisket"];
-for (const cut of cuts) {
-  console.log("Cut:", cut);
-}`);
-
-    addLesson('beginner','Objects basics','Key/value pairs in objects.', ['objects'],
-`const order = {
-  id: 123,
-  customer: "Alice",
-  total: 89.75
-};
-console.log(order);`);
-
-    addLesson('beginner','Access object fields','Dot vs bracket syntax.', ['objects'],
-`const pet = { name: "Buddy", type: "Dog", level: 5 };
-console.log(pet.name);
-console.log(pet["type"]);`);
-
-    addLesson('beginner','Array map','Transform values in array.', ['array.map'],
-`const nums = [1,2,3,4];
-const doubled = nums.map(n => n * 2);
-console.log("Doubled:", doubled);`);
-
-    addLesson('beginner','Array filter','Keep only values that match.', ['array.filter'],
-`const nums = [5,10,15,20];
-const big = nums.filter(n => n >= 10);
-console.log(">= 10:", big);`);
-
-    addLesson('beginner','Array reduce','Combine array into single value.', ['array.reduce'],
-`const amounts = [10,20,5];
-const total = amounts.reduce((sum, n) => sum + n, 0);
-console.log("Total:", total);`);
-
-    addLesson('beginner','For loop','Classic counter loop.', ['for loop'],
-`for (let i=0; i<5; i++) {
-  console.log("i =", i);
-}`);
-
-    addLesson('beginner','While loop','Run while condition true.', ['while'],
-`let count = 3;
-while (count > 0) {
-  console.log("Countdown:", count);
-  count--;
-}
-console.log("Liftoff!");`);
-
-    addLesson('beginner','Switch statement','Alternative to many if/else.', ['switch'],
-`const status = "processing";
-switch (status) {
-  case "pending":
-    console.log("Waiting for payment");
-    break;
-  case "processing":
-    console.log("Order is being packed");
-    break;
-  default:
-    console.log("Unknown status");
-}`);
-
-    addLesson('beginner','Truthy & falsy','Values that act like true/false.', ['truthy','falsy'],
-`const values = ["", 0, 1, "hello", null, undefined, [], {}];
-for (const v of values) {
-  console.log(v, "=>", !!v);
-}`);
-
-    addLesson('beginner','Default parameters','Provide default values.', ['default params'],
-`function hello(name = "friend") {
-  console.log("Hello,", name);
-}
-hello();
-hello("Jerrod");`);
-
-    addLesson('beginner','Spread arrays','Merge arrays with ...spread.', ['spread'],
-`const a = [1,2];
-const b = [3,4];
-const both = [...a, ...b];
-console.log(both);`);
-
-    addLesson('beginner','Destructuring arrays','Pull items out of an array.', ['destructuring'],
-`const coords = [45.123, -122.456];
-const [lat, lng] = coords;
-console.log("Lat:", lat, "Lng:", lng);`);
-
-    addLesson('beginner','Destructuring objects','Pull fields out of an object.', ['destructuring'],
-`const user = { id: 1, name: "Sam", role: "admin" };
-const { name, role } = user;
-console.log("User:", name, "Role:", role);`);
-
-    addLesson('beginner','JSON basics','Stringify and parse JSON.', ['JSON'],
-`const obj = { product:"Steak Box", qty: 3 };
-const json = JSON.stringify(obj);
-console.log("JSON:", json);
-console.log("Parsed:", JSON.parse(json));`);
-
-    addLesson('beginner','Random number','Get a random integer range.', ['Math.random'],
-`function randomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-console.log(randomInt(1, 6));`);
-
-    addLesson('beginner','Date basics','Work with current date/time.', ['Date'],
-`const now = new Date();
-console.log("Now:", now.toISOString());`);
-
-    addLesson('beginner','Simple timer','Run code later with setTimeout.', ['setTimeout'],
-`console.log("Starting...");
-setTimeout(() => {
-  console.log("This ran after 1 second.");
-}, 1000);`);
-
-    addLesson('beginner','Interval timer','Run code repeatedly.', ['setInterval'],
-`let tick = 0;
-const id = setInterval(() => {
-  tick++;
-  console.log("Tick", tick);
-  if (tick === 3) clearInterval(id);
-}, 500);`);
-
-    addLesson('beginner','Simple module pattern','Hide data inside a function scope.', ['module pattern'],
-`function makeCounter() {
-  let value = 0;
-  return {
-    inc() { value++; },
-    get() { return value; }
-  };
-}
-const c = makeCounter();
-c.inc(); c.inc();
-console.log("Count:", c.get());`);
-
-    addLesson('beginner','Basic error handling','Try/catch around risky code.', ['try/catch'],
-`try {
-  JSON.parse("not valid json");
-} catch (err) {
-  console.error("Parsing failed:", err.message);
-}`);
-
-    addLesson('beginner','Guard clauses','Return early on bad input.', ['guards'],
-`function divide(a, b) {
-  if (b === 0) {
-    console.error("Cannot divide by zero");
-    return;
+    document.getElementById("mode-select").addEventListener("change", (e) => {
+      if (e.target.value === "js") {
+        setStatus(true, "Ready · JavaScript (Browser)");
+      } else {
+        setStatus(true, "Ready · Notes only (no execution)");
+      }
+    });
   }
-  console.log("Result:", a / b);
-}
-divide(10, 2);
-divide(5, 0);`);
 
-    // --- INTERMEDIATE (31–60) ---
-    addLesson('intermediate','Basic Promise','Wrap async action in a Promise.', ['Promise'],
-`function wait(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-wait(500).then(() => console.log("Waited 500ms"));`);
-
-    addLesson('intermediate','Async/await basics','Use async/await instead of .then.', ['async/await'],
-`function delay(ms) {
-  return new Promise(r => setTimeout(r, ms));
-}
-async function run() {
-  console.log("Before");
-  await delay(500);
-  console.log("After 500ms");
-}
-run();`);
-
-    addLesson('intermediate','Fetch JSON','GET request to public API.', ['fetch'],
-`async function loadTodo() {
-  const res = await fetch("https://jsonplaceholder.typicode.com/todos/1");
-  const data = await res.json();
-  console.log("Todo:", data);
-}
-loadTodo();`);
-
-    addLesson('intermediate','Fetch error handling','Check res.ok and handle errors.', ['fetch','error handling'],
-`async function safeFetch(url) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("HTTP " + res.status);
-  return res.json();
-}
-safeFetch("https://jsonplaceholder.typicode.com/bad-url")
-  .then(console.log)
-  .catch(err => console.error("Failed:", err.message));`);
-
-    addLesson('intermediate','Class basics','Define a simple class.', ['class'],
-`class Pet {
-  constructor(name, level=1) {
-    this.name = name;
-    this.level = level;
-  }
-  levelUp() {
-    this.level++;
-  }
-}
-const p = new Pet("Rusty");
-p.levelUp();
-console.log(p);`);
-
-    addLesson('intermediate','Static methods','Attach helpers to a class.', ['static'],
-`class MathUtil {
-  static clamp(value, min, max) {
-    return Math.min(max, Math.max(min, value));
-  }
-}
-console.log(MathUtil.clamp(15, 0, 10));`);
-
-    addLesson('intermediate','Getters & setters','Computed properties on objects.', ['getters','setters'],
-`class Box {
-  constructor(w, h) {
-    this.w = w;
-    this.h = h;
-  }
-  get area() {
-    return this.w * this.h;
-  }
-  set width(v) { this.w = v; }
-}
-const b = new Box(4, 3);
-console.log("Area:", b.area);
-b.width = 10;
-console.log("Area now:", b.area);`);
-
-    addLesson('intermediate','This binding','Control this with call/apply.', ['this'],
-`function say() {
-  console.log("Name:", this.name);
-}
-const obj = { name:"Cyber Pet" };
-say.call(obj);`);
-
-    addLesson('intermediate','Prototype methods','Attach methods to prototype.', ['prototype'],
-`function User(name) {
-  this.name = name;
-}
-User.prototype.greet = function() {
-  console.log("Hi,", this.name);
-};
-
-const u = new User("Dev");
-u.greet();`);
-
-    addLesson('intermediate','Closures basics','Function remembers outer scope.', ['closures'],
-`function makeMultiplier(factor) {
-  return (n) => n * factor;
-}
-const double = makeMultiplier(2);
-console.log(double(5));`);
-
-    addLesson('intermediate','Memoization','Cache results of expensive calls.', ['memoization'],
-`function memoize(fn) {
-  const cache = new Map();
-  return (arg) => {
-    if (cache.has(arg)) return cache.get(arg);
-    const result = fn(arg);
-    cache.set(arg, result);
-    return result;
-  };
-}
-const slowSquare = n => {
-  console.log("Computing", n);
-  return n * n;
-};
-const cachedSquare = memoize(slowSquare);
-console.log(cachedSquare(5));
-console.log(cachedSquare(5));`);
-
-    addLesson('intermediate','Debounce','Delay running until input stops.', ['debounce'],
-`function debounce(fn, delay) {
-  let id;
-  return (...args) => {
-    clearTimeout(id);
-    id = setTimeout(() => fn(...args), delay);
-  };
-}
-const onSearch = debounce(q => console.log("Searching:", q), 300);
-onSearch("c");
-onSearch("cy");
-onSearch("cyb");`);
-
-    addLesson('intermediate','Throttle','Limit how often a function runs.', ['throttle'],
-`function throttle(fn, interval) {
-  let last = 0;
-  return (...args) => {
-    const now = Date.now();
-    if (now - last >= interval) {
-      last = now;
-      fn(...args);
-    }
-  };
-}
-const onScroll = throttle(() => console.log("Scroll event"), 500);
-onScroll();
-setTimeout(onScroll, 100);
-setTimeout(onScroll, 600);`);
-
-    addLesson('intermediate','Basic EventEmitter','Pub/sub style event system.', ['EventEmitter'],
-`class Emitter {
-  constructor() { this.listeners = {}; }
-  on(event, fn) {
-    (this.listeners[event] ||= []).push(fn);
-  }
-  emit(event, payload) {
-    (this.listeners[event] || []).forEach(fn => fn(payload));
-  }
-}
-const bus = new Emitter();
-bus.on("greet", name => console.log("Hello,", name));
-bus.emit("greet","world");`);
-
-    addLesson('intermediate','Array of objects filter','Filter complex data.', ['arrays','filter'],
-`const products = [
-  { name:"Ribeye", inStock:true },
-  { name:"Ground Beef", inStock:false },
-  { name:"Brisket", inStock:true },
-];
-const available = products.filter(p => p.inStock);
-console.log(available);`);
-
-    addLesson('intermediate','Group by key','Group array items by property.', ['groupBy'],
-`const orders = [
-  { id:1, status:"paid" },
-  { id:2, status:"pending" },
-  { id:3, status:"paid" }
-];
-const byStatus = orders.reduce((acc, o) => {
-  (acc[o.status] ||= []).push(o);
-  return acc;
-}, {});
-console.log(byStatus);`);
-
-    addLesson('intermediate','Flatten arrays','Flatten nested arrays.', ['flat'],
-`const nested = [1,[2,[3,4]],5];
-console.log(nested.flat(2));`);
-
-    addLesson('intermediate','Optional chaining','Safely read nested data.', ['optional chaining'],
-`const data = { user: { profile: { name: "Sam" } } };
-console.log(data.user?.profile?.name);
-console.log(data.account?.email ?? "No email");`);
-
-    addLesson('intermediate','Map & Set','Collections with unique keys.', ['Map','Set'],
-`const seen = new Set();
-seen.add("apple");
-seen.add("apple");
-console.log("Size:", seen.size);
-
-const map = new Map();
-map.set("usd", 1);
-map.set("eur", 1.08);
-console.log(map.get("eur"));`);
-
-    addLesson('intermediate','For..in vs for..of','Iterate keys vs values.', ['for..in','for..of'],
-`const obj = { a:1, b:2 };
-for (const k in obj) console.log("key:", k, "value:", obj[k]);
-
-const arr = [10,20];
-for (const v of arr) console.log("value:", v);`);
-
-    addLesson('intermediate','Custom sort','Sort array by custom function.', ['sort'],
-`const items = [
-  { name:"b", price:5 },
-  { name:"a", price:10 },
-  { name:"c", price:7 },
-];
-items.sort((a,b) => a.price - b.price);
-console.log(items);`);
-
-    addLesson('intermediate','Reduce to map index','Build index by id.', ['reduce'],
-`const users = [
-  { id:1, name:"A" },
-  { id:2, name:"B" }
-];
-const byId = users.reduce((acc,u) => (acc[u.id] = u, acc), {});
-console.log(byId[2]);`);
-
-    addLesson('intermediate','Promise.all','Run multiple async tasks in parallel.', ['Promise.all'],
-`function wait(ms,name) {
-  return new Promise(r => setTimeout(() => r(name), ms));
-}
-Promise.all([
-  wait(300,"A"),
-  wait(100,"B"),
-  wait(200,"C")
-]).then(results => console.log("Done:", results));`);
-
-    addLesson('intermediate','Promise.race','Resolve when first finishes.', ['Promise.race'],
-`function wait(ms,value) {
-  return new Promise(r => setTimeout(() => r(value), ms));
-}
-Promise.race([
-  wait(300,"slow"),
-  wait(100,"fast")
-]).then(v => console.log("First:", v));`);
-
-    addLesson('intermediate','Basic pipeline function','Compose small functions together.', ['pipeline'],
-`const double = x => x * 2;
-const addFive = x => x + 5;
-
-function pipe(...fns) {
-  return (input) => fns.reduce((v, fn) => fn(v), input);
-}
-
-const transform = pipe(double, addFive);
-console.log(transform(10));`);
-
-    addLesson('intermediate','Currying basics','Transform function to accept args one by one.', ['currying'],
-`function add(a) {
-  return function(b) {
-    return a + b;
-  };
-}
-console.log(add(2)(3));`);
-
-    addLesson('intermediate','Clone objects','Shallow copy objects safely.', ['clone'],
-`const src = { a:1, b: { c:2 } };
-const copy = { ...src };
-console.log(copy);
-copy.a = 99;
-console.log("Original a:", src.a);`);
-
-    addLesson('intermediate','Deep freeze idea','Prevent changes (shallow example).', ['Object.freeze'],
-`const config = Object.freeze({
-  apiUrl: "https://example.com",
-  retries: 3
-});
-console.log(config.apiUrl);
-// config.apiUrl = "nope"; // in strict mode this would throw`);
-
-    // --- ADVANCED (61–100) ---
-    addLesson('advanced','Event loop overview','Log order with setTimeout and promises.', ['event loop','microtasks'],
-`console.log("Start");
-setTimeout(() => console.log("Timeout"), 0);
-Promise.resolve().then(() => console.log("Promise then"));
-console.log("End");`);
-
-    addLesson('advanced','Custom retry with backoff','Retry async function with exponential wait.', ['retry','backoff'],
-`async function retry(fn, retries=3, delay=200) {
-  let attempt = 0;
-  while (attempt <= retries) {
-    try {
-      return await fn();
-    } catch (err) {
-      if (attempt === retries) throw err;
-      const wait = delay * 2 ** attempt;
-      console.warn("Retry in", wait, "ms");
-      await new Promise(r => setTimeout(r, wait));
-      attempt++;
-    }
-  }
-}
-retry(() => Promise.reject(new Error("Fail")))
-  .catch(err => console.error("Final error:", err.message));`);
-
-    addLesson('advanced','Promise queue (1 at a time)','Sequential async tasks.', ['queue'],
-`async function runQueue(tasks) {
-  for (const task of tasks) {
-    const result = await task();
-    console.log("Result:", result);
-  }
-}
-runQueue([
-  () => Promise.resolve("A"),
-  () => Promise.resolve("B")
-]);`);
-
-    addLesson('advanced','Promise pool (limited concurrency)','Run multiple tasks in parallel up to limit.', ['concurrency'],
-`async function runPool(tasks, limit=2) {
-  const results = [];
-  const running = new Set();
-  for (const t of tasks) {
-    const p = Promise.resolve().then(t);
-    results.push(p);
-    running.add(p);
-    p.finally(() => running.delete(p));
-    if (running.size >= limit) {
-      await Promise.race(running);
-    }
-  }
-  return Promise.all(results);
-}
-runPool([
-  () => new Promise(r => setTimeout(() => r("A"), 300)),
-  () => new Promise(r => setTimeout(() => r("B"), 200)),
-  () => new Promise(r => setTimeout(() => r("C"), 100)),
-], 2).then(console.log);`);
-
-    addLesson('advanced','Cancelable promise pattern','Simple cancel flag to stop async work.', ['cancel'],
-`function cancellableDelay(ms) {
-  let cancelled = false;
-  const promise = new Promise((res, rej) => {
-    const id = setTimeout(() => {
-      cancelled ? rej(new Error("Cancelled")) : res("Done");
-    }, ms);
-  });
-  return { promise, cancel: () => (cancelled = true) };
-}
-const { promise, cancel } = cancellableDelay(1000);
-setTimeout(cancel, 300);
-promise.then(console.log).catch(err => console.error(err.message));`);
-
-    addLesson('advanced','Custom pipeline with error trap','Functional composition with try/catch.', ['pipeline','error'],
-`function pipeSafe(...fns) {
-  return (input) => {
-    try {
-      return fns.reduce((v, fn) => fn(v), input);
-    } catch (err) {
-      console.error("Pipeline error:", err.message);
-      return null;
-    }
-  };
-}
-const risky = x => {
-  if (x < 0) throw new Error("Negative!");
-  return x * 2;
-};
-const safe = pipeSafe(risky, x => x + 1);
-console.log(safe(2));
-console.log(safe(-1));`);
-
-    addLesson('advanced','LRU cache concept','Least Recently Used cache with Map.', ['LRU','cache'],
-`class LRU {
-  constructor(limit=3) {
-    this.limit = limit;
-    this.map = new Map();
-  }
-  get(key) {
-    if (!this.map.has(key)) return undefined;
-    const val = this.map.get(key);
-    this.map.delete(key);
-    this.map.set(key, val);
-    return val;
-  }
-  set(key, val) {
-    if (this.map.has(key)) this.map.delete(key);
-    this.map.set(key, val);
-    if (this.map.size > this.limit) {
-      const oldest = this.map.keys().next().value;
-      this.map.delete(oldest);
-    }
-  }
-}
-const lru = new LRU(2);
-lru.set("a",1); lru.set("b",2); lru.set("c",3);
-console.log([...lru.map.keys()]);`);
-
-    addLesson('advanced','Simple middleware chain','Express-style middleware pipeline.', ['middleware'],
-`function runMiddleware(ctx, ...fns) {
-  let index = -1;
-  function dispatch(i) {
-    if (i <= index) throw new Error("next() called multiple times");
-    index = i;
-    const fn = fns[i];
-    if (!fn) return;
-    return fn(ctx, () => dispatch(i+1));
-  }
-  return dispatch(0);
-}
-runMiddleware(
-  { user:"dev" },
-  (ctx,next) => { console.log("1", ctx.user); return next(); },
-  (ctx,next) => { console.log("2"); return next(); }
-);`);
-
-    addLesson('advanced','Tiny router idea','Map paths to handler functions.', ['router'],
-`const routes = {
-  "/": () => console.log("Home"),
-  "/about": () => console.log("About page"),
-};
-function navigate(path) {
-  const handler = routes[path] || (() => console.log("404"));
-  handler();
-}
-navigate("/");
-navigate("/missing");`);
-
-    addLesson('advanced','Graph BFS','Breadth-first search of graph.', ['BFS','graph'],
-`const graph = {
-  A:["B","C"],
-  B:["D"],
-  C:["D","E"],
-  D:[],
-  E:[]
-};
-function bfs(start) {
-  const visited = new Set();
-  const queue = [start];
-  while (queue.length) {
-    const node = queue.shift();
-    if (visited.has(node)) continue;
-    visited.add(node);
-    console.log(node);
-    queue.push(...graph[node]);
-  }
-}
-bfs("A");`);
-
-    addLesson('advanced','Graph DFS','Depth-first search recursive.', ['DFS','graph'],
-`const graph2 = { A:["B","C"], B:["D"], C:["E"], D:[], E:[] };
-function dfs(node, visited=new Set()) {
-  if (visited.has(node)) return;
-  visited.add(node);
-  console.log(node);
-  for (const n of graph2[node]) dfs(n, visited);
-}
-dfs("A");`);
-
-    addLesson('advanced','Binary search','Find item in sorted array.', ['binary search'],
-`function binarySearch(arr, target) {
-  let lo = 0, hi = arr.length - 1;
-  while (lo <= hi) {
-    const mid = (lo + hi) >> 1;
-    if (arr[mid] === target) return mid;
-    if (arr[mid] < target) lo = mid + 1;
-    else hi = mid - 1;
-  }
-  return -1;
-}
-console.log(binarySearch([1,3,5,7,9], 7));`);
-
-    addLesson('advanced','Dynamic programming (fib)','Cache results instead of recursion explosion.', ['DP','fib'],
-`function fib(n, memo={}) {
-  if (n <= 1) return n;
-  if (memo[n]) return memo[n];
-  memo[n] = fib(n-1,memo) + fib(n-2,memo);
-  return memo[n];
-}
-console.log(fib(10));`);
-
-    addLesson('advanced','Simple state machine','Finite states & transitions.', ['state machine'],
-`const machine = {
-  state: "idle",
-  transitions: {
-    idle: { START:"running" },
-    running: { STOP:"idle", ERROR:"error" },
-    error: { RESET:"idle" }
-  },
-  send(event) {
-    const next = this.transitions[this.state]?.[event];
-    if (next) this.state = next;
-    console.log("State:", this.state);
-  }
-};
-machine.send("START");
-machine.send("ERROR");
-machine.send("RESET");`);
-
-    addLesson('advanced','Immutability helper','Return new updated object.', ['immutability'],
-`function update(obj, changes) {
-  return { ...obj, ...changes };
-}
-const o1 = { a:1, b:2 };
-const o2 = update(o1, { b:3 });
-console.log(o1, o2);`);
-
-    addLesson('advanced','Tiny virtual DOM node','Create a lightweight VNode.', ['virtual dom'],
-`function h(tag, props, ...children) {
-  return { tag, props: props || {}, children };
-}
-const vnode = h("div", { class:"box" }, h("span", null, "Hello"));
-console.log(vnode);`);
-
-    addLesson('advanced','Custom logger with levels','Structured logging.', ['logger'],
-`class Logger {
-  constructor(name) { this.name = name; }
-  log(level, msg) { console.log(\`[\${this.name}] \${level}:\`, msg); }
-  info(msg) { this.log("INFO", msg); }
-  warn(msg) { this.log("WARN", msg); }
-  error(msg){ this.log("ERR", msg); }
-}
-const log = new Logger("Lab");
-log.info("Started");`);
-
-    addLesson('advanced','Repository pattern idea','Central place for data access.', ['repository'],
-`class MemoryRepo {
-  constructor() { this.items = new Map(); }
-  save(id, data) { this.items.set(id, data); }
-  get(id) { return this.items.get(id); }
-}
-const repo = new MemoryRepo();
-repo.save("user1",{ name:"Dev" });
-console.log(repo.get("user1"));`);
-
-    addLesson('advanced','Tiny DI container','Resolve dependencies by name.', ['DI'],
-`class Container {
-  constructor() { this.factories = new Map(); }
-  register(name, factory) { this.factories.set(name, factory); }
-  resolve(name) { return this.factories.get(name)?.(this); }
-}
-const c = new Container();
-c.register("config", () => ({ env:"dev" }));
-c.register("service", c => ({ env:c.resolve("config").env }));
-console.log(c.resolve("service"));`);
-
-    addLesson('advanced','Service layer example','Isolate business logic.', ['services'],
-`class PriceService {
-  applyDiscount(amount, pct) {
-    return amount - amount * pct;
-  }
-}
-const svc = new PriceService();
-console.log(svc.applyDiscount(100, 0.15));`);
-
-    addLesson('advanced','Tiny router with params','Parse simple :id params.', ['router'],
-`function matchRoute(path, pattern) {
-  const pathParts = path.split("/").filter(Boolean);
-  const patternParts = pattern.split("/").filter(Boolean);
-  if (pathParts.length !== patternParts.length) return null;
-  const params = {};
-  for (let i=0; i<pathParts.length; i++) {
-    const part = patternParts[i];
-    if (part.startsWith(":")) {
-      params[part.slice(1)] = pathParts[i];
-    } else if (part !== pathParts[i]) return null;
-  }
-  return params;
-}
-console.log(matchRoute("/user/42","/user/:id"));`);
-
-    addLesson('advanced','Partition array','Split array by predicate.', ['partition'],
-`function partition(arr, predicate) {
-  const pass = [], fail = [];
-  for (const item of arr) {
-    (predicate(item) ? pass : fail).push(item);
-  }
-  return [pass, fail];
-}
-const [even, odd] = partition([1,2,3,4,5], n => n%2===0);
-console.log({ even, odd });`);
-
-    addLesson('advanced','Observables concept (very small)','Subscribe/next/complete.', ['observable'],
-`class Observable {
-  constructor(subscribe) { this._subscribe = subscribe; }
-  subscribe(observer) {
-    return this._subscribe(observer);
-  }
-}
-const stream = new Observable(observer => {
-  observer.next(1);
-  observer.next(2);
-  observer.complete();
-  return () => console.log("Unsubscribed");
-});
-
-stream.subscribe({
-  next: v => console.log("Value:", v),
-  complete: () => console.log("Done")
-});`);
-
-    addLesson('advanced','Simple scheduler queue','Schedule tasks with priority.', ['scheduler'],
-`class Scheduler {
-  constructor() { this.queue = []; }
-  add(priority, fn) {
-    this.queue.push({ priority, fn });
-    this.queue.sort((a,b) => a.priority - b.priority);
-  }
-  run() {
-    while (this.queue.length) {
-      const { fn } = this.queue.shift();
-      fn();
-    }
-  }
-}
-const s = new Scheduler();
-s.add(2, () => console.log("Medium"));
-s.add(1, () => console.log("High"));
-s.add(3, () => console.log("Low"));
-s.run();`);
-
-    addLesson('advanced','Tiny job runner with context','Pass shared context through jobs.', ['jobs'],
-`async function runJobs(ctx, jobs) {
-  for (const job of jobs) {
-    await job(ctx);
-  }
-}
-runJobs({ total:0 }, [
-  async ctx => { ctx.total += 10; console.log(ctx); },
-  async ctx => { ctx.total *= 2; console.log(ctx); }
-]);`);
-
-    addLesson('advanced','Rate limiter per key','Limit actions per user/id.', ['rate limit'],
-`class RateLimiter {
-  constructor(limit) {
-    this.limit = limit;
-    this.counts = new Map();
-  }
-  allow(key) {
-    const used = (this.counts.get(key) || 0) + 1;
-    this.counts.set(key, used);
-    return used <= this.limit;
-  }
-}
-const rl = new RateLimiter(2);
-console.log(rl.allow("user1"));
-console.log(rl.allow("user1"));
-console.log(rl.allow("user1"));`);
-
-    addLesson('advanced','Tiny test helper','Very small test/assert function.', ['testing'],
-`function test(name, fn) {
-  try {
-    fn();
-    console.log("✅", name);
-  } catch (err) {
-    console.error("❌", name, "-", err.message);
-  }
-}
-function assert(condition, msg="Assertion failed") {
-  if (!condition) throw new Error(msg);
-}
-
-test("1 + 1 = 2", () => {
-  assert(1 + 1 === 2);
-});`);
-
-    addLesson('advanced','CLI-style args parsing (simple)','Parse key=value pairs from array.', ['args'],
-`function parseArgs(args) {
-  const out = {};
-  for (const part of args) {
-    const [k,v] = part.split("=");
-    out[k] = v ?? true;
-  }
-  return out;
-}
-console.log(parseArgs(["env=dev","debug","port=8000"]));`);
-
-    addLesson('advanced','Hex to RGB','Convert hex color to RGB object.', ['hex','color'],
-`function hexToRgb(hex) {
-  const clean = hex.replace("#","");
-  const num = parseInt(clean, 16);
-  return {
-    r: (num >> 16) & 255,
-    g: (num >> 8) & 255,
-    b: num & 255
-  };
-}
-console.log(hexToRgb("#7dd3fc"));`);
-
-    addLesson('advanced','Command bus idea','Map command names to handlers.', ['command bus'],
-`class CommandBus {
-  constructor() { this.handlers = {}; }
-  register(name, fn) { this.handlers[name] = fn; }
-  execute(name, payload) {
-    const fn = this.handlers[name];
-    if (!fn) throw new Error("No handler for " + name);
-    return fn(payload);
-  }
-}
-const bus = new CommandBus();
-bus.register("log", msg => console.log("CMD:", msg));
-bus.execute("log", "Hello");`);
-
-    addLesson('advanced','Simple analytics tracker','Track events to an array.', ['analytics'],
-`const analytics = {
-  events: [],
-  track(name, data={}) {
-    this.events.push({ name, data, ts:Date.now() });
-  }
-};
-analytics.track("lab_opened",{ page:"programming" });
-analytics.track("code_run");
-console.log(analytics.events);`);
-
-    addLesson('advanced','Config merge strategy','Merge env-specific config.', ['config'],
-`const base = { api:"/api", logLevel:"info" };
-const dev = { logLevel:"debug" };
-const final = { ...base, ...dev };
-console.log(final);`);
-
-    addLesson('advanced','Tiny feature flag check','Toggle features by key.', ['feature flags'],
-`const flags = {
-  "new-editor": true,
-  "beta-lab": false
-};
-function isEnabled(flag) {
-  return !!flags[flag];
-}
-console.log("New editor enabled?", isEnabled("new-editor"));`);
-
-    addLesson('advanced','Serialize errors safely','Convert Error to plain object.', ['error'],
-`function serializeError(err) {
-  return {
-    name: err.name,
-    message: err.message,
-    stack: err.stack?.split("\\n").slice(0,3)
-  };
-}
-try {
-  throw new Error("Something broke");
-} catch (err) {
-  console.log(serializeError(err));
-}`);
-
-    addLesson('advanced','Multi-step wizard state','Move through steps with next/back.', ['wizard'],
-`const wizard = {
-  step: 0,
-  steps: ["choose", "configure", "confirm"],
-  next() { if (this.step < this.steps.length-1) this.step++; },
-  prev() { if (this.step > 0) this.step--; }
-};
-wizard.next();
-wizard.next();
-console.log("Step:", wizard.steps[wizard.step]);`);
-
-    addLesson('advanced','Tiny pub/sub event bus','Subscribe/unsubscribe.', ['pub/sub'],
-`class Bus {
-  constructor(){ this.listeners = new Map(); }
-  on(event, fn) {
-    const arr = this.listeners.get(event) || [];
-    arr.push(fn);
-    this.listeners.set(event, arr);
-    return () => {
-      const arr2 = this.listeners.get(event) || [];
-      this.listeners.set(event, arr2.filter(x => x !== fn));
-    };
-  }
-  emit(event, payload) {
-    (this.listeners.get(event) || []).forEach(fn => fn(payload));
-  }
-}
-const bus2 = new Bus();
-const off = bus2.on("ping", v => console.log("Got", v));
-bus2.emit("ping","hello");
-off();
-bus2.emit("ping","no listener");`);
-
-    // Render sections
-    const sectionsEl = document.getElementById('lesson-sections');
-    const levelLabels = {
-      beginner: "Beginner (1–30)",
-      intermediate: "Intermediate (31–60)",
-      advanced: "Advanced (61–100)",
-    };
-
-    function renderLessons() {
-      const byLevel = { beginner: [], intermediate: [], advanced: [] };
-      for (const l of lessons) byLevel[l.level].push(l);
-
-      ["beginner","intermediate","advanced"].forEach(level => {
-        const group = byLevel[level];
-        if (!group.length) return;
-
-        const title = document.createElement('div');
-        title.className = 'lesson-section-title';
-        title.textContent = levelLabels[level];
-        sectionsEl.appendChild(title);
-
-        const list = document.createElement('div');
-        list.className = 'lesson-list';
-
-        group.forEach(lesson => {
-          const card = document.createElement('article');
-          card.className = 'lesson';
-          card.dataset.lessonId = lesson.id;
-
-          const h4 = document.createElement('h4');
-          h4.textContent = lesson.id + ". " + lesson.title;
-          card.appendChild(h4);
-
-          const tagsRow = document.createElement('div');
-          tagsRow.className = 'tag-row';
-
-          const levelChip = document.createElement('span');
-          levelChip.className = 'chip level-' + lesson.level;
-          levelChip.textContent = lesson.level.toUpperCase();
-          tagsRow.appendChild(levelChip);
-
-          (lesson.tags || []).forEach(t => {
-            const chip = document.createElement('span');
-            chip.className = 'chip';
-            chip.textContent = t;
-            tagsRow.appendChild(chip);
-          });
-          card.appendChild(tagsRow);
-
-          const p = document.createElement('p');
-          p.textContent = lesson.description;
-          card.appendChild(p);
-
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.textContent = 'Load example';
-          btn.addEventListener('click', () => {
-            if (!editor) {
-              appendLine('error','Editor not ready yet.');
-              return;
-            }
-            editor.setValue(lesson.code);
-            appendLine('log','Loaded lesson ' + lesson.id + ': ' + lesson.title);
-          });
-          card.appendChild(btn);
-
-          list.appendChild(card);
-        });
-
-        sectionsEl.appendChild(list);
-      });
-    }
-
-    renderLessons();
-  </script>
+  window.addEventListener("DOMContentLoaded", initEditor);
+</script>
 </body>
 </html>
