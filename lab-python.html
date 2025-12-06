@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Python Lab — Programming Lab</title>
+  <style>
+    :root {
+      --bg:#020617;
+      --panel:#020617;
+      --border:#1f2937;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --accent:#22c55e;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:radial-gradient(circle at top, #111827 0, #020617 55%);
+      color:var(--text);
+    }
+    .shell {
+      padding:12px 14px 18px;
+      max-width:1100px;
+      margin:0 auto;
+    }
+    h1 {
+      font-size:1.3rem;
+      margin:0 0 4px;
+    }
+    .muted { color:var(--muted); font-size:.85rem; }
+
+    .grid {
+      display:grid;
+      grid-template-columns:minmax(0, 1.6fr) minmax(260px, 1fr);
+      gap:14px;
+    }
+    @media (max-width:850px){
+      .grid { grid-template-columns:1fr; }
+    }
+
+    .card {
+      background:rgba(15,23,42,.98);
+      border-radius:14px;
+      border:1px solid rgba(148,163,184,.35);
+      padding:11px 12px 10px;
+      box-shadow:0 16px 40px rgba(15,23,42,.8);
+    }
+    .card h2, .card h3 {
+      margin:0 0 6px;
+      font-size:.98rem;
+      color:#a5f3fc;
+      letter-spacing:.03em;
+      text-transform:uppercase;
+    }
+    textarea {
+      width:100%;
+      height:260px;
+      border-radius:12px;
+      border:1px solid rgba(148,163,184,.35);
+      background:#020617;
+      color:var(--text);
+      padding:10px;
+      resize:vertical;
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New",monospace;
+      font-size:.86rem;
+    }
+
+    .controls {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      margin-top:8px;
+      flex-wrap:wrap;
+    }
+    .btn {
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:#0f172a;
+      color:#e5e7eb;
+      padding:7px 14px;
+      font-size:.85rem;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+    }
+    .btn.primary {
+      background:linear-gradient(90deg,#22c55e,#4ade80);
+      border-color:transparent;
+      color:#052e16;
+      font-weight:600;
+    }
+    .btn:disabled {
+      opacity:.6;
+      cursor:not-allowed;
+    }
+
+    .console {
+      margin-top:8px;
+      border-radius:12px;
+      border:1px solid rgba(148,163,184,.4);
+      background:#020617;
+      padding:8px 10px;
+      min-height:120px;
+      max-height:260px;
+      overflow:auto;
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New",monospace;
+      font-size:.84rem;
+    }
+    .line { margin-bottom:3px; }
+    .line.error { color:#f97373; }
+    .line.stdout { color:#e5e7eb; }
+
+    .lessons-title {
+      font-size:.8rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:var(--muted);
+      margin:4px 0 5px;
+    }
+    .lesson-list {
+      display:flex;
+      flex-direction:column;
+      gap:7px;
+    }
+    .lesson {
+      border-radius:12px;
+      border:1px solid rgba(148,163,184,.4);
+      background:radial-gradient(circle at top left,rgba(34,197,94,.16),rgba(15,23,42,.98));
+      padding:7px 9px;
+    }
+    .lesson h4 {
+      margin:0 0 3px;
+      font-size:.84rem;
+      color:#bbf7d0;
+    }
+    .lesson p {
+      margin:0 0 4px;
+      font-size:.78rem;
+      color:var(--muted);
+    }
+    .tag-row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      margin-bottom:4px;
+    }
+    .chip {
+      font-size:.7rem;
+      padding:2px 7px 3px;
+      border-radius:999px;
+      border:1px solid rgba(74,222,128,.7);
+      background:rgba(22,101,52,.9);
+      color:#dcfce7;
+    }
+    .chip.level-easy    { border-color:#22c55e; }
+    .chip.level-mid     { border-color:#facc15; background:rgba(113,63,18,.9); color:#fef9c3; }
+    .chip.level-hard    { border-color:#f97316; background:rgba(124,45,18,.98); color:#fed7aa; }
+
+    .lesson button {
+      border-radius:999px;
+      border:1px solid rgba(74,222,128,.9);
+      background:rgba(21,128,61,.95);
+      color:#dcfce7;
+      font-size:.75rem;
+      padding:4px 9px;
+      cursor:pointer;
+    }
+  </style>
+
+  <!-- Skulpt (Python in browser) -->
+  <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <h1>🐍 Python Lab</h1>
+    <div class="muted">
+      Write Python code, click “Run Python”, and see the output below.  
+      Lessons on the right go from easy → intermediate → hard.
+    </div>
+
+    <div class="grid">
+      <!-- LEFT: editor + console -->
+      <section class="card">
+        <h2>Editor</h2>
+        <textarea id="py-editor">
+# Welcome to the Python Lab
+# Try editing this and click "Run Python".
+
+def greet(name):
+    return f"Hello, {name} from FileConverter Lab!"
+
+print(greet("Jerrod"))
+        </textarea>
+
+        <div class="controls">
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button id="run-python" class="btn primary">▶ Run Python</button>
+            <button id="clear-output" class="btn">⌫ Clear output</button>
+          </div>
+          <span class="muted">Built with Skulpt (Python in the browser).</span>
+        </div>
+
+        <div class="console" id="py-output" aria-live="polite"></div>
+      </section>
+
+      <!-- RIGHT: lessons list -->
+      <aside class="card">
+        <h3>Python Lessons (Easy → Hard)</h3>
+        <p class="muted" style="margin-bottom:6px;">
+          Click any lesson to load its code into the editor, then tweak and run it.
+        </p>
+
+        <div class="lessons-title">Beginner</div>
+        <div class="lesson-list" id="lessons-easy"></div>
+
+        <div class="lessons-title">Intermediate</div>
+        <div class="lesson-list" id="lessons-mid"></div>
+
+        <div class="lessons-title">Advanced</div>
+        <div class="lesson-list" id="lessons-hard"></div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const outputEl = document.getElementById('py-output');
+    const editorEl = document.getElementById('py-editor');
+    const runBtn   = document.getElementById('run-python');
+    const clearBtn = document.getElementById('clear-output');
+
+    function appendLine(kind, text) {
+      const div = document.createElement('div');
+      div.className = 'line ' + kind;
+      div.textContent = text;
+      outputEl.appendChild(div);
+      outputEl.scrollTop = outputEl.scrollHeight;
+    }
+    function clearOutput() {
+      outputEl.innerHTML = '';
+    }
+    clearBtn.addEventListener('click', clearOutput);
+
+    function outf(text) {
+      text.split(/\\r?\\n/).forEach(line => {
+        if (line.trim().length) appendLine('stdout', line);
+      });
+    }
+
+    function builtinRead(x) {
+      if (Sk.builtinFiles === undefined || Sk.builtinFiles['files'][x] === undefined)
+        throw "File not found: '" + x + "'";
+      return Sk.builtinFiles['files'][x];
+    }
+
+    async function runPython() {
+      clearOutput();
+      const code = editorEl.value;
+      if (!code.trim()) {
+        appendLine('error', 'Nothing to run. Type some Python first.');
+        return;
+      }
+      runBtn.disabled = true;
+      appendLine('stdout', 'Running...');
+
+      Sk.configure({ output: outf, read: builtinRead, execLimit: 10000 });
+
+      try {
+        const promise = Sk.misceval.asyncToPromise(() => Sk.importMainWithBody("<stdin>", false, code, true));
+        await promise;
+        appendLine('stdout', '--- Finished ---');
+      } catch (err) {
+        appendLine('error', String(err));
+      } finally {
+        runBtn.disabled = false;
+      }
+    }
+
+    runBtn.addEventListener('click', runPython);
+
+    // ----- Lessons (easy → intermediate → hard) -----
+    const lessons = [
+      {
+        level: 'easy',
+        title: 'Hello & variables',
+        desc: 'Print text, use variables, and basic math.',
+        code: `message = "Hello from Python Lab!"
+times = 3
+
+for i in range(times):
+    print(i + 1, message)
+
+price = 12.5
+qty = 4
+total = price * qty
+print("Total:", total)`
+      },
+      {
+        level: 'easy',
+        title: 'Lists & loops',
+        desc: 'Iterate over a list of items.',
+        code: `animals = ["cow", "pig", "chicken", "duck"]
+
+for a in animals:
+    print("Animal:", a)
+
+print("Total animals:", len(animals))`
+      },
+      {
+        level: 'easy',
+        title: 'Functions & return values',
+        desc: 'Write a reusable function.',
+        code: `def weeks_until_sold_out(stock, sold_per_week):
+    if sold_per_week <= 0:
+        return None
+    return stock / sold_per_week
+
+print(weeks_until_sold_out(120, 10))  # 12 weeks`
+      },
+      {
+        level: 'mid',
+        title: 'Dictionaries & inventory',
+        desc: 'Work with dicts representing products.',
+        code: `inventory = [
+    {"sku": "RIBEYE", "qty": 25, "price": 24.99},
+    {"sku": "BRISKET", "qty": 10, "price": 18.50},
+    {"sku": "GROUND", "qty": 80, "price": 9.75},
+]
+
+for item in inventory:
+    value = item["qty"] * item["price"]
+    print(item["sku"], "→ qty:", item["qty"], "value:", round(value, 2))`
+      },
+      {
+        level: 'mid',
+        title: 'List comprehensions',
+        desc: 'Generate filtered and transformed lists.',
+        code: `nums = list(range(1, 21))
+
+even_squares = [n*n for n in nums if n % 2 == 0]
+
+print("Even squares:", even_squares)`
+      },
+      {
+        level: 'mid',
+        title: 'Classes & methods',
+        desc: 'Model a CyberPet with a class.',
+        code: `class CyberPet:
+    def __init__(self, name, level=1, energy=50):
+        self.name = name
+        self.level = level
+        self.energy = energy
+
+    def feed(self, amount):
+        self.energy = min(100, self.energy + amount)
+
+    def walk(self, steps):
+        self.energy = max(0, self.energy - steps // 10)
+
+    def __repr__(self):
+        return f"<CyberPet {self.name} L{self.level} energy={self.energy}>"
+
+pet = CyberPet("Rusty", level=3)
+print(pet)
+pet.feed(30)
+pet.walk(120)
+print(pet)`
+      },
+      {
+        level: 'hard',
+        title: 'Grouping data by key',
+        desc: 'Group orders by customer id.',
+        code: `orders = [
+    {"id": 1, "customer": "alice", "total": 35},
+    {"id": 2, "customer": "bob", "total": 60},
+    {"id": 3, "customer": "alice", "total": 22},
+]
+
+from collections import defaultdict
+
+by_customer = defaultdict(list)
+for o in orders:
+    by_customer[o["customer"]].append(o)
+
+for customer, items in by_customer.items():
+    total = sum(o["total"] for o in items)
+    print(customer, "→", len(items), "orders, total:", total)`
+      },
+      {
+        level: 'hard',
+        title: 'Simple moving average',
+        desc: 'Compute moving average over a series.',
+        code: `prices = [10, 12, 11, 13, 12, 15, 14]
+window = 3
+
+avgs = []
+for i in range(len(prices) - window + 1):
+    chunk = prices[i:i+window]
+    avgs.append(sum(chunk) / window)
+
+print("Prices:", prices)
+print("Moving average (3):", avgs)`
+      },
+      {
+        level: 'hard',
+        title: 'Small CLI-style parser',
+        desc: 'Parse key=value args into a dict.',
+        code: `def parse_args(args):
+    result = {}
+    for part in args:
+        if "=" in part:
+            key, value = part.split("=", 1)
+            result[key] = value
+        else:
+            result[part] = True
+    return result
+
+example = ["env=dev", "debug", "limit=25"]
+print(parse_args(example))`
+      }
+    ];
+
+    function renderLessons() {
+      const easyEl = document.getElementById('lessons-easy');
+      const midEl  = document.getElementById('lessons-mid');
+      const hardEl = document.getElementById('lessons-hard');
+
+      lessons.forEach(lesson => {
+        const card = document.createElement('article');
+        card.className = 'lesson';
+
+        const h4 = document.createElement('h4');
+        h4.textContent = lesson.title;
+        card.appendChild(h4);
+
+        const tags = document.createElement('div');
+        tags.className = 'tag-row';
+        const chip = document.createElement('span');
+        chip.className = 'chip ' + (
+          lesson.level === 'easy' ? 'level-easy' :
+          lesson.level === 'mid'  ? 'level-mid'  : 'level-hard'
+        );
+        chip.textContent = (
+          lesson.level === 'easy' ? 'BEGINNER' :
+          lesson.level === 'mid'  ? 'INTERMEDIATE' : 'ADVANCED'
+        );
+        tags.appendChild(chip);
+        card.appendChild(tags);
+
+        const p = document.createElement('p');
+        p.textContent = lesson.desc;
+        card.appendChild(p);
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = 'Load into editor';
+        btn.addEventListener('click', () => {
+          editorEl.value = lesson.code;
+          appendLine('stdout', 'Loaded: ' + lesson.title);
+        });
+        card.appendChild(btn);
+
+        if (lesson.level === 'easy')   easyEl.appendChild(card);
+        else if (lesson.level === 'mid') midEl.appendChild(card);
+        else                             hardEl.appendChild(card);
+      });
+    }
+    renderLessons();
+  </script>
+</body>
+</html>
