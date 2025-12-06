@@ -277,42 +277,25 @@ function getCurrentFile(){
 
 /* ========= File input UX ========= */
 
-/* Click anywhere on drop zone (except Browse button) */
-drop.addEventListener('click', (e)=>{
-  if (e.target.id === 'pickBtn') return;
+/* When file is chosen via the OS dialog */
+fileEl.addEventListener('change', () => {
+  const file = (fileEl.files && fileEl.files[0]) ? fileEl.files[0] : null;
+  log('File input change: ' + (file ? file.name : 'no file'));
+  setCurrentFile(file);
+  showCacheUI();
+});
+
+/* Click anywhere on drop zone (except the Browse button itself) */
+drop.addEventListener('click', (e) => {
+  if (e.target.id === 'pickBtn') return; // let the button handler run
   log('Drop zone clicked → opening file picker');
   fileEl.value = '';
   fileEl.click();
 });
 
-/* File chosen via OS dialog */
-fileEl.addEventListener('change', ()=>{
-  const file = (fileEl.files && fileEl.files[0]) ? fileEl.files[0] : null;
-  log('File input change fired: ' + (file ? file.name : 'no file'));
-  setCurrentFile(file);
-  showCacheUI();
-});
-
-/* Drag & drop support */
-drop.addEventListener('dragover', (e)=>{
-  e.preventDefault();
-  drop.classList.add('drag');
-});
-drop.addEventListener('dragleave', ()=>{ drop.classList.remove('drag'); });
-drop.addEventListener('drop', (e)=>{
-  e.preventDefault();
-  drop.classList.remove('drag');
-  if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
-    const file = e.dataTransfer.files[0];
-    log('Dropped file: ' + file.name);
-    setCurrentFile(file);
-    showCacheUI();
-  }
-});
-
 /* Explicit Browse button */
-if (pickBtn){
-  pickBtn.addEventListener('click', (e)=>{
+if (pickBtn) {
+  pickBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     log('Browse button clicked → opening file picker');
     fileEl.value = '';
@@ -320,14 +303,35 @@ if (pickBtn){
   });
 }
 
-/* Keyboard accessibility */
-drop.addEventListener('keydown', (e)=>{
-  if(e.key === 'Enter' || e.key === ' '){
+/* Keyboard accessibility: Enter / Space on the drop area */
+drop.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
     e.preventDefault();
+    log('Drop zone keypress → opening file picker');
     fileEl.value = '';
     fileEl.click();
   }
 });
+
+/* Drag & drop support */
+drop.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  drop.classList.add('drag');
+});
+drop.addEventListener('dragleave', () => {
+  drop.classList.remove('drag');
+});
+drop.addEventListener('drop', (e) => {
+  e.preventDefault();
+  drop.classList.remove('drag');
+  if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+    const file = e.dataTransfer.files[0];
+    log('Dropped file: ' + file.name);
+    setCurrentFile(file);
+    showCacheUI();
+  }
+});
+
 
 /* ========= Audio helpers ========= */
 async function decodeWithWebAudio(arrayBuf){
