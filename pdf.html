@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
+  
 
 
   <!-- Tawk.to Live Chat -->
@@ -93,6 +94,25 @@
 </head>
 <body>
 <header>
+<!-- Sponsored Header Bar (dismissible) -->
+<div id="sponsored-bar" role="banner" aria-label="Sponsored by Knack.bz"
+     style="position:sticky; top:0; z-index:9999; width:100%;
+            background:#0f1117; color:#e5e7eb; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            border-bottom:1px solid #1f2430;">
+  <div style="max-width:1200px; margin:0 auto; padding:10px 10px; display:flex; align-items:center; justify-content:center; gap:.5rem;">
+    <span style="opacity:.9;">Sponsored by</span>
+    <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer"
+       style="color:#7dd3fc; text-decoration:none; font-weight:600;">
+      Knack.bz
+    </a>
+    <button aria-label="Dismiss sponsor bar"
+            onclick="document.getElementById('sponsored-bar').style.display='none'"
+            style="margin-left:auto; background:transparent; border:none; color:#9aa4b2; cursor:pointer; font-size:16px; line-height:1;">
+      ✕
+    </button>
+  </div>
+</div>
+  
   <div class="title">
     <div>
       <h1 class="glow-title">PDF Tools</h1>
@@ -113,25 +133,6 @@
     <li>Turn HTML or image sets into ready-to-print PDFs.</li>
   </ul>
 </section>
-<!-- Sponsored Header Bar (dismissible) -->
-<div id="sponsored-bar" role="banner" aria-label="Sponsored by Knack.bz"
-     style="position:sticky; top:0; z-index:9999; width:100%;
-            background:#0f1117; color:#e5e7eb; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-            border-bottom:1px solid #1f2430;">
-  <div style="max-width:1200px; margin:0 auto; padding:10px 10px; display:flex; align-items:center; justify-content:center; gap:.5rem;">
-    <span style="opacity:.9;">Sponsored by</span>
-    <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer"
-       style="color:#7dd3fc; text-decoration:none; font-weight:600;">
-      Knack.bz
-    </a>
-    <button aria-label="Dismiss sponsor bar"
-            onclick="document.getElementById('sponsored-bar').style.display='none'"
-            style="margin-left:auto; background:transparent; border:none; color:#9aa4b2; cursor:pointer; font-size:16px; line-height:1;">
-      ✕
-    </button>
-  </div>
-</div>
-
 
 <main class="panel">
 
