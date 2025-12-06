@@ -4,12 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>JavaScript Lab — Run Code & Learn | FileConverter.run</title>
-  <meta name="description" content="Practice JavaScript in a Monaco editor with 30+ progressive lessons from beginner to advanced, all in your browser." />
+  <meta name="description" content="Practice JavaScript in a Monaco editor with progressive lessons from beginner to advanced, all in your browser." />
 
   <style>
     :root{
       --bg:#020617;
-      --pane:#020617;
       --panel:#020617;
       --accent:#7dd3fc;
       --accent-soft:rgba(125,211,252,.17);
@@ -27,9 +26,7 @@
       color:#e5e7eb;
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
     }
-    body{
-      padding:14px;
-    }
+    body{padding:14px;}
     .lab-root{
       max-width:1280px;
       margin:0 auto;
@@ -140,12 +137,12 @@
       width:8px;
       height:8px;
       border-radius:999px;
-      background:var(--accent);
-      box-shadow:0 0 0 4px rgba(125,211,252,.25);
+      background:var(--ok);
+      box-shadow:0 0 0 4px rgba(74,222,128,.28);
     }
     .status-pill.error .status-dot{
       background:var(--danger);
-      box-shadow:0 0 0 4px rgba(248,113,113,.25);
+      box-shadow:0 0 0 4px rgba(248,113,113,.28);
     }
 
     #editor-container{
@@ -271,7 +268,7 @@
   <header class="lab-header">
     <div>
       <div class="lab-title">JavaScript Lab — Cyber Edition</div>
-      <div class="lab-sub">Run JavaScript directly in your browser. 30+ mini-lessons from easy to advanced, no uploads.</div>
+      <div class="lab-sub">Run JavaScript directly in your browser. Mini-lessons from easy to advanced, no uploads.</div>
       <div class="pill-row">
         <span class="pill">Beginner → Advanced</span>
         <span class="pill">Console output</span>
@@ -311,7 +308,7 @@
           <button class="btn" id="reset-btn">⟳ Reset editor</button>
         </div>
         <div style="font-size:.75rem; color:var(--muted);">
-          <span style="opacity:.9;">Tip:</span> Try <code>await fetch()</code> or small async functions.
+          Tip: you can use <code>async</code>/<code>await</code> and modern ES features here.
         </div>
       </div>
 
@@ -324,7 +321,7 @@
     <aside class="card advanced-pane">
       <div class="card-header">
         <h2>Lessons</h2>
-        <span class="lab-note" style="font-size:.8rem;">Browse mini-examples. Clicking one loads it into the editor.</span>
+        <span class="lab-note" style="font-size:.8rem;">Click any lesson to load it into the editor.</span>
       </div>
 
       <div class="lessons-list" id="lessons-list"></div>
@@ -337,7 +334,7 @@
 </div>
 
 <script>
-  // --- LESSON DATA (30 examples, beginner → advanced) ---
+  // --- LESSON DATA (modern JS) ---
   const JS_LESSONS = [
     {
       id: 1,
@@ -596,11 +593,7 @@
       tags: ["functional"],
       description: "Transform f(a,b) into f(a)(b).",
       code: [
-        "function add(a) {",
-        "  return function(b) {",
-        "    return a + b;",
-        "  };",
-        "}",
+        "const add = a => b => a + b;",
         "",
         "const add10 = add(10);",
         "console.log(add10(5));",
@@ -617,7 +610,7 @@
         "function slowSquare(n) {",
         "  console.log(\"Computing square of\", n);",
         "  let total = 0;",
-        "  for (let i = 0; i < 1_000_00; i++) {",
+        "  for (let i = 0; i < 100000; i++) {",
         "    total += i % 2;",
         "  }",
         "  return n * n;",
@@ -647,13 +640,13 @@
       code: [
         "function debounce(fn, delay) {",
         "  let id;",
-        "  return function(...args) {",
+        "  return (...args) => {",
         "    clearTimeout(id);",
         "    id = setTimeout(() => fn(...args), delay);",
         "  };",
         "}",
         "",
-        "const onSearch = debounce((q) => {",
+        "const onSearch = debounce(q => {",
         "  console.log(\"Searching for:\", q);",
         "}, 300);",
         "",
@@ -672,7 +665,7 @@
       code: [
         "function throttle(fn, interval) {",
         "  let last = 0;",
-        "  return function(...args) {",
+        "  return (...args) => {",
         "    const now = Date.now();",
         "    if (now - last >= interval) {",
         "      last = now;",
@@ -681,7 +674,7 @@
         "  };",
         "}",
         "",
-        "const onScroll = throttle((y) => {",
+        "const onScroll = throttle(y => {",
         "  console.log(\"Scroll Y:\", y);",
         "}, 200);",
         "",
@@ -717,7 +710,7 @@
         "}",
         "",
         "const bus = new EventBus();",
-        "const offWelcome = bus.on(\"welcome\", (name) => {",
+        "const offWelcome = bus.on(\"welcome\", name => {",
         "  console.log(\"Welcome,\", name);",
         "});",
         "",
@@ -733,7 +726,6 @@
 
   function setStatus(ok, text) {
     const pill = document.getElementById("status-pill");
-    const dot = document.getElementById("status-dot");
     const label = document.getElementById("status-text");
     label.textContent = text;
     if (ok) {
@@ -753,13 +745,12 @@
   }
 
   function clearOutput() {
-    const box = document.getElementById("output");
-    box.innerHTML = "";
+    document.getElementById("output").innerHTML = "";
   }
 
   function loadLesson(id) {
     const lesson = JS_LESSONS.find(l => l.id === id);
-    if (!lesson) return;
+    if (!lesson || !editor) return;
     currentLessonId = id;
     editor.setValue(lesson.code);
     const detail = document.getElementById("lesson-detail");
@@ -767,13 +758,12 @@
     const title = document.createElement("div");
     title.style.fontWeight = "600";
     title.style.marginBottom = "4px";
-    title.textContent = lesson.title + " · " + lesson.level;
+    title.textContent = `${lesson.title} · ${lesson.level}`;
     const desc = document.createElement("div");
     desc.textContent = lesson.description;
     detail.appendChild(title);
     detail.appendChild(desc);
 
-    // highlight active
     document.querySelectorAll(".lesson-item").forEach(li => {
       li.classList.toggle("active", Number(li.dataset.id) === id);
     });
@@ -812,30 +802,6 @@
     });
   }
 
-  function initEditor() {
-    require.config({ paths: { "vs": "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs" } });
-    require(["vs/editor/editor.main"], function () {
-      editor = monaco.editor.create(document.getElementById("editor-container"), {
-        value: [
-          "// Welcome to the JavaScript Lab!",
-          "// Select a lesson on the right, or start typing.",
-          "",
-          "console.log(\"JS Lab ready.\");"
-        ].join("\\n"),
-        language: "javascript",
-        automaticLayout: true,
-        theme: "vs-dark",
-        fontSize: 13,
-        minimap: { enabled: false }
-      });
-
-      buildLessonsList();
-      loadLesson(JS_LESSONS[0].id);
-      wireControls();
-      setStatus(true, "Ready · JavaScript (Browser)");
-    });
-  }
-
   function runCode() {
     if (!editor) return;
     const mode = document.getElementById("mode-select").value;
@@ -855,10 +821,10 @@
     const originalError = console.error;
     const originalInfo = console.info;
 
-    console.log = (...args) => appendLine("log", args.map(String).join(" "));
-    console.warn = (...args) => appendLine("warn", args.map(String).join(" "));
-    console.error = (...args) => appendLine("error", args.map(String).join(" "));
-    console.info = (...args) => appendLine("info", args.map(String).join(" "));
+    console.log  = (...args) => appendLine("log",   args.map(String).join(" "));
+    console.warn = (...args) => appendLine("warn",  args.map(String).join(" "));
+    console.error= (...args) => appendLine("error", args.map(String).join(" "));
+    console.info = (...args) => appendLine("info",  args.map(String).join(" "));
 
     try {
       const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
@@ -894,9 +860,9 @@
       appendLine("error", "Error: " + String(err));
       setStatus(false, "Done (with error)");
     } finally {
-      console.log = originalLog;
+      console.log  = originalLog;
       console.warn = originalWarn;
-      console.error = originalError;
+      console.error= originalError;
       console.info = originalInfo;
     }
   }
@@ -909,6 +875,8 @@
       clearOutput();
       if (currentLessonId != null) {
         loadLesson(currentLessonId);
+      } else if (JS_LESSONS.length) {
+        loadLesson(JS_LESSONS[0].id);
       }
       setStatus(true, "Reset · JavaScript (Browser)");
     });
@@ -919,6 +887,32 @@
       } else {
         setStatus(true, "Ready · Notes only (no execution)");
       }
+    });
+  }
+
+  function initEditor() {
+    require.config({ paths: { "vs": "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs" } });
+    require(["vs/editor/editor.main"], () => {
+      editor = monaco.editor.create(document.getElementById("editor-container"), {
+        value: [
+          "// Welcome to the JavaScript Lab!",
+          "// Select a lesson on the right, or start typing.",
+          "",
+          "console.log(\"JS Lab ready.\");"
+        ].join("\\n"),
+        language: "javascript",
+        automaticLayout: true,
+        theme: "vs-dark",
+        fontSize: 13,
+        minimap: { enabled: false }
+      });
+
+      buildLessonsList();
+      if (JS_LESSONS.length) {
+        loadLesson(JS_LESSONS[0].id);
+      }
+      wireControls();
+      setStatus(true, "Ready · JavaScript (Browser)");
     });
   }
 
