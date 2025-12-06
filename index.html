@@ -116,6 +116,44 @@
     .fc-chip{background:#121723;border:1px solid var(--fc-border);padding:4px 8px;border-radius:999px;font-size:.85rem;opacity:.9}
     .fc-privacy-fab{position:fixed;right:12px;bottom:12px;z-index:99998;background:#121723;border:1px solid var(--fc-border);
       color:var(--fc-text);border-radius:999px;padding:8px 12px;cursor:pointer;font-size:.9rem}
+    /* Category Dropdown Navigation */
+.tab-group {
+  position: relative;
+}
+
+.group-label {
+  cursor: pointer;
+  font-weight: 600;
+  color: #7dd3fc;
+}
+
+.dropdown {
+  display: none;
+  position: absolute;
+  background: #1a1f2c;
+  border: 1px solid #263044;
+  border-radius: 10px;
+  min-width: 220px;
+  padding: 10px;
+  z-index: 9999;
+}
+
+.tab-group:hover .dropdown {
+  display: block;
+}
+
+.dropdown .tab {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  color: #e5e7eb;
+}
+
+.dropdown .tab:hover {
+  background: #263044;
+}
+
   </style>
 
   <!-- Structured Data: WebApplication + FAQ -->
@@ -160,38 +198,52 @@
   <h1>File Converter — Cyber Edition</h1>
   <p class="sub">Fast, private file conversions in your browser — no uploads, no tracking.</p>
 
-  <nav class="tabs" aria-label="Primary">
-    <a class="tab" href="index.html" aria-current="page">Home</a>
-    <a class="tab" href="audio.html">Audio</a>
-    <a class="tab" href="graze-inventory-console.html">Grazecart Inventory Tool</a>
-    <a class="tab" href="Cyberpets.html">Cyber Pets</a>
-    <a class="tab" href="Music.html">Music Tabs</a>
-    <a class="tab" href="video.html">Video</a>
-    <a class="tab" href="images.html">Images</a>
-    <a class="tab" href="pdf.html">PDF</a>
-    <a class="tab" href="cyberchat.html">Cyber Chat</a>
-    <a class="tab" href="data.html">GPS Data</a>
-    <a class="tab" href="json.html">JSON</a>
-    <a class="tab" href="archive.html">Archive</a>
-    <a class="tab" href="docx.html">DOCX</a>
-    <a class="tab" href="background_remover.html">Remove Background</a>
-    <a class="tab" href="gps.html">GPS</a>
-    <a class="tab" href="gps-file-guide.html">GPS Guide</a>
-    <a class="tab" href="choosing-the-right-file-type.html">Pick the Right File</a>
-    <a class="tab" href="image-file-guide.html">Image Guide</a>
-    <a class="tab" href="audio-file-guide.html">Audio Guide</a>
-    <a class="tab" href="video-file-guide.html">Video Guide</a>
-  </nav>
-
-  <div class="chips" aria-label="Popular quick conversions">
-    <a class="chip" href="/images.html#heic-to-jpg">HEIC → JPG</a>
-    <a class="chip" href="/images.html#png-to-jpg">PNG ↔ JPG</a>
-    <a class="chip" href="/data.html#json-csv-xlsx">CSV ↔ XLSX</a>
-    <a class="chip" href="/audio.html#mp3-wav">MP3 ↔ WAV</a>
-    <a class="chip" href="/video.html#mp4-webm">MP4 ↔ WebM</a>
-    <a class="chip" href="/archive.html#zip">ZIP / Unzip</a>
-    <a class="chip" href="/data.html#gpx-to-csv">GPX/KML → CSV/XLSX</a>
+<nav class="tabs" aria-label="Primary Navigation">
+  
+  <!-- FILE TOOLS -->
+  <div class="tab-group">
+    <span class="tab group-label">📁 File Tools ▾</span>
+    <div class="dropdown">
+      <a class="tab" href="index.html">Home</a>
+      <a class="tab" href="images.html">Images</a>
+      <a class="tab" href="audio.html">Audio</a>
+      <a class="tab" href="video.html">Video</a>
+      <a class="tab" href="pdf.html">PDF</a>
+      <a class="tab" href="docx.html">DOCX</a>
+      <a class="tab" href="json.html">JSON</a>
+      <a class="tab" href="data.html">CSV / XLSX / GPS Data</a>
+      <a class="tab" href="archive.html">ZIP Tools</a>
+      <a class="tab" href="background_remover.html">Remove Background</a>
+    </div>
   </div>
+
+  <!-- SOFTWARE -->
+  <div class="tab-group">
+    <span class="tab group-label">🛠 Software ▾</span>
+    <div class="dropdown">
+      <a class="tab" href="graze-inventory-console.html">GrazeCart Inventory Console</a>
+      <a class="tab" href="cyberchat.html">Cyber Chat</a>
+      <a class="tab" href="Music.html">Music Tools</a>
+      <a class="tab" href="gps.html">GPS Tools</a>
+      <a class="tab" href="gps-file-guide.html">GPS Guide</a>
+      <a class="tab" href="choosing-the-right-file-type.html">File Type Guide</a>
+      <a class="tab" href="image-file-guide.html">Image Guide</a>
+      <a class="tab" href="audio-file-guide.html">Audio Guide</a>
+      <a class="tab" href="video-file-guide.html">Video Guide</a>
+    </div>
+  </div>
+
+  <!-- GAMES -->
+  <div class="tab-group">
+    <span class="tab group-label">🎮 Games ▾</span>
+    <div class="dropdown">
+      <a class="tab" href="Cyberpets.html">Cyber Pets</a>
+      <!-- Add more games later -->
+    </div>
+  </div>
+
+</nav>
+
 </header>
 
 <main id="main" class="container" role="main">
