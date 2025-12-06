@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HTML Lab — Programming Lab</title>
+  <style>
+    :root {
+      --bg:#020617;
+      --panel:#020617;
+      --border:#1f2937;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --accent:#38bdf8;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:radial-gradient(circle at top, #111827 0, #020617 55%);
+      color:var(--text);
+    }
+    .shell {
+      padding:12px 14px 18px;
+      max-width:1200px;
+      margin:0 auto;
+    }
+    h1 {
+      font-size:1.3rem;
+      margin:0 0 4px;
+    }
+    .muted { color:var(--muted); font-size:.85rem; }
+
+    .grid {
+      display:grid;
+      grid-template-columns:minmax(0, 1.4fr) minmax(0, 1.4fr);
+      gap:14px;
+    }
+    @media (max-width:900px){
+      .grid { grid-template-columns:1fr; }
+    }
+
+    .card {
+      background:rgba(15,23,42,.98);
+      border-radius:14px;
+      border:1px solid rgba(148,163,184,.4);
+      padding:10px 12px;
+      box-shadow:0 16px 40px rgba(15,23,42,.85);
+    }
+    .card h2, .card h3 {
+      margin:0 0 6px;
+      font-size:.98rem;
+      color:#7dd3fc;
+      letter-spacing:.03em;
+      text-transform:uppercase;
+    }
+
+    textarea {
+      width:100%;
+      min-height:190px;
+      border-radius:10px;
+      border:1px solid rgba(148,163,184,.35);
+      background:#020617;
+      color:var(--text);
+      padding:8px;
+      resize:vertical;
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New",monospace;
+      font-size:.82rem;
+    }
+    .editor-grid {
+      display:grid;
+      grid-template-columns:1fr;
+      gap:8px;
+    }
+
+    .btn {
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:#0f172a;
+      color:#e5e7eb;
+      padding:6px 12px;
+      font-size:.85rem;
+      cursor:pointer;
+    }
+    .btn.primary {
+      background:linear-gradient(90deg,#38bdf8,#6366f1);
+      border-color:transparent;
+      color:#020617;
+      font-weight:600;
+    }
+
+    .controls {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      margin-top:6px;
+      flex-wrap:wrap;
+    }
+
+    .preview-wrap {
+      border-radius:12px;
+      border:1px solid rgba(148,163,184,.4);
+      background:#020617;
+      overflow:hidden;
+      min-height:260px;
+    }
+    #preview {
+      width:100%;
+      height:320px;
+      border:none;
+      background:#0b1120;
+    }
+    @media (max-width:900px){
+      #preview { height:300px; }
+    }
+
+    .badge-row {
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+      margin-bottom:6px;
+      font-size:.75rem;
+    }
+    .badge {
+      border-radius:999px;
+      padding:2px 8px 3px;
+      border:1px solid rgba(148,163,184,.5);
+      color:#cbd5f5;
+      background:rgba(15,23,42,.95);
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <h1>🌐 HTML Lab</h1>
+    <div class="muted">
+      Build small UI experiments: type HTML, CSS, and JavaScript — then click “Run” to see
+      it rendered on the right.
+    </div>
+
+    <div class="grid">
+      <!-- LEFT: code editors -->
+      <section class="card">
+        <h2>Code</h2>
+        <div class="badge-row">
+          <span class="badge">Start simple → build up</span>
+          <span class="badge">Great for prototyping FileConverter UI ideas</span>
+        </div>
+
+        <div class="editor-grid">
+          <div>
+            <h3>HTML</h3>
+            <textarea id="html-code"><div class="card">
+  <h1>Cyber Heading</h1>
+  <p>Welcome to the HTML Lab.</p>
+  <button>Click me</button>
+</div></textarea>
+          </div>
+          <div>
+            <h3>CSS</h3>
+            <textarea id="css-code">body {
+  background: radial-gradient(circle at top, #0f172a 0, #020617 60%);
+  color: #e5e7eb;
+  font-family: system-ui, sans-serif;
+}
+.card {
+  background: rgba(15,23,42,.98);
+  border-radius: 14px;
+  padding: 16px;
+  border: 1px solid rgba(148,163,184,.5);
+  box-shadow: 0 18px 40px rgba(15,23,42,.9);
+}
+button {
+  border-radius: 999px;
+  border: 1px solid rgba(56,189,248,.9);
+  background: linear-gradient(90deg,#22d3ee,#6366f1);
+  padding: 6px 14px;
+  color: #020617;
+  font-weight: 600;
+}</textarea>
+          </div>
+          <div>
+            <h3>JavaScript</h3>
+            <textarea id="js-code">document.querySelector("button")?.addEventListener("click", () => {
+  alert("Hello from the HTML Lab!");
+});</textarea>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button id="run-btn" class="btn primary">▶ Run in preview</button>
+          <span class="muted">Sandboxed iframe, no network access.</span>
+        </div>
+      </section>
+
+      <!-- RIGHT: live preview -->
+      <section class="card">
+        <h2>Preview</h2>
+        <p class="muted" style="margin-bottom:6px;">
+          This is a sandboxed iframe — great for testing styling ideas before
+          moving them into your main site.
+        </p>
+        <div class="preview-wrap">
+          <iframe id="preview" sandbox="allow-scripts allow-same-origin"></iframe>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const htmlEl = document.getElementById('html-code');
+    const cssEl  = document.getElementById('css-code');
+    const jsEl   = document.getElementById('js-code');
+    const runBtn = document.getElementById('run-btn');
+    const iframe = document.getElementById('preview');
+
+    function runPreview() {
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+      const html = `
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+${cssEl.value}
+</style>
+</head>
+<body>
+${htmlEl.value}
+<script>
+${jsEl.value.replace(/<\/script>/g, "<\\/script>")}
+<\/script>
+</body>
+</html>`;
+      doc.open();
+      doc.write(html);
+      doc.close();
+    }
+
+    runBtn.addEventListener('click', runPreview);
+
+    // Run once on load
+    runPreview();
+  </script>
+</body>
+</html>
