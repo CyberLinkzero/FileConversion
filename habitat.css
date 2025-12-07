@@ -1079,16 +1079,6 @@ button:active:not(:disabled){
   z-index:6;
 }
 
-.hazard{
-  position:absolute;
-  font-size:1.4rem;
-  text-shadow:0 0 6px rgba(0,0,0,.8);
-  cursor:pointer;
-  z-index:2;
-}
-.hazard:hover{
-  transform:translate(-50%,-100%) scale(1.1);
-}
 .pet-meta-level{
   font-size:.82rem;
   color:var(--accent);
@@ -1292,6 +1282,7 @@ button:active:not(:disabled){
   }
 }
 
+/* === Justin hazards + yard objects & HUD === */
 
 /* Upgraded Justin hazards: big, glowing, animated */
 .hazard{
@@ -1299,8 +1290,9 @@ button:active:not(:disabled){
   font-size:2.2rem;
   text-shadow:0 0 8px rgba(0,0,0,.9), 0 0 16px rgba(220,38,38,.7);
   cursor:pointer;
-  z-index:8;
+  z-index:8; /* above animals (4) and poo/toys (2) */
   animation:hazard-pulse .85s ease-in-out infinite alternate;
+  transform:translate(-50%,-100%) scale(1.1);
 }
 .hazard.sparkler{
   text-shadow:0 0 10px rgba(248,250,252,.9),0 0 20px rgba(250,204,21,.9);
@@ -1314,10 +1306,27 @@ button:active:not(:disabled){
 .hazard:hover{
   transform:translate(-50%,-100%) scale(1.25) translateY(-2px);
 }
-
 @keyframes hazard-pulse{
   from{ transform:translate(-50%,-100%) scale(1.1) translateY(0); }
-  to{ transform:translate(-50%,-100%) scale(1.25) translateY(-4px); }
+  to{   transform:translate(-50%,-100%) scale(1.25) translateY(-4px); }
+}
+
+/* Yard objects: poo, toys, plants, houses, pee */
+.poo,
+.toy,
+.plant,
+.house,
+.pee{
+  position:absolute;
+  transform-origin:50% 100%;
+  z-index:2;
+  pointer-events:auto;
+  font-size:2.1rem;
+  text-shadow:0 0 4px rgba(0,0,0,.7);
+}
+.pee{
+  font-size:1.1rem;
+  opacity:.85;
 }
 
 /* Hazard HUD */
@@ -1365,35 +1374,13 @@ button:active:not(:disabled){
   box-shadow:0 0 12px rgba(248,250,252,.5);
 }
 
-
-/* === Justin hazard SUPER-VISIBLE override === */
-.hazard{
-  position:absolute;
-  font-size:2.4rem;
-  text-shadow:0 0 8px rgba(0,0,0,.95),0 0 18px rgba(248,113,113,.9);
-  cursor:pointer;
-  z-index:7; /* above animals (4) and poo/toys (2) */
-  animation:hazard-pulse .8s ease-in-out infinite alternate;
-  transform:translate(-50%,-100%) scale(1.1);
+/* Center CyberPets app within FileConverter.run global grid */
+.app{
+  display:flex;
+  justify-content:center;
+  width:100%;
+  grid-column:1 / -1;
 }
-.hazard:hover{
-  transform:translate(-50%,-100%) scale(1.35);
+.cyberpets-footer{
+  grid-column:1 / -1;
 }
-@keyframes hazard-pulse{
-  /* Force CyberPets layout to be centered on FileConverter.run global grid */
-.app {
-  display: flex !important;
-  justify-content: center !important;
-  width: 100% !important;
-  grid-column: 1 / -1 !important;
-}
-
-.cyberpets-footer {
-  grid-column: 1 / -1 !important;
-}
-
-  from{ transform:translate(-50%,-100%) scale(1.1); }
-  to{ transform:translate(-50%,-100%) scale(1.28); }
-}
-
-.hazard{pointer-events:auto;}
