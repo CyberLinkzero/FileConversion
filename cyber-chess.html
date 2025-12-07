@@ -501,7 +501,7 @@
       <div class="panel">
         <div class="panel-header">
           <h2>Difficulty</h2>
-          <small>Stockfish depth presets</small>
+          <small>Built-in JS engine depth</small>
         </div>
 
         <div class="field-group">
@@ -521,7 +521,7 @@
             </button>
           </div>
           <div class="small-note">
-            Easy plays shallow searches and occasional mistakes. Expert searches very deep and will punish blunders.
+            Easy looks only 1 ply ahead. Expert searches deeper and will punish blunders.
           </div>
         </div>
 
@@ -562,53 +562,21 @@
 <script src="https://cdn.jsdelivr.net/npm/chess.js@0.13.4/chess.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chessboardjs@1.0.0/www/js/chessboard.js"></script>
 
-<!-- Stockfish (WASM/JS build from jsDelivr) -->
-<script src="https://cdn.jsdelivr.net/gh/niklasf/stockfish.js/stockfish.js"></script>
-
 <script>
   // --- Game state ---
   let board = null;
   let game = new Chess();
   let isAIMoving = false;
 
-  // Difficulty → Stockfish depth mapping
+  // Difficulty → search depth mapping (AI thinks as Black)
   const DIFFICULTY_DEPTH = {
     easy: 1,
-    medium: 3,
-    hard: 7,
-    expert: 12
+    medium: 2,
+    hard: 3,
+    expert: 4
   };
 
   let currentDifficulty = "easy";
-
-  // Create Stockfish instance
-  const engine = new Worker(
-    // Stockfish.js attaches Worker logic here
-    "https://cdn.jsdelivr.net/gh/niklasf/stockfish.js/stockfish.js"
-  );
-
-  engine.onmessage = function(event) {
-    const line = event.data || event;
-
-    // Debug in console if needed:
-    // console.log("Engine:", line);
-
-    if (typeof line === "string" && line.startsWith("bestmove")) {
-      const parts = line.split(" ");
-      const bestMove = parts[1];
-      if (bestMove && bestMove !== "(none)") {
-        // Apply engine move
-        game.move({ from: bestMove.slice(0, 2), to: bestMove.slice(2, 4), promotion: "q" });
-        board.position(game.fen());
-        updateStatusAndMoves();
-        isAIMoving = false;
-      } else {
-        // No move = game over or stalemate
-        isAIMoving = false;
-        updateStatusAndMoves();
-      }
-    }
-  };
 
   // --- UI elements ---
   const statusMessageEl = document.getElementById("status-message");
@@ -621,15 +589,120 @@
 
   function setStatus(type, message) {
     statusMessageEl.textContent = message;
-
     statusDotEl.classList.remove("danger", "warn");
-    if (type === "ok") {
-      // green
-    } else if (type === "warn") {
+    if (type === "warn") {
       statusDotEl.classList.add("warn");
     } else if (type === "danger") {
       statusDotEl.classList.add("danger");
     }
+  }
+
+  // --- Evaluation function ---
+  const PIECE_VALUES = {
+    p: 100,
+    n: 320,
+    b: 330,
+    r: 500,
+    q: 900,
+    k: 20000
+  };
+
+  // Evaluate from White's perspective: positive = good for White, negative = good for Black
+  function evaluateBoard(game) {
+    const board = game.board();
+    let score = 0;
+
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const piece = board[row][col];
+        if (piece) {
+          const value = PIECE_VALUES[piece.type] || 0;
+          score += (piece.color === "w" ? value : -value);
+        }
+      }
+    }
+
+    // Bonus/penalty for game over
+    if (game.in_checkmate()) {
+      // If it's White's turn and checkmated, bad for White; else good for White.
+      const turn = game.turn();
+      if (turn === "w") score -= 100000;
+      else score += 100000;
+    }
+
+    return score;
+  }
+
+  // --- Simple minimax with alpha-beta pruning ---
+  function minimax(depth, alpha, beta, isMaximizingPlayer) {
+    if (depth === 0 || game.game_over()) {
+      return evaluateBoard(game);
+    }
+
+    const moves = game.moves();
+
+    if (isMaximizingPlayer) {
+      // Maximizing = AI (Black) tries to make score good for Black (minimize White's eval)
+      let maxEval = -Infinity;
+      for (let i = 0; i < moves.length; i++) {
+        const move = moves[i];
+        game.move(move);
+        const evalScore = minimax(depth - 1, alpha, beta, false);
+        game.undo();
+
+        if (evalScore > maxEval) {
+          maxEval = evalScore;
+        }
+        if (maxEval > alpha) alpha = maxEval;
+        if (beta <= alpha) break;
+      }
+      return maxEval;
+    } else {
+      // Minimizing = pretend White responds optimally (minimize Black's happiness)
+      let minEval = Infinity;
+      for (let i = 0; i < moves.length; i++) {
+        const move = moves[i];
+        game.move(move);
+        const evalScore = minimax(depth - 1, alpha, beta, true);
+        game.undo();
+
+        if (evalScore < minEval) {
+          minEval = evalScore;
+        }
+        if (minEval < beta) beta = minEval;
+        if (beta <= alpha) break;
+      }
+      return minEval;
+    }
+  }
+
+  // For variety, shuffle move list slightly on lower levels
+  function shuffledMoves(moves) {
+    const arr = moves.slice();
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function getBestMove(depth) {
+    const moves = shuffledMoves(game.moves());
+    let bestMove = null;
+    let bestEval = -Infinity;
+
+    for (let i = 0; i < moves.length; i++) {
+      const move = moves[i];
+      game.move(move);
+      const evalScore = minimax(depth - 1, -Infinity, Infinity, false);
+      game.undo();
+
+      if (evalScore > bestEval || bestMove === null) {
+        bestEval = evalScore;
+        bestMove = move;
+      }
+    }
+    return bestMove;
   }
 
   // --- Chessboard.js handlers ---
@@ -644,27 +717,24 @@
   }
 
   function onDrop(source, target) {
-    // See if the move is legal
     const move = game.move({
       from: source,
       to: target,
-      promotion: "q" // Always promote to queen
+      promotion: "q"
     });
 
-    // Illegal move
     if (move === null) return "snapback";
 
     updateStatusAndMoves();
 
-    // Let the engine respond
-    window.setTimeout(makeAIMove, 200);
+    window.setTimeout(makeAIMove, 150);
   }
 
   function onSnapEnd() {
     board.position(game.fen());
   }
 
-  // --- Engine logic ---
+  // --- AI move ---
   function makeAIMove() {
     if (game.game_over()) {
       updateStatusAndMoves();
@@ -675,14 +745,21 @@
 
     const depth = DIFFICULTY_DEPTH[currentDifficulty] || 2;
 
-    const fen = game.fen();
-    engine.postMessage("position fen " + fen);
-    engine.postMessage("go depth " + depth);
+    const bestMove = getBestMove(depth);
+    if (!bestMove) {
+      isAIMoving = false;
+      updateStatusAndMoves();
+      return;
+    }
+
+    game.move(bestMove);
+    board.position(game.fen());
+    isAIMoving = false;
+    updateStatusAndMoves();
   }
 
   // --- UI + state helpers ---
   function updateStatusAndMoves() {
-    // Update move log
     const pgn = game.pgn({ max_width: 80, newline_char: "\n" });
     movesEl.textContent = pgn || "No moves yet.";
 
@@ -705,7 +782,6 @@
       setStatus("ok", turnText);
     }
 
-    // Auto-scroll move panel to bottom
     movesEl.scrollTop = movesEl.scrollHeight;
   }
 
@@ -716,12 +792,10 @@
   }
 
   function undoLastPair() {
-    // Undo last two ply (AI + human) if possible
     if (game.history().length === 0) return;
-
-    game.undo(); // undo last move
+    game.undo();
     if (game.history().length > 0) {
-      game.undo(); // undo the one before that
+      game.undo();
     }
     board.position(game.fen());
     updateStatusAndMoves();
