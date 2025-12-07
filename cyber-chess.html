@@ -483,7 +483,7 @@
         <span class="sub">Practice vs AI · Easy → Expert</span>
       </h1>
       <div class="header-subline">
-        White = You · Black = AI &mdash; tune the difficulty and download your PGN to replay or analyze later.
+        White = You · Black = AI — tune the difficulty and download your PGN to replay or analyze later.
       </div>
     </div>
     <div class="badge-group">
@@ -492,18 +492,16 @@
         BROWSER ONLY · NO INSTALL
       </div>
       <div class="badge">
-        ♟&nbsp; PGN EXPORT
+        ♟ PGN EXPORT
       </div>
     </div>
   </div>
 
   <div class="layout">
-    <!-- Board -->
     <div class="board-panel">
       <div id="board"></div>
     </div>
 
-    <!-- Side panel -->
     <div class="side-panel">
       <div class="panel">
         <div class="panel-header">
@@ -533,12 +531,8 @@
         </div>
 
         <div class="button-row">
-          <button class="cyber-btn" id="new-game-btn">
-            ⟳ New Game
-          </button>
-          <button class="cyber-btn secondary" id="undo-btn">
-            ↶ Undo Move
-          </button>
+          <button class="cyber-btn" id="new-game-btn">⟳ New Game</button>
+          <button class="cyber-btn secondary" id="undo-btn">↶ Undo Move</button>
         </div>
 
         <button class="cyber-btn secondary" id="download-pgn-btn" style="width:100%; margin-top:4px;">
@@ -558,7 +552,7 @@
         </div>
         <div class="moves-container" id="moves"></div>
         <div class="small-note">
-          Tip: Save the PGN and load it into your favorite analysis tool &mdash; or a future FileConverter.run “AI Coach” page.
+          Tip: Save the PGN and load it into your favorite analysis tool — or a future FileConverter.run “AI Coach” page.
         </div>
       </div>
     </div>
@@ -566,7 +560,6 @@
 </div>
 
 <script>
-  // --- Game state ---
   let board = null;
   let game = new Chess();
   let isAIMoving = false;
@@ -610,7 +603,6 @@
   function evaluateBoard(game) {
     const b = game.board();
     let score = 0;
-
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
         const piece = b[row][col];
@@ -620,13 +612,11 @@
         }
       }
     }
-
     if (game.in_checkmate()) {
       const turn = game.turn();
       if (turn === "w") score -= 100000;
       else score += 100000;
     }
-
     return score;
   }
 
@@ -636,7 +626,6 @@
     }
 
     const moves = game.moves();
-
     if (isMaximizingPlayer) {
       let maxEval = -Infinity;
       for (let i = 0; i < moves.length; i++) {
@@ -644,10 +633,7 @@
         game.move(move);
         const evalScore = minimax(depth - 1, alpha, beta, false);
         game.undo();
-
-        if (evalScore > maxEval) {
-          maxEval = evalScore;
-        }
+        if (evalScore > maxEval) maxEval = evalScore;
         if (maxEval > alpha) alpha = maxEval;
         if (beta <= alpha) break;
       }
@@ -659,10 +645,7 @@
         game.move(move);
         const evalScore = minimax(depth - 1, alpha, beta, true);
         game.undo();
-
-        if (evalScore < minEval) {
-          minEval = evalScore;
-        }
+        if (evalScore < minEval) minEval = evalScore;
         if (minEval < beta) beta = minEval;
         if (beta <= alpha) break;
       }
@@ -683,13 +666,11 @@
     const moves = shuffledMoves(game.moves());
     let bestMove = null;
     let bestEval = -Infinity;
-
     for (let i = 0; i < moves.length; i++) {
       const move = moves[i];
       game.move(move);
       const evalScore = minimax(depth - 1, -Infinity, Infinity, false);
       game.undo();
-
       if (evalScore > bestEval || bestMove === null) {
         bestEval = evalScore;
         bestMove = move;
@@ -702,7 +683,6 @@
     if (game.game_over()) return false;
     if (isAIMoving) return false;
     if (piece.search(/^b/) !== -1) return false; // only white
-
     return true;
   }
 
@@ -712,9 +692,7 @@
       to: target,
       promotion: "q"
     });
-
     if (move === null) return "snapback";
-
     updateStatusAndMoves();
     window.setTimeout(makeAIMove, 150);
   }
@@ -731,14 +709,12 @@
 
     isAIMoving = true;
     const depth = DIFFICULTY_DEPTH[currentDifficulty] || 2;
-
     const bestMove = getBestMove(depth);
     if (!bestMove) {
       isAIMoving = false;
       updateStatusAndMoves();
       return;
     }
-
     game.move(bestMove);
     board.position(game.fen());
     isAIMoving = false;
@@ -799,7 +775,6 @@
       alert("No moves to export yet.");
       return;
     }
-
     const blob = new Blob([pgn], { type: "application/x-chess-pgn;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -812,7 +787,6 @@
     URL.revokeObjectURL(url);
   }
 
-  // --- Init board ---
   const config = {
     draggable: true,
     position: "start",
@@ -825,7 +799,6 @@
 
   updateStatusAndMoves();
 
-  // --- Wire UI events ---
   difficultyPills.forEach(pill => {
     pill.addEventListener("click", () => {
       const level = pill.dataset.level;
