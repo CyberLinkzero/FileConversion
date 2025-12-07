@@ -9,8 +9,8 @@
   <!-- Google Font for Futuristic Look -->
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&display=swap" rel="stylesheet">
 
-  <!-- Chessboard.js CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessboardjs@1.0.0/www/css/chessboard.css">
+  <!-- ✅ Chessboard.js CSS (fixed CDN path) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
 
   <style>
     :root {
@@ -558,9 +558,11 @@
   </div>
 </div>
 
-<!-- Dependencies -->
+<!-- ✅ Dependencies -->
 <script src="https://cdn.jsdelivr.net/npm/chess.js@0.13.4/chess.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chessboardjs@1.0.0/www/js/chessboard.js"></script>
+
+<!-- ✅ Chessboard.js JS (fixed CDN path) -->
+<script src="https://cdn.jsdelivr.net/npm/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
 
 <script>
   // --- Game state ---
@@ -609,12 +611,12 @@
 
   // Evaluate from White's perspective: positive = good for White, negative = good for Black
   function evaluateBoard(game) {
-    const board = game.board();
+    const b = game.board();
     let score = 0;
 
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
-        const piece = board[row][col];
+        const piece = b[row][col];
         if (piece) {
           const value = PIECE_VALUES[piece.type] || 0;
           score += (piece.color === "w" ? value : -value);
@@ -622,9 +624,7 @@
       }
     }
 
-    // Bonus/penalty for game over
     if (game.in_checkmate()) {
-      // If it's White's turn and checkmated, bad for White; else good for White.
       const turn = game.turn();
       if (turn === "w") score -= 100000;
       else score += 100000;
@@ -642,7 +642,7 @@
     const moves = game.moves();
 
     if (isMaximizingPlayer) {
-      // Maximizing = AI (Black) tries to make score good for Black (minimize White's eval)
+      // Maximizing = AI (Black)
       let maxEval = -Infinity;
       for (let i = 0; i < moves.length; i++) {
         const move = moves[i];
@@ -658,7 +658,7 @@
       }
       return maxEval;
     } else {
-      // Minimizing = pretend White responds optimally (minimize Black's happiness)
+      // Minimizing = White response
       let minEval = Infinity;
       for (let i = 0; i < moves.length; i++) {
         const move = moves[i];
@@ -676,7 +676,6 @@
     }
   }
 
-  // For variety, shuffle move list slightly on lower levels
   function shuffledMoves(moves) {
     const arr = moves.slice();
     for (let i = arr.length - 1; i > 0; i--) {
@@ -709,9 +708,7 @@
   function onDragStart(source, piece) {
     if (game.game_over()) return false;
     if (isAIMoving) return false;
-
-    // Only allow dragging of white pieces (player)
-    if (piece.search(/^b/) !== -1) return false;
+    if (piece.search(/^b/) !== -1) return false; // only white
 
     return true;
   }
@@ -726,7 +723,6 @@
     if (move === null) return "snapback";
 
     updateStatusAndMoves();
-
     window.setTimeout(makeAIMove, 150);
   }
 
@@ -734,7 +730,6 @@
     board.position(game.fen());
   }
 
-  // --- AI move ---
   function makeAIMove() {
     if (game.game_over()) {
       updateStatusAndMoves();
@@ -742,7 +737,6 @@
     }
 
     isAIMoving = true;
-
     const depth = DIFFICULTY_DEPTH[currentDifficulty] || 2;
 
     const bestMove = getBestMove(depth);
