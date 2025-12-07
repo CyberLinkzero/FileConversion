@@ -814,12 +814,16 @@
 
   const config = {
     draggable: true,
-    position: "start",
-    onDragStart: onDragStart,
-    onDrop: onDrop,
-    onSnapEnd: onSnapEnd
-  };
-  board = Chessboard("board", config);
+   const config = {
+  draggable: true,
+  position: "start",
+  pieceTheme: "https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/img/chesspieces/wikipedia/{piece}.png",
+  onDragStart: onDragStart,
+  onDrop: onDrop,
+  onSnapEnd: onSnapEnd
+};
+board = Chessboard("board", config);
+
 
   updateStatusAndMoves();
 
