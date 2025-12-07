@@ -6,14 +6,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Play Cyber Chess on FileConverter.run – practice against an AI with easy, medium, hard, and expert levels." />
 
-<!-- Chessboard.js CSS -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+  <!-- Chessboard.js CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
 
-<!-- Chess.js (UMD, no export keyword) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <!-- ✅ jQuery (required by chessboard.js) -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+          integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+          crossorigin="anonymous"></script>
 
-<!-- Chessboard.js JS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script> 
+  <!-- Chess.js (UMD, no export keyword) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+
+  <!-- Chessboard.js JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script> 
   
   <style>
     :root {
@@ -426,7 +431,6 @@
       margin-top: 6px;
     }
 
-    /* Chessboard.js square colors override to be more "cyber" */
     .white-1e1d7 {
       background: #0b1220 !important;
     }
@@ -567,7 +571,6 @@
   let game = new Chess();
   let isAIMoving = false;
 
-  // Difficulty → search depth mapping (AI thinks as Black)
   const DIFFICULTY_DEPTH = {
     easy: 1,
     medium: 2,
@@ -577,7 +580,6 @@
 
   let currentDifficulty = "easy";
 
-  // --- UI elements ---
   const statusMessageEl = document.getElementById("status-message");
   const statusDotEl = document.getElementById("status-dot");
   const movesEl = document.getElementById("moves");
@@ -596,7 +598,6 @@
     }
   }
 
-  // --- Evaluation function ---
   const PIECE_VALUES = {
     p: 100,
     n: 320,
@@ -606,7 +607,6 @@
     k: 20000
   };
 
-  // Evaluate from White's perspective: positive = good for White, negative = good for Black
   function evaluateBoard(game) {
     const b = game.board();
     let score = 0;
@@ -630,7 +630,6 @@
     return score;
   }
 
-  // --- Simple minimax with alpha-beta pruning ---
   function minimax(depth, alpha, beta, isMaximizingPlayer) {
     if (depth === 0 || game.game_over()) {
       return evaluateBoard(game);
@@ -639,7 +638,6 @@
     const moves = game.moves();
 
     if (isMaximizingPlayer) {
-      // Maximizing = AI (Black)
       let maxEval = -Infinity;
       for (let i = 0; i < moves.length; i++) {
         const move = moves[i];
@@ -655,7 +653,6 @@
       }
       return maxEval;
     } else {
-      // Minimizing = White response
       let minEval = Infinity;
       for (let i = 0; i < moves.length; i++) {
         const move = moves[i];
@@ -701,7 +698,6 @@
     return bestMove;
   }
 
-  // --- Chessboard.js handlers ---
   function onDragStart(source, piece) {
     if (game.game_over()) return false;
     if (isAIMoving) return false;
@@ -749,7 +745,6 @@
     updateStatusAndMoves();
   }
 
-  // --- UI + state helpers ---
   function updateStatusAndMoves() {
     const pgn = game.pgn({ max_width: 80, newline_char: "\n" });
     movesEl.textContent = pgn || "No moves yet.";
@@ -817,7 +812,6 @@
     URL.revokeObjectURL(url);
   }
 
-  // --- Init board ---
   const config = {
     draggable: true,
     position: "start",
@@ -829,7 +823,6 @@
 
   updateStatusAndMoves();
 
-  // --- Wire UI events ---
   difficultyPills.forEach(pill => {
     pill.addEventListener("click", () => {
       const level = pill.dataset.level;
