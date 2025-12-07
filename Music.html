@@ -1,945 +1,966 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Music → Tabs & Sheet (Local)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Turn an audio file into simple guitar tabs, bass hints, and a lead sheet – all locally in your browser." />
+  <link rel="stylesheet" href="site.css">
 
+  <meta charset="utf-8">
+  <title> Music → Tabs, Sheet, Vocals & Auto-Lyrics(Local + Cached) Coming Soon Under Construction </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Analyze once, render Tabs or Sheet instantly. 100% local with OPFS caching. Optional vocal melody and local auto-lyrics via localhost helper Under Constructiion.">
   <style>
-    :root{
-      --bg:#020617;
-      --panel:#0b1120;
-      --ink:#e5f2ff;
-      --muted:#9ca3af;
-      --line:#1f2937;
-      --cyan:#67e8f9;
-      --vio:#a855f7;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      background:radial-gradient(circle at top,#020617 0,#020617 35%,#020617 100%);
-      color:var(--ink);
-      font:14px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-    }
-    header{
-      padding:20px 16px;
-      text-align:center;
-      border-bottom:1px solid #111827;
-    }
-    header h1{
-      margin:0;
-      font-size:24px;
-      background:linear-gradient(90deg,var(--cyan),var(--vio));
-      -webkit-background-clip:text;
-      background-clip:text;
-      -webkit-text-fill-color:transparent;
-    }
-    header p{
-      margin:6px 0 0;
-      color:var(--muted);
-      font-size:13px;
-    }
-    .wrap{
-      max-width:1100px;
-      margin:0 auto;
-      padding:18px 16px 48px;
-    }
-    .card{
-      background:var(--panel);
-      border-radius:18px;
-      border:1px solid #111827;
-      box-shadow:0 0 30px rgba(15,23,42,.8);
-      margin-bottom:16px;
-    }
+    :root{--bg:#0f1117;--panel:#121826;--ink:#e5f2ff;--muted:#9aa4b2;--line:#263044;--cyan:#67e8f9;--vio:#a78bfa}
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    header{padding:22px 16px;text-align:center;border-bottom:1px solid #1f2430}
+    h1{margin:0;font-size:28px;background:linear-gradient(90deg,var(--cyan),var(--vio));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .wrap{max-width:1200px;margin:0 auto;padding:18px 16px 64px}
+    .card{background:linear-gradient(180deg,#121826,#0b1220);border:1px solid var(--line);border-radius:16px;box-shadow:0 0 24px rgba(103,232,249,.14)}
     .pad{padding:18px}
-    .row{
-      display:grid;
-      grid-template-columns:1.1fr 1fr;
-      gap:16px;
-    }
-    @media(max-width:900px){
-      .row{grid-template-columns:1fr}
-    }
-
-    label.title{
-      display:block;
-      font-size:13px;
-      color:#cbd5f5;
-      margin:4px 0 6px;
-    }
-
-    .drop{
-      border:2px dashed #1f2937;
-      border-radius:14px;
-      padding:18px;
-      text-align:center;
-      cursor:pointer;
-      background:radial-gradient(circle at top,rgba(103,232,249,0.12) 0,transparent 55%);
-      transition:border-color .15s ease,background-color .15s ease;
-    }
-    .drop.drag{
-      border-color:var(--cyan);
-      background-color:rgba(15,23,42,.9);
-    }
-    #fname{
-      margin-top:6px;
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    .chips{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-top:6px;
-    }
-    .chip{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:5px 10px;
-      border-radius:999px;
-      border:1px solid #1f2937;
-      background:#020617;
-      font-size:11px;
-      color:var(--muted);
-    }
-
-    .btn{
-      appearance:none;
-      border:none;
-      border-radius:10px;
-      padding:8px 14px;
-      font-size:13px;
-      font-weight:600;
-      cursor:pointer;
-      background:linear-gradient(90deg,var(--cyan),var(--vio));
-      color:#020617;
-    }
-    .btn.sec{
-      background:transparent;
-      color:var(--ink);
-      border:1px solid #1f2937;
-    }
-    .btn[disabled]{
-      opacity:.5;
-      cursor:default;
-    }
-
-    .progress{
-      width:100%;
-      height:7px;
-      border-radius:999px;
-      border:1px solid #111827;
-      overflow:hidden;
-      background:#020617;
-      margin-top:8px;
-    }
-    .progress-fill{
-      height:100%;
-      width:0;
-      background:linear-gradient(90deg,var(--cyan),var(--vio));
-      transition:width .2s ease-out;
-    }
-
-    textarea{
-      width:100%;
-      min-height:110px;
-      resize:vertical;
-      border-radius:12px;
-      border:1px solid #1f2937;
-      padding:8px 10px;
-      background:#020617;
-      color:var(--ink);
-      font:13px/1.4 system-ui,sans-serif;
-    }
-
-    .muted{
-      color:var(--muted);
-      font-size:12px;
-    }
-
-    pre.preview{
-      margin:0;
-      margin-top:8px;
-      border-radius:12px;
-      border:1px dashed #1f2937;
-      padding:10px;
-      background:#020617;
-      font-family:ui-monospace,Menlo,Consolas,monospace;
-      font-size:12px;
-      white-space:pre;
-      overflow:auto;
-      max-height:260px;
-    }
-
-    #log{
-      margin:0;
-      border-radius:12px;
-      border:1px solid #111827;
-      padding:10px;
-      background:#020617;
-      font-family:ui-monospace,Menlo,Consolas,monospace;
-      font-size:11px;
-      white-space:pre-wrap;
-      max-height:260px;
-      overflow:auto;
-    }
-
-    canvas{
-      display:block;
-      max-width:100%;
-      border-radius:10px;
-      border:1px solid #111827;
-      background:#020617;
-      margin-bottom:8px;
-    }
-
-    .actions{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-top:10px;
-    }
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    @media (max-width:1000px){.row{grid-template-columns:1fr}}
+    label.title{display:block;font-size:13px;color:#cfe6ff;margin:8px 0 6px}
+    .drop{border:2px dashed var(--line);border-radius:12px;padding:18px;text-align:center;cursor:pointer}
+    .drop.drag{border-color:var(--cyan);background:rgba(103,232,249,.06)}
+    .chips{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--line);padding:8px 12px;border-radius:999px}
+    textarea{width:100%;min-height:120px;resize:vertical;border-radius:12px;padding:12px 14px;background:#0a1424;border:1px solid #263044;color:var(--ink)}
+    .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+    .btn{border:0;padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:700;background:linear-gradient(90deg,var(--cyan),var(--vio));color:#07101a}
+    .btn.sec{background:#0a1424;color:var(--ink);border:1px solid #263044}
+    .btn.ghost{background:transparent;border:1px dashed var(--line);color:var(--muted)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .bar{height:8px;background:#0a1424;border:1px solid #263044;border-radius:999px;overflow:hidden;margin-top:10px}
+    .bar>i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),var(--vio));transition:width .25s}
+    pre{margin:10px 0 0;padding:12px;border:1px dashed var(--line);border-radius:12px;background:#07101a;color:#cfe6ff;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;max-height:240px;overflow:auto;white-space:pre-wrap}
+    .muted{color:var(--muted)}
+    #scoreWrap{margin-top:16px;background:#0a1424;border:1px solid #263044;border-radius:12px;padding:12px}
+    .badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:#cfe6ff}
+    /* Modal */
+    #transcriber-modal{display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:99999;}
+    #transcriber-card{max-width:640px; margin:10vh auto; background:#121826; color:#e5f2ff; border:1px solid #263044; border-radius:16px; padding:18px;}
+    .btn{cursor:pointer}
   </style>
 </head>
 <body>
 <header>
-  <h1>Music → Tabs & Sheet</h1>
-  <p>Drop an audio file once, get human-playable guitar tabs and a simple lead sheet. Local only.</p>
+  
+
+
+  <h1>Music → Tabs, Sheet, Vocals & Auto-Lyrics (Local) Under Construction</h1>
+  <p class="muted" style="margin:.3rem 0 0">Analyze once, render instantly. 100% on your device. OPFS cache. Optional local auto-lyrics.</p>
+
+  <div data-nav-placeholder></div>
+  <script src="nav-loader.js" defer></script>
+  <script src="js/utils.js"></script>
 </header>
 
 <div class="wrap">
-  <!-- INPUT + OPTIONS -->
-  <div class="card">
-    <div class="pad">
-      <div class="row">
-        <!-- LEFT: file + buttons -->
-        <div>
-          <label class="title">Audio file</label>
-          <input id="file" type="file" accept="audio/*" hidden />
-          <div id="drop" class="drop" tabindex="0" role="button" aria-label="Choose an audio file">
-            <div>Drag &amp; drop audio here</div>
-            <div class="muted" style="margin-top:4px">or</div>
-            <button id="pickBtn" type="button" class="btn sec" style="margin-top:6px;">Browse…</button>
-            <div id="fname">No file selected.</div>
+  <div class="card"><div class="pad">
+    <div class="row">
+      <div>
+        <label class="title">Audio/Video file</label>
+        <input id="file" type="file" accept="audio/*,video/*" hidden>
+        <div id="drop" class="drop" aria-label="Choose file" tabindex="0" role="button">
+          <div>Drag & drop here</div>
+          <div style="margin-top:8px">
+            <button id="pickBtn" type="button" class="btn sec" style="padding:8px 12px">Browse…</button>
           </div>
-
-          <div class="actions">
-            <button id="analyzeBtn" class="btn">Analyze</button>
-            <button id="abortBtn"   class="btn sec" disabled>Abort</button>
-          </div>
-
-          <div class="progress">
-            <div id="progressFill" class="progress-fill"></div>
-          </div>
-          <div id="status" class="muted" style="margin-top:4px">Idle.</div>
+          <div id="fname" class="muted" style="margin-top:6px"></div>
         </div>
 
-        <!-- RIGHT: modes + exports -->
-        <div>
-          <label class="title">Mode</label>
-          <div class="chips">
-            <label class="chip">
-              <input type="radio" name="mode" value="tabs" checked /> Tabs
-            </label>
-            <label class="chip">
-              <input type="radio" name="mode" value="sheet" /> Sheet music
-            </label>
-          </div>
+        <div class="chips" style="margin-top:10px">
+          <span id="cacheBadge" class="badge" style="display:none">Cached analysis found</span>
+          <button id="useCache" class="btn sec" style="display:none">Use cached analysis</button>
+          <button id="clearCache" class="btn sec" style="display:none">Clear cache</button>
+        </div>
 
-          <label class="title" style="margin-top:10px;">Tabs instruments</label>
-          <div class="chips">
-            <label class="chip"><input id="guitarChk" type="checkbox" checked /> Guitar</label>
-            <label class="chip"><input id="bassChk"   type="checkbox" checked /> Bass</label>
-            <label class="chip"><input id="pianoChk"  type="checkbox" /> Piano</label>
-            <label class="chip"><input id="drumsChk"  type="checkbox" /> Drums</label>
-          </div>
+        <label class="title" style="margin-top:14px">Output</label>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="mode" value="tabs" checked> Tabs</label>
+          <label class="chip"><input type="radio" name="mode" value="sheet"> Sheet music</label>
+          <label class="chip"><input type="checkbox" id="vocals"> Include vocal melody (notes)</label>
+        </div>
 
-          <label class="title" style="margin-top:10px;">Export formats</label>
-          <div class="chips">
-            <label class="chip"><input id="fmt-md"   type="checkbox" checked /> Markdown</label>
-            <label class="chip"><input id="fmt-txt"  type="checkbox" /> Plain text</label>
-            <label class="chip"><input id="fmt-json" type="checkbox" /> JSON</label>
-            <label class="chip"><input id="fmt-vtt"  type="checkbox" /> WebVTT</label>
-          </div>
+        <div class="chips" style="margin-top:8px">
+          <label class="chip"><input type="checkbox" id="auto-lyrics"> Auto-transcribe lyrics (local)</label>
+        </div>
 
-          <label class="title" style="margin-top:10px;">Chord segmentation</label>
-          <div class="chips">
-            <span class="chip">
-              Force split
-              <select id="forceSplit" style="margin-left:6px; background:#020617; color:var(--ink); border-radius:8px; border:1px solid #1f2937; padding:3px 8px;">
-                <option value="0">auto</option>
-                <option value="2">every 2s</option>
-                <option value="4">every 4s</option>
-                <option value="8">every 8s</option>
-              </select>
-            </span>
-          </div>
+        <label class="title" style="margin-top:14px">Segmentation (fallback)</label>
+        <div class="chips">
+          <label class="chip">
+            <span>Force split every</span>
+            <select id="force-split" style="background:#0a1424;border:1px solid #263044;color:#e5f2ff;border-radius:10px;padding:6px 10px;margin-left:8px">
+              <option value="0">— none —</option>
+              <option value="2">2s</option>
+              <option value="4" selected>4s</option>
+              <option value="8">8s</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="title" style="margin-top:14px">Tabs instruments</label>
+        <div class="chips" id="chips">
+          <label class="chip"><input type="checkbox" value="guitar" checked> Guitar</label>
+          <label class="chip"><input type="checkbox" value="bass"> Bass</label>
+          <label class="chip"><input type="checkbox" value="piano"> Piano</label>
+          <label class="chip"><input type="checkbox" value="drums"> Drums</label>
+        </div>
+
+        <label class="title" style="margin-top:14px">Exports</label>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="fmt-md" checked> Markdown (.md)</label>
+          <label class="chip"><input type="checkbox" id="fmt-txt"> Text Tabs (.txt)</label>
+          <label class="chip"><input type="checkbox" id="fmt-json"> JSON (.json)</label>
+          <label class="chip"><input type="checkbox" id="fmt-vtt"> WebVTT (.vtt)</label>
+        </div>
+      </div>
+
+      <div>
+        <label class="title">Lyrics (optional)</label>
+        <textarea id="lyrics" placeholder="Paste lyrics to sync under notes… (auto-lyrics will overwrite this)"></textarea>
+        <div id="scoreWrap" style="display:none">
+          <div id="score"></div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- LYRICS + OUTPUT + LOG -->
-  <div class="card">
-    <div class="pad">
-      <div class="row">
-        <div>
-          <label class="title">Lyrics (optional)</label>
-          <textarea id="lyrics" placeholder="Paste lyrics here to embed chords in a ChordPro-style section."></textarea>
+    <div class="actions">
+      <button id="convert" class="btn">Analyze (one pass)</button>
+      <button id="render" class="btn sec" disabled>Render Output</button>
+      <button id="abort" class="btn sec" disabled>Abort</button>
+      <span id="status" class="muted"></span>
+    </div>
+    <div class="bar"><i id="progress-fill"></i></div>
+    <pre id="log"></pre>
+  </div></div>
+</div>
 
-          <label class="title" style="margin-top:10px;">Output preview</label>
-          <div id="scoreWrap" style="display:none;">
-            <canvas id="scoreCanvas" width="1000" height="220"></canvas>
-          </div>
-          <pre id="preview" class="preview">(nothing yet)</pre>
-
-          <div class="actions">
-            <button id="renderBtn" class="btn sec" disabled>Render / Download</button>
-          </div>
-        </div>
-        <div>
-          <label class="title">Log</label>
-          <pre id="log"></pre>
-        </div>
-      </div>
+<!-- Permission / Setup Modal -->
+<div id="transcriber-modal">
+  <div id="transcriber-card">
+    <h3 style="margin:0 0 8px; background:linear-gradient(90deg,#67e8f9,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+      Allow local lyrics transcription?
+    </h3>
+    <p style="color:#9aa4b2; margin:.5rem 0 1rem;">
+      We can auto-transcribe lyrics <strong>fully on your device</strong>. We’ll help set up a tiny local tool
+      (Python + Whisper) and connect to it at <code>http://127.0.0.1:8765</code>. Nothing leaves your computer.
+    </p>
+    <ol style="margin:0 0 1rem 1.2rem; color:#cfe6ff;">
+      <li>We’ll download a small setup script for your OS.</li>
+      <li>You run it once (it may install Python/pip if missing).</li>
+      <li>It starts a safe local server; this page will detect it automatically.</li>
+    </ol>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+      <button id="allow-setup" class="btn" style="padding:10px 14px;">Allow & Download</button>
+      <button id="deny-setup" class="btn sec" style="padding:10px 14px;">Not now</button>
+    </div>
+    <div id="setup-steps" style="display:none; margin-top:12px; color:#9aa4b2;">
+      <p><strong>Next:</strong> Run the downloaded script. Keep this page open — we’ll auto-detect when the server is ready.</p>
+      <p id="probe-status">Probing <code>127.0.0.1:8765</code>…</p>
     </div>
   </div>
 </div>
 
 <script type="module">
-/* ========== DOM refs ========== */
-const fileEl       = document.getElementById('file');
-const dropEl       = document.getElementById('drop');
-const pickBtn      = document.getElementById('pickBtn');
-const fnameEl      = document.getElementById('fname');
-const analyzeBtn   = document.getElementById('analyzeBtn');
-const abortBtn     = document.getElementById('abortBtn');
-const progressFill = document.getElementById('progressFill');
-const statusEl     = document.getElementById('status');
-const lyricsEl     = document.getElementById('lyrics');
-const previewEl    = document.getElementById('preview');
-const logEl        = document.getElementById('log');
-const scoreWrap    = document.getElementById('scoreWrap');
-const scoreCanvas  = document.getElementById('scoreCanvas');
-
-const guitarChk    = document.getElementById('guitarChk');
-const bassChk      = document.getElementById('bassChk');
-const pianoChk     = document.getElementById('pianoChk');
-const drumsChk     = document.getElementById('drumsChk');
-
-const fmtMd        = document.getElementById('fmt-md');
-const fmtTxt       = document.getElementById('fmt-txt');
-const fmtJSON      = document.getElementById('fmt-json');
-const fmtVTT       = document.getElementById('fmt-vtt');
-const forceSplitEl = document.getElementById('forceSplit');
-
-const getMode = () => (document.querySelector('input[name="mode"]:checked')?.value || 'tabs');
-
-/* ========== Tiny utils ========== */
-function setProgress(p){
-  progressFill.style.width = Math.max(0, Math.min(100, p)) + '%';
+/* ========= Lazy VexFlow loader (no top-level import) ========= */
+let VF = null;
+async function loadVexFlowOnce(){
+  if (VF) return VF;
+  try{
+    const mod = await import('https://unpkg.com/vexflow@4.2.4/build/esm/vexflow.js');
+    VF = mod.Flow;
+    return VF;
+  }catch(err){
+    console.error('VexFlow failed to load:', err);
+    throw err;
+  }
 }
-const tick = () => new Promise(r => setTimeout(r, 0));
 
-function makeLog(el){
-  let buffer = [];
-  let scheduled = false;
-  return (msg) => {
-    buffer.push(msg);
-    if (!scheduled){
-      scheduled = true;
-      setTimeout(() => {
-        const prefix = el.textContent ? '\\n' : '';
-        el.textContent += prefix + buffer.join('\\n');
-        el.scrollTop = el.scrollHeight;
-        buffer = [];
-        scheduled = false;
-      }, 40);
-    }
-  };
-}
+/* ========= UI refs ========= */
+const drop = document.querySelector('#drop');
+const fileEl = document.querySelector('#file');
+const fname = document.querySelector('#fname');
+const chips = document.querySelector('#chips');
+const lyrics = document.querySelector('#lyrics');
+const analyzeBtn = document.querySelector('#convert');
+const renderBtn  = document.querySelector('#render');
+const abortBtn = document.querySelector('#abort');
+const statusEl = document.querySelector('#status');
+const logEl = document.querySelector('#log');
+const fill = document.querySelector('#progress-fill');
+const scoreWrap = document.querySelector('#scoreWrap');
+const scoreDiv = document.querySelector('#score');
+const fmtMD   = document.querySelector('#fmt-md');
+const fmtTXT  = document.querySelector('#fmt-txt');
+const fmtJSON = document.querySelector('#fmt-json');
+const fmtVTT  = document.querySelector('#fmt-vtt');
+const vocalsChk = document.querySelector('#vocals');
+const autoLyricsChk = document.querySelector('#auto-lyrics');
+const cacheBadge = document.querySelector('#cacheBadge');
+const useCacheBtn = document.querySelector('#useCache');
+const clearCacheBtn = document.querySelector('#clearCache');
+const modal = document.getElementById('transcriber-modal');
+const allowBtn = document.getElementById('allow-setup');
+const denyBtn = document.getElementById('deny-setup');
+const steps = document.getElementById('setup-steps');
+const probeEl = document.getElementById('probe-status');
+const splitSel = document.getElementById('force-split');
+const pickBtn = document.getElementById('pickBtn');
+
+const getMode = () => (document.querySelector('input[name="mode"]:checked')?.value)||'tabs';
+
+/* ========= Small utils ========= */
+const setProgress = p => fill.style.width = Math.max(0,Math.min(100,p)) + '%';
+const tick = () => new Promise(r=>setTimeout(r,0));
+function makeLog(el){ let buf=[],s=false; return (msg)=>{ buf.push(msg); if(!s){ s=true; setTimeout(()=>{ el.textContent+=buf.join('\n')+'\n'; el.scrollTop=el.scrollHeight; buf=[]; s=false; },50);} }; }
 const log = makeLog(logEl);
+const pad = (n,l=2)=> String(n).padStart(l,'0');
+const fmtTime = (t)=>{ const m=Math.floor(t/60), s=Math.floor(t%60), ms=Math.round((t-Math.floor(t))*1000); return `${pad(m)}:${pad(s)}.${pad(ms,3)}`; };
 
-const pad = (n,l=2) => String(n).padStart(l,'0');
-const fmtTime = (t) => {
-  const m  = Math.floor(t/60);
-  const s  = Math.floor(t%60);
-  const ms = Math.round((t - Math.floor(t))*1000);
-  return \`\${pad(m)}:\${pad(s)}.\${pad(ms,3)}\`;
-};
+log('🎵 Music tab page script init');
 
-log('🎵 Music page script loaded.');
-
-/* ========== File state & UX ========== */
+/* ========= File state ========= */
 let currentFile = null;
-let abortCtrl   = null;
-let analyzed    = null;   // { title, duration, spans:[{start,end,label}], bpm, key }
 
 function setCurrentFile(file){
   currentFile = file || null;
-  fnameEl.textContent = currentFile ? (currentFile.name || '') : 'No file selected.';
+  fname.textContent = currentFile ? (currentFile.name || '') : '';
 }
 
-/* Native file picker */
-fileEl.addEventListener('change', () => {
-  const file = fileEl.files && fileEl.files[0] ? fileEl.files[0] : null;
-  log('File chosen: ' + (file ? file.name : 'none'));
-  setCurrentFile(file);
-});
+/* ========= File input UX ========= */
 
-/* Click on drop area (except inner button) */
-dropEl.addEventListener('click', (e) => {
-  if (e.target === pickBtn) return;
+/* Click anywhere on drop zone (except Browse button) */
+drop.addEventListener('click', (e)=>{
+  if (e.target.id === 'pickBtn') return;
+  log('Drop zone clicked → opening file picker');
   fileEl.value = '';
   fileEl.click();
 });
 
-/* Browse button */
-pickBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
-  fileEl.value = '';
-  fileEl.click();
-});
+/* Explicit Browse button */
+if (pickBtn){
+  pickBtn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    log('Browse button clicked → opening file picker');
+    fileEl.value = '';
+    fileEl.click();
+  });
+}
 
-/* Keyboard on drop area */
-dropEl.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' || e.key === ' '){
+/* Keyboard accessibility */
+drop.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter' || e.key === ' '){
     e.preventDefault();
+    log('Drop zone keypress → opening file picker');
     fileEl.value = '';
     fileEl.click();
   }
 });
 
-/* Drag & drop */
-dropEl.addEventListener('dragover', (e) => {
-  e.preventDefault();
-  dropEl.classList.add('drag');
+/* File chosen via OS dialog */
+fileEl.addEventListener('change', ()=>{
+  const file = (fileEl.files && fileEl.files[0]) ? fileEl.files[0] : null;
+  log('File input change fired: ' + (file ? file.name : 'no file'));
+  setCurrentFile(file);
+  showCacheUI();
 });
-dropEl.addEventListener('dragleave', () => {
-  dropEl.classList.remove('drag');
-});
-dropEl.addEventListener('drop', (e) => {
+
+/* Drag & drop support */
+drop.addEventListener('dragover', (e)=>{
   e.preventDefault();
-  dropEl.classList.remove('drag');
+  drop.classList.add('drag');
+});
+drop.addEventListener('dragleave', ()=>{ drop.classList.remove('drag'); });
+drop.addEventListener('drop', (e)=>{
+  e.preventDefault();
+  drop.classList.remove('drag');
   if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
     const file = e.dataTransfer.files[0];
     log('Dropped file: ' + file.name);
     setCurrentFile(file);
+    showCacheUI();
   }
 });
 
-/* ========== Audio decoding (Web Audio) ========== */
-async function decodeToMono(arrayBuf){
-  const AC = window.AudioContext || window.webkitAudioContext;
-  if (!AC) throw new Error('Web Audio not supported in this browser.');
-  const ctx = new AC();
-  const audio = await ctx.decodeAudioData(arrayBuf.slice(0));
-  const sr = audio.sampleRate;
-  const len = audio.length;
-  const ch  = audio.numberOfChannels;
+/* ========= Audio helpers ========= */
+async function decodeWithWebAudio(arrayBuf){
+  const ac = new (window.AudioContext||window.webkitAudioContext)();
+  const audio = await ac.decodeAudioData(arrayBuf.slice(0));
+  const sr = audio.sampleRate, len = audio.length, ch = audio.numberOfChannels;
   const mono = new Float32Array(len);
-  for (let c = 0; c < ch; c++){
-    const data = audio.getChannelData(c);
-    for (let i = 0; i < len; i++){
-      mono[i] += data[i] / ch;
-    }
-  }
-  await ctx.close();
+  for(let c=0;c<ch;c++){ const d=audio.getChannelData(c); for(let i=0;i<len;i++) mono[i]+=d[i]/ch; }
+  await ac.close();
   return { sr, mono, duration: audio.duration };
 }
-
-/* simple framing – we’ll attach fake chord labels for now */
-function frameForChords(mono, sr){
-  const hop = 2048;
-  const hopSec = hop / sr;
-  const frames = Math.floor(mono.length / hop);
-  const spans = [];
-  const labels = ['C','G','Am','F','Dm','Em'];
-  for (let i = 0; i < frames; i++){
-    const start = i * hopSec;
-    const end   = (i+1) * hopSec;
-    const label = labels[i % labels.length]; // placeholder progression
-    spans.push({ start, end, label });
-  }
-  return { spans, hop };
+async function decodeViaFFmpeg(file){
+  const { createFFmpeg, fetchFile } = await import('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js');
+  const ffmpeg = createFFmpeg({ log:false });
+  await ffmpeg.load();
+  ffmpeg.FS('writeFile','in', await fetchFile(file));
+  await ffmpeg.run('-i','in','-vn','-ac','1','-ar','22050','-f','wav','out.wav');
+  const wav = ffmpeg.FS('readFile','out.wav');
+  ffmpeg.exit();
+  return await decodeWithWebAudio(wav.buffer);
+}
+function validateFile(file, maxMB=200){
+  if(!file) throw new Error('No file selected.');
+  const mb = file.size/(1024*1024);
+  if(mb>maxMB) throw new Error(`File too large (${mb.toFixed(1)} MB). Limit ${maxMB} MB.`);
 }
 
-/* merge tiny spans and optionally force length */
-function mergeSpans(spans, minDur = 0.35, forcedSec = 0){
-  if (!spans.length) return spans;
+/* ========= Batching & workers ========= */
+function frameAudioInChunks(mono, sr, win=4096, hop=2048, framesPerChunk=192){
+  const chunks=[]; let frames=[];
+  for(let i=0;i+win<=mono.length;i+=hop){
+    frames.push(mono.subarray(i,i+win).slice());
+    if(frames.length===framesPerChunk){ chunks.push(frames); frames=[]; }
+  }
+  if(frames.length) chunks.push(frames);
+  return { chunks, hop, sr, win };
+}
+function makeChordWorkerPool(n){
+  const url = new URL('./workers/batch-worker.js', import.meta.url);
+  const ws = Array.from({length:n}, ()=> new Worker(url, {type:'module'}));
+  let nextId=0;
+  function runBatch(frames, sr, signal){
+    return new Promise((resolve,reject)=>{
+      const id = nextId++;
+      const w = ws[id % ws.length];
+      const onMsg = (e)=>{
+        if(e.data?.id!==id) return;
+        w.removeEventListener('message', onMsg);
+        resolve(e.data.labels);
+      };
+      w.addEventListener('message', onMsg);
+      if(signal){
+        signal.addEventListener('abort', ()=>{
+          w.removeEventListener('message', onMsg);
+          reject(new DOMException('Aborted','AbortError'));
+        }, {once:true});
+      }
+      w.postMessage({ id, frames, sr }, frames.map(f=>f.buffer));
+    });
+  }
+  function terminate(){ ws.forEach(w=>w.terminate()); }
+  return { runBatch, size:n, terminate };
+}
+function yinWorker(){
+  const url = new URL('./workers/yin-worker.js', import.meta.url);
+  const w = new Worker(url, {type:'module'});
+  let nextId=0;
+  return {
+    run: (mono, sr, hopSamples, signal)=> new Promise((resolve,reject)=>{
+      const id = nextId++;
+      const onMsg = (e)=>{
+        if(e.data?.id!==id) return;
+        w.removeEventListener('message', onMsg);
+        resolve(e.data.notes||[]);
+      };
+      w.addEventListener('message', onMsg);
+      if(signal){
+        signal.addEventListener('abort', ()=>{
+          w.removeEventListener('message', onMsg);
+          reject(new DOMException('Aborted','AbortError'));
+        }, {once:true});
+      }
+      w.postMessage({ id, mono, sr, hopSamples }, [mono.buffer]);
+    }),
+    terminate(){ try{ w.terminate(); }catch{} }
+  };
+}
+
+/* ========= Smoothing / derivations ========= */
+function mergeMicroSpans(spans, minDur = 0.20, maxSpanSec = 0){
+  if (!spans || spans.length === 0) return spans;
+
   const merged = [];
   for (const s of spans){
-    if (!merged.length){
-      merged.push({ ...s });
-      continue;
-    }
-    const last = merged[merged.length-1];
+    if (!merged.length){ merged.push({...s}); continue; }
+    const last = merged[merged.length - 1];
     if (last.label === s.label){
       last.end = s.end;
     } else if ((s.end - s.start) <= minDur){
       last.end = s.end;
     } else {
-      merged.push({ ...s });
+      merged.push({...s});
     }
   }
-  if (!forcedSec || forcedSec <= 0) return merged;
-  const forced = [];
+
+  if (!maxSpanSec || maxSpanSec <= 0) return merged;
+
+  const out = [];
   for (const m of merged){
     let t = m.start;
-    while (t < m.end){
-      const e = Math.min(m.end, t + forcedSec);
-      forced.push({ start:t, end:e, label:m.label });
-      t = e;
+    while (t + maxSpanSec < m.end){
+      out.push({ start: t, end: t + maxSpanSec, label: m.label });
+      t += maxSpanSec;
     }
+    if (t < m.end) out.push({ start: t, end: m.end, label: m.label });
   }
-  return forced;
+  return out;
 }
-
+const NAMES = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
 function guessKey(spans){
-  if (!spans.length) return '—';
-  const weight = {};
-  for (const s of spans){
-    weight[s.label] = (weight[s.label] || 0) + (s.end - s.start);
-  }
-  const best = Object.entries(weight).sort((a,b)=>b[1]-a[1])[0];
-  return best ? best[0] + ' (rough)' : '—';
+  if(!spans || !spans.length) return "—";
+  const w={}; for(const s of spans){ const root=s.label.replace('m',''); w[root]=(w[root]||0)+(s.end-s.start); }
+  const top = Object.entries(w).sort((a,b)=>b[1]-a[1])[0]; if(!top) return "—";
+  const k=top[0], idx=NAMES.indexOf(k); const relMinor=NAMES[(idx+9+12)%12];
+  return `${k} Major / ${relMinor} Minor`;
 }
 
-/* ========== Tabs helpers (human-ish) ========== */
-function padLine(arr, width, fill='-'){
-  while (arr.length < width) arr.push(fill);
-}
-function makeLines(template){
-  return template.split('\\n').map(s => s.split(''));
-}
-function joinLines(lines){
-  return lines.map(a => a.join('')).join('\\n');
-}
-
-// guitar chord shapes [e, B, G, D, A, E]
-const GUITAR_SHAPES = {
-  'C':['0','1','0','2','3','x'],
-  'G':['3','0','0','0','2','3'],
-  'D':['2','3','2','0','x','x'],
-  'Em':['0','0','0','2','2','0'],
-  'Am':['0','1','2','2','0','x'],
-  'F':['1','1','2','3','3','1'],
-  'E':['0','0','1','2','2','0'],
-  'A':['0','2','2','2','0','x']
-};
-
-function simplifyChord(label){
-  label = (label || '').trim();
-  const m = label.match(/^([A-G][b#]?)(.*)$/);
-  if (!m) return label || 'C';
-  const root = m[1];
-  const rest = (m[2] || '').toLowerCase();
-  const isMinor = rest.startsWith('m') && !rest.startsWith('maj');
-  return root + (isMinor ? 'm' : '');
-}
-function guitarShape(label){
-  const key = simplifyChord(label);
-  return GUITAR_SHAPES[key] || GUITAR_SHAPES['C'];
-}
-
-function guitarTabsFromSpans(spans){
+/* ========= Tabs helpers ========= */
+function padLine(arr, width, fill='-'){ while(arr.length < width) arr.push(fill); }
+function makeLines(template){ return template.split("\n").map(s => s.split("")); }
+function joinLines(lines){ return lines.map(a => a.join("")).join("\n"); }
+function guitarTabsFromChords(spans){
   let lines = makeLines(
-    "e|----------------|----------------|----------------|\n"+
-    "B|----------------|----------------|----------------|\n"+
-    "G|----------------|----------------|----------------|\n"+
-    "D|----------------|----------------|----------------|\n"+
-    "A|----------------|----------------|----------------|\n"+
-    "E|----------------|----------------|----------------|"
+    "e|----------------|----------------|\n" +
+    "B|----------------|----------------|\n" +
+    "G|----------------|----------------|\n" +
+    "D|----------------|----------------|\n" +
+    "A|----------------|----------------|\n" +
+    "E|----------------|----------------|"
   );
-  if (!spans.length) return joinLines(lines);
-  const total = spans[spans.length-1].end || 1;
+  if (!spans || !spans.length) return joinLines(lines);
+  const end = spans[spans.length - 1].end || 1;
   for (const s of spans){
-    const shape = guitarShape(s.label);
-    const col = 2 + Math.floor((s.start / total) * 70);
-    lines.forEach(line => padLine(line, col+2, '-'));
-    for (let i = 0; i < 6; i++){
-      const fret = shape[i];
-      if (!fret || fret === 'x') continue;
-      lines[i][col] = fret;
-    }
+    const col = 2 + Math.floor((s.start / end) * 60);
+    const digits = String((s.label.charCodeAt(0) % 12));
+    lines.forEach(line => padLine(line, col + digits.length + 1, '-'));
+    const lineIdx = 5;
+    for (let i = 0; i < digits.length; i++) lines[lineIdx][col + i] = digits[i];
   }
   return joinLines(lines);
 }
-
-function bassTabsFromSpans(spans){
+function bassTabsFromChords(spans){
   let lines = makeLines(
-    "G|----------------|----------------|----------------|\n"+
-    "D|----------------|----------------|----------------|\n"+
-    "A|----------------|----------------|----------------|\n"+
-    "E|----------------|----------------|----------------|"
+    "G|----------------|----------------|\n" +
+    "D|----------------|----------------|\n" +
+    "A|----------------|----------------|\n" +
+    "E|----------------|----------------|"
   );
-  if (!spans.length) return joinLines(lines);
-  const total = spans[spans.length-1].end || 1;
-  let toggle = false;
+  if (!spans || !spans.length) return joinLines(lines);
+  const end = spans[spans.length - 1].end || 1; let useA=false;
   for (const s of spans){
-    const col = 2 + Math.floor((s.start / total) * 70);
-    lines.forEach(line => padLine(line, col+2, '-'));
-    const row = toggle ? 2 : 3; // A or E
-    toggle = !toggle;
-    lines[row][col] = '3';
+    const col = 2 + Math.floor((s.start / end) * 60);
+    const lineIdx = useA ? 2 : 3; useA = !useA;
+    lines.forEach(line => padLine(line, col + 2, '-'));
+    lines[lineIdx][col] = '3';
   }
   return joinLines(lines);
 }
-
-function pianoHintsFromSpans(spans){
-  if (!spans.length) return ["RH: —","LH: —"];
-  const names = spans.map(s => simplifyChord(s.label));
+function pianoNotesFromChords(spans){
+  if (!spans || !spans.length) return ["RH: —", "LH: —"];
+  const names = spans.map(s=>s.label);
   return [
-    "RH: " + names.map(n => n.endsWith('m') ? n.replace('m','')+"m triad" : n+" triad").join("   "),
-    "LH: " + names.map(n => n.replace('m','')+"2").join("   ")
+    "RH: " + names.map(n=> n.endsWith("m") ? (n.replace('m','')+'m triad') : (n+' triad')).join("  "),
+    "LH: " + names.map(n=> n.replace('m','')+"2").join("  ")
   ];
 }
-function drumHints(){
-  const patt = (k) => Array.from({length:16},(_,i)=>k(i)?'x':'-').join('');
-  return [
-    "Kick | "  + patt(i => i%4===0),
-    "Snare| " + patt(i => i%8===4),
-    "HH   | " + patt(i => i%2===0)
-  ];
-}
+function drumGrid(){ const patt=(k)=>Array.from({length:16},(_,i)=>k(i)?'x':'-').join(''); return ["Kick | "+patt(i=>i%4===0), "Snare| "+patt(i=>i%8===4), "HH   | "+patt(i=>i%2===0)]; }
 
-/* ========== Exports ========== */
-function chordProFromSpansAndLyrics(spans, lyricsText, totalSec){
-  if (!spans.length || !lyricsText) return null;
-  const words = lyricsText.trim().split(/\s+/);
-  if (!words.length) return null;
-  const per = totalSec / words.length;
-  let res = '';
-  let idx = 0;
-  for (let i = 0; i < words.length; i++){
-    const t = i * per;
-    while (idx+1 < spans.length && spans[idx+1].start <= t) idx++;
-    const addChord = (i === 0) || (spans[idx].start <= t && spans[idx].start > (i-1)*per);
-    res += (addChord ? '['+spans[idx].label+']' : '') + words[i] + ((i+1)%12===0 ? "\\n" : " ");
+function buildChordProText(spans, lyricsText, duration){
+  if(!spans || !spans.length){ return lyricsText?.trim() ? lyricsText.trim() : "[Intro] —"; }
+  if(!lyricsText) return "[Intro] " + spans.slice(0,4).map(s=>s.label).join("  ");
+  const words = lyricsText.trim().split(/\s+/); if(words.length===0) return lyricsText;
+  const per = (duration||words.length)/Math.max(1,words.length);
+  let res="", idx=0;
+  for(let w=0;w<words.length;w++){
+    const t = w*per;
+    while(idx+1<spans.length && spans[idx+1].start<=t) idx++;
+    const add = (w===0) || (spans[idx].start<=t && (idx===0?true:spans[idx].start>(w-1)*per));
+    res += (add?`[${spans[idx].label}]`:"")+words[w]+((w%12===11)?"\n":" ");
   }
   return res.trim();
 }
+function toMarkdown(title, spans, g=null, b=null, p=null, d=null, chordPro=null){
+  const L=[]; L.push(`# ${title} — Tabs & Chords`,'');
 
-function toMarkdown(title, spans, g, b, p, d, chordPro){
-  const out = [];
-  out.push('# '+(title||'Song')+' — Tabs & Chords','');
-  if (chordPro){
-    out.push('## Lyrics + Chords','```chordpro', chordPro, '```','');
-  }
-  if (g){ out.push('## Guitar','```',g,'```',''); }
-  if (b){ out.push('## Bass','```',b,'```',''); }
-  if (p && p.length){
-    out.push('## Piano');
-    p.forEach(line => out.push('- '+line));
-    out.push('');
-  }
-  if (d && d.length){
-    out.push('## Drum Grid');
-    d.forEach(line => out.push('`'+line+'`'));
-    out.push('');
-  }
-  out.push('## Chord Timeline','');
-  spans.forEach(s => {
-    out.push('- '+fmtTime(s.start)+'–'+fmtTime(s.end)+': **'+s.label+'**');
-  });
-  out.push('');
-  return out.join('\\n');
+  if(chordPro){ L.push('## Lyrics + Chords','```chordpro',chordPro,'```',''); }
+  if(g){ L.push('## Guitar Tabs','```',g,'```',''); }
+  if(b){ L.push('## Bass Tabs','```',b,'```',''); }
+  if(p?.length){ L.push('## Piano (notes)',...p.map(x=>'- '+x),''); }
+  if(d?.length){ L.push('## Drums (grid)',...d.map(x=>'`'+x+'`'),''); }
+  L.push('## Chord Timeline','', ...(spans||[]).map(c=>`- ${fmtTime(c.start)}–${fmtTime(c.end)}: **${c.label}**`),'');
+
+  return L.join('\n');
 }
-
-function toPlainText(g,b,p,d){
-  const out = [];
-  if (g){ out.push('GUITAR',g,''); }
-  if (b){ out.push('BASS',b,''); }
-  if (p && p.length){
-    out.push('PIANO');
-    out.push(...p);
-    out.push('');
-  }
-  if (d && d.length){
-    out.push('DRUMS');
-    out.push(...d);
-    out.push('');
-  }
-  return out.join('\\n');
+function toPlainTabs(g=null,b=null,p=null,d=null){
+  const o=[];
+  if(g){o.push('GUITAR',g,'');}
+  if(b){o.push('BASS',b,'');}
+  if(p?.length){o.push('PIANO',...p,'');}
+  if(d?.length){o.push('DRUMS',...d,'');}
+  return o.join('\n');
 }
-
-function toJSONFile(title, spans, meta){
-  return JSON.stringify({ title, chords:spans, meta }, null, 2);
-}
-
+function toJSONFile(title, spans, meta={}){ return JSON.stringify({title,chords:spans,meta},null,2); }
 function toWebVTT(spans){
-  const out = ['WEBVTT',''];
-  const fmt = (t) => {
-    const h  = Math.floor(t/3600);
-    const m  = Math.floor((t%3600)/60);
-    const s  = Math.floor(t%60);
-    const ms = Math.round((t - Math.floor(t))*1000);
-    const p2 = (n)=>String(n).padStart(2,'0');
-    const p3 = (n)=>String(n).padStart(3,'0');
-    return \`\${p2(h)}:\${p2(m)}:\${p2(s)}.\${p3(ms)}\`;
+  const L=['WEBVTT',''];
+  const to=(t)=>{
+    const h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=Math.floor(t%60),ms=Math.round((t-Math.floor(t))*1000);
+    const z=(n,l=2)=>String(n).padStart(l,'0');
+    return `${z(h)}:${z(m)}:${z(s)}.${z(ms,3)}`;
   };
-  spans.forEach(s => {
-    out.push(\`\${fmt(s.start)} --> \${fmt(s.end)}\`, s.label, '');
+  (spans||[]).forEach((c,i)=>{
+    L.push(String(i+1));
+    L.push(`${to(c.start)} --> ${to(c.end)}`);
+    L.push(c.label,'');
   });
-  return out.join('\\n');
+  return L.join('\n');
+}
+function downloadText(filename, text){
+  const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename;
+  document.body.appendChild(a); a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),0); a.remove();
 }
 
-function downloadText(name, text, type='text/plain'){
-  const blob = new Blob([text], { type });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => {
-    URL.revokeObjectURL(url);
-    a.remove();
-  }, 1200);
-}
-
-/* ========== VexFlow lead sheet (melody stub) ========== */
-let VF = null;
-async function loadVexFlowOnce(){
-  if (VF) return VF;
-  const mod = await import('https://unpkg.com/vexflow@4.2.4/build/esm/vexflow.js');
-  VF = mod.Flow || mod;
-  return VF;
+/* ========= Sheet (VexFlow) ========= */
+const secToBeats = (t,bpm)=> (t*bpm)/60;
+function quantizeToNearestDur(beats){
+  if (beats >= 0.75) return { dur:'q', beats:1 };
+  if (beats >= 0.375) return { dur:'8', beats:0.5 };
+  return { dur:'16', beats:0.25 };
 }
 function pitchToVexKey(midi){
-  const names = ['c','c#','d','d#','e','f','f#','g','g#','a','a#','b'];
-  const step  = names[midi % 12];
-  const oct   = Math.floor(midi/12) - 1;
-  return \`\${step}/\${oct}\`;
-}
-function quantizeBeats(beats){
-  const table = [
-    { dur:'w',  beats:4 },
-    { dur:'h',  beats:2 },
-    { dur:'q',  beats:1 },
-    { dur:'8',  beats:0.5 },
-    { dur:'16', beats:0.25 }
-  ];
-  let best = table[0], bestDiff = Infinity;
-  for (const t of table){
-    const diff = Math.abs(t.beats - beats);
-    if (diff < bestDiff){ bestDiff = diff; best = t; }
-  }
-  return best;
+  const names=['c','c#','d','eb','e','f','f#','g','ab','a','bb','b'];
+  const n=Math.round(midi);
+  const name=names[(n+1200)%12];
+  const octave=Math.floor(n/12)-1;
+  return `${name}/${octave}`;
 }
 function syllabify(text){
-  if (!text) return [];
-  const words = text.trim().split(/\s+/);
-  const out   = [];
-  for (const w of words){
-    const parts = w.split(/(?<=[aeiouyAEIOUY])/);
-    for (const p of parts) if (p) out.push(p);
+  if(!text) return [];
+  const words=text.trim().split(/\s+/);
+  const out=[];
+  for(const w of words){
+    if(w.length<=6) out.push(w);
+    else {
+      const mid=Math.floor(w.length/2);
+      out.push(w.slice(0,mid)+'-', w.slice(mid));
+    }
   }
   return out;
 }
 
-async function renderSheet({ title, spans, lyrics, bpm=100 }){
+async function renderSheet({ title, bpm=100, melody=[], chords=[], lyricsText="" }){
   const Flow = await loadVexFlowOnce();
-  const canvas = scoreCanvas;
-  const ctx    = canvas.getContext('2d');
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const VFLocal = Flow;
 
-  const renderer = new Flow.Renderer(canvas, Flow.Renderer.Backends.CANVAS);
-  renderer.resize(canvas.width, canvas.height);
+  scoreWrap.style.display = 'block';
+  scoreDiv.innerHTML = '';
+  const renderer = new VFLocal.Renderer(scoreDiv, VFLocal.Renderer.Backends.SVG);
+  renderer.resize(1000, 260);
   const context = renderer.getContext();
-  context.setFont('Arial', 12, '').setFillStyle('#e5e7eb');
-
-  const stave = new Flow.Stave(30, 40, canvas.width-60);
+  context.setFont('Arial', 10, 'normal');
+  const stave = new VFLocal.Stave(10, 20, 980);
   stave.addClef('treble').addTimeSignature('4/4');
   stave.setContext(context).draw();
 
   const notes = [];
-  const beatsPerSec = bpm/60;
-  const melody = spans.slice(0, Math.min(12, spans.length)).map(s => {
-    // fake melody: chord root as pitch around middle C
-    const rootIndex = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'].indexOf(simplifyChord(s.label).replace('m',''));
-    const midi = 60 + (rootIndex >= 0 ? rootIndex : 0); // C4 + interval
-    return { start:s.start, end:s.end, midi };
-  });
-
-  if (!melody.length){
-    notes.push(new Flow.StaveNote({ keys:['c/4'], duration:'w' }));
-  } else {
+  const beatsPerSec = bpm / 60;
+  if (melody.length) {
     for (const n of melody){
-      const durBeats = (n.end - n.start)*beatsPerSec || 1;
-      const q = quantizeBeats(durBeats);
+      const durBeats = (n.end - n.start) * beatsPerSec;
+      const q = quantizeToNearestDur(durBeats);
       const key = pitchToVexKey(n.midi);
-      notes.push(new Flow.StaveNote({ keys:[key], duration:q.dur }));
+      notes.push(new VFLocal.StaveNote({ keys: [key], duration: q.dur }));
+    }
+  } else {
+    notes.push(new VFLocal.StaveNote({ keys: ['c/4'], duration: 'w' }));
+  }
+
+  const sylls = syllabify(lyricsText);
+  if (sylls.length) {
+    const max = Math.min(notes.length, sylls.length);
+    for (let i=0;i<max;i++){
+      const ann = new VFLocal.Annotation(sylls[i])
+        .setFont('Arial', 12)
+        .setVerticalJustification(VFLocal.Annotation.VerticalJustify.BOTTOM);
+      notes[i].addAnnotation(0, ann);
     }
   }
 
-  // lyrics under notes
-  const sylls = syllabify(lyrics);
-  const max   = Math.min(sylls.length, notes.length);
-  for (let i=0;i<max;i++){
-    const ann = new Flow.Annotation(sylls[i])
-      .setFont('Arial',11)
-      .setVerticalJustification(Flow.Annotation.VerticalJustify.BOTTOM);
-    notes[i].addAnnotation(0, ann);
-  }
-
-  const voice = new Flow.Voice({ num_beats:4, beat_value:4 });
+  const voice = new VFLocal.Voice({ num_beats: 4, beat_value: 4 });
   voice.addTickables(notes);
-  new Flow.Formatter().joinVoices([voice]).format([voice], canvas.width-80);
+  new VFLocal.Formatter().joinVoices([voice]).format([voice], 920);
   voice.draw(context, stave);
 
-  // draw chord labels above
-  context.save();
-  context.setFont('12px Arial');
-  const secToBeats = (sec) => (sec * bpm) / 60;
-  spans.forEach(s => {
-    const beat = secToBeats(s.start);
-    const rel  = (beat % 4) / 4;
-    const x    = 30 + rel * (canvas.width-60);
-    const y    = stave.getYForTopText() - 6;
-    context.fillText(s.label, x, y);
-  });
+  // Chords text above
+  context.save(); context.setFont('Arial', 12, 'bold');
+  const yTop = stave.getYForTopText() - 6;
+  for (const s of chords){
+    const x = 30 + (secToBeats(s.start, bpm) % 4) / 4 * 920;
+    context.fillText(s.label, x, yTop);
+  }
   context.restore();
 }
 
-/* ========== Analyze button ========== */
+async function safeRenderSheet(opts){
+  try {
+    await renderSheet(opts);
+  } catch(e){
+    log('⚠️ Sheet render failed: ' + e.message + ' — falling back to Tabs export.');
+    document.querySelector('input[name="mode"][value="tabs"]').checked = true;
+    await renderFromCache();
+  }
+}
+
+/* ========= OPFS cache ========= */
+const OPFS = await navigator.storage?.getDirectory?.();
+async function readCache(){
+  if(!OPFS) return null;
+  try{
+    const h=await OPFS.getFileHandle('analysis.json');
+    const f=await h.getFile();
+    return JSON.parse(await f.text());
+  }catch{
+    return null;
+  }
+}
+async function writeCache(data){
+  if(!OPFS) return;
+  const h=await OPFS.getFileHandle('analysis.json',{create:true});
+  const w=await h.createWritable();
+  await w.write(new Blob([JSON.stringify(data)],{type:'application/json'}));
+  await w.close();
+}
+async function clearCache(){
+  if(!OPFS) return;
+  try{ await OPFS.removeEntry('analysis.json'); }catch{}
+}
+
+async function showCacheUI(){
+  const c = await readCache();
+  const has = !!c;
+  cacheBadge.style.display = has ? 'inline-flex' : 'none';
+  useCacheBtn.style.display = has ? 'inline-block' : 'none';
+  clearCacheBtn.style.display = has ? 'inline-block' : 'none';
+}
+
+/* ========= Local lyrics helper ========= */
+const LOCAL_URL = 'http://127.0.0.1:8765';
+async function isServerUp(timeoutMs=800){
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), timeoutMs);
+  try{
+    const r = await fetch(LOCAL_URL + '/health', { signal: ctrl.signal });
+    clearTimeout(t);
+    if (!r.ok) return false;
+    const j = await r.json();
+    return !!j.ok;
+  }catch{
+    clearTimeout(t);
+    return false;
+  }
+}
+function downloadSetupScript(){
+  const SERVER_URL = '/local-transcriber/server.py';
+  const WIN_BAT    = '/local-transcriber/start_transcriber.bat';
+  const WIN_PS1    = '/local-transcriber/start_transcriber.ps1';
+  const NIX_SH     = '/local-transcriber/start_transcriber.sh';
+
+  const a1 = document.createElement('a');
+  a1.href = SERVER_URL; a1.download = 'server.py';
+  document.body.appendChild(a1); a1.click(); a1.remove();
+
+  const ua = navigator.userAgent || '';
+  const isWin = ua.includes('Windows');
+  const a2 = document.createElement('a');
+  if (isWin) {
+    a2.href = WIN_BAT; a2.download = 'start_transcriber.bat';
+    document.body.appendChild(a2); a2.click(); a2.remove();
+    const a3 = document.createElement('a');
+    a3.href = WIN_PS1; a3.download = 'start_transcriber.ps1';
+    document.body.appendChild(a3); a3.click(); a3.remove();
+  } else {
+    a2.href = NIX_SH; a2.download = 'start_transcriber.sh';
+    document.body.appendChild(a2); a2.click(); a2.remove();
+  }
+}
+async function ensureLocalTranscriberPermissionFlow(){
+  if (await isServerUp()) return true;
+  return new Promise((resolve)=>{
+    modal.style.display = 'block';
+    steps.style.display = 'none';
+    allowBtn.onclick = async ()=>{
+      downloadSetupScript();
+      steps.style.display = 'block';
+      let tries = 0;
+      const poll = setInterval(async ()=>{
+        const ok = await isServerUp();
+        tries++;
+        if (ok){
+          clearInterval(poll);
+          probeEl.textContent = '✅ Local server detected.';
+          setTimeout(()=>{ modal.style.display='none'; resolve(true); }, 600);
+        }else{
+          probeEl.textContent = `Probing 127.0.0.1:8765… (attempt ${tries})`;
+        }
+      }, 1200);
+    };
+    denyBtn.onclick = ()=>{
+      modal.style.display = 'none';
+      resolve(false);
+    };
+  });
+}
+async function ensureLocalTranscriberOrAsk(){
+  if (await isServerUp()) return true;
+  return await ensureLocalTranscriberPermissionFlow();
+}
+async function transcribeLocally_viaServer(file){
+  const fd = new FormData();
+  fd.append('file', file, file.name || 'audio.wav');
+  const res = await fetch(LOCAL_URL + '/transcribe', { method:'POST', body: fd });
+  if (!res.ok) throw new Error('Local transcription failed');
+  return await res.json();
+}
+function alignWordsToNotes(words, notes){
+  if (!Array.isArray(words) || !Array.isArray(notes) || !notes.length) return [];
+  const out = []; let j = 0;
+  for (const n of notes){
+    while (j+1 < words.length && Math.abs(words[j+1].start - n.start) < Math.abs(words[j].start - n.start)) j++;
+    const txt = (words[j]?.text || '').trim();
+    out.push(txt); j = Math.min(j+1, words.length-1);
+  }
+  return out;
+}
+
+/* ========= Global state ========= */
+let analyzed = null;          // { title, duration, sr, hop, spans[], melody[], bpm, key }
+let controller=null, pool=null, vWorker=null;
+let sessionMono = null;
+
+/* ========= Mode & toggles re-render ========= */
+for (const el of document.querySelectorAll('input[name="mode"], #vocals, #auto-lyrics')) {
+  el.addEventListener('change', ()=> { if (analyzed) renderFromCache(); });
+}
+chips.addEventListener('change', ()=> { if (analyzed && getMode()==='tabs') renderFromCache(); });
+
+useCacheBtn.onclick = async ()=>{
+  const c = await readCache();
+  if (!c){
+    await showCacheUI();
+    return;
+  }
+  analyzed = c;
+  renderBtn.disabled = false;
+  log('Loaded cached analysis.');
+  renderFromCache();
+};
+clearCacheBtn.onclick = async ()=>{
+  await clearCache();
+  await showCacheUI();
+  log('Cache cleared.');
+};
+
+/* ========= Analyze once ========= */
 analyzeBtn.addEventListener('click', analyzeOnce);
-abortBtn.addEventListener('click', () => abortCtrl?.abort());
+abortBtn.addEventListener('click', ()=> controller?.abort());
 
 async function analyzeOnce(){
+  const file = currentFile || (fileEl.files && fileEl.files[0]);
+  try{ validateFile(file); }catch(e){ alert(e.message); return; }
+  controller = new AbortController();
+  analyzeBtn.disabled = true; renderBtn.disabled = true; abortBtn.disabled = true;
+  scoreWrap.style.display='none'; logEl.textContent=''; setProgress(3); statusEl.textContent='Decoding…';
+
   try{
-    if (!currentFile) throw new Error('No file selected.');
-    const mb = currentFile.size / (1024*1024);
-    if (mb > 200) throw new Error('File too large (limit 200 MB).');
-
-    abortCtrl = new AbortController();
-    analyzeBtn.disabled = true;
-    abortBtn.disabled   = false;
-    renderBtn.disabled  = true;
-    previewEl.textContent = '';
-    scoreWrap.style.display = 'none';
-    logEl.textContent = '';
-    setProgress(5);
-    statusEl.textContent = 'Decoding audio…';
-
-    const buf = await currentFile.arrayBuffer();
-    const dec = await decodeToMono(buf);
-    if (dec.duration > 600) throw new Error('Audio too long (limit 600 seconds).');
-
-    setProgress(25);
-    statusEl.textContent = 'Estimating chords…';
-
-    // For now: fake chord spans with a simple progression (placeholder).
-    const framed = frameForChords(dec.mono, dec.sr);
-    const forced = Number(forceSplitEl.value || 0);
-    const merged = mergeSpans(framed.spans, 0.35, forced);
-
-    const title = (currentFile.name || 'Song').replace(/\.[^.]+$/,'');
-    const key   = guessKey(merged);
-    const bpm   = 100;
-
-    analyzed = { title, duration:dec.duration, spans:merged, bpm, key };
-    log('Spans: '+merged.length);
-    merged.slice(0,8).forEach(s => {
-      log(\`[\${fmtTime(s.start)}–\${fmtTime(s.end)}] \${s.label}\`);
-    });
-
-    statusEl.textContent = 'Analysis complete (placeholder chords).';
-    setProgress(80);
-    renderBtn.disabled = false;
-  }catch(err){
-    if (err.name === 'AbortError'){
-      log('⚠️ Analysis aborted.');
-      statusEl.textContent = 'Canceled.';
-    } else {
-      log('❌ '+err.message);
-      statusEl.textContent = 'Failed.';
+    let dec;
+    try{ dec = await decodeWithWebAudio(await file.arrayBuffer()); }
+    catch{
+      log('Native decode failed → ffmpeg.wasm…');
+      dec = await decodeViaFFmpeg(file);
     }
+    sessionMono = dec.mono;
+    const sr = dec.sr, duration = dec.duration;
+    if(duration>600) throw new Error(`Audio too long (${duration.toFixed(0)}s). Limit 600s.`);
+    abortBtn.disabled = false;
+
+    statusEl.textContent='Framing…'; setProgress(10);
+    const { chunks } = frameAudioInChunks(sessionMono, sr, 4096, 2048, 192);
+    const total = chunks.length; log(`Framed into ${total} batches (${chunks[0]?.length||0} frames each).`);
+
+    const cores = navigator.hardwareConcurrency || 4;
+    pool = pool || makeChordWorkerPool(Math.min(cores, 4));
+    statusEl.textContent='Analyzing chords…';
+
+    const labels = []; let done=0;
+    for(let i=0;i<chunks.length;i+=pool.size){
+      if(controller.signal.aborted) throw new DOMException('Aborted','AbortError');
+      const wave = chunks.slice(i, i+pool.size);
+      const res = await Promise.all(wave.map(b => pool.runBatch(b, sr, controller.signal)));
+      res.forEach(arr => labels.push(...arr));
+      done += wave.length;
+      setProgress(10 + Math.floor(55 * done/total));
+      statusEl.textContent = `Analyzing chords… ${done}/${total}`;
+      log(`✔️ Batch ${done}/${total} complete`);
+      await tick();
+    }
+
+    const toTime = (idx)=> idx*2048/sr;
+    let spans=[];
+    if(labels.length){
+      let cur=labels[0], s=0;
+      for(let i=1;i<labels.length;i++){
+        if(labels[i]!==cur){
+          spans.push({start:toTime(s), end:toTime(i), label:cur});
+          cur=labels[i]; s=i;
+        }
+      }
+      spans.push({start:toTime(s), end:toTime(labels.length), label:cur});
+    }
+
+    const forcedSec = Number(splitSel?.value || 0);
+    spans = mergeMicroSpans(spans, 0.20, forcedSec);
+    if ((!spans || spans.length <= 1) && forcedSec === 0) {
+      spans = mergeMicroSpans(spans, 0.20, 4);
+    }
+
+    log(`Chord spans: ${spans.length}`);
+
+    const title = (file.name||'Song').replace(/\.[^.]+$/,'');
+    const bpm   = 100;
+    const key   = guessKey(spans);
+
+    let melody = [];
+    if (vocalsChk.checked){
+      vWorker = vWorker || yinWorker();
+      statusEl.textContent='Estimating vocal melody…';
+      melody = await vWorker.run(sessionMono, sr, 2048, controller.signal);
+      log(`Vocal notes: ${melody.length}`);
+    }
+
+    analyzed = { title, duration, sr, hop:2048, spans, melody, bpm, key };
+    await writeCache(analyzed);
+    await showCacheUI();
+
+    setProgress(85);
+    statusEl.textContent='Analysis done.';
+    renderBtn.disabled = false;
+    log('Preview:\n'+spans.slice(0,8).map(s=>`[${fmtTime(s.start)}–${fmtTime(s.end)}] ${s.label}`).join('\n'));
+  }catch(err){
+    if(err.name==='AbortError'){ statusEl.textContent='Canceled.'; log('⚠️ Aborted by user'); }
+    else { statusEl.textContent='Failed.'; log('❌ '+err.message); }
   }finally{
-    analyzeBtn.disabled = false;
-    abortBtn.disabled   = true;
-    abortCtrl           = null;
+    analyzeBtn.disabled=false; abortBtn.disabled=true; controller=null;
     setProgress(100);
   }
 }
 
-/* ========== Render / download ========== */
-const modeRadios = document.querySelectorAll('input[name="mode"]');
-modeRadios.forEach(r => r.addEventListener('change', () => { if (analyzed) renderFromAnalysis(); }));
-
-const renderBtn = document.getElementById('renderBtn');
-renderBtn.addEventListener('click', () => {
-  if (!analyzed){
-    alert('Analyze first.');
-    return;
-  }
-  renderFromAnalysis(true);
+/* ========= Render from cache ========= */
+renderBtn.addEventListener('click', ()=>{
+  log('▶️ Render clicked');
+  renderFromCache().catch(e => log('❌ Render failed: ' + e.message));
 });
 
-async function renderFromAnalysis(download=false){
-  if (!analyzed || !analyzed.spans || !analyzed.spans.length){
-    previewEl.textContent = '(no chord data)';
-    return;
+async function renderFromCache(){
+  if(!analyzed){
+    const c = await readCache();
+    if(!c){ log('No analysis available.'); return; }
+    analyzed=c;
   }
-  const spans    = analyzed.spans;
-  const duration = analyzed.duration;
-  const mode     = getMode();
 
-  const g = guitarChk.checked ? guitarTabsFromSpans(spans) : null;
-  const b = bassChk.checked   ? bassTabsFromSpans(spans)   : null;
-  const p = pianoChk.checked  ? pianoHintsFromSpans(spans) : null;
-  const d = drumsChk.checked  ? drumHints()                : null;
-  const chordPro = chordProFromSpansAndLyrics(spans, (lyricsEl.value || '').trim(), duration);
-
-  if (mode === 'sheet'){
-    scoreWrap.style.display = 'block';
-    previewEl.textContent   = '';
-    try{
-      await renderSheet({
-        title: analyzed.title,
-        spans,
-        lyrics: (lyricsEl.value || '').trim(),
-        bpm: analyzed.bpm || 100
-      });
-    }catch(err){
-      log('⚠️ Sheet render failed: '+err.message);
-      scoreWrap.style.display = 'none';
+  if (getMode()==='sheet' && vocalsChk.checked && (!analyzed.melody || analyzed.melody.length===0)){
+    if (sessionMono){
+      try{
+        statusEl.textContent='Estimating vocal melody…'; setProgress(75);
+        vWorker = vWorker || yinWorker();
+        const notes = await vWorker.run(sessionMono, analyzed.sr, analyzed.hop, new AbortController().signal);
+        analyzed.melody = notes;
+        await writeCache(analyzed);
+        log(`Vocal notes: ${notes.length}`);
+      }catch(e){ log('⚠️ Melody estimation skipped: '+e.message); }
+    } else {
+      log('ℹ️ Melody not computed in analysis and raw audio not kept; re-run Analyze with vocals toggled.');
     }
+  }
+
+  const mode = getMode();
+  if (mode === 'tabs'){
+    const sel = [...document.querySelectorAll('#chips input:checked')].map(i=>i.value);
+    const g = sel.includes('guitar') ? guitarTabsFromChords(analyzed.spans) : null;
+    const b = sel.includes('bass')   ? bassTabsFromChords(analyzed.spans)   : null;
+    const p = sel.includes('piano')  ? pianoNotesFromChords(analyzed.spans) : null;
+    const d = sel.includes('drums')  ? drumGrid() : null;
+    const chordPro = buildChordProText(analyzed.spans, (lyrics.value||'').trim(), analyzed.duration);
+
+    scoreWrap.style.display='none';
+    statusEl.textContent='Rendered Tabs.';
+
+    let any = false;
+    if(fmtMD.checked){
+      any=true;
+      downloadText(`${analyzed.title}_tabs.md`,  toMarkdown(analyzed.title, analyzed.spans, g, b, p, d, chordPro));
+    }
+    if(fmtTXT.checked){
+      any=true;
+      downloadText(`${analyzed.title}_tabs.txt`, toPlainTabs(g, b, p, d));
+    }
+    if(fmtJSON.checked){
+      any=true;
+      downloadText(`${analyzed.title}_chords.json`, toJSONFile(analyzed.title, analyzed.spans, { key: analyzed.key, bpm: analyzed.bpm }));
+    }
+    if(fmtVTT.checked){
+      any=true;
+      downloadText(`${analyzed.title}_chords.vtt`, toWebVTT(analyzed.spans));
+    }
+    if(!any) log('ℹ️ No export format selected. Tick Markdown/Text/JSON/VTT and click Render.');
   } else {
-    scoreWrap.style.display = 'none';
-    const mdPreview = toMarkdown(analyzed.title, spans, g, b, p, d, chordPro);
-    previewEl.textContent = mdPreview;
-  }
+    const wantAutoLyrics = autoLyricsChk.checked;
+    const haveMelody = Array.isArray(analyzed.melody) && analyzed.melody.length>0;
 
-  if (!download) return;
+    const draw = async (lyricsText) => {
+      await safeRenderSheet({
+        title: analyzed.title,
+        bpm: analyzed.bpm,
+        melody: vocalsChk.checked ? (analyzed.melody||[]) : [],
+        chords: analyzed.spans,
+        lyricsText: lyricsText ?? (lyrics.value||'').trim()
+      });
+      statusEl.textContent='Rendered Sheet.';
+    };
 
-  if (fmtMd.checked){
-    const md = toMarkdown(analyzed.title, spans, g, b, p, d, chordPro);
-    downloadText(\`\${analyzed.title||'song'}-tabs.md\`, md, 'text/markdown');
-  }
-  if (fmtTxt.checked){
-    const txt = toPlainText(g,b,p,d);
-    downloadText(\`\${analyzed.title||'song'}-tabs.txt\`, txt);
-  }
-  if (fmtJSON.checked){
-    const meta = { key: analyzed.key, bpm: analyzed.bpm, duration };
-    const json = toJSONFile(analyzed.title, spans, meta);
-    downloadText(\`\${analyzed.title||'song'}-chords.json\`, json, 'application/json');
-  }
-  if (fmtVTT.checked){
-    const vtt = toWebVTT(spans);
-    downloadText(\`\${analyzed.title||'song'}-chords.vtt\`, vtt, 'text/vtt');
+    if (wantAutoLyrics){
+      const file = currentFile || (fileEl.files && fileEl.files[0]);
+      if (!file){
+        log('⚠️ Select an audio/video file first to auto-transcribe.');
+        await draw('');
+        return;
+      }
+
+      if (!haveMelody && sessionMono){
+        try{
+          statusEl.textContent='Estimating vocal melody…'; setProgress(76);
+          vWorker = vWorker || yinWorker();
+          const notes = await vWorker.run(sessionMono, analyzed.sr, analyzed.hop, new AbortController().signal);
+          analyzed.melody = notes; await writeCache(analyzed);
+          log(`Vocal notes: ${notes.length}`);
+        }catch(e){ log('⚠️ Melody estimation skipped: '+e.message); }
+      }
+
+      const ok = await ensureLocalTranscriberOrAsk();
+      if (!ok){ await draw(''); return; }
+
+      try{
+        statusEl.textContent='Transcribing lyrics locally…'; setProgress(90);
+        const { words=[] } = await transcribeLocally_viaServer(file);
+        const aligned = alignWordsToNotes(words, analyzed.melody || []);
+        const autoLyrics = aligned.join(' ');
+        await draw(autoLyrics);
+        lyrics.value = autoLyrics;
+      }catch(err){
+        log('❌ Auto-lyrics failed: '+err.message);
+        await draw('');
+      }
+    } else {
+      await draw();
+    }
   }
 }
 
-/* ========== Init ========== */
-setProgress(0);
-statusEl.textContent = 'Idle.';
+/* ========= Init ========= */
+showCacheUI();
 </script>
 </body>
 </html>
