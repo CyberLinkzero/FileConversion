@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>bsnes Web Emulator – Local ROM</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --accent: #7dd3fc;
+      --accent-soft: #1d4ed8;
+      --bg: #020617;
+      --panel: #020617;
+      --panel-border: #1f2937;
+      --text-main: #e5e7eb;
+      --text-soft: #9ca3af;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top, #0f172a 0, #020617 48%, #000 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .wrapper {
+      width: 100%;
+      max-width: 980px;
+      padding: 20px 16px 36px;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 0 0 0.25rem;
+      font-size: 1.1rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-soft);
+      margin-bottom: 1.4rem;
+    }
+
+    .panel {
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 18px;
+      border: 1px solid var(--panel-border);
+      box-shadow:
+        0 22px 60px rgba(0, 0, 0, 0.85),
+        0 0 0 1px rgba(15, 23, 42, 0.9);
+      padding: 16px 16px 18px;
+    }
+
+    .top-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .controls-main,
+    .controls-right {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 10px;
+      align-items: center;
+    }
+
+    label {
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+
+    input[type="file"] {
+      font-size: 0.78rem;
+      max-width: 220px;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 7px 14px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 600;
+      background: radial-gradient(circle at top left, #22d3ee, #6366f1);
+      color: #020617;
+      box-shadow: 0 10px 26px rgba(56, 189, 248, 0.5);
+      transition:
+        transform 0.08s ease,
+        box-shadow 0.08s ease,
+        opacity 0.12s ease;
+      white-space: nowrap;
+    }
+
+    button.secondary {
+      background: #020617;
+      color: var(--text-main);
+      border: 1px solid #374151;
+      box-shadow: none;
+    }
+
+    button.danger {
+      background: #7f1d1d;
+      color: #fee2e2;
+      box-shadow: 0 10px 26px rgba(127, 29, 29, 0.5);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 32px rgba(56, 189, 248, 0.55);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 10px 26px rgba(56, 189, 248, 0.5);
+    }
+
+    .status {
+      font-size: 0.75rem;
+      color: var(--text-soft);
+      text-align: right;
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .status span {
+      color: #a5b4fc;
+      font-weight: 600;
+    }
+
+    .screen-shell {
+      margin: 10px 0 12px;
+      background: radial-gradient(circle at top, #020617, #020617 55%, #0b1120 100%);
+      border-radius: 18px;
+      border: 1px solid #111827;
+      padding: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    canvas {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      border-radius: 12px;
+      background: #000;
+      border: 3px solid #020617;
+      box-shadow:
+        0 0 0 1px #111827,
+        0 20px 48px rgba(0, 0, 0, 1);
+      width: 100%;
+      max-width: 768px;
+      aspect-ratio: 4 / 3;
+    }
+
+    .sliders-row,
+    .states-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 14px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+
+    .sliders-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      align-items: center;
+    }
+
+    .sliders-group > div {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    input[type="range"] {
+      accent-color: var(--accent);
+    }
+
+    select {
+      background: #020617;
+      color: var(--text-main);
+      border-radius: 999px;
+      border: 1px solid #374151;
+      padding: 4px 10px;
+      font-size: 0.78rem;
+    }
+
+    .states-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .help {
+      margin-top: 8px;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+      line-height: 1.5;
+    }
+
+    .help strong {
+      color: var(--text-main);
+    }
+
+    .keys {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.75rem;
+    }
+
+    .footer {
+      margin-top: 14px;
+      font-size: 0.7rem;
+      text-align: center;
+      color: #6b7280;
+    }
+
+    .footer span {
+      color: #f97316;
+    }
+
+    @media (max-width: 640px) {
+      .status {
+        text-align: left;
+      }
+      .top-row {
+        align-items: flex-start;
+      }
+    }
+  </style>
+
+  <!--
+    👉 You will provide this file from your bsnes WebAssembly build.
+
+    It must define:
+      window.startBSNES(romBytes, canvas, options)  -> Promise<emulatorInstance>
+
+    where emulatorInstance should ideally have:
+      - reset()
+      - stop()              (optional, for cleanup)
+      - setVolume(value)   // 0.0–1.0
+      - setInputState(port, stateObj)
+      - saveState()        // -> Uint8Array
+      - loadState(bytes)   // takes Uint8Array
+      - getSRAM()          // -> Uint8Array (optional)
+      - setSRAM(bytes)     // (optional)
+  -->
+  <script src="libs/bsnes-core.js"></script>
+</head>
+<body>
+  <div class="wrapper">
+    <h1>bsnes Web Emulator</h1>
+    <div class="subtitle">Load your own SNES ROM – runs 100% locally in your browser (no uploads).</div>
+
+    <div class="panel">
+      <div class="top-row">
+        <div class="controls-main">
+          <label for="romInput">ROM (.smc / .sfc):</label>
+          <input type="file" id="romInput" accept=".smc,.sfc,.fig,.bin,.zip" />
+          <button id="loadBtn" disabled>Load &amp; Run</button>
+          <button id="resetBtn" class="secondary" disabled>Reset</button>
+          <button id="fullscreenBtn" class="secondary" disabled>Fullscreen</button>
+        </div>
+        <div class="status">
+          Status: <span id="statusText">Waiting for ROM…</span>
+        </div>
+      </div>
+
+      <div class="screen-shell">
+        <canvas id="snesScreen" width="256" height="224"></canvas>
+      </div>
+
+      <div class="sliders-row">
+        <div class="sliders-group">
+          <div>
+            <span>Volume</span>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.8" />
+            <span id="volumeLabel">80%</span>
+            <button id="muteBtn" class="secondary">Mute</button>
+          </div>
+          <div>
+            <span>Scale</span>
+            <select id="scaleSelect">
+              <option value="1">1x</option>
+              <option value="2">2x</option>
+              <option value="3">3x</option>
+              <option value="fit" selected>Fit</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <span>SRAM &amp; states are saved per ROM in this browser.</span>
+        </div>
+      </div>
+
+      <div class="states-row">
+        <div>Save States (local):</div>
+        <div class="states-buttons">
+          <button class="secondary" data-slot="1" data-action="save">Save 1</button>
+          <button class="secondary" data-slot="1" data-action="load">Load 1</button>
+          <button class="secondary" data-slot="2" data-action="save">Save 2</button>
+          <button class="secondary" data-slot="2" data-action="load">Load 2</button>
+          <button class="secondary" data-slot="3" data-action="save">Save 3</button>
+          <button class="secondary" data-slot="3" data-action="load">Load 3</button>
+          <button class="secondary" data-slot="4" data-action="save">Save 4</button>
+          <button class="secondary" data-slot="4" data-action="load">Load 4</button>
+          <button class="danger" id="clearStatesBtn">Clear ROM States</button>
+        </div>
+      </div>
+
+      <div class="help">
+        <p><strong>Keyboard controls (Player 1)</strong></p>
+        <p class="keys">
+          D-Pad: ↑ ↓ ← → &nbsp;|&nbsp;
+          B: Z &nbsp; A: X &nbsp;|&nbsp;
+          Y: A &nbsp; X: S &nbsp;|&nbsp;
+          L: Q &nbsp; R: W &nbsp;|&nbsp;
+          Start: Enter &nbsp; Select: Right Shift
+        </p>
+        <p>
+          <strong>Gamepad:</strong> Plug in a controller (Xbox / PS / generic). The first connected
+          gamepad is mapped using the standard layout:
+          B=A button, A=B button, X=X, Y=Y, LB=L, RB=R, Start=Start, Back=Select.
+        </p>
+        <p>
+          <strong>Notes:</strong> This page is just the UI shell. The bsnes core comes from
+          <code>libs/bsnes-core.js</code>, which must expose
+          <code>window.startBSNES(romBytes, canvas, options)</code>. Save states and SRAM are stored in
+          <code>localStorage</code> keyed by ROM name+size.
+        </p>
+      </div>
+    </div>
+
+    <div class="footer">
+      Runs entirely in your browser. <span>No ROMs are uploaded or stored on any server.</span>
+    </div>
+  </div>
+
+  <script>
+    // ------------- GLOBAL STATE -------------
+    let romBytes = null;
+    let romInfo = null;  // { name, size }
+    let bsnesInstance = null;
+    let isRunning = false;
+    let sramTimerId = null;
+    let lastVolumeBeforeMute = 0.8;
+
+    const inputState = {
+      up: false,
+      down: false,
+      left: false,
+      right: false,
+      a: false,
+      b: false,
+      x: false,
+      y: false,
+      l: false,
+      r: false,
+      start: false,
+      select: false
+    };
+
+    // ------------- DOM ELEMENTS -------------
+    const romInput = document.getElementById("romInput");
+    const loadBtn = document.getElementById("loadBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const fullscreenBtn = document.getElementById("fullscreenBtn");
+    const statusText = document.getElementById("statusText");
+    const canvas = document.getElementById("snesScreen");
+    const volumeSlider = document.getElementById("volumeSlider");
+    const volumeLabel = document.getElementById("volumeLabel");
+    const muteBtn = document.getElementById("muteBtn");
+    const scaleSelect = document.getElementById("scaleSelect");
+    const clearStatesBtn = document.getElementById("clearStatesBtn");
+
+    const stateButtons = Array.from(
+      document.querySelectorAll(".states-buttons button[data-slot][data-action]")
+    );
+
+    function setStatus(text) {
+      statusText.textContent = text;
+      console.log("[bsnes]", text);
+    }
+
+    // ------------- STORAGE KEYS -------------
+    function romId() {
+      if (!romInfo) return "no_rom";
+      return `${romInfo.name}|${romInfo.size}`;
+    }
+
+    function stateKey(slot) {
+      return `bsnes_state_${romId()}_slot_${slot}`;
+    }
+
+    function sramKey() {
+      return `bsnes_sram_${romId()}`;
+    }
+
+    // ------------- ROM LOADING -------------
+    romInput.addEventListener("change", () => {
+      const file = romInput.files[0];
+      if (!file) {
+        romBytes = null;
+        romInfo = null;
+        loadBtn.disabled = true;
+        setStatus("Waiting for ROM…");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        romBytes = new Uint8Array(e.target.result);
+        romInfo = { name: file.name, size: file.size };
+        setStatus(`ROM loaded: ${file.name} (${romBytes.length} bytes). Click "Load & Run".`);
+        loadBtn.disabled = false;
+      };
+      reader.onerror = (err) => {
+        console.error(err);
+        romBytes = null;
+        romInfo = null;
+        loadBtn.disabled = true;
+        setStatus("Error reading ROM file.");
+      };
+
+      reader.readAsArrayBuffer(file);
+      setStatus("Reading ROM file…");
+    });
+
+    // ------------- EMULATOR START / RESET -------------
+    async function startEmulator() {
+      if (!romBytes || !romInfo) {
+        setStatus("No ROM loaded.");
+        return;
+      }
+
+      if (typeof window.startBSNES !== "function") {
+        setStatus("bsnes core not found. Make sure libs/bsnes-core.js defines window.startBSNES.");
+        console.error("window.startBSNES is not defined.");
+        return;
+      }
+
+      // stop previous instance if it has a stop() method
+      if (bsnesInstance && typeof bsnesInstance.stop === "function") {
+        try {
+          bsnesInstance.stop();
+        } catch (e) {
+          console.warn("Error stopping previous instance:", e);
+        }
+      }
+      if (sramTimerId) {
+        clearInterval(sramTimerId);
+        sramTimerId = null;
+      }
+
+      try {
+        setStatus("Starting bsnes emulator…");
+
+        bsnesInstance = await window.startBSNES(romBytes, canvas, {
+          onStatus: setStatus,
+          setInitialVolume: parseFloat(volumeSlider.value)
+        });
+
+        isRunning = true;
+        resetBtn.disabled = false;
+        fullscreenBtn.disabled = false;
+
+        // Apply current volume to the new instance
+        applyVolumeToCore();
+
+        // Restore SRAM if available
+        restoreSRAMFromStorage();
+
+        // Start periodic SRAM autosave
+        sramTimerId = setInterval(() => {
+          saveSRAMToStorage(true);
+        }, 5000);
+
+        setStatus("Emulation running.");
+      } catch (err) {
+        console.error(err);
+        setStatus("Error starting bsnes. See console for details.");
+      }
+    }
+
+    loadBtn.addEventListener("click", () => {
+      startEmulator();
+    });
+
+    resetBtn.addEventListener("click", () => {
+      if (bsnesInstance && typeof bsnesInstance.reset === "function") {
+        bsnesInstance.reset();
+        setStatus("ROM reset.");
+      } else {
+        startEmulator();
+      }
+    });
+
+    fullscreenBtn.addEventListener("click", () => {
+      if (!canvas.requestFullscreen) {
+        setStatus("Fullscreen not supported in this browser.");
+        return;
+      }
+      canvas.requestFullscreen().catch((err) => {
+        console.error(err);
+        setStatus("Failed to enter fullscreen.");
+      });
+    });
+
+    // ------------- VOLUME HANDLING -------------
+    function applyVolumeToCore() {
+      const v = parseFloat(volumeSlider.value);
+      volumeLabel.textContent = `${Math.round(v * 100)}%`;
+      if (bsnesInstance && typeof bsnesInstance.setVolume === "function") {
+        bsnesInstance.setVolume(v);
+      }
+    }
+
+    volumeSlider.addEventListener("input", () => {
+      const v = parseFloat(volumeSlider.value);
+      if (v > 0) {
+        lastVolumeBeforeMute = v;
+      }
+      applyVolumeToCore();
+    });
+
+    muteBtn.addEventListener("click", () => {
+      const current = parseFloat(volumeSlider.value);
+      if (current > 0) {
+        lastVolumeBeforeMute = current;
+        volumeSlider.value = "0";
+        applyVolumeToCore();
+        muteBtn.textContent = "Unmute";
+      } else {
+        volumeSlider.value = String(lastVolumeBeforeMute || 0.8);
+        applyVolumeToCore();
+        muteBtn.textContent = "Mute";
+      }
+    });
+
+    // ------------- SCALE HANDLING -------------
+    function applyScale() {
+      const mode = scaleSelect.value;
+      if (mode === "fit") {
+        canvas.style.width = "100%";
+        canvas.style.maxWidth = "768px";
+      } else {
+        const scale = parseInt(mode, 10) || 1;
+        const baseWidth = 256;
+        canvas.style.width = `${baseWidth * scale}px`;
+        canvas.style.maxWidth = "none";
+      }
+    }
+
+    scaleSelect.addEventListener("change", applyScale);
+    applyScale();
+
+    // ------------- SAVE STATES -------------
+    function saveStateToSlot(slot) {
+      if (!bsnesInstance || typeof bsnesInstance.saveState !== "function") {
+        setStatus("Save state not supported by core.");
+        return;
+      }
+      try {
+        const bytes = bsnesInstance.saveState();
+        if (!(bytes instanceof Uint8Array)) {
+          setStatus("saveState() did not return Uint8Array.");
+          return;
+        }
+        const b64 = btoa(String.fromCharCode(...bytes));
+        localStorage.setItem(stateKey(slot), b64);
+        setStatus(`Saved state to slot ${slot}.`);
+      } catch (e) {
+        console.error(e);
+        setStatus("Failed to save state.");
+      }
+    }
+
+    function loadStateFromSlot(slot) {
+      if (!bsnesInstance || typeof bsnesInstance.loadState !== "function") {
+        setStatus("Load state not supported by core.");
+        return;
+      }
+      const b64 = localStorage.getItem(stateKey(slot));
+      if (!b64) {
+        setStatus(`No state in slot ${slot} for this ROM.`);
+        return;
+      }
+      try {
+        const binary = atob(b64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        bsnesInstance.loadState(bytes);
+        setStatus(`Loaded state from slot ${slot}.`);
+      } catch (e) {
+        console.error(e);
+        setStatus("Failed to load state.");
+      }
+    }
+
+    stateButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const slot = parseInt(btn.getAttribute("data-slot"), 10);
+        const action = btn.getAttribute("data-action");
+        if (!slot || !action) return;
+        if (!romInfo) {
+          setStatus("Load a ROM before using save states.");
+          return;
+        }
+        if (action === "save") {
+          saveStateToSlot(slot);
+        } else {
+          loadStateFromSlot(slot);
+        }
+      });
+    });
+
+    clearStatesBtn.addEventListener("click", () => {
+      if (!romInfo) {
+        setStatus("No ROM loaded.");
+        return;
+      }
+      for (let slot = 1; slot <= 4; slot++) {
+        localStorage.removeItem(stateKey(slot));
+      }
+      localStorage.removeItem(sramKey());
+      setStatus("Cleared save states and SRAM for this ROM.");
+    });
+
+    // ------------- SRAM PERSISTENCE -------------
+    function saveSRAMToStorage(silent = false) {
+      if (!bsnesInstance || typeof bsnesInstance.getSRAM !== "function") return;
+      try {
+        const sram = bsnesInstance.getSRAM();
+        if (!sram || !(sram instanceof Uint8Array) || sram.length === 0) return;
+        const b64 = btoa(String.fromCharCode(...sram));
+        localStorage.setItem(sramKey(), b64);
+        if (!silent) setStatus("SRAM saved.");
+      } catch (e) {
+        console.warn("Failed to save SRAM:", e);
+      }
+    }
+
+    function restoreSRAMFromStorage() {
+      if (!bsnesInstance || typeof bsnesInstance.setSRAM !== "function") return;
+      const b64 = localStorage.getItem(sramKey());
+      if (!b64) return;
+      try {
+        const binary = atob(b64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        bsnesInstance.setSRAM(bytes);
+        setStatus("SRAM restored from previous session.");
+      } catch (e) {
+        console.warn("Failed to restore SRAM:", e);
+      }
+    }
+
+    // ------------- INPUT: KEYBOARD + GAMEPAD -------------
+    const KEY_BINDINGS = {
+      ArrowUp: "up",
+      ArrowDown: "down",
+      ArrowLeft: "left",
+      ArrowRight: "right",
+      z: "b",
+      Z: "b",
+      x: "a",
+      X: "a",
+      a: "y",
+      A: "y",
+      s: "x",
+      S: "x",
+      q: "l",
+      Q: "l",
+      w: "r",
+      W: "r",
+      Enter: "start",
+      "ShiftRight": "select"
+    };
+
+    function setButtonStateFromKey(event, isDown) {
+      const key = event.key;
+      const code = event.code;
+      const mapped =
+        KEY_BINDINGS[key] || KEY_BINDINGS[code] || null;
+      if (!mapped) return false;
+      inputState[mapped] = isDown;
+      event.preventDefault();
+      return true;
+    }
+
+    window.addEventListener("keydown", (e) => {
+      setButtonStateFromKey(e, true);
+    });
+
+    window.addEventListener("keyup", (e) => {
+      setButtonStateFromKey(e, false);
+    });
+
+    // Gamepad: first connected pad with standard mapping
+    function updateInputFromGamepad() {
+      const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+      const pad = gamepads && gamepads[0];
+
+      if (pad && pad.connected) {
+        const b = pad.buttons;
+
+        // D-Pad
+        if (b[12]) inputState.up = !!b[12].pressed;
+        if (b[13]) inputState.down = !!b[13].pressed;
+        if (b[14]) inputState.left = !!b[14].pressed;
+        if (b[15]) inputState.right = !!b[15].pressed;
+
+        // Face buttons (standard mapping)
+        if (b[0]) inputState.b = !!b[0].pressed;   // A button -> B
+        if (b[1]) inputState.a = !!b[1].pressed;   // B button -> A
+        if (b[2]) inputState.x = !!b[2].pressed;   // X
+        if (b[3]) inputState.y = !!b[3].pressed;   // Y
+
+        // Shoulders
+        if (b[4]) inputState.l = !!b[4].pressed;   // LB
+        if (b[5]) inputState.r = !!b[5].pressed;   // RB
+
+        // Start / Select
+        if (b[9]) inputState.start = !!b[9].pressed;    // Start
+        if (b[8]) inputState.select = !!b[8].pressed;   // Back
+      }
+
+      if (bsnesInstance && typeof bsnesInstance.setInputState === "function") {
+        bsnesInstance.setInputState(0, inputState);
+      }
+
+      requestAnimationFrame(updateInputFromGamepad);
+    }
+
+    requestAnimationFrame(updateInputFromGamepad);
+  </script>
+</body>
+</html>
