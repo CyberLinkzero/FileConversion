@@ -9,7 +9,7 @@
   <!-- Chessboard.js CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
 
-  <!-- ✅ jQuery (required by chessboard.js) -->
+  <!-- jQuery (required by chessboard.js) -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"
           integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
           crossorigin="anonymous"></script>
@@ -18,8 +18,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 
   <!-- Chessboard.js JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script> 
-  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+
   <style>
     :root {
       --bg-main: #020617;
@@ -812,21 +812,20 @@
     URL.revokeObjectURL(url);
   }
 
+  // --- Init board ---
   const config = {
     draggable: true,
-   const config = {
-  draggable: true,
-  position: "start",
-  pieceTheme: "https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/img/chesspieces/wikipedia/{piece}.png",
-  onDragStart: onDragStart,
-  onDrop: onDrop,
-  onSnapEnd: onSnapEnd
-};
-board = Chessboard("board", config);
-
+    position: "start",
+    pieceTheme: "https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/img/chesspieces/wikipedia/{piece}.png",
+    onDragStart: onDragStart,
+    onDrop: onDrop,
+    onSnapEnd: onSnapEnd
+  };
+  board = Chessboard("board", config);
 
   updateStatusAndMoves();
 
+  // --- Wire UI events ---
   difficultyPills.forEach(pill => {
     pill.addEventListener("click", () => {
       const level = pill.dataset.level;
