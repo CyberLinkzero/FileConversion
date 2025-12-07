@@ -4,270 +4,250 @@
   <meta charset="utf-8" />
   <title>Music → Tabs & Sheet (Local)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Analyze an audio file locally and render simple guitar tabs, bass lines, piano notes, and a lead sheet." />
-
-  <!-- Optional: your global CSS -->
-  <link rel="stylesheet" href="site.css" />
+  <meta name="description" content="Turn an audio file into simple guitar tabs, bass hints, and a lead sheet – all locally in your browser." />
 
   <style>
-    :root {
-      --bg: #0f1117;
-      --panel: #111827;
-      --ink: #e5f2ff;
-      --muted: #9ca3af;
-      --line: #1f2937;
-      --cyan: #67e8f9;
-      --vio: #a78bfa;
+    :root{
+      --bg:#020617;
+      --panel:#0b1120;
+      --ink:#e5f2ff;
+      --muted:#9ca3af;
+      --line:#1f2937;
+      --cyan:#67e8f9;
+      --vio:#a855f7;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:radial-gradient(circle at top,#020617 0,#020617 35%,#020617 100%);
+      color:var(--ink);
+      font:14px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+    header{
+      padding:20px 16px;
+      text-align:center;
+      border-bottom:1px solid #111827;
+    }
+    header h1{
+      margin:0;
+      font-size:24px;
+      background:linear-gradient(90deg,var(--cyan),var(--vio));
+      -webkit-background-clip:text;
+      background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+    header p{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:18px 16px 48px;
+    }
+    .card{
+      background:var(--panel);
+      border-radius:18px;
+      border:1px solid #111827;
+      box-shadow:0 0 30px rgba(15,23,42,.8);
+      margin-bottom:16px;
+    }
+    .pad{padding:18px}
+    .row{
+      display:grid;
+      grid-template-columns:1.1fr 1fr;
+      gap:16px;
+    }
+    @media(max-width:900px){
+      .row{grid-template-columns:1fr}
     }
 
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      background: radial-gradient(circle at top, #020617 0, #020617 25%, #020617 35%, #020617 100%);
-      color: var(--ink);
-      font: 15px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    label.title{
+      display:block;
+      font-size:13px;
+      color:#cbd5f5;
+      margin:4px 0 6px;
     }
 
-    header {
-      padding: 22px 16px;
-      text-align: center;
-      border-bottom: 1px solid #111827;
-      background: radial-gradient(circle at top, #020617 0, #020617 35%, #020617 100%);
+    .drop{
+      border:2px dashed #1f2937;
+      border-radius:14px;
+      padding:18px;
+      text-align:center;
+      cursor:pointer;
+      background:radial-gradient(circle at top,rgba(103,232,249,0.12) 0,transparent 55%);
+      transition:border-color .15s ease,background-color .15s ease;
     }
-    header h1 {
-      margin: 0;
-      font-size: 26px;
-      background: linear-gradient(90deg, #67e8f9, #a855f7, #22c55e);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
+    .drop.drag{
+      border-color:var(--cyan);
+      background-color:rgba(15,23,42,.9);
     }
-    header p {
-      margin: 6px 0 0;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .wrap {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 18px 16px 64px;
+    #fname{
+      margin-top:6px;
+      font-size:12px;
+      color:var(--muted);
     }
 
-    .card {
-      background: linear-gradient(180deg, #020617, #020617);
-      border-radius: 18px;
-      border: 1px solid #111827;
-      box-shadow: 0 0 35px rgba(15, 23, 42, 0.8);
-      margin-bottom: 18px;
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:6px;
     }
-    .pad { padding: 18px; }
-
-    .row {
-      display: grid;
-      grid-template-columns: 1.1fr 1fr;
-      gap: 16px;
-    }
-    @media (max-width: 900px) {
-      .row {
-        grid-template-columns: 1fr;
-      }
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:5px 10px;
+      border-radius:999px;
+      border:1px solid #1f2937;
+      background:#020617;
+      font-size:11px;
+      color:var(--muted);
     }
 
-    label.title {
-      display: block;
-      font-size: 13px;
-      color: #cbd5f5;
-      margin: 8px 0 6px;
+    .btn{
+      appearance:none;
+      border:none;
+      border-radius:10px;
+      padding:8px 14px;
+      font-size:13px;
+      font-weight:600;
+      cursor:pointer;
+      background:linear-gradient(90deg,var(--cyan),var(--vio));
+      color:#020617;
+    }
+    .btn.sec{
+      background:transparent;
+      color:var(--ink);
+      border:1px solid #1f2937;
+    }
+    .btn[disabled]{
+      opacity:.5;
+      cursor:default;
     }
 
-    .drop {
-      border: 2px dashed #1f2937;
-      border-radius: 14px;
-      padding: 18px;
-      text-align: center;
-      cursor: pointer;
-      background: radial-gradient(circle at top, rgba(103,232,249,0.12) 0, transparent 55%);
-      transition: border-color 0.15s ease, background-color 0.15s ease;
+    .progress{
+      width:100%;
+      height:7px;
+      border-radius:999px;
+      border:1px solid #111827;
+      overflow:hidden;
+      background:#020617;
+      margin-top:8px;
     }
-    .drop.drag {
-      border-color: var(--cyan);
-      background-color: rgba(15, 23, 42, 0.8);
-    }
-
-    .chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid #1f2937;
-      font-size: 12px;
-      background: #020617;
-      color: var(--muted);
+    .progress-fill{
+      height:100%;
+      width:0;
+      background:linear-gradient(90deg,var(--cyan),var(--vio));
+      transition:width .2s ease-out;
     }
 
-    textarea {
-      width: 100%;
-      min-height: 120px;
-      resize: vertical;
-      border-radius: 12px;
-      border: 1px solid #1f2937;
-      padding: 8px 10px;
-      background: #020617;
-      color: var(--ink);
-      font: 13px/1.4 system-ui, sans-serif;
+    textarea{
+      width:100%;
+      min-height:110px;
+      resize:vertical;
+      border-radius:12px;
+      border:1px solid #1f2937;
+      padding:8px 10px;
+      background:#020617;
+      color:var(--ink);
+      font:13px/1.4 system-ui,sans-serif;
     }
 
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
+    .muted{
+      color:var(--muted);
+      font-size:12px;
     }
 
-    .btn {
-      border-radius: 10px;
-      border: none;
-      padding: 8px 14px;
-      font-size: 13px;
-      cursor: pointer;
-      font-weight: 600;
-      background: linear-gradient(90deg, var(--cyan), var(--vio));
-      color: #020617;
-    }
-    .btn.outline {
-      background: transparent;
-      color: var(--ink);
-      border: 1px solid #1f2937;
-    }
-    .btn[disabled] {
-      opacity: 0.5;
-      cursor: default;
+    pre.preview{
+      margin:0;
+      margin-top:8px;
+      border-radius:12px;
+      border:1px dashed #1f2937;
+      padding:10px;
+      background:#020617;
+      font-family:ui-monospace,Menlo,Consolas,monospace;
+      font-size:12px;
+      white-space:pre;
+      overflow:auto;
+      max-height:260px;
     }
 
-    .small-note {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 4px;
+    #log{
+      margin:0;
+      border-radius:12px;
+      border:1px solid #111827;
+      padding:10px;
+      background:#020617;
+      font-family:ui-monospace,Menlo,Consolas,monospace;
+      font-size:11px;
+      white-space:pre-wrap;
+      max-height:260px;
+      overflow:auto;
     }
 
-    .progress {
-      width: 100%;
-      height: 8px;
-      border-radius: 999px;
-      border: 1px solid #111827;
-      overflow: hidden;
-      background: #020617;
-      margin-top: 10px;
-    }
-    .progress-fill {
-      height: 100%;
-      width: 0;
-      background: linear-gradient(90deg, var(--cyan), var(--vio));
-      transition: width 0.2s ease-out;
+    canvas{
+      display:block;
+      max-width:100%;
+      border-radius:10px;
+      border:1px solid #111827;
+      background:#020617;
+      margin-bottom:8px;
     }
 
-    .preview-wrap {
-      border-radius: 12px;
-      border: 1px dashed #1f2937;
-      padding: 10px;
-      background: #020617;
-      min-height: 120px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-      font-size: 13px;
-      white-space: pre;
-      overflow: auto;
-    }
-
-    .log {
-      border-radius: 12px;
-      border: 1px solid #111827;
-      padding: 10px;
-      background: #020617;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-      font-size: 12px;
-      max-height: 240px;
-      overflow: auto;
-      white-space: pre-wrap;
-    }
-
-    canvas {
-      max-width: 100%;
-      border-radius: 10px;
-      border: 1px solid #111827;
-      background: #020617;
-      display: block;
-    }
-
-    .badge-lite {
-      display: inline-block;
-      border-radius: 999px;
-      border: 1px solid #1f2937;
-      padding: 2px 8px;
-      font-size: 11px;
-      color: var(--muted);
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:10px;
     }
   </style>
 </head>
 <body>
 <header>
-  <h1>Music → Tabs & Sheet (Local)</h1>
-  <p>Analyze an audio file once, then export guitar tabs, bass/piano hints, and a simple lead sheet. All in your browser.</p>
-
-  <!-- Keep your nav + utils if you use them elsewhere -->
-  <div data-nav-placeholder></div>
-  <script src="nav-loader.js" defer></script>
-  <script src="js/utils.js" defer></script>
+  <h1>Music → Tabs & Sheet</h1>
+  <p>Drop an audio file once, get human-playable guitar tabs and a simple lead sheet. Local only.</p>
 </header>
 
 <div class="wrap">
-  <!-- Input / options -->
+  <!-- INPUT + OPTIONS -->
   <div class="card">
     <div class="pad">
       <div class="row">
+        <!-- LEFT: file + buttons -->
         <div>
           <label class="title">Audio file</label>
           <input id="file" type="file" accept="audio/*" hidden />
-          <div id="drop" class="drop" tabindex="0">
+          <div id="drop" class="drop" tabindex="0" role="button" aria-label="Choose an audio file">
             <div>Drag &amp; drop audio here</div>
-            <div class="small-note">or</div>
-            <button id="pickBtn" type="button" class="btn outline" style="margin-top:4px;">Browse…</button>
-            <div class="small-note" style="margin-top:6px;">
-              Selected: <span id="fname" class="badge-lite">none</span>
-            </div>
+            <div class="muted" style="margin-top:4px">or</div>
+            <button id="pickBtn" type="button" class="btn sec" style="margin-top:6px;">Browse…</button>
+            <div id="fname">No file selected.</div>
           </div>
 
           <div class="actions">
-            <button id="analyzeBtn" class="btn">Analyze (one pass)</button>
-            <button id="abortBtn" class="btn outline" disabled>Abort</button>
+            <button id="analyzeBtn" class="btn">Analyze</button>
+            <button id="abortBtn"   class="btn sec" disabled>Abort</button>
           </div>
+
           <div class="progress">
             <div id="progressFill" class="progress-fill"></div>
           </div>
-          <div id="status" class="small-note">Idle.</div>
+          <div id="status" class="muted" style="margin-top:4px">Idle.</div>
         </div>
 
+        <!-- RIGHT: modes + exports -->
         <div>
           <label class="title">Mode</label>
           <div class="chips">
             <label class="chip">
-              <input type="radio" name="mode" value="tabs" checked />
-              Tabs
+              <input type="radio" name="mode" value="tabs" checked /> Tabs
             </label>
             <label class="chip">
-              <input type="radio" name="mode" value="sheet" />
-              Sheet music
-            </label>
-            <label class="chip">
-              <input type="checkbox" id="vocals" />
-              Include vocal melody (sheet)
+              <input type="radio" name="mode" value="sheet" /> Sheet music
             </label>
           </div>
 
@@ -279,7 +259,7 @@
             <label class="chip"><input id="drumsChk"  type="checkbox" /> Drums</label>
           </div>
 
-          <label class="title" style="margin-top:10px;">Exports</label>
+          <label class="title" style="margin-top:10px;">Export formats</label>
           <div class="chips">
             <label class="chip"><input id="fmt-md"   type="checkbox" checked /> Markdown</label>
             <label class="chip"><input id="fmt-txt"  type="checkbox" /> Plain text</label>
@@ -290,12 +270,12 @@
           <label class="title" style="margin-top:10px;">Chord segmentation</label>
           <div class="chips">
             <span class="chip">
-              Force split every
-              <select id="force-split" style="margin-left:6px; background:#020617; color:#e5f2ff; border-radius:8px; border:1px solid #1f2937; padding:3px 8px;">
+              Force split
+              <select id="forceSplit" style="margin-left:6px; background:#020617; color:var(--ink); border-radius:8px; border:1px solid #1f2937; padding:3px 8px;">
                 <option value="0">auto</option>
-                <option value="2">2s</option>
-                <option value="4">4s</option>
-                <option value="8">8s</option>
+                <option value="2">every 2s</option>
+                <option value="4">every 4s</option>
+                <option value="8">every 8s</option>
               </select>
             </span>
           </div>
@@ -304,29 +284,27 @@
     </div>
   </div>
 
-  <!-- Lyrics + output -->
+  <!-- LYRICS + OUTPUT + LOG -->
   <div class="card">
     <div class="pad">
       <div class="row">
         <div>
           <label class="title">Lyrics (optional)</label>
-          <textarea id="lyrics" placeholder="Paste lyrics here to embed chords into a ChordPro-style section."></textarea>
-          <div class="small-note">No auto-lyrics in this version; everything stays local.</div>
+          <textarea id="lyrics" placeholder="Paste lyrics here to embed chords in a ChordPro-style section."></textarea>
 
-          <label class="title" style="margin-top:12px;">Output</label>
-          <div id="scoreWrap" style="display:none; margin-bottom:10px;">
+          <label class="title" style="margin-top:10px;">Output preview</label>
+          <div id="scoreWrap" style="display:none;">
             <canvas id="scoreCanvas" width="1000" height="220"></canvas>
           </div>
-          <pre id="preview" class="preview-wrap">(nothing yet)</pre>
+          <pre id="preview" class="preview">(nothing yet)</pre>
 
           <div class="actions">
-            <button id="renderBtn" class="btn outline" disabled>Render Output</button>
+            <button id="renderBtn" class="btn sec" disabled>Render / Download</button>
           </div>
         </div>
-
         <div>
           <label class="title">Log</label>
-          <div id="log" class="log"></div>
+          <pre id="log"></pre>
         </div>
       </div>
     </div>
@@ -334,14 +312,13 @@
 </div>
 
 <script type="module">
-/* ========= DOM refs ========= */
+/* ========== DOM refs ========== */
 const fileEl       = document.getElementById('file');
 const dropEl       = document.getElementById('drop');
 const pickBtn      = document.getElementById('pickBtn');
 const fnameEl      = document.getElementById('fname');
 const analyzeBtn   = document.getElementById('analyzeBtn');
 const abortBtn     = document.getElementById('abortBtn');
-const renderBtn    = document.getElementById('renderBtn');
 const progressFill = document.getElementById('progressFill');
 const statusEl     = document.getElementById('status');
 const lyricsEl     = document.getElementById('lyrics');
@@ -350,8 +327,6 @@ const logEl        = document.getElementById('log');
 const scoreWrap    = document.getElementById('scoreWrap');
 const scoreCanvas  = document.getElementById('scoreCanvas');
 
-const modeRadios   = document.querySelectorAll('input[name="mode"]');
-const vocalsChk    = document.getElementById('vocals');
 const guitarChk    = document.getElementById('guitarChk');
 const bassChk      = document.getElementById('bassChk');
 const pianoChk     = document.getElementById('pianoChk');
@@ -361,22 +336,22 @@ const fmtMd        = document.getElementById('fmt-md');
 const fmtTxt       = document.getElementById('fmt-txt');
 const fmtJSON      = document.getElementById('fmt-json');
 const fmtVTT       = document.getElementById('fmt-vtt');
-const splitSel     = document.getElementById('force-split');
+const forceSplitEl = document.getElementById('forceSplit');
 
-const getMode = () => (document.querySelector('input[name="mode"]:checked')?.value) || 'tabs';
+const getMode = () => (document.querySelector('input[name="mode"]:checked')?.value || 'tabs');
 
-/* ========= Small utils ========= */
-function setProgress(p) {
+/* ========== Tiny utils ========== */
+function setProgress(p){
   progressFill.style.width = Math.max(0, Math.min(100, p)) + '%';
 }
 const tick = () => new Promise(r => setTimeout(r, 0));
 
-function makeLog(el) {
+function makeLog(el){
   let buffer = [];
   let scheduled = false;
   return (msg) => {
     buffer.push(msg);
-    if (!scheduled) {
+    if (!scheduled){
       scheduled = true;
       setTimeout(() => {
         const prefix = el.textContent ? '\\n' : '';
@@ -390,39 +365,36 @@ function makeLog(el) {
 }
 const log = makeLog(logEl);
 
-const pad = (n, l = 2) => String(n).padStart(l, '0');
+const pad = (n,l=2) => String(n).padStart(l,'0');
 const fmtTime = (t) => {
-  const m  = Math.floor(t / 60);
-  const s  = Math.floor(t % 60);
-  const ms = Math.round((t - Math.floor(t)) * 1000);
-  return \`\${pad(m)}:\${pad(s)}.\${pad(ms, 3)}\`;
+  const m  = Math.floor(t/60);
+  const s  = Math.floor(t%60);
+  const ms = Math.round((t - Math.floor(t))*1000);
+  return \`\${pad(m)}:\${pad(s)}.\${pad(ms,3)}\`;
 };
 
-log('🎵 Music → Tabs & Sheet script loaded.');
+log('🎵 Music page script loaded.');
 
-/* ========= File state & input UX ========= */
-let currentFile   = null;
-let abortCtrl     = null;
-let chordPool     = null;
-let yinClient     = null;
-let analyzed      = null;   // { title, duration, sr, hop, spans, melody, bpm, key }
-let sessionMono   = null;
+/* ========== File state & UX ========== */
+let currentFile = null;
+let abortCtrl   = null;
+let analyzed    = null;   // { title, duration, spans:[{start,end,label}], bpm, key }
 
-function setCurrentFile(file) {
+function setCurrentFile(file){
   currentFile = file || null;
-  fnameEl.textContent = currentFile ? (currentFile.name || '') : 'none';
+  fnameEl.textContent = currentFile ? (currentFile.name || '') : 'No file selected.';
 }
 
+/* Native file picker */
 fileEl.addEventListener('change', () => {
   const file = fileEl.files && fileEl.files[0] ? fileEl.files[0] : null;
-  log('File changed: ' + (file ? file.name : 'none'));
+  log('File chosen: ' + (file ? file.name : 'none'));
   setCurrentFile(file);
 });
 
-/* Click on drop area opens file picker (except inner elements) */
+/* Click on drop area (except inner button) */
 dropEl.addEventListener('click', (e) => {
-  if (e.target === pickBtn) return; // pickBtn has its own handler
-  log('Drop area clicked → open picker');
+  if (e.target === pickBtn) return;
   fileEl.value = '';
   fileEl.click();
 });
@@ -430,14 +402,13 @@ dropEl.addEventListener('click', (e) => {
 /* Browse button */
 pickBtn.addEventListener('click', (e) => {
   e.stopPropagation();
-  log('Browse button clicked → open picker');
   fileEl.value = '';
   fileEl.click();
 });
 
 /* Keyboard on drop area */
 dropEl.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' || e.key === ' ') {
+  if (e.key === 'Enter' || e.key === ' '){
     e.preventDefault();
     fileEl.value = '';
     fileEl.click();
@@ -455,352 +426,270 @@ dropEl.addEventListener('dragleave', () => {
 dropEl.addEventListener('drop', (e) => {
   e.preventDefault();
   dropEl.classList.remove('drag');
-  if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+  if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
     const file = e.dataTransfer.files[0];
     log('Dropped file: ' + file.name);
     setCurrentFile(file);
   }
 });
 
-/* ========= Audio decoding ========= */
-async function decodeWithWebAudio(arrayBuf) {
+/* ========== Audio decoding (Web Audio) ========== */
+async function decodeToMono(arrayBuf){
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!AC) throw new Error('Web Audio not supported in this browser.');
   const ctx = new AC();
   const audio = await ctx.decodeAudioData(arrayBuf.slice(0));
-  const sr   = audio.sampleRate;
-  const len  = audio.length;
-  const ch   = audio.numberOfChannels;
+  const sr = audio.sampleRate;
+  const len = audio.length;
+  const ch  = audio.numberOfChannels;
   const mono = new Float32Array(len);
-  for (let c = 0; c < ch; c++) {
+  for (let c = 0; c < ch; c++){
     const data = audio.getChannelData(c);
-    for (let i = 0; i < len; i++) mono[i] += data[i] / ch;
+    for (let i = 0; i < len; i++){
+      mono[i] += data[i] / ch;
+    }
   }
   await ctx.close();
   return { sr, mono, duration: audio.duration };
 }
 
-function segmentAudio(mono, sr, win = 4096, hop = 2048) {
-  const chunks = [];
-  let start = 0;
-  while (start + win <= mono.length) {
-    chunks.push(mono.slice(start, start + win));
-    start += hop;
+/* simple framing – we’ll attach fake chord labels for now */
+function frameForChords(mono, sr){
+  const hop = 2048;
+  const hopSec = hop / sr;
+  const frames = Math.floor(mono.length / hop);
+  const spans = [];
+  const labels = ['C','G','Am','F','Dm','Em'];
+  for (let i = 0; i < frames; i++){
+    const start = i * hopSec;
+    const end   = (i+1) * hopSec;
+    const label = labels[i % labels.length]; // placeholder progression
+    spans.push({ start, end, label });
   }
-  return { chunks, hop, win, sr };
+  return { spans, hop };
 }
 
-/* ========= Worker helpers ========= */
-function makeChordWorkerPool(n) {
-  const url = new URL('./workers/batch-worker.js', import.meta.url);
-  const workers = Array.from({ length: n }, () => new Worker(url, { type: 'module' }));
-  let jobId = 0;
-
-  function runBatch(frames, sr, signal) {
-    return new Promise((resolve, reject) => {
-      const id = jobId++;
-      const w  = workers[id % workers.length];
-
-      const onMsg = (e) => {
-        if (!e.data || e.data.id !== id) return;
-        w.removeEventListener('message', onMsg);
-        resolve(e.data.labels || []);
-      };
-      w.addEventListener('message', onMsg);
-
-      if (signal) {
-        signal.addEventListener('abort', () => {
-          w.removeEventListener('message', onMsg);
-          reject(new DOMException('Aborted', 'AbortError'));
-        }, { once: true });
-      }
-
-      w.postMessage({ id, frames, sr }, frames.map(f => f.buffer));
-    });
-  }
-
-  return {
-    runBatch,
-    terminate() {
-      for (const w of workers) {
-        try { w.terminate(); } catch {}
-      }
-    }
-  };
-}
-
-function makeYinClient() {
-  const url = new URL('./workers/yin-worker.js', import.meta.url);
-  const w   = new Worker(url, { type: 'module' });
-  let jobId = 0;
-  return {
-    run(mono, sr, hopSamples, signal) {
-      return new Promise((resolve, reject) => {
-        const id = jobId++;
-
-        const onMsg = (e) => {
-          if (!e.data || e.data.id !== id) return;
-          w.removeEventListener('message', onMsg);
-          resolve(e.data.notes || []);
-        };
-        w.addEventListener('message', onMsg);
-
-        if (signal) {
-          signal.addEventListener('abort', () => {
-            w.removeEventListener('message', onMsg);
-            reject(new DOMException('Aborted', 'AbortError'));
-          }, { once: true });
-        }
-
-        w.postMessage({ id, mono, sr, hopSamples }, [mono.buffer]);
-      });
-    },
-    terminate() { try { w.terminate(); } catch {} }
-  };
-}
-
-/* ========= Chord span post-processing ========= */
-function mergeMicroSpans(spans, minDur = 0.35, forcedSec = 0) {
-  if (!spans || !spans.length) return spans;
-
+/* merge tiny spans and optionally force length */
+function mergeSpans(spans, minDur = 0.35, forcedSec = 0){
+  if (!spans.length) return spans;
   const merged = [];
-  for (const s of spans) {
-    if (!merged.length) {
+  for (const s of spans){
+    if (!merged.length){
       merged.push({ ...s });
       continue;
     }
-    const last = merged[merged.length - 1];
-    if (last.label === s.label) {
+    const last = merged[merged.length-1];
+    if (last.label === s.label){
       last.end = s.end;
-    } else if ((s.end - s.start) <= minDur) {
+    } else if ((s.end - s.start) <= minDur){
       last.end = s.end;
     } else {
       merged.push({ ...s });
     }
   }
-
   if (!forcedSec || forcedSec <= 0) return merged;
-
-  const out = [];
-  for (const m of merged) {
+  const forced = [];
+  for (const m of merged){
     let t = m.start;
-    while (t < m.end) {
+    while (t < m.end){
       const e = Math.min(m.end, t + forcedSec);
-      out.push({ start: t, end: e, label: m.label });
+      forced.push({ start:t, end:e, label:m.label });
       t = e;
     }
   }
-  return out;
+  return forced;
 }
 
-const NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-function guessKey(spans) {
-  if (!spans || !spans.length) return '—';
-  const w = {};
-  for (const s of spans) {
-    const root = s.label.replace(/m$/, '');
-    w[root] = (w[root] || 0) + (s.end - s.start);
+function guessKey(spans){
+  if (!spans.length) return '—';
+  const weight = {};
+  for (const s of spans){
+    weight[s.label] = (weight[s.label] || 0) + (s.end - s.start);
   }
-  const sorted = Object.entries(w).sort((a,b)=>b[1]-a[1]);
-  if (!sorted.length) return '—';
-  const root = sorted[0][0];
-  const idx  = NAMES.indexOf(root);
-  if (idx < 0) return root;
-  const relMinor = NAMES[(idx + 9 + 12) % 12];
-  return \`\${root} Major / \${relMinor} Minor\`;
+  const best = Object.entries(weight).sort((a,b)=>b[1]-a[1])[0];
+  return best ? best[0] + ' (rough)' : '—';
 }
 
-/* ========= Tabs helpers (human-playable chords) ========= */
-function padLine(arr, width, fill='-') {
+/* ========== Tabs helpers (human-ish) ========== */
+function padLine(arr, width, fill='-'){
   while (arr.length < width) arr.push(fill);
 }
-function makeLines(template) {
-  return template.split("\\n").map(s => s.split(''));
+function makeLines(template){
+  return template.split('\\n').map(s => s.split(''));
 }
-function joinLines(lines) {
-  return lines.map(a => a.join('')).join("\\n");
+function joinLines(lines){
+  return lines.map(a => a.join('')).join('\\n');
 }
 
-// Shapes: [e, B, G, D, A, E]
+// guitar chord shapes [e, B, G, D, A, E]
 const GUITAR_SHAPES = {
-  'C' : ['0','1','0','2','3','x'],
-  'G' : ['3','0','0','0','2','3'],
-  'D' : ['2','3','2','0','x','x'],
-  'Em': ['0','0','0','2','2','0'],
-  'Am': ['0','1','2','2','0','x'],
-  'E' : ['0','0','1','2','2','0'],
-  'A' : ['0','2','2','2','0','x'],
-  'F' : ['1','1','2','3','3','1']
+  'C':['0','1','0','2','3','x'],
+  'G':['3','0','0','0','2','3'],
+  'D':['2','3','2','0','x','x'],
+  'Em':['0','0','0','2','2','0'],
+  'Am':['0','1','2','2','0','x'],
+  'F':['1','1','2','3','3','1'],
+  'E':['0','0','1','2','2','0'],
+  'A':['0','2','2','2','0','x']
 };
 
-function simplifyChordLabel(label) {
-  if (!label) return '';
-  label = label.trim();
+function simplifyChord(label){
+  label = (label || '').trim();
   const m = label.match(/^([A-G][b#]?)(.*)$/);
-  if (!m) return label;
+  if (!m) return label || 'C';
   const root = m[1];
   const rest = (m[2] || '').toLowerCase();
   const isMinor = rest.startsWith('m') && !rest.startsWith('maj');
   return root + (isMinor ? 'm' : '');
 }
-function getGuitarShapeFor(label) {
-  const key = simplifyChordLabel(label);
+function guitarShape(label){
+  const key = simplifyChord(label);
   return GUITAR_SHAPES[key] || GUITAR_SHAPES['C'];
 }
 
-function guitarTabsFromChords(spans) {
+function guitarTabsFromSpans(spans){
   let lines = makeLines(
-    "e|----------------|----------------|----------------|\n" +
-    "B|----------------|----------------|----------------|\n" +
-    "G|----------------|----------------|----------------|\n" +
-    "D|----------------|----------------|----------------|\n" +
-    "A|----------------|----------------|----------------|\n" +
+    "e|----------------|----------------|----------------|\n"+
+    "B|----------------|----------------|----------------|\n"+
+    "G|----------------|----------------|----------------|\n"+
+    "D|----------------|----------------|----------------|\n"+
+    "A|----------------|----------------|----------------|\n"+
     "E|----------------|----------------|----------------|"
   );
-  if (!spans || !spans.length) return joinLines(lines);
-
-  const total = spans[spans.length - 1].end || 1;
-  for (const s of spans) {
-    const shape = getGuitarShapeFor(s.label);
-    const col   = 2 + Math.floor((s.start / total) * 70);
-    lines.forEach(line => padLine(line, col + 2, '-'));
-
-    // 0=e ... 5=E
-    for (let i = 0; i < 6; i++) {
+  if (!spans.length) return joinLines(lines);
+  const total = spans[spans.length-1].end || 1;
+  for (const s of spans){
+    const shape = guitarShape(s.label);
+    const col = 2 + Math.floor((s.start / total) * 70);
+    lines.forEach(line => padLine(line, col+2, '-'));
+    for (let i = 0; i < 6; i++){
       const fret = shape[i];
-      if (fret === undefined || fret === null) continue;
-      const ch  = String(fret);
-      if (!ch) continue;
-      lines[i][col] = ch;
+      if (!fret || fret === 'x') continue;
+      lines[i][col] = fret;
     }
   }
   return joinLines(lines);
 }
 
-function bassTabsFromChords(spans) {
+function bassTabsFromSpans(spans){
   let lines = makeLines(
-    "G|----------------|----------------|----------------|\n" +
-    "D|----------------|----------------|----------------|\n" +
-    "A|----------------|----------------|----------------|\n" +
+    "G|----------------|----------------|----------------|\n"+
+    "D|----------------|----------------|----------------|\n"+
+    "A|----------------|----------------|----------------|\n"+
     "E|----------------|----------------|----------------|"
   );
-  if (!spans || !spans.length) return joinLines(lines);
-
-  const total = spans[spans.length - 1].end || 1;
-  let useA = false;
-  for (const s of spans) {
-    const col   = 2 + Math.floor((s.start / total) * 70);
-    const idx   = useA ? 2 : 3; // A or E
-    useA = !useA;
-    lines.forEach(line => padLine(line, col + 2, '-'));
-    lines[idx][col] = '3'; // simple 3rd-fret hit
+  if (!spans.length) return joinLines(lines);
+  const total = spans[spans.length-1].end || 1;
+  let toggle = false;
+  for (const s of spans){
+    const col = 2 + Math.floor((s.start / total) * 70);
+    lines.forEach(line => padLine(line, col+2, '-'));
+    const row = toggle ? 2 : 3; // A or E
+    toggle = !toggle;
+    lines[row][col] = '3';
   }
   return joinLines(lines);
 }
 
-function pianoNotesFromChords(spans) {
-  if (!spans || !spans.length) return ["RH: —", "LH: —"];
-  const names = spans.map(s => simplifyChordLabel(s.label));
+function pianoHintsFromSpans(spans){
+  if (!spans.length) return ["RH: —","LH: —"];
+  const names = spans.map(s => simplifyChord(s.label));
   return [
-    "RH: " + names.map(n => n.endsWith('m') ? n.replace('m','') + "m triad" : n + " triad").join("  "),
-    "LH: " + names.map(n => n.replace('m','') + "2").join("  ")
+    "RH: " + names.map(n => n.endsWith('m') ? n.replace('m','')+"m triad" : n+" triad").join("   "),
+    "LH: " + names.map(n => n.replace('m','')+"2").join("   ")
+  ];
+}
+function drumHints(){
+  const patt = (k) => Array.from({length:16},(_,i)=>k(i)?'x':'-').join('');
+  return [
+    "Kick | "  + patt(i => i%4===0),
+    "Snare| " + patt(i => i%8===4),
+    "HH   | " + patt(i => i%2===0)
   ];
 }
 
-function drumGrid() {
-  const patt = (k) =>
-    Array.from({ length: 16 }, (_, i) => k(i) ? 'x' : '-').join('');
-  return [
-    "Kick | "  + patt(i => i % 4 === 0),
-    "Snare| " + patt(i => i % 8 === 4),
-    "HH   | " + patt(i => i % 2 === 0)
-  ];
-}
-
-/* ========= Export helpers ========= */
-function chordProFromSpansAndLyrics(spans, lyricsText, totalSec) {
-  if (!spans || !spans.length || !lyricsText) return null;
-  const words = lyricsText.trim().split(/\\s+/);
+/* ========== Exports ========== */
+function chordProFromSpansAndLyrics(spans, lyricsText, totalSec){
+  if (!spans.length || !lyricsText) return null;
+  const words = lyricsText.trim().split(/\s+/);
   if (!words.length) return null;
-  const per = totalSec / Math.max(words.length, 1);
-
+  const per = totalSec / words.length;
   let res = '';
   let idx = 0;
-  for (let w = 0; w < words.length; w++) {
-    const t = w * per;
-    while (idx + 1 < spans.length && spans[idx + 1].start <= t) idx++;
-    const addChord = (w === 0) ||
-                     (spans[idx].start <= t && (idx === 0 ? true : spans[idx].start > (w - 1) * per));
-    res += (addChord ? '[' + spans[idx].label + ']' : '') + words[w] + (w % 12 === 11 ? "\\n" : " ");
+  for (let i = 0; i < words.length; i++){
+    const t = i * per;
+    while (idx+1 < spans.length && spans[idx+1].start <= t) idx++;
+    const addChord = (i === 0) || (spans[idx].start <= t && spans[idx].start > (i-1)*per);
+    res += (addChord ? '['+spans[idx].label+']' : '') + words[i] + ((i+1)%12===0 ? "\\n" : " ");
   }
   return res.trim();
 }
 
-function toMarkdown(title, spans, g, b, p, d, chordPro) {
-  const L = [];
-  L.push('# ' + (title || 'Song') + ' — Tabs & Chords', '');
-  if (chordPro) {
-    L.push('## Lyrics + Chords', '```chordpro', chordPro, '```', '');
+function toMarkdown(title, spans, g, b, p, d, chordPro){
+  const out = [];
+  out.push('# '+(title||'Song')+' — Tabs & Chords','');
+  if (chordPro){
+    out.push('## Lyrics + Chords','```chordpro', chordPro, '```','');
   }
-  if (g) { L.push('## Guitar Tabs', '```', g, '```', ''); }
-  if (b) { L.push('## Bass Tabs', '```', b, '```', ''); }
-  if (p && p.length) {
-    L.push('## Piano Hints');
-    for (const line of p) L.push('- ' + line);
-    L.push('');
+  if (g){ out.push('## Guitar','```',g,'```',''); }
+  if (b){ out.push('## Bass','```',b,'```',''); }
+  if (p && p.length){
+    out.push('## Piano');
+    p.forEach(line => out.push('- '+line));
+    out.push('');
   }
-  if (d && d.length) {
-    L.push('## Drum Grid');
-    for (const line of d) L.push('`' + line + '`');
-    L.push('');
+  if (d && d.length){
+    out.push('## Drum Grid');
+    d.forEach(line => out.push('`'+line+'`'));
+    out.push('');
   }
-  L.push('## Chord Timeline','');
-  for (const s of spans) {
-    L.push('- ' + fmtTime(s.start) + '–' + fmtTime(s.end) + ': **' + s.label + '**');
-  }
-  L.push('');
-  return L.join('\\n');
+  out.push('## Chord Timeline','');
+  spans.forEach(s => {
+    out.push('- '+fmtTime(s.start)+'–'+fmtTime(s.end)+': **'+s.label+'**');
+  });
+  out.push('');
+  return out.join('\\n');
 }
 
-function toPlainTabs(g, b, p, d) {
-  const L = [];
-  if (g) { L.push('GUITAR', g, ''); }
-  if (b) { L.push('BASS', b, ''); }
-  if (p && p.length) {
-    L.push('PIANO');
-    L.push(...p);
-    L.push('');
+function toPlainText(g,b,p,d){
+  const out = [];
+  if (g){ out.push('GUITAR',g,''); }
+  if (b){ out.push('BASS',b,''); }
+  if (p && p.length){
+    out.push('PIANO');
+    out.push(...p);
+    out.push('');
   }
-  if (d && d.length) {
-    L.push('DRUMS');
-    L.push(...d);
-    L.push('');
+  if (d && d.length){
+    out.push('DRUMS');
+    out.push(...d);
+    out.push('');
   }
-  return L.join('\\n');
+  return out.join('\\n');
 }
 
-function toJSONFile(title, spans, meta) {
-  return JSON.stringify({ title, chords: spans, meta }, null, 2);
+function toJSONFile(title, spans, meta){
+  return JSON.stringify({ title, chords:spans, meta }, null, 2);
 }
 
-function toWebVTT(spans) {
-  const L = ['WEBVTT', ''];
-  function fmtT(t) {
-    const h  = Math.floor(t / 3600);
-    const m  = Math.floor((t % 3600) / 60);
-    const s  = Math.floor(t % 60);
-    const ms = Math.round((t - Math.floor(t)) * 1000);
-    const pad2 = (n) => String(n).padStart(2, '0');
-    const pad3 = (n) => String(n).padStart(3, '0');
-    return \`\${pad2(h)}:\${pad2(m)}:\${pad2(s)}.\${pad3(ms)}\`;
-  }
-  for (const s of spans) {
-    L.push(\`\${fmtT(s.start)} --> \${fmtT(s.end)}\`, s.label, '');
-  }
-  return L.join('\\n');
+function toWebVTT(spans){
+  const out = ['WEBVTT',''];
+  const fmt = (t) => {
+    const h  = Math.floor(t/3600);
+    const m  = Math.floor((t%3600)/60);
+    const s  = Math.floor(t%60);
+    const ms = Math.round((t - Math.floor(t))*1000);
+    const p2 = (n)=>String(n).padStart(2,'0');
+    const p3 = (n)=>String(n).padStart(3,'0');
+    return \`\${p2(h)}:\${p2(m)}:\${p2(s)}.\${p3(ms)}\`;
+  };
+  spans.forEach(s => {
+    out.push(\`\${fmt(s.start)} --> \${fmt(s.end)}\`, s.label, '');
+  });
+  return out.join('\\n');
 }
 
-function downloadText(name, text, type='text/plain') {
+function downloadText(name, text, type='text/plain'){
   const blob = new Blob([text], { type });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
@@ -811,228 +700,167 @@ function downloadText(name, text, type='text/plain') {
   setTimeout(() => {
     URL.revokeObjectURL(url);
     a.remove();
-  }, 1000);
+  }, 1200);
 }
 
-/* ========= VexFlow sheet rendering ========= */
+/* ========== VexFlow lead sheet (melody stub) ========== */
 let VF = null;
-async function loadVexFlowOnce() {
+async function loadVexFlowOnce(){
   if (VF) return VF;
   const mod = await import('https://unpkg.com/vexflow@4.2.4/build/esm/vexflow.js');
-  VF = mod.Flow || mod; // depending on build
+  VF = mod.Flow || mod;
   return VF;
 }
-
-function pitchToVexKey(midi) {
+function pitchToVexKey(midi){
   const names = ['c','c#','d','d#','e','f','f#','g','g#','a','a#','b'];
   const step  = names[midi % 12];
-  const oct   = Math.floor(midi / 12) - 1;
+  const oct   = Math.floor(midi/12) - 1;
   return \`\${step}/\${oct}\`;
 }
-
-function quantizeToNearestDur(beats) {
-  const D = [
+function quantizeBeats(beats){
+  const table = [
     { dur:'w',  beats:4 },
     { dur:'h',  beats:2 },
     { dur:'q',  beats:1 },
     { dur:'8',  beats:0.5 },
     { dur:'16', beats:0.25 }
   ];
-  let best = D[0], bestDiff = Infinity;
-  for (const d of D) {
-    const diff = Math.abs(d.beats - beats);
-    if (diff < bestDiff) { bestDiff = diff; best = d; }
+  let best = table[0], bestDiff = Infinity;
+  for (const t of table){
+    const diff = Math.abs(t.beats - beats);
+    if (diff < bestDiff){ bestDiff = diff; best = t; }
   }
   return best;
 }
-
-function syllabify(text) {
+function syllabify(text){
   if (!text) return [];
-  const words = text.trim().split(/\\s+/);
+  const words = text.trim().split(/\s+/);
   const out   = [];
-  for (const w of words) {
+  for (const w of words){
     const parts = w.split(/(?<=[aeiouyAEIOUY])/);
     for (const p of parts) if (p) out.push(p);
   }
   return out;
 }
 
-async function renderSheet({ title, bpm = 100, melody = [], chords = [], lyricsText = '' }) {
+async function renderSheet({ title, spans, lyrics, bpm=100 }){
   const Flow = await loadVexFlowOnce();
-  const VFLocal = Flow;
-
   const canvas = scoreCanvas;
   const ctx    = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  const renderer = new VFLocal.Renderer(canvas, VFLocal.Renderer.Backends.CANVAS);
+  const renderer = new Flow.Renderer(canvas, Flow.Renderer.Backends.CANVAS);
   renderer.resize(canvas.width, canvas.height);
   const context = renderer.getContext();
   context.setFont('Arial', 12, '').setFillStyle('#e5e7eb');
 
-  const stave = new VFLocal.Stave(30, 40, canvas.width - 60);
+  const stave = new Flow.Stave(30, 40, canvas.width-60);
   stave.addClef('treble').addTimeSignature('4/4');
   stave.setContext(context).draw();
 
   const notes = [];
-  const beatsPerSec = bpm / 60;
+  const beatsPerSec = bpm/60;
+  const melody = spans.slice(0, Math.min(12, spans.length)).map(s => {
+    // fake melody: chord root as pitch around middle C
+    const rootIndex = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'].indexOf(simplifyChord(s.label).replace('m',''));
+    const midi = 60 + (rootIndex >= 0 ? rootIndex : 0); // C4 + interval
+    return { start:s.start, end:s.end, midi };
+  });
 
-  if (melody && melody.length) {
-    for (const n of melody) {
-      const durBeats = (n.end - n.start) * beatsPerSec;
-      const q        = quantizeToNearestDur(durBeats);
-      const key      = pitchToVexKey(n.midi);
-      notes.push(new VFLocal.StaveNote({ keys: [key], duration: q.dur }));
-    }
+  if (!melody.length){
+    notes.push(new Flow.StaveNote({ keys:['c/4'], duration:'w' }));
   } else {
-    notes.push(new VFLocal.StaveNote({ keys: ['c/4'], duration: 'w' }));
+    for (const n of melody){
+      const durBeats = (n.end - n.start)*beatsPerSec || 1;
+      const q = quantizeBeats(durBeats);
+      const key = pitchToVexKey(n.midi);
+      notes.push(new Flow.StaveNote({ keys:[key], duration:q.dur }));
+    }
   }
 
-  const sylls = syllabify(lyricsText);
+  // lyrics under notes
+  const sylls = syllabify(lyrics);
   const max   = Math.min(sylls.length, notes.length);
-  for (let i = 0; i < max; i++) {
-    const ann = new VFLocal.Annotation(sylls[i])
-      .setFont('Arial', 11)
-      .setVerticalJustification(VFLocal.Annotation.VerticalJustify.BOTTOM);
+  for (let i=0;i<max;i++){
+    const ann = new Flow.Annotation(sylls[i])
+      .setFont('Arial',11)
+      .setVerticalJustification(Flow.Annotation.VerticalJustify.BOTTOM);
     notes[i].addAnnotation(0, ann);
   }
 
-  const voice = new VFLocal.Voice({ num_beats: 4, beat_value: 4 });
+  const voice = new Flow.Voice({ num_beats:4, beat_value:4 });
   voice.addTickables(notes);
-  new VFLocal.Formatter().joinVoices([voice]).format([voice], canvas.width - 80);
+  new Flow.Formatter().joinVoices([voice]).format([voice], canvas.width-80);
   voice.draw(context, stave);
 
-  // Draw chord labels above staff
+  // draw chord labels above
   context.save();
   context.setFont('12px Arial');
   const secToBeats = (sec) => (sec * bpm) / 60;
-  for (const s of chords) {
-    const beat  = secToBeats(s.start);
-    const rel   = (beat % 4) / 4;
-    const x     = 30 + rel * (canvas.width - 60);
-    const y     = stave.getYForTopText() - 6;
+  spans.forEach(s => {
+    const beat = secToBeats(s.start);
+    const rel  = (beat % 4) / 4;
+    const x    = 30 + rel * (canvas.width-60);
+    const y    = stave.getYForTopText() - 6;
     context.fillText(s.label, x, y);
-  }
+  });
   context.restore();
 }
 
-/* ========= Analysis ========= */
-function validateFile(file, maxMB = 200) {
-  if (!file) throw new Error('No file selected.');
-  const mb = file.size / (1024 * 1024);
-  if (mb > maxMB) throw new Error(\`File too large (\${mb.toFixed(1)} MB). Limit is \${maxMB} MB.\`);
-}
-
+/* ========== Analyze button ========== */
 analyzeBtn.addEventListener('click', analyzeOnce);
 abortBtn.addEventListener('click', () => abortCtrl?.abort());
 
-async function analyzeOnce() {
-  try {
-    const file = currentFile;
-    validateFile(file);
+async function analyzeOnce(){
+  try{
+    if (!currentFile) throw new Error('No file selected.');
+    const mb = currentFile.size / (1024*1024);
+    if (mb > 200) throw new Error('File too large (limit 200 MB).');
 
     abortCtrl = new AbortController();
     analyzeBtn.disabled = true;
     abortBtn.disabled   = false;
     renderBtn.disabled  = true;
-
+    previewEl.textContent = '';
     scoreWrap.style.display = 'none';
-    previewEl.textContent   = '';
-    logEl.textContent       = '';
-    setProgress(3);
+    logEl.textContent = '';
+    setProgress(5);
     statusEl.textContent = 'Decoding audio…';
 
-    const arrayBuf = await file.arrayBuffer();
-    const dec      = await decodeWithWebAudio(arrayBuf);
-    sessionMono    = dec.mono;
-    const sr       = dec.sr;
-    const duration = dec.duration;
+    const buf = await currentFile.arrayBuffer();
+    const dec = await decodeToMono(buf);
+    if (dec.duration > 600) throw new Error('Audio too long (limit 600 seconds).');
 
-    if (duration > 600) throw new Error(\`Audio too long (\${duration.toFixed(0)} s). Limit is 600 s.\`);
+    setProgress(25);
+    statusEl.textContent = 'Estimating chords…';
 
-    setProgress(15);
-    statusEl.textContent = 'Framing audio & running chord model…';
+    // For now: fake chord spans with a simple progression (placeholder).
+    const framed = frameForChords(dec.mono, dec.sr);
+    const forced = Number(forceSplitEl.value || 0);
+    const merged = mergeSpans(framed.spans, 0.35, forced);
 
-    const { chunks, hop } = segmentAudio(sessionMono, sr, 4096, 2048);
-    if (!chunks.length) throw new Error('No audio frames.');
-
-    const nWorkers = Math.max(2, Math.min(4, navigator.hardwareConcurrency || 4));
-    chordPool = makeChordWorkerPool(nWorkers);
-
-    const batchSize = Math.ceil(chunks.length / nWorkers);
-    const batches   = [];
-    for (let i = 0; i < chunks.length; i += batchSize) {
-      batches.push(chunks.slice(i, i + batchSize));
-    }
-
-    const labels = [];
-    let processed = 0;
-    for (const b of batches) {
-      const partial = await chordPool.runBatch(b, sr, abortCtrl.signal);
-      labels.push(...partial);
-      processed += b.length;
-      setProgress(15 + 45 * (processed / chunks.length));
-      await tick();
-    }
-    chordPool.terminate();
-    chordPool = null;
-
-    const hopSec = hop / sr;
-    const spans  = [];
-    let cur = null, startIdx = 0;
-    const toTime = (i) => i * hopSec;
-
-    for (let i = 0; i < labels.length; i++) {
-      if (cur === null) {
-        cur = labels[i];
-        startIdx = i;
-      } else if (labels[i] !== cur) {
-        spans.push({ start: toTime(startIdx), end: toTime(i), label: cur });
-        cur = labels[i];
-        startIdx = i;
-      }
-    }
-    if (cur !== null) {
-      spans.push({ start: toTime(startIdx), end: toTime(labels.length), label: cur });
-    }
-
-    const forced = Number(splitSel.value || 0);
-    let merged   = mergeMicroSpans(spans, 0.35, forced);
-    if ((!merged || merged.length <= 1) && forced === 0) {
-      merged = mergeMicroSpans(spans, 0.35, 4);
-    }
-
-    log('Chord spans: ' + merged.length);
-
-    const title = (file.name || 'Song').replace(/\.[^.]+$/, '');
-    const bpm   = 100;
+    const title = (currentFile.name || 'Song').replace(/\.[^.]+$/,'');
     const key   = guessKey(merged);
+    const bpm   = 100;
 
-    let melody = [];
-    if (vocalsChk.checked) {
-      yinClient = yinClient || makeYinClient();
-      statusEl.textContent = 'Estimating vocal melody…';
-      melody = await yinClient.run(sessionMono, sr, 2048, abortCtrl.signal);
-      log('Vocal notes: ' + melody.length);
-    }
+    analyzed = { title, duration:dec.duration, spans:merged, bpm, key };
+    log('Spans: '+merged.length);
+    merged.slice(0,8).forEach(s => {
+      log(\`[\${fmtTime(s.start)}–\${fmtTime(s.end)}] \${s.label}\`);
+    });
 
-    analyzed = { title, duration, sr, hop: 2048, spans: merged, melody, bpm, key };
-    statusEl.textContent = 'Analysis complete.';
+    statusEl.textContent = 'Analysis complete (placeholder chords).';
     setProgress(80);
     renderBtn.disabled = false;
-
-    log('Preview of first few chords:');
-    log(merged.slice(0, 8).map(s => \`[\${fmtTime(s.start)}–\${fmtTime(s.end)}] \${s.label}\`).join('\\n'));
-
-  } catch (err) {
-    if (err.name === 'AbortError') {
-      log('⚠️ Analysis aborted by user.');
+  }catch(err){
+    if (err.name === 'AbortError'){
+      log('⚠️ Analysis aborted.');
       statusEl.textContent = 'Canceled.';
     } else {
-      log('❌ ' + err.message);
+      log('❌ '+err.message);
       statusEl.textContent = 'Failed.';
     }
-  } finally {
+  }finally{
     analyzeBtn.disabled = false;
     abortBtn.disabled   = true;
     abortCtrl           = null;
@@ -1040,83 +868,76 @@ async function analyzeOnce() {
   }
 }
 
-/* ========= Render ========= */
+/* ========== Render / download ========== */
+const modeRadios = document.querySelectorAll('input[name="mode"]');
+modeRadios.forEach(r => r.addEventListener('change', () => { if (analyzed) renderFromAnalysis(); }));
+
+const renderBtn = document.getElementById('renderBtn');
 renderBtn.addEventListener('click', () => {
-  if (!analyzed) {
-    alert('No analysis yet. Click Analyze first.');
+  if (!analyzed){
+    alert('Analyze first.');
     return;
   }
-  renderFromAnalysis();
+  renderFromAnalysis(true);
 });
 
-[...modeRadios].forEach(r => r.addEventListener('change', () => { if (analyzed) renderFromAnalysis(); }));
-vocalsChk.addEventListener('change', () => { /* only affects next analysis / sheet */ });
-
-function renderFromAnalysis() {
-  const mode = getMode();
-  if (!analyzed || !analyzed.spans || !analyzed.spans.length) {
+async function renderFromAnalysis(download=false){
+  if (!analyzed || !analyzed.spans || !analyzed.spans.length){
     previewEl.textContent = '(no chord data)';
     return;
   }
-
-  const spans   = analyzed.spans;
+  const spans    = analyzed.spans;
   const duration = analyzed.duration;
+  const mode     = getMode();
 
-  if (mode === 'sheet') {
-    scoreWrap.style.display = 'block';
-    previewEl.textContent   = '';
-    const lyricsText = (lyricsEl.value || '').trim();
-    renderSheet({
-      title: analyzed.title,
-      bpm: analyzed.bpm || 100,
-      melody: vocalsChk.checked ? (analyzed.melody || []) : [],
-      chords: spans,
-      lyricsText
-    }).catch(err => {
-      log('⚠️ Sheet render failed: ' + err.message);
-      scoreWrap.style.display = 'none';
-    });
-    return;
-  }
-
-  // Tabs mode
-  scoreWrap.style.display = 'none';
-
-  const g = guitarChk.checked ? guitarTabsFromChords(spans) : null;
-  const b = bassChk.checked   ? bassTabsFromChords(spans) : null;
-  const p = pianoChk.checked  ? pianoNotesFromChords(spans) : null;
-  const d = drumsChk.checked  ? drumGrid() : null;
+  const g = guitarChk.checked ? guitarTabsFromSpans(spans) : null;
+  const b = bassChk.checked   ? bassTabsFromSpans(spans)   : null;
+  const p = pianoChk.checked  ? pianoHintsFromSpans(spans) : null;
+  const d = drumsChk.checked  ? drumHints()                : null;
   const chordPro = chordProFromSpansAndLyrics(spans, (lyricsEl.value || '').trim(), duration);
 
-  const anyFmt = fmtMd.checked || fmtTxt.checked || fmtJSON.checked || fmtVTT.checked;
-  if (!anyFmt) {
-    log('ℹ️ No export format selected. Tick Markdown/Text/JSON/VTT and click Render.');
+  if (mode === 'sheet'){
+    scoreWrap.style.display = 'block';
+    previewEl.textContent   = '';
+    try{
+      await renderSheet({
+        title: analyzed.title,
+        spans,
+        lyrics: (lyricsEl.value || '').trim(),
+        bpm: analyzed.bpm || 100
+      });
+    }catch(err){
+      log('⚠️ Sheet render failed: '+err.message);
+      scoreWrap.style.display = 'none';
+    }
+  } else {
+    scoreWrap.style.display = 'none';
+    const mdPreview = toMarkdown(analyzed.title, spans, g, b, p, d, chordPro);
+    previewEl.textContent = mdPreview;
   }
 
-  if (fmtMd.checked) {
+  if (!download) return;
+
+  if (fmtMd.checked){
     const md = toMarkdown(analyzed.title, spans, g, b, p, d, chordPro);
-    downloadText(\`\${analyzed.title || 'song'}-tabs.md\`, md, 'text/markdown');
+    downloadText(\`\${analyzed.title||'song'}-tabs.md\`, md, 'text/markdown');
   }
-  if (fmtTxt.checked) {
-    const txt = toPlainTabs(g, b, p, d);
-    downloadText(\`\${analyzed.title || 'song'}-tabs.txt\`, txt, 'text/plain');
+  if (fmtTxt.checked){
+    const txt = toPlainText(g,b,p,d);
+    downloadText(\`\${analyzed.title||'song'}-tabs.txt\`, txt);
   }
-  if (fmtJSON.checked) {
+  if (fmtJSON.checked){
     const meta = { key: analyzed.key, bpm: analyzed.bpm, duration };
     const json = toJSONFile(analyzed.title, spans, meta);
-    downloadText(\`\${analyzed.title || 'song'}-chords.json\`, json, 'application/json');
+    downloadText(\`\${analyzed.title||'song'}-chords.json\`, json, 'application/json');
   }
-  if (fmtVTT.checked) {
+  if (fmtVTT.checked){
     const vtt = toWebVTT(spans);
-    downloadText(\`\${analyzed.title || 'song'}-chords.vtt\`, vtt, 'text/vtt');
+    downloadText(\`\${analyzed.title||'song'}-chords.vtt\`, vtt, 'text/vtt');
   }
-
-  // Show a live preview (Markdown) in the UI
-  const mdPreview = toMarkdown(analyzed.title, spans, g, b, p, d, chordPro);
-  previewEl.textContent = mdPreview;
 }
 
-/* ========= Init ========= */
+/* ========== Init ========== */
 setProgress(0);
 statusEl.textContent = 'Idle.';
 </script>
