@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>FileConverter.run Blog – Articles & Write New Post</title>
+  <title>FileConverter.run Blog – Articles & Admin</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="/site.css">
 
   <style>
-    .blog-editor {
+    .blog-editor, .admin-login, .delete-helper {
       background:#1a1f2c;
       border:1px solid #263044;
       padding:20px;
@@ -25,7 +25,7 @@
       resize:vertical;
       font-size:1rem;
     }
-    input {
+    input[type="text"], input[type="password"] {
       width:100%;
       background:#0f131a;
       color:#e5e7eb;
@@ -44,13 +44,30 @@
       font-size:1rem;
       font-weight:600;
     }
+    button.delete-btn {
+      margin-left:12px;
+      padding:6px 12px;
+      font-size:0.85rem;
+      background:#f97373;
+      color:#0b1120;
+    }
   </style>
 
   <script>
-    // Auto-load blog articles
-    document.addEventListener("DOMContentLoaded", async () => {
+    // CHANGE THIS to your own password
+    const ADMIN_PASSWORD = "ChangeThisPassword123!";
+
+    let isAdmin = false;
+    let allArticles = [];
+    let articlesLoaded = false;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadArticles();
+    });
+
+    async function loadArticles() {
       const list = document.getElementById("blog-list");
-      const repo = "CyberLinkzero/FileConversion"; // change if needed
+      const repo = "CyberLinkzero/FileConversion"; // change if repo name different
       const apiUrl = `https://api.github.com/repos/${repo}/contents/blog`;
 
       try {
@@ -61,33 +78,92 @@
           f.name.endsWith(".html") && f.name !== "index.html"
         );
 
-        pages.forEach(file => {
-          const title = file.name
-            .replace(".html", "")
-            .replace(/-/g, " ")
-            .replace(/\b\w/g, c => c.toUpperCase());
-
-          const li = document.createElement("li");
-          li.style.margin = "18px 0";
-
-          li.innerHTML = `
-            <a href="/blog/${file.name}" 
-              style="color:#7dd3fc;font-size:1.2rem;font-weight:600;text-decoration:none;">
-              ${title}
-            </a>
-            <p style="color:#9ca3af;margin-top:4px;">Published article</p>
-          `;
-
-          list.appendChild(li);
-        });
+        allArticles = pages;
+        articlesLoaded = true;
+        renderArticles();
 
       } catch (err) {
+        console.error(err);
         list.innerHTML = "<p style='color:red;'>Could not load articles.</p>";
       }
-    });
+    }
+
+    function renderArticles() {
+      const list = document.getElementById("blog-list");
+      list.innerHTML = "";
+
+      if (!allArticles.length) {
+        list.innerHTML = "<p style='color:#9ca3af;'>No articles yet. Log in as admin to create one.</p>";
+        return;
+      }
+
+      allArticles.forEach(file => {
+        const title = file.name
+          .replace(".html", "")
+          .replace(/-/g, " ")
+          .replace(/\b\w/g, c => c.toUpperCase());
+
+        const li = document.createElement("li");
+        li.style.margin = "18px 0";
+
+        const linkHtml = `
+          <a href="/blog/${file.name}" 
+             style="color:#7dd3fc;font-size:1.2rem;font-weight:600;text-decoration:none;">
+            ${title}
+          </a>
+          <p style="color:#9ca3af;margin-top:4px;">Published article</p>
+        `;
+
+        li.innerHTML = linkHtml;
+
+        if (isAdmin) {
+          const delBtn = document.createElement("button");
+          delBtn.textContent = "Delete";
+          delBtn.className = "delete-btn";
+          delBtn.onclick = () => showDeleteInfo(file.name, title);
+          li.appendChild(delBtn);
+        }
+
+        list.appendChild(li);
+      });
+    }
+
+    function adminLogin() {
+      const pwdInput = document.getElementById("admin-password");
+      const msg = document.getElementById("admin-msg");
+      const val = pwdInput.value.trim();
+
+      if (!val) {
+        msg.textContent = "Enter a password.";
+        msg.style.color = "#f97373";
+        return;
+      }
+
+      if (val === ADMIN_PASSWORD) {
+        isAdmin = true;
+        msg.textContent = "Admin mode enabled.";
+        msg.style.color = "#4ade80";
+
+        // Hide login, show editor + delete helper
+        document.getElementById("admin-login-box").style.display = "none";
+        document.getElementById("blog-editor-box").style.display = "block";
+        document.getElementById("delete-helper-box").style.display = "block";
+
+        // Re-render list with delete buttons
+        if (articlesLoaded) renderArticles();
+      } else {
+        msg.textContent = "Incorrect password.";
+        msg.style.color = "#f97373";
+      }
+    }
 
     // Blog creator: generate downloadable HTML file
     function generateBlogPost() {
+      if (!isAdmin) {
+        alert("Admin login required to write posts.");
+        return;
+      }
+
       const title = document.getElementById("post-title").value.trim();
       const content = document.getElementById("post-content").value.trim();
 
@@ -128,6 +204,31 @@
       link.download = fileName;
       link.click();
     }
+
+    function showDeleteInfo(fileName, title) {
+      if (!isAdmin) {
+        alert("Admin login required to delete posts.");
+        return;
+      }
+
+      const box = document.getElementById("delete-helper-box");
+      const details = document.getElementById("delete-details");
+
+      box.scrollIntoView({behavior:"smooth"});
+
+      details.innerHTML = `
+        <p><strong>Selected article:</strong> ${title}</p>
+        <p><strong>File to delete:</strong> <code>/blog/${fileName}</code></p>
+        <ol>
+          <li>Go to your repo on GitHub.</li>
+          <li>Open the <strong>blog</strong> folder.</li>
+          <li>Click <code>${fileName}</code>.</li>
+          <li>Click the trash can icon (Delete this file).</li>
+          <li>Commit the change.</li>
+        </ol>
+        <p>After you delete it and GitHub Pages updates, this article will disappear from the list.</p>
+      `;
+    }
   </script>
 </head>
 
@@ -149,12 +250,21 @@
         <ul id="blog-list" style="list-style:none;padding:0;margin:0;"></ul>
       </section>
 
-      <!-- Blog Editor -->
-      <section class="blog-editor">
+      <!-- Admin Login -->
+      <section class="admin-login" id="admin-login-box">
+        <h2 style="color:#7dd3fc;">Admin Login</h2>
+        <p style="color:#9ca3af;">Enter your blog admin password to write or delete posts.</p>
+        <input type="password" id="admin-password" placeholder="Admin password">
+        <button onclick="adminLogin()">Login</button>
+        <p id="admin-msg" style="margin-top:10px;color:#9ca3af;"></p>
+      </section>
+
+      <!-- Blog Editor (hidden until admin) -->
+      <section class="blog-editor" id="blog-editor-box" style="display:none;">
         <h2 style="color:#7dd3fc;">Write a New Blog Post</h2>
 
         <label>Title</label>
-        <input id="post-title" placeholder="Enter blog post title">
+        <input id="post-title" type="text" placeholder="Enter blog post title">
 
         <label>Content</label>
         <textarea id="post-content" placeholder="Write your article here..."></textarea>
@@ -164,6 +274,14 @@
           This will download a ready-to-upload HTML file.  
           Upload it to your <strong>/blog</strong> folder in GitHub, and it will appear automatically.
         </p>
+      </section>
+
+      <!-- Delete Helper (instructions) -->
+      <section class="delete-helper" id="delete-helper-box" style="display:none;">
+        <h2 style="color:#7dd3fc;">Delete Article Helper</h2>
+        <div id="delete-details" style="color:#e5e7eb;">
+          <p>Select an article's <strong>Delete</strong> button above to see instructions here.</p>
+        </div>
       </section>
     </main>
   </div>
