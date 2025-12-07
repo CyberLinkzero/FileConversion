@@ -5,7 +5,7 @@
 .chessboard-63f37 {
   border: 2px solid #1f2937;
   box-sizing: content-box;
-  background: #020617; /* dark background behind squares */
+  background: #020617; /* dark frame behind the grid */
   box-shadow: 0 0 20px rgba(15, 23, 42, 0.9);
 }
 
@@ -19,6 +19,10 @@
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+
+  /* 🔲 add a subtle grid so squares are easy to see */
+  border: 1px solid #1f2937;
+  box-sizing: border-box;
 }
 
 /* Piece images inside squares */
@@ -30,13 +34,13 @@
   height: 100%;
 }
 
-/* Light / dark squares – cyber colors */
+/* ♟ Light / dark squares – much brighter contrast now */
 .white-1e1d7 {
-  background: #0b1220 !important; /* dark navy */
+  background: #e5e7eb !important;  /* light gray */
 }
 
 .black-3c85d {
-  background: #020617 !important; /* almost black */
+  background: #111827 !important;  /* deep navy */
 }
 
 /* Optional highlight for moves */
