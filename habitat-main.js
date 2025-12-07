@@ -1548,19 +1548,35 @@ playBtn.addEventListener("click", () => {
 });
 
 
+washBtn.addEventListener("click", () => {
+  const a = getSelected();
 
-washBtn.addEventListener("click",()=>{
-  const a = getSelected(); if(!a || !a.alive) return;
-  actionTick();
-  a.cleanliness = clamp(a.cleanliness + 35);
-  a.happiness = clamp(a.happiness - 2);
-  
-  if(a.alive) a.xp = (a.xp||0) + 3;
-  addLog(`You washed ${a.name}.`);
-  showMood(a.id,"🫧");
+  if (!a || !a.alive) {
+    addLog("Select a living pet first, then press Wash.");
+    return;
+  }
+
+  // Snapshot before
+  const beforeClean = Math.round(a.cleanliness);
+  const beforeHappy = Math.round(a.happiness);
+
+  // Nice warm bath: big clean boost + small happiness boost
+  a.cleanliness = clamp(a.cleanliness + 40, 0, 100);
+  a.happiness   = clamp(a.happiness + 6, 0, 100);
+  a.xp          = (a.xp || 0) + 3;
+
+  const afterClean = Math.round(a.cleanliness);
+  const afterHappy = Math.round(a.happiness);
+
+  addLog(
+    `You washed ${a.name}. Clean: ${beforeClean} → ${afterClean}, Happy: ${beforeHappy} → ${afterHappy}`
+  );
+
+  showMood(a.id, "🫧");
   saveState();
   render();
 });
+
 
 walkBtn.addEventListener("click", () => {
   const a = getSelected();
