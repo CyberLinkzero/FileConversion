@@ -579,6 +579,7 @@
     }
   }
 
+  // --- Simple eval for AI ---
   const PIECE_VALUES = {
     p: 100,
     n: 320,
@@ -667,10 +668,34 @@
     return bestMove;
   }
 
+  // --- Highlight helpers ---
+  function removeHighlights() {
+    $('#board .square-55d63')
+      .removeClass('highlight-source')
+      .removeClass('highlight-move');
+  }
+
+  function highlightMovesFrom(square) {
+    removeHighlights();
+    // highlight source square
+    $('#board .square-' + square).addClass('highlight-source');
+
+    const moves = game.moves({ square, verbose: true });
+    for (let i = 0; i < moves.length; i++) {
+      const dest = moves[i].to;
+      $('#board .square-' + dest).addClass('highlight-move');
+    }
+  }
+
+  // --- Board event handlers ---
   function onDragStart(source, piece) {
     if (game.game_over()) return false;
     if (isAIMoving) return false;
-    if (piece.search(/^b/) !== -1) return false; // only white moves
+    // only allow dragging white pieces (player side)
+    if (piece.search(/^b/) !== -1) return false;
+
+    // show legal moves for the dragged piece
+    highlightMovesFrom(source);
     return true;
   }
 
@@ -680,7 +705,13 @@
       to: target,
       promotion: "q"
     });
-    if (move === null) return "snapback";
+
+    // illegal move
+    if (move === null) {
+      return "snapback";
+    }
+
+    removeHighlights();  // clear highlights after a successful move
     updateStatusAndMoves();
     window.setTimeout(makeAIMove, 150);
   }
@@ -737,6 +768,7 @@
   function resetGame() {
     game.reset();
     board.start();
+    removeHighlights();
     updateStatusAndMoves();
   }
 
@@ -747,6 +779,7 @@
       game.undo();
     }
     board.position(game.fen());
+    removeHighlights();
     updateStatusAndMoves();
   }
 
@@ -787,6 +820,29 @@
 
   updateStatusAndMoves();
 
+  // --- Click-to-highlight: show legal moves when you click a piece ---
+  $('#board').on('click', '.square-55d63', function () {
+    if (game.game_over() || isAIMoving) {
+      removeHighlights();
+      return;
+    }
+
+    const square = $(this).data('square'); // chessboard.js sets data-square
+    if (!square) {
+      removeHighlights();
+      return;
+    }
+
+    const piece = game.get(square);
+    // Only highlight white pieces (the human player)
+    if (!piece || piece.color !== 'w') {
+      removeHighlights();
+      return;
+    }
+
+    highlightMovesFrom(square);
+  });
+
   // --- Wire UI events ---
   difficultyPills.forEach(pill => {
     pill.addEventListener("click", () => {
@@ -799,5 +855,6 @@
   undoBtn.addEventListener("click", undoLastPair);
   downloadPgnBtn.addEventListener("click", downloadPGN);
 </script>
+
 </body>
 </html>
