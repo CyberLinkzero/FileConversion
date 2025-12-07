@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>FileConverter.run Blog – Articles & Write New Post</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="/site.css">
+
+  <style>
+    .blog-editor {
+      background:#1a1f2c;
+      border:1px solid #263044;
+      padding:20px;
+      border-radius:12px;
+      margin-top:30px;
+    }
+    textarea {
+      width:100%;
+      height:200px;
+      background:#0f131a;
+      color:#e5e7eb;
+      border:1px solid #263044;
+      border-radius:8px;
+      padding:12px;
+      resize:vertical;
+      font-size:1rem;
+    }
+    input {
+      width:100%;
+      background:#0f131a;
+      color:#e5e7eb;
+      border:1px solid #263044;
+      border-radius:8px;
+      padding:10px;
+      margin-bottom:15px;
+      font-size:1rem;
+    }
+    button {
+      padding:10px 18px;
+      background:#7dd3fc;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:1rem;
+      font-weight:600;
+    }
+  </style>
+
+  <script>
+    // Auto-load blog articles
+    document.addEventListener("DOMContentLoaded", async () => {
+      const list = document.getElementById("blog-list");
+      const repo = "CyberLinkzero/FileConversion"; // change if needed
+      const apiUrl = `https://api.github.com/repos/${repo}/contents/blog`;
+
+      try {
+        const response = await fetch(apiUrl);
+        const files = await response.json();
+
+        const pages = files.filter(f =>
+          f.name.endsWith(".html") && f.name !== "index.html"
+        );
+
+        pages.forEach(file => {
+          const title = file.name
+            .replace(".html", "")
+            .replace(/-/g, " ")
+            .replace(/\b\w/g, c => c.toUpperCase());
+
+          const li = document.createElement("li");
+          li.style.margin = "18px 0";
+
+          li.innerHTML = `
+            <a href="/blog/${file.name}" 
+              style="color:#7dd3fc;font-size:1.2rem;font-weight:600;text-decoration:none;">
+              ${title}
+            </a>
+            <p style="color:#9ca3af;margin-top:4px;">Published article</p>
+          `;
+
+          list.appendChild(li);
+        });
+
+      } catch (err) {
+        list.innerHTML = "<p style='color:red;'>Could not load articles.</p>";
+      }
+    });
+
+    // Blog creator: generate downloadable HTML file
+    function generateBlogPost() {
+      const title = document.getElementById("post-title").value.trim();
+      const content = document.getElementById("post-content").value.trim();
+
+      if (!title || !content) {
+        alert("Please enter a title and content.");
+        return;
+      }
+
+      const fileName = title.toLowerCase().replace(/[^a-z0-9]+/g, "-") + ".html";
+
+      const html = `
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>${title}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="${title} - Article on FileConverter.run">
+  <link rel="stylesheet" href="/site.css">
+</head>
+<body>
+  <div class="container">
+    <header style="padding:24px 0;">
+      <a href="/blog" style="color:#7dd3fc;text-decoration:none;">← Back to Blog</a>
+      <h1>${title}</h1>
+    </header>
+
+    <main class="card">
+      ${content.replace(/\n/g, "<br>")}
+    </main>
+  </div>
+</body>
+</html>`;
+
+      const blob = new Blob([html], {type:"text/html"});
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName;
+      link.click();
+    }
+  </script>
+</head>
+
+<body>
+  <div class="container">
+    <header style="padding:24px 0;">
+      <a href="/" style="color:#7dd3fc;text-decoration:none;">← Back to Home</a>
+      <h1>FileConverter.run Blog</h1>
+      <p style="max-width:640px;color:#9ca3af;">
+        Articles, guides, and tutorials.  
+        New posts appear automatically when added to the blog folder.
+      </p>
+    </header>
+
+    <main>
+      <!-- Article List -->
+      <section class="card">
+        <h2>Latest Articles</h2>
+        <ul id="blog-list" style="list-style:none;padding:0;margin:0;"></ul>
+      </section>
+
+      <!-- Blog Editor -->
+      <section class="blog-editor">
+        <h2 style="color:#7dd3fc;">Write a New Blog Post</h2>
+
+        <label>Title</label>
+        <input id="post-title" placeholder="Enter blog post title">
+
+        <label>Content</label>
+        <textarea id="post-content" placeholder="Write your article here..."></textarea>
+
+        <button onclick="generateBlogPost()">Generate Blog File</button>
+        <p style="color:#9ca3af;margin-top:10px;">
+          This will download a ready-to-upload HTML file.  
+          Upload it to your <strong>/blog</strong> folder in GitHub, and it will appear automatically.
+        </p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
