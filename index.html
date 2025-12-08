@@ -10,7 +10,7 @@
     gtag('config', 'G-W25SYMTSSR');
   </script>
 
-  <!-- AdSense (loaded via consent script too) -->
+  <!-- AdSense (also controlled by consent script) -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js?client=ca-pub-9800485035530027"
      crossorigin="anonymous"></script>
 
@@ -105,36 +105,7 @@
       50%{background-position:100% 50%}
       100%{background-position:0% 50%}
     }
-    .tabs{
-      display:flex;
-      flex-wrap:wrap;
-      justify-content:center;
-      gap:10px;
-      padding:10px 12px;
-      border-top:1px solid #1f2430;
-      border-bottom:1px solid #1f2430;
-    }
-    .tab{
-      color:#7dd3fc;
-      text-decoration:none;
-      padding:8px 12px;
-      border-radius:8px;
-    }
-    .chips{
-      display:flex;
-      flex-wrap:wrap;
-      justify-content:center;
-      gap:8px;
-      padding:12px;
-    }
-    .chip{
-      background:#1a1f2c;
-      border:1px solid #263044;
-      padding:6px 10px;
-      border-radius:999px;
-      font-size:.9rem;
-      color:#e5e7eb;
-    }
+
     .container{
       max-width:1200px;
       margin:0 auto;
@@ -143,16 +114,15 @@
     .panel{
       padding:20px 0;
     }
-    .grid{
+
+    /* All cards: one per row, full width, like top story cards */
+    .grid,
+    .flex-sections{
       display:grid;
       grid-template-columns:1fr;
       gap:20px;
     }
-    .flex-sections{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-      gap:16px;
-    }
+
     .card{
       background:#1a1f2c;
       border:1px solid #263044;
@@ -162,7 +132,7 @@
       content-visibility:auto;
       contain-intrinsic-size:300px 200px;
     }
-    .center-text{text-align:center;}
+
     .section-title{
       color:#7dd3fc;
       margin:10px 0 8px;
@@ -228,20 +198,20 @@
       display:none;
       background:linear-gradient(180deg, rgba(15,17,23,.7), #0f1117 60%);
       backdrop-filter:saturate(120%) blur(6px);
-      padding:16px;
+      padding:16px 0;
       border-top:1px solid var(--fc-border);
       color:var(--fc-text);
     }
     .fc-consent{
-      max-width:1200px;      /* wide like main content */
+      max-width:1200px;      /* same as container / cards */
       width:100%;
-      margin:0 auto;         /* centered */
+      margin:0 auto;
       background:var(--fc-card);
       border:1px solid var(--fc-border);
       border-radius:12px;
-      padding:16px;
+      padding:18px;
       box-shadow:0 10px 40px rgba(0,0,0,.5);
-      text-align:left;       /* text left-aligned */
+      text-align:left;
     }
     .fc-row{
       display:flex;
@@ -295,19 +265,31 @@
     }
     .fc-privacy-fab{
       position:fixed;
-      left:12px;   /* moved to bottom-left */
+      left:12px;   /* bottom-left */
       bottom:12px;
       z-index:99998;
       background:#121723;
       border:1px solid var(--fc-border);
-      color:var(--fc-text);
+      color:#var(--fc-text);
       border-radius:999px;
       padding:8px 12px;
       cursor:pointer;
       font-size:.9rem;
     }
 
-    /* Category Dropdown Navigation */
+    /* Make consent layout stack nicely on phones */
+    @media (max-width:720px){
+      .fc-row{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .fc-actions{
+        width:100%;
+        justify-content:flex-start;
+      }
+    }
+
+    /* Category Dropdown Navigation (nav) */
     .tab-group{
       position:relative;
     }
