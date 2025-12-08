@@ -1,0 +1,1078 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Code Breaker – Compression Puzzle | FileConverter.run</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description"
+        content="Play Code Breaker – a cyber-themed compression puzzle game on FileConverter.run. Balance compression and expansion to hit the perfect file size." />
+
+  <style>
+    :root {
+      --bg-main: #050816;
+      --bg-panel: #0b1220;
+      --bg-panel-soft: #111827;
+      --accent: #7dd3fc;
+      --accent-soft: #38bdf8;
+      --accent-alt: #a78bfa;
+      --danger: #fb7185;
+      --success: #4ade80;
+      --warning: #fde047;
+      --text-main: #e5e7eb;
+      --text-soft: #9ca3af;
+      --grid-border: #1f2937;
+      --tile-bg: #020617;
+      --tile-border: #1e293b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      color: var(--text-main);
+      background:
+        radial-gradient(circle at top, rgba(56, 189, 248, 0.18) 0, transparent 55%),
+        radial-gradient(circle at bottom, rgba(129, 140, 248, 0.18) 0, transparent 55%),
+        var(--bg-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 18px 10px 32px;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 1120px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      text-decoration: none;
+      color: var(--accent);
+      border: 1px solid rgba(125, 211, 252, 0.4);
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(10px);
+      transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+      box-shadow: 0 0 0 0 rgba(125, 211, 252, 0.2);
+    }
+
+    .back-link span.arrow {
+      font-size: 1.1rem;
+    }
+
+    .back-link:hover {
+      background: rgba(15, 23, 42, 0.95);
+      transform: translateY(-1px);
+      box-shadow: 0 0 25px 0 rgba(56, 189, 248, 0.35);
+    }
+
+    .back-link:active {
+      transform: translateY(0);
+      box-shadow: 0 0 10px 0 rgba(56, 189, 248, 0.15);
+    }
+
+    .title-block {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, var(--accent), var(--accent-alt));
+      -webkit-background-clip: text;
+      color: transparent;
+      margin: 0 0 4px;
+      text-shadow: 0 0 18px rgba(56, 189, 248, 0.45);
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--text-soft);
+    }
+
+    .badge {
+      font-size: 0.8rem;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      color: #e5e7eb;
+      background: radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.25), transparent 55%),
+                  rgba(15, 23, 42, 0.9);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.7fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 880px) {
+      main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .panel {
+      border-radius: 18px;
+      border: 1px solid rgba(31, 41, 55, 0.95);
+      background:
+        linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.88));
+      box-shadow:
+        0 18px 40px rgba(15, 23, 42, 0.97),
+        0 0 0 1px rgba(15, 23, 42, 0.9);
+      padding: 16px 16px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      opacity: 0.14;
+      background:
+        radial-gradient(circle at 10% 0, rgba(56, 189, 248, 0.35) 0, transparent 55%),
+        radial-gradient(circle at 85% 100%, rgba(129, 140, 248, 0.35) 0, transparent 55%);
+      pointer-events: none;
+    }
+
+    .panel-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .panel-header small {
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+
+    .file-meta {
+      display: grid;
+      grid-template-columns: 1.3fr 1.1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 520px) {
+      .file-meta {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .meta-card {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 12px;
+      border: 1px dashed rgba(51, 65, 85, 0.95);
+      padding: 8px 10px;
+      font-size: 0.82rem;
+    }
+
+    .meta-label {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.72rem;
+      color: var(--text-soft);
+      margin-bottom: 2px;
+    }
+
+    .meta-value {
+      font-size: 0.9rem;
+      color: var(--text-main);
+    }
+
+    .filetype-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      border: 1px solid rgba(56, 189, 248, 0.55);
+      background: radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.3), transparent 55%);
+      color: var(--accent);
+    }
+
+    .filetype-pill span.dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 9px rgba(56, 189, 248, 0.8);
+    }
+
+    .bars {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .bar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 0.8rem;
+    }
+
+    .bar-label {
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.7rem;
+    }
+
+    .bar-value {
+      color: var(--text-main);
+      font-size: 0.82rem;
+      white-space: nowrap;
+    }
+
+    .bar-track {
+      position: relative;
+      margin-top: 4px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      position: absolute;
+      inset: 0;
+      width: 50%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--accent-alt));
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.7);
+      transition: width 0.18s ease-out;
+    }
+
+    .bar-fill.target {
+      background: linear-gradient(90deg, var(--success), var(--accent));
+      box-shadow: 0 0 14px rgba(74, 222, 128, 0.7);
+    }
+
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+    }
+
+    .status-chip {
+      padding: 3px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-soft);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-chip strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .status-chip.danger strong {
+      color: var(--danger);
+    }
+
+    .status-chip.success strong {
+      color: var(--success);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--warning);
+      box-shadow: 0 0 8px rgba(250, 204, 21, 0.8);
+    }
+
+    .grid-wrapper {
+      margin-top: 12px;
+      border-radius: 16px;
+      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.8), transparent 60%),
+                  rgba(15, 23, 42, 0.98);
+      border: 1px solid rgba(31, 41, 55, 0.95);
+      padding: 10px;
+    }
+
+    .grid-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+      color: var(--text-soft);
+    }
+
+    .grid-header span strong {
+      color: var(--accent);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    @media (max-width: 520px) {
+      .grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    .tile {
+      position: relative;
+      padding: 12px 2px 8px;
+      border-radius: 12px;
+      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.9), transparent 65%),
+                  var(--tile-bg);
+      border: 1px solid var(--tile-border);
+      color: var(--text-main);
+      text-align: center;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease,
+                  background 0.12s ease;
+      overflow: hidden;
+    }
+
+    .tile::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      background: linear-gradient(
+        135deg,
+        rgba(56, 189, 248, 0.1),
+        rgba(129, 140, 248, 0.12)
+      );
+      transition: opacity 0.12s ease;
+      pointer-events: none;
+    }
+
+    .tile:hover {
+      transform: translateY(-1px);
+      border-color: rgba(56, 189, 248, 0.8);
+      box-shadow:
+        0 0 15px rgba(56, 189, 248, 0.5),
+        0 0 0 1px rgba(15, 23, 42, 0.9);
+    }
+
+    .tile:hover::before {
+      opacity: 1;
+    }
+
+    .tile:active {
+      transform: translateY(0px) scale(0.99);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+    }
+
+    .tile.disabled {
+      cursor: default;
+      opacity: 0.35;
+      transform: none;
+      box-shadow: none;
+      border-color: rgba(30, 64, 175, 0.7);
+    }
+
+    .tile.disabled::before {
+      opacity: 0;
+    }
+
+    .tile-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-soft);
+      margin-bottom: 4px;
+    }
+
+    .tile-value {
+      font-size: 0.98rem;
+      font-weight: 600;
+    }
+
+    .tile-value.negative {
+      color: var(--success);
+    }
+
+    .tile-value.positive {
+      color: var(--danger);
+    }
+
+    .tile-type {
+      margin-top: 3px;
+      font-size: 0.66rem;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .help-block {
+      margin-top: 10px;
+      border-radius: 12px;
+      border: 1px dashed rgba(55, 65, 81, 0.9);
+      padding: 8px 10px;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+      background: rgba(15, 23, 42, 0.92);
+    }
+
+    .help-block strong {
+      color: var(--accent);
+    }
+
+    .right-panel-section {
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 0.86rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-soft);
+      margin: 0 0 4px;
+    }
+
+    .level-desc {
+      font-size: 0.83rem;
+      color: var(--text-main);
+      margin: 0;
+    }
+
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    .btn {
+      border: none;
+      outline: none;
+      cursor: pointer;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      padding: 7px 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: radial-gradient(circle at 0 0, rgba(34, 197, 235, 0.4), transparent 55%),
+                  rgba(15, 23, 42, 0.98);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.7);
+      box-shadow:
+        0 0 0 0 rgba(56, 189, 248, 0.25),
+        0 12px 25px rgba(15, 23, 42, 0.95);
+      transition: transform 0.12s ease, box-shadow 0.18s ease, background 0.16s ease,
+                  border-color 0.16s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(56, 189, 248, 1);
+      box-shadow:
+        0 0 25px rgba(56, 189, 248, 0.85),
+        0 16px 35px rgba(15, 23, 42, 0.98);
+      background: radial-gradient(circle at 0 0, rgba(34, 197, 235, 0.55), transparent 55%),
+                  rgba(15, 23, 42, 1);
+    }
+
+    .btn:active {
+      transform: translateY(0) scale(0.99);
+      box-shadow:
+        0 0 10px rgba(56, 189, 248, 0.5),
+        0 8px 18px rgba(15, 23, 42, 0.98);
+    }
+
+    .btn.secondary {
+      background: rgba(15, 23, 42, 0.98);
+      color: var(--text-soft);
+      border-color: rgba(55, 65, 81, 0.9);
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.98);
+    }
+
+    .btn.secondary:hover {
+      border-color: rgba(148, 163, 184, 0.9);
+      box-shadow:
+        0 0 20px rgba(148, 163, 184, 0.65),
+        0 12px 24px rgba(15, 23, 42, 0.98);
+    }
+
+    .btn.small {
+      padding: 4px 10px;
+      font-size: 0.78rem;
+    }
+
+    .log {
+      margin-top: 8px;
+      max-height: 160px;
+      overflow-y: auto;
+      border-radius: 10px;
+      border: 1px solid rgba(31, 41, 55, 0.95);
+      background: rgba(15, 23, 42, 0.95);
+      padding: 6px 8px;
+      font-size: 0.76rem;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(107, 114, 128, 0.9) transparent;
+    }
+
+    .log::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .log::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .log::-webkit-scrollbar-thumb {
+      background: rgba(75, 85, 99, 0.9);
+      border-radius: 999px;
+    }
+
+    .log-line {
+      margin: 0 0 3px;
+      color: var(--text-soft);
+    }
+
+    .log-line span {
+      color: var(--accent-soft);
+    }
+
+    .log-line.win {
+      color: var(--success);
+    }
+
+    .log-line.lose {
+      color: var(--danger);
+    }
+
+    .level-selector {
+      margin-top: 4px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      font-size: 0.8rem;
+    }
+
+    .level-select {
+      background: rgba(15, 23, 42, 0.98);
+      border-radius: 999px;
+      padding: 4px 8px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      color: var(--text-main);
+      font-size: 0.8rem;
+    }
+
+    .level-select option {
+      background: #020617;
+      color: var(--text-main);
+    }
+
+    .hint {
+      margin-top: 6px;
+      font-size: 0.75rem;
+      color: var(--text-soft);
+    }
+
+    .hint strong {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <a href="/" class="back-link">
+        <span class="arrow">←</span>
+        <span>Back to FileConverter.run</span>
+      </a>
+      <div class="title-block">
+        <h1 class="title">Code Breaker: Compression Puzzle</h1>
+        <p class="subtitle">
+          Use smart compression and expansion to hit the perfect target file size — without corrupting your data.
+        </p>
+      </div>
+      <div class="badge">In-Browser • No Upload</div>
+    </header>
+
+    <main>
+      <!-- LEFT: Board / File stats -->
+      <section class="panel">
+        <div class="panel-inner">
+          <div class="panel-header">
+            <h2>Active File Profile</h2>
+            <small id="levelTitle">Level 1 • Large MP4 Video</small>
+          </div>
+
+          <div class="file-meta">
+            <div class="meta-card">
+              <div class="meta-label">File Type</div>
+              <div class="meta-value">
+                <span class="filetype-pill">
+                  <span class="dot"></span>
+                  <span id="fileTypeLabel">MP4 • Video Capture</span>
+                </span>
+              </div>
+            </div>
+            <div class="meta-card">
+              <div class="meta-label">Objective</div>
+              <div class="meta-value" id="objectiveLabel">
+                Compress the file down to the target size without going corrupt.
+              </div>
+            </div>
+          </div>
+
+          <div class="bars">
+            <div>
+              <div class="bar-row">
+                <span class="bar-label">Current Size</span>
+                <span class="bar-value" id="currentSizeLabel">128 MB</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill" id="currentSizeBar"></div>
+              </div>
+            </div>
+            <div>
+              <div class="bar-row">
+                <span class="bar-label">Target Size</span>
+                <span class="bar-value" id="targetSizeLabel">80 MB</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill target" id="targetSizeBar"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="status-row">
+            <div class="status-chip">
+              <span class="status-dot"></span>
+              <span>Level <strong id="levelNumber">1</strong> of <span id="levelTotal">5</span></span>
+            </div>
+            <div class="status-chip">
+              <span>Moves Used: <strong id="movesUsed">0</strong>/<span id="movesLimit">10</span></span>
+            </div>
+            <div class="status-chip" id="deltaChip">
+              Δ Size: <strong id="deltaSize">-48 MB</strong>
+            </div>
+          </div>
+
+          <div class="grid-wrapper">
+            <div class="grid-header">
+              <span>Tap tiles to <strong>compress</strong> (−) or <strong>expand</strong> (+) this file.</span>
+              <span id="boardStateLabel">Status: Stable</span>
+            </div>
+            <div class="grid" id="tileGrid">
+              <!-- Tiles dynamically inserted -->
+            </div>
+          </div>
+
+          <div class="help-block">
+            <strong>Goal:</strong> Reach the exact target file size using the tiles.
+            Compression tiles <span style="color:var(--success)">reduce MB</span>,
+            expansion tiles <span style="color:var(--danger)">add MB</span>.
+            You can only use each tile <em>once</em>.
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Level info / controls / log -->
+      <section class="panel">
+        <div class="panel-inner">
+          <div class="right-panel-section">
+            <h3 class="section-title">Level Briefing</h3>
+            <p class="level-desc" id="levelDescription">
+              This high-res MP4 needs to be optimized for streaming without losing too much quality.
+              Hit the target size using smart compression blocks.
+            </p>
+
+            <div class="level-selector">
+              <span>Jump to level:</span>
+              <select id="levelSelect" class="level-select"></select>
+              <button class="btn small secondary" id="restartBtn">Restart Level</button>
+            </div>
+
+            <p class="hint">
+              <strong>Tip:</strong> Watch the Δ Size chip. When it reads <strong>0 MB</strong> and
+              you haven't exceeded the move limit, you've cracked the code.
+            </p>
+          </div>
+
+          <div class="right-panel-section">
+            <h3 class="section-title">Session Controls</h3>
+            <div class="controls-row">
+              <button class="btn small" id="nextBtn">Next Level ▶</button>
+              <button class="btn small secondary" id="randomizeBtn">Shuffle Tiles</button>
+            </div>
+          </div>
+
+          <div class="right-panel-section">
+            <h3 class="section-title">Conversion Log</h3>
+            <div class="log" id="logBox">
+              <!-- Log lines appended here -->
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // ---------------------------
+    // GAME DATA
+    // ---------------------------
+    const levels = [
+      {
+        id: 1,
+        title: "Level 1 • Large MP4 Video",
+        fileType: "MP4 • Video Capture",
+        description:
+          "A heavy 4K recording that needs streaming-friendly compression without nuking quality.",
+        startSize: 128,
+        targetSize: 80,
+        movesLimit: 8,
+        tiles: [-8, -12, -6, -4, +2, +4, +6, -10, +8, -2, -4, +3],
+      },
+      {
+        id: 2,
+        title: "Level 2 • RAW Photo Archive",
+        fileType: "ZIP • RAW Photo Pack",
+        description:
+          "You zipped a massive RAW photo set. Optimize the archive while keeping enough detail.",
+        startSize: 512,
+        targetSize: 380,
+        movesLimit: 10,
+        tiles: [-32, -24, -16, -8, +10, -20, +12, -18, +6, -4, +16, -14],
+      },
+      {
+        id: 3,
+        title: "Level 3 • Lossless Audio Session",
+        fileType: "FLAC • Studio Session",
+        description:
+          "A lossless track session bloated in size. Mix compression and light expansion to hit the perfect master size.",
+        startSize: 320,
+        targetSize: 256,
+        movesLimit: 9,
+        tiles: [-32, -24, -16, -8, +4, +12, -20, -10, +6, -14, +2, -4],
+      },
+      {
+        id: 4,
+        title: "Level 4 • Massive Slide Deck",
+        fileType: "PDF • Slide Deck",
+        description:
+          "A 200-page PDF full of giant images. Compress images, trim excess, but don’t over-crush legibility.",
+        startSize: 200,
+        targetSize: 132,
+        movesLimit: 9,
+        tiles: [-8, -12, -16, +4, -10, -14, +6, -18, +8, -6, +2, -12],
+      },
+      {
+        id: 5,
+        title: "Level 5 • Game Assets Bundle",
+        fileType: "ZIP • Game Assets",
+        description:
+          "A bundle of sprites, audio, and shaders for a cyber game. Space on the target device is tight.",
+        startSize: 1024,
+        targetSize: 900,
+        movesLimit: 11,
+        tiles: [-64, -48, -32, -16, +8, +12, -40, +20, -24, +16, -12, +4],
+      },
+    ];
+
+    // ---------------------------
+    // STATE
+    // ---------------------------
+    let currentLevelIndex = 0;
+    let currentSize = 0;
+    let movesUsed = 0;
+    let usedTiles = [];
+    let gameLocked = false;
+
+    // ---------------------------
+    // DOM REFS
+    // ---------------------------
+    const levelTitleEl = document.getElementById("levelTitle");
+    const fileTypeLabelEl = document.getElementById("fileTypeLabel");
+    const objectiveLabelEl = document.getElementById("objectiveLabel");
+    const currentSizeLabelEl = document.getElementById("currentSizeLabel");
+    const targetSizeLabelEl = document.getElementById("targetSizeLabel");
+    const currentSizeBarEl = document.getElementById("currentSizeBar");
+    const targetSizeBarEl = document.getElementById("targetSizeBar");
+    const levelNumberEl = document.getElementById("levelNumber");
+    const levelTotalEl = document.getElementById("levelTotal");
+    const movesUsedEl = document.getElementById("movesUsed");
+    const movesLimitEl = document.getElementById("movesLimit");
+    const deltaSizeEl = document.getElementById("deltaSize");
+    const deltaChipEl = document.getElementById("deltaChip");
+    const boardStateLabelEl = document.getElementById("boardStateLabel");
+    const tileGridEl = document.getElementById("tileGrid");
+    const levelDescriptionEl = document.getElementById("levelDescription");
+    const levelSelectEl = document.getElementById("levelSelect");
+    const restartBtn = document.getElementById("restartBtn");
+    const randomizeBtn = document.getElementById("randomizeBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const logBoxEl = document.getElementById("logBox");
+
+    // ---------------------------
+    // INIT
+    // ---------------------------
+    function initLevelSelect() {
+      levelTotalEl.textContent = levels.length;
+      levelSelectEl.innerHTML = "";
+      levels.forEach((lvl, index) => {
+        const opt = document.createElement("option");
+        opt.value = index;
+        opt.textContent = `Level ${lvl.id}`;
+        levelSelectEl.appendChild(opt);
+      });
+    }
+
+    function formatSize(size) {
+      return `${size} MB`;
+    }
+
+    function log(message, type = "info") {
+      const line = document.createElement("p");
+      line.className = "log-line";
+      if (type === "win") line.classList.add("win");
+      if (type === "lose") line.classList.add("lose");
+      line.innerHTML = `<span>[LOG]</span> ${message}`;
+      logBoxEl.appendChild(line);
+      logBoxEl.scrollTop = logBoxEl.scrollHeight;
+    }
+
+    function resetLog() {
+      logBoxEl.innerHTML = "";
+    }
+
+    function updateBars(startSize, targetSize) {
+      // For visual scaling, clamp to a max scale base
+      const maxBaseline = Math.max(startSize, targetSize, 100);
+      const currentRatio = Math.max(0, Math.min(1, currentSize / maxBaseline));
+      const targetRatio = Math.max(0, Math.min(1, targetSize / maxBaseline));
+      currentSizeBarEl.style.width = `${currentRatio * 100}%`;
+      targetSizeBarEl.style.width = `${targetRatio * 100}%`;
+    }
+
+    function updateStatus(level) {
+      currentSizeLabelEl.textContent = formatSize(currentSize);
+      targetSizeLabelEl.textContent = formatSize(level.targetSize);
+      levelNumberEl.textContent = level.id;
+      movesUsedEl.textContent = movesUsed;
+      movesLimitEl.textContent = level.movesLimit;
+
+      const delta = level.targetSize - currentSize;
+      const sign = delta > 0 ? "+" : "";
+      deltaSizeEl.textContent = `${sign}${delta} MB`;
+
+      deltaChipEl.classList.remove("success", "danger");
+      if (delta === 0) {
+        deltaChipEl.classList.add("success");
+      } else if (Math.abs(delta) <= Math.round(level.startSize * 0.05)) {
+        // near miss
+        deltaChipEl.classList.add("danger");
+      }
+
+      if (gameLocked) {
+        if (delta === 0 && movesUsed <= level.movesLimit) {
+          boardStateLabelEl.textContent = "Status: ✅ Perfect Conversion";
+        } else {
+          boardStateLabelEl.textContent = "Status: ❌ Corrupt / Over-Converted";
+        }
+      } else {
+        boardStateLabelEl.textContent = "Status: Stable";
+      }
+
+      updateBars(level.startSize, level.targetSize);
+    }
+
+    function renderTiles(level) {
+      tileGridEl.innerHTML = "";
+      const shuffled = [...level.tiles].sort(() => Math.random() - 0.5);
+
+      shuffled.forEach((val, index) => {
+        const tile = document.createElement("button");
+        tile.type = "button";
+        tile.className = "tile";
+
+        const label = document.createElement("div");
+        label.className = "tile-label";
+        label.textContent = val < 0 ? "Compress" : "Expand";
+
+        const value = document.createElement("div");
+        value.className = "tile-value " + (val < 0 ? "negative" : "positive");
+        value.textContent = (val > 0 ? "+" : "") + val + " MB";
+
+        const type = document.createElement("div");
+        type.className = "tile-type";
+        if (val < 0) {
+          type.textContent = Math.abs(val) >= 20 ? "Heavy Codec" : "Smart Compress";
+        } else {
+          type.textContent = val >= 10 ? "Quality Boost" : "Padding Bytes";
+        }
+
+        tile.appendChild(label);
+        tile.appendChild(value);
+        tile.appendChild(type);
+
+        tile.addEventListener("click", () => onTileClick(index, val, tile));
+        tileGridEl.appendChild(tile);
+      });
+
+      usedTiles = new Array(shuffled.length).fill(false);
+    }
+
+    function onTileClick(index, value, tileEl) {
+      if (gameLocked || usedTiles[index]) return;
+
+      const level = levels[currentLevelIndex];
+      usedTiles[index] = true;
+      tileEl.classList.add("disabled");
+
+      currentSize += value;
+      movesUsed += 1;
+
+      const verb = value < 0 ? "compressed" : "expanded";
+      log(
+        `You ${verb} the file by ${value > 0 ? "+" : ""}${value} MB → new size: ${formatSize(
+          currentSize
+        )}`
+      );
+
+      checkWinOrLose(level);
+      updateStatus(level);
+    }
+
+    function checkWinOrLose(level) {
+      const delta = level.targetSize - currentSize;
+
+      if (delta === 0 && movesUsed <= level.movesLimit) {
+        gameLocked = true;
+        log("Perfect conversion — you hit the exact target without corrupting the file. ✔", "win");
+        return;
+      }
+
+      if (movesUsed >= level.movesLimit) {
+        gameLocked = true;
+        if (delta !== 0) {
+          log(
+            `Move limit exceeded and the file size is off target by ${delta} MB. Conversion failed.`,
+            "lose"
+          );
+        } else {
+          log(
+            "You hit the target, but burned through too many processing passes. The client rejected the encode.",
+            "lose"
+          );
+        }
+      }
+    }
+
+    function loadLevel(index, { keepLog = false } = {}) {
+      currentLevelIndex = index;
+      const level = levels[index];
+      currentSize = level.startSize;
+      movesUsed = 0;
+      gameLocked = false;
+      usedTiles = [];
+
+      levelTitleEl.textContent = level.title;
+      fileTypeLabelEl.textContent = level.fileType;
+      levelDescriptionEl.textContent = level.description;
+      objectiveLabelEl.textContent =
+        "Reach exactly " + formatSize(level.targetSize) + " using the available tiles.";
+      levelSelectEl.value = String(index);
+
+      if (!keepLog) resetLog();
+      log(`Loaded ${level.title}. Starting at ${formatSize(level.startSize)}.`);
+
+      renderTiles(level);
+      updateStatus(level);
+    }
+
+    // ---------------------------
+    // EVENT LISTENERS
+    // ---------------------------
+    levelSelectEl.addEventListener("change", (e) => {
+      const index = parseInt(e.target.value, 10) || 0;
+      loadLevel(index);
+    });
+
+    restartBtn.addEventListener("click", () => {
+      loadLevel(currentLevelIndex);
+    });
+
+    randomizeBtn.addEventListener("click", () => {
+      const level = levels[currentLevelIndex];
+      renderTiles(level);
+      log("Tiles shuffled for this level. Strategy changed, math stays the same.");
+    });
+
+    nextBtn.addEventListener("click", () => {
+      const nextIndex = (currentLevelIndex + 1) % levels.length;
+      loadLevel(nextIndex);
+    });
+
+    // ---------------------------
+    // START
+    // ---------------------------
+    initLevelSelect();
+    loadLevel(0);
+  </script>
+</body>
+</html>
