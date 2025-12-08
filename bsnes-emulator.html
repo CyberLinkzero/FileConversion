@@ -1,95 +1,1059 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<title>SNES Emulator – Load Your Own ROM</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <title>Cyber SNES Emulator – FileConverter.run</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description"
+        content="Play your legal SNES ROMs in the browser with save states, fullscreen, and a cyber-themed UI powered by EmulatorJS." />
 
-<style>
-  body {
-    margin: 0; padding: 20px;
-    background: #020617; color: #e5e7eb;
-    font-family: system-ui;
-  }
-  h1 { margin-top: 0; }
-  #game {
-    width: 100%;
-    max-width: 800px;
-    aspect-ratio: 4 / 3;
-    margin-top: 20px;
-    background: #000;
-    border: 2px solid #1e293b;
-    border-radius: 12px;
-  }
-  #loadBtn {
-    background: #00eaff;
-    border: none;
-    padding: 12px 22px;
-    font-size: 18px;
-    border-radius: 999px;
-    cursor: pointer;
-    color: #020617;
-    font-weight: bold;
-  }
-  #status { margin-top: 10px; color: #9ca3af; font-size: 14px; }
-</style>
+  <style>
+    :root {
+      --bg-main: #020617;
+      --bg-panel: #020617;
+      --bg-panel-alt: #030816;
+      --border-soft: #1e293b;
+      --accent: #22d3ee;
+      --accent-soft: rgba(34,211,238,0.16);
+      --accent-strong: #38bdf8;
+      --accent-purple: #a855f7;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --danger: #fb7185;
+      --good: #4ade80;
+      --shadow-soft: 0 22px 60px rgba(15,23,42,0.85);
+      --radius-lg: 18px;
+      --radius-xl: 22px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: radial-gradient(circle at top, #0b1120 0, #020617 50%, #000 100%);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+                   "Segoe UI", sans-serif;
+      color: var(--text-main);
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* Back link */
+    .nav-bar {
+      max-width: 1200px;
+      margin: 14px auto 0;
+      padding: 0 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.9rem;
+    }
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.4);
+      color: var(--accent-strong); /* stands out, not blue */
+      background: radial-gradient(circle at top left,
+                  rgba(34,211,238,0.16) 0, transparent 55%);
+      text-decoration: none;
+      transition: border-color 0.18s ease, background 0.18s ease,
+                  transform 0.12s ease, color 0.12s ease;
+    }
+    .nav-link:hover {
+      border-color: var(--accent-purple);
+      color: var(--accent-purple);
+      background: radial-gradient(circle at top left,
+                  rgba(168,85,247,0.20) 0, transparent 55%);
+      transform: translateY(-1px);
+    }
+
+    /* Layout */
+    .page-wrap {
+      flex: 1;
+      max-width: 1200px;
+      margin: 12px auto 22px;
+      padding: 0 18px 24px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 900px) {
+      .page-wrap {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Shells */
+    .panel {
+      background:
+        radial-gradient(circle at 0% 0%, rgba(56,189,248,0.15) 0, transparent 45%),
+        radial-gradient(circle at 100% 100%, rgba(168,85,247,0.18) 0, transparent 55%),
+        linear-gradient(135deg, #020617, #020617 55%, #000 100%);
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(148,163,184,0.35);
+      box-shadow: var(--shadow-soft);
+      padding: 16px 16px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at top center, rgba(148,163,253,0.18), transparent 60%);
+      opacity: 0.55;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .panel-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+
+    .title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .title span.badge {
+      font-size: 0.72rem;
+      padding: 2px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(56,189,248,0.6);
+      color: var(--accent-strong);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Emulator area */
+    .emulator-frame {
+      margin-top: 8px;
+      border-radius: 16px;
+      border: 1px solid rgba(30,64,175,0.65);
+      background: radial-gradient(circle at top, #020617 0, #020617 55%, #000 100%);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .emulator-top-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .chip {
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.35);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      background: rgba(15,23,42,0.7);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--danger);
+      box-shadow: 0 0 0 4px rgba(248,113,113,0.16);
+    }
+
+    .status-dot.online {
+      background: var(--good);
+      box-shadow: 0 0 0 4px rgba(74,222,128,0.16);
+    }
+
+    .status-text {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-message {
+      font-size: 0.72rem;
+      color: var(--accent-strong);
+    }
+
+    .game-surface-wrap {
+      border-radius: 14px;
+      border: 1px solid rgba(30,64,175,0.7);
+      background: radial-gradient(circle at 50% 0%, #020617 0, #000 65%);
+      overflow: hidden;
+      position: relative;
+      min-height: 260px;
+    }
+
+    .game-aspect-holder {
+      position: relative;
+      width: 100%;
+      padding-top: calc(100% * 9 / 16); /* ~16:9 */
+      background: radial-gradient(circle at center, #020617 0, #000 70%);
+    }
+
+    #game {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .game-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    /* Controls */
+    .controls-row {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.4);
+      font-size: 0.8rem;
+      font-weight: 500;
+      background: radial-gradient(circle at 0 0, rgba(34,211,238,0.24) 0, transparent 55%),
+                  rgba(15,23,42,0.95);
+      color: var(--accent-strong);
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.12s ease,
+                  border-color 0.12s ease, background 0.12s ease, opacity 0.12s ease;
+      white-space: nowrap;
+    }
+    .btn span.icon {
+      font-size: 0.9rem;
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent-purple);
+      box-shadow: 0 10px 28px rgba(15,23,42,0.7);
+      background: radial-gradient(circle at 100% 0, rgba(168,85,247,0.28) 0, transparent 60%),
+                  rgba(15,23,42,0.98);
+    }
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+    .btn.secondary {
+      background: rgba(15,23,42,0.92);
+      color: var(--text-main);
+    }
+    .btn.danger {
+      border-color: rgba(248,113,113,0.7);
+      color: #fecaca;
+      background: radial-gradient(circle at 0 0, rgba(248,113,113,0.24) 0, transparent 55%),
+                  rgba(15,23,42,0.96);
+    }
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: default;
+      transform: none;
+      box-shadow: none;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .file-label {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      max-width: 100%;
+    }
+
+    /* Right panel content */
+    .section {
+      margin-top: 8px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(30,64,175,0.7);
+      background: linear-gradient(135deg, rgba(15,23,42,0.96), rgba(15,23,42,0.88));
+    }
+
+    .section h3 {
+      margin: 0 0 4px;
+      font-size: 0.9rem;
+      color: var(--accent-strong);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section h3 span.icon {
+      font-size: 0.9rem;
+    }
+
+    .section p {
+      margin: 4px 0;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .tiny {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+    }
+
+    ul.bullets {
+      margin: 4px 0 0 16px;
+      padding: 0;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    ul.bullets li {
+      margin: 2px 0;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .pill {
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(55,65,81,0.8);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* Library */
+    .library-list {
+      margin-top: 6px;
+      border-radius: 10px;
+      border: 1px dashed rgba(51,65,85,0.9);
+      max-height: 180px;
+      overflow: auto;
+      padding: 4px;
+      background: rgba(15,23,42,0.96);
+    }
+
+    .library-empty {
+      padding: 6px 8px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      opacity: 0.7;
+      text-align: center;
+    }
+
+    .library-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 4px 6px;
+      border-radius: 9px;
+      background: rgba(15,23,42,0.98);
+      border: 1px solid rgba(30,64,175,0.6);
+      font-size: 0.78rem;
+      margin-bottom: 4px;
+    }
+
+    .library-item-main {
+      min-width: 0;
+    }
+    .library-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .library-meta {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .library-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .mini-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 2px 7px;
+      font-size: 0.72rem;
+      background: rgba(30,64,175,0.9);
+      color: #e5e7eb;
+      cursor: pointer;
+      transition: background 0.12s ease, transform 0.08s ease;
+    }
+
+    .mini-btn:hover {
+      background: rgba(59,130,246,1);
+      transform: translateY(-1px);
+    }
+
+    .mini-btn.secondary {
+      background: rgba(31,41,55,0.9);
+    }
+  </style>
 </head>
 <body>
 
-<h1>SNES Emulator</h1>
-<p>Click the button below to load your own ROM (.smc / .sfc)</p>
+  <div class="nav-bar">
+    <a href="/" class="nav-link">
+      <span>←</span>
+      <span>Back to FileConverter.run</span>
+    </a>
+  </div>
 
-<button id="loadBtn">🎮 Load SNES ROM</button>
-<input type="file" id="romInput" accept=".smc,.sfc" style="display:none;">
+  <main class="page-wrap">
+    <!-- LEFT: Emulator -->
+    <section class="panel">
+      <div class="panel-inner">
+        <header class="panel-header">
+          <div>
+            <div class="title">
+              <span>Cyber SNES Emulator</span>
+              <span class="badge">BETA</span>
+            </div>
+            <div class="subtitle">
+              Load your **own legal SNES ROMs** and play directly in the browser.
+            </div>
+          </div>
+        </header>
 
-<div id="game"></div>
+        <div class="emulator-frame">
+          <div class="emulator-top-bar">
+            <div class="chip-row">
+              <span class="chip">Core: SNES9x via EmulatorJS</span>
+              <span class="chip">Save State, Library, Fullscreen</span>
+            </div>
+            <div class="status-text">
+              <span id="emu-status-dot" class="status-dot"></span>
+              <span id="emu-status-label" class="tiny">No game loaded</span>
+            </div>
+          </div>
 
-<p id="status">Waiting for ROM…</p>
+          <div class="game-surface-wrap" id="gameWrap">
+            <div class="game-aspect-holder">
+              <div id="game"></div>
+              <div id="game-placeholder" class="game-placeholder">
+                <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.12em;">
+                  DROP SNES ROM HERE OR USE “SELECT ROM”
+                </div>
+                <div class="tiny">
+                  Supported: <code>.smc</code>, <code>.sfc</code>, most zipped ROMs.<br/>
+                  Controller, audio &amp; video tweaks are in the emulator’s own menu.
+                </div>
+              </div>
+            </div>
+          </div>
 
-<script>
-  // EmulatorJS global configuration
-  window.EJS_player = "#game";  
-  window.EJS_core = "snes";      
-  window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
-  window.EJS_language = "en";
-  window.EJS_onGameStart = () => {
-    document.getElementById("status").textContent = "Game running!";
-  };
+          <!-- MAIN CONTROLS -->
+          <div class="controls-row">
+            <button type="button" class="btn" id="btn-choose-rom">
+              <span class="icon">📁</span>
+              <span>Select ROM</span>
+            </button>
+            <button type="button" class="btn secondary" id="btn-load-rom" disabled>
+              <span class="icon">▶️</span>
+              <span>Load ROM</span>
+            </button>
 
-  // Create emulator but do NOT load a ROM yet
-  const script = document.createElement("script");
-  script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
-  document.body.appendChild(script);
+            <button type="button" class="btn secondary" id="btn-fullscreen">
+              <span class="icon">⛶</span>
+              <span>Fullscreen</span>
+            </button>
 
-  // Load button handler
-  const loadBtn = document.getElementById("loadBtn");
-  const romInput = document.getElementById("romInput");
+            <button type="button" class="btn secondary" id="btn-emulator-menu">
+              <span class="icon">🎮</span>
+              <span>Controls / AV Menu</span>
+            </button>
 
-  loadBtn.onclick = () => {
-    romInput.click();
-  };
+            <button type="button" class="btn secondary" id="btn-quick-save">
+              <span class="icon">💾</span>
+              <span>Quick Save</span>
+            </button>
+            <button type="button" class="btn secondary" id="btn-quick-load">
+              <span class="icon">📂</span>
+              <span>Quick Load</span>
+            </button>
+          </div>
 
-  // When user picks a ROM
-  romInput.onchange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+          <div class="file-label" id="file-label">
+            No ROM selected yet.
+          </div>
 
-    document.getElementById("status").textContent = "Loading ROM…";
+          <!-- Hidden file input -->
+          <input type="file" id="file-input"
+                 accept=".smc,.sfc,.fig,.zip,.7z,.rar,.gz,.bz2,.xz,.tar" />
 
-    const buffer = await file.arrayBuffer();
-    const bytes = new Uint8Array(buffer);
+          <div class="status-message" id="status-message"
+               style="margin-top:6px;"></div>
+        </div>
+      </div>
+    </section>
 
-    // Send ROM to EmulatorJS
-    window.postMessage({
-      type: "ejs-load-rom",
-      name: file.name,
-      data: bytes
-    }, "*");
+    <!-- RIGHT: Info + mini game library -->
+    <aside class="panel">
+      <div class="panel-inner">
+        <header class="panel-header">
+          <div>
+            <div class="title">
+              <span>Controls &amp; Game Library</span>
+            </div>
+            <div class="subtitle">
+              Set up your ROM, quick-save, and tune your controller inside the emulator.
+            </div>
+          </div>
+        </header>
 
-    document.getElementById("status").textContent =
-      "ROM loaded! Click inside screen, then press Enter to start.";
-  };
-</script>
+        <section class="section">
+          <h3><span class="icon">🎛️</span> How to Start a Game</h3>
+          <p>
+            1. Click <strong>Select ROM</strong> and choose a SNES file
+            (<code>.smc</code>, <code>.sfc</code>, or supported zip).<br/>
+            2. Click <strong>Load ROM</strong>. The emulator will boot the game in the left panel.<br/>
+            3. If you see a “Press Start” screen inside the emulator, use your keyboard or controller.
+          </p>
+          <p class="tiny">
+            Keyboard default (for many SNES cores): arrows to move, Z/X/A/S for buttons,
+            Enter for start, Right Shift for select (can be remapped).
+          </p>
+        </section>
 
+        <section class="section">
+          <h3><span class="icon">🎮</span> Controller, Sound &amp; Video Options</h3>
+          <p>
+            EmulatorJS has its own advanced menu:
+          </p>
+          <ul class="bullets">
+            <li><strong>Inside the game</strong>, move your mouse to reveal the bottom / top bar.</li>
+            <li>Use the <strong>settings / controller / cog</strong> icons for:
+              <ul class="bullets">
+                <li>Controller mapping for keyboard &amp; gamepads</li>
+                <li>Audio volume &amp; latency</li>
+                <li>Video scaling, shaders, and fullscreen</li>
+                <li>Cheats, SRAM import/export, cache manager, etc.</li>
+              </ul>
+            </li>
+          </ul>
+          <p class="tiny">
+            The <strong>Controls / AV Menu</strong> button here will try to show an on-screen hint in the emulator.
+          </p>
+        </section>
+
+        <section class="section">
+          <h3><span class="icon">💾</span> Quick Save / Quick Load (Slot 1)</h3>
+          <p>
+            Use the buttons in the left panel:
+          </p>
+          <ul class="bullets">
+            <li><strong>Quick Save</strong> – captures a state using
+              <code>gameManager.getState()</code> and stores it in your browser’s
+              <code>localStorage</code> (slot 1 only).</li>
+            <li><strong>Quick Load</strong> – loads that stored state via
+              <code>gameManager.loadState()</code> into the running game. :contentReference[oaicite:2]{index=2}</li>
+          </ul>
+          <p class="tiny">
+            This is separate from EmulatorJS’s own built-in save/load UI, so you can use both if you want.
+          </p>
+        </section>
+
+        <section class="section">
+          <h3><span class="icon">📚</span> Session Game Library</h3>
+          <p>
+            Every ROM you load (this tab, this session) is remembered below. Click
+            <strong>Play</strong> to swap back to it without re-picking the file.
+          </p>
+          <div class="pill-row">
+            <span class="pill">Session only</span>
+            <span class="pill">Up to ~20 games</span>
+          </div>
+
+          <div id="library" class="library-list">
+            <div id="library-empty" class="library-empty">
+              No games in this session yet. Load a ROM to start a library.
+            </div>
+            <div id="library-items"></div>
+          </div>
+        </section>
+
+        <section class="section">
+          <h3><span class="icon">⚠️</span> Legal Note</h3>
+          <p class="tiny">
+            Only load ROMs you legally own. This page is just a frontend wrapper for
+            EmulatorJS and does not host or distribute any game files.
+          </p>
+        </section>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    // ====== GLOBALS ======
+    const EMU_CDN_LOADER = "https://cdn.emulatorjs.org/stable/data/loader.js";
+
+    const fileInput      = document.getElementById("file-input");
+    const chooseBtn      = document.getElementById("btn-choose-rom");
+    const loadBtn        = document.getElementById("btn-load-rom");
+    const fullscreenBtn  = document.getElementById("btn-fullscreen");
+    const menuBtn        = document.getElementById("btn-emulator-menu");
+    const quickSaveBtn   = document.getElementById("btn-quick-save");
+    const quickLoadBtn   = document.getElementById("btn-quick-load");
+    const fileLabel      = document.getElementById("file-label");
+    const statusMessage  = document.getElementById("status-message");
+    const statusDot      = document.getElementById("emu-status-dot");
+    const statusLabel    = document.getElementById("emu-status-label");
+    const gamePlaceholder= document.getElementById("game-placeholder");
+    const gameWrap       = document.getElementById("gameWrap");
+
+    const libraryContainer = document.getElementById("library");
+    const libraryItemsEl   = document.getElementById("library-items");
+    const libraryEmptyEl   = document.getElementById("library-empty");
+
+    let pickedFile = null;
+    let currentLoaderScript = null;
+    let currentBlobUrl = null;
+    let library = [];
+    const inMemoryFiles = new Map();
+    const LIBRARY_LIMIT = 20;
+    const QUICK_SAVE_KEY = "fileconverter_snes_quicksave_v1";
+
+    function setStatus(text, ok) {
+      statusMessage.textContent = text || "";
+      statusMessage.style.color = ok ? "#4ade80" : "#38bdf8";
+    }
+
+    function setEmuOnline(isOnline) {
+      if (isOnline) {
+        statusDot.classList.add("online");
+        statusLabel.textContent = "Emulator running";
+        if (gamePlaceholder) gamePlaceholder.style.display = "none";
+      } else {
+        statusDot.classList.remove("online");
+        statusLabel.textContent = "No game loaded";
+        if (gamePlaceholder) gamePlaceholder.style.display = "flex";
+      }
+    }
+
+    // ====== FILE PICKING ======
+    chooseBtn.addEventListener("click", () => fileInput.click());
+
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) {
+        pickedFile = null;
+        fileLabel.textContent = "No ROM selected yet.";
+        loadBtn.disabled = true;
+        return;
+      }
+      pickedFile = file;
+      const sizeKB = Math.round(file.size / 1024);
+      fileLabel.textContent = `Selected: ${file.name} (${sizeKB} KB)`;
+      loadBtn.disabled = false;
+      setStatus("Ready to load ROM.", true);
+    });
+
+    // Drag & drop directly onto the game area
+    ["dragenter", "dragover"].forEach(evt => {
+      gameWrap.addEventListener(evt, e => {
+        e.preventDefault();
+        e.stopPropagation();
+        gameWrap.style.boxShadow = "0 0 0 2px rgba(56,189,248,0.8)";
+      });
+    });
+    ["dragleave", "drop"].forEach(evt => {
+      gameWrap.addEventListener(evt, e => {
+        e.preventDefault();
+        e.stopPropagation();
+        gameWrap.style.boxShadow = "";
+      });
+    });
+    gameWrap.addEventListener("drop", e => {
+      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f) {
+        pickedFile = f;
+        fileInput.files = e.dataTransfer.files; // sync with native input
+        const sizeKB = Math.round(f.size / 1024);
+        fileLabel.textContent = `Selected: ${f.name} (${sizeKB} KB)`;
+        loadBtn.disabled = false;
+        setStatus("File dropped – click Load ROM to start.", true);
+      }
+    });
+
+    // ====== EMULATOR LOADING ======
+    function clearPreviousEmulator() {
+      try {
+        if (currentBlobUrl) {
+          URL.revokeObjectURL(currentBlobUrl);
+        }
+      } catch (e) {
+        console.warn("Failed to revoke blob URL", e);
+      }
+      currentBlobUrl = null;
+
+      if (currentLoaderScript) {
+        currentLoaderScript.remove();
+        currentLoaderScript = null;
+      }
+
+      const gameEl = document.getElementById("game");
+      if (gameEl) {
+        gameEl.innerHTML = "";
+      }
+
+      setEmuOnline(false);
+    }
+
+    function extLooksArchive(name) {
+      const ext = (name.split(".").pop() || "").toLowerCase();
+      return ["zip","7z","rar","gz","bz2","xz","tar"].includes(ext);
+    }
+
+    function extSuggestsSNES(name) {
+      const ext = (name.split(".").pop() || "").toLowerCase();
+      return ["sfc","smc","fig"].includes(ext);
+    }
+
+    async function startEmulatorWithFile(file) {
+      if (!file) {
+        alert("Pick a ROM file first.");
+        return;
+      }
+
+      clearPreviousEmulator();
+
+      // Simple guidance: we allow archives, EmulatorJS can handle many zipped ROMs.
+      if (extLooksArchive(file.name)) {
+        setStatus("Archive detected – EmulatorJS will try to read the ROM inside.", true);
+      } else if (!extSuggestsSNES(file.name)) {
+        setStatus("File doesn't look like SNES; EmulatorJS will still try to load it.", true);
+      } else {
+        setStatus("Loading SNES ROM…", true);
+      }
+
+      currentBlobUrl = URL.createObjectURL(file);
+
+      // Configure EmulatorJS global options BEFORE loading loader.js
+      window.EJS_player          = "#game";
+      window.EJS_gameUrl         = currentBlobUrl;
+      window.EJS_core            = "snes"; // SNES9x core
+      window.EJS_gameName        = file.name;
+      window.EJS_pathtodata      = "https://cdn.emulatorjs.org/stable/data/";
+      window.EJS_color           = "#22d3ee";
+      window.EJS_backgroundColor = "#020617";
+      window.EJS_startOnLoaded   = true;
+      window.EJS_fullscreenOnLoaded = false;
+
+      // Optional: allow threaded cores if environment supports it
+      window.EJS_threads = false;
+
+      const script = document.createElement("script");
+      script.src = EMU_CDN_LOADER + "?_=" + Date.now();
+      script.async = true;
+      script.onload = () => {
+        setStatus("Emulator loaded. If the game is paused, use in-game START / controller.", true);
+        setEmuOnline(true);
+        addToLibrary(file);
+      };
+      script.onerror = () => {
+        setStatus("Failed to load EmulatorJS from CDN.", false);
+        setEmuOnline(false);
+      };
+      document.body.appendChild(script);
+      currentLoaderScript = script;
+    }
+
+    loadBtn.addEventListener("click", () => {
+      if (!pickedFile) {
+        alert("Please choose a ROM first.");
+        return;
+      }
+      startEmulatorWithFile(pickedFile);
+    });
+
+    // ====== FULLSCREEN ======
+    fullscreenBtn.addEventListener("click", () => {
+      const target = document.documentElement; // whole page fullscreen
+      if (!document.fullscreenElement) {
+        if (target.requestFullscreen) target.requestFullscreen();
+        else if (target.webkitRequestFullscreen) target.webkitRequestFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      }
+    });
+
+    // ====== EMULATOR MENU HINT ======
+    menuBtn.addEventListener("click", () => {
+      try {
+        if (window.EJS_emulator && window.EJS_emulator.displayMessage) {
+          // Newer EmulatorJS allows a duration argument for displayMessage. :contentReference[oaicite:3]{index=3}
+          try {
+            window.EJS_emulator.displayMessage(
+              "Move your mouse to show the emulator toolbar. Use the gear/controller icons for controls & AV settings.",
+              6000
+            );
+          } catch (e) {
+            window.EJS_emulator.displayMessage(
+              "Show the emulator toolbar and click the settings icons for controller, sound, and video options."
+            );
+          }
+        } else {
+          alert(
+            "Inside the game, move your mouse so the emulator toolbar appears, " +
+            "then use the settings / controller icons for controls, sound, and video options."
+          );
+        }
+      } catch (e) {
+        console.warn("Could not show emulator hint", e);
+        alert(
+          "Inside the game, move your mouse so the emulator toolbar appears, " +
+          "then use the settings / controller icons for controls, sound, and video options."
+        );
+      }
+    });
+
+    // ====== QUICK SAVE / LOAD (Slot 1) ======
+    function u8ToBase64(u8) {
+      let binary = "";
+      const len = u8.length;
+      for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(u8[i]);
+      }
+      return btoa(binary);
+    }
+
+    function base64ToU8(b64) {
+      const bin = atob(b64);
+      const len = bin.length;
+      const u8 = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        u8[i] = bin.charCodeAt(i);
+      }
+      return u8;
+    }
+
+    function getEmulator() {
+      return (window.EJS_emulator && window.EJS_emulator.gameManager)
+        ? window.EJS_emulator
+        : null;
+    }
+
+    quickSaveBtn.addEventListener("click", () => {
+      const emu = getEmulator();
+      if (!emu) {
+        setStatus("No running emulator to save from.", false);
+        return;
+      }
+      try {
+        const state = emu.gameManager.getState(); // documented API :contentReference[oaicite:4]{index=4}
+        if (!state) {
+          setStatus("Save failed: emulator did not return a state.", false);
+          return;
+        }
+        const u8 = state instanceof Uint8Array ? state : new Uint8Array(state);
+        const b64 = u8ToBase64(u8);
+        localStorage.setItem(QUICK_SAVE_KEY, b64);
+        setStatus("Quick save stored in browser (slot 1).", true);
+      } catch (err) {
+        console.error("Quick save error", err);
+        setStatus("Quick save failed (check console).", false);
+      }
+    });
+
+    quickLoadBtn.addEventListener("click", () => {
+      const emu = getEmulator();
+      if (!emu) {
+        setStatus("No running emulator to load into.", false);
+        return;
+      }
+      const b64 = localStorage.getItem(QUICK_SAVE_KEY);
+      if (!b64) {
+        setStatus("No quick save found yet.", false);
+        return;
+      }
+      try {
+        const u8 = base64ToU8(b64);
+        emu.gameManager.loadState(u8); // documented API :contentReference[oaicite:5]{index=5}
+        setStatus("Quick load applied.", true);
+      } catch (err) {
+        console.error("Quick load error", err);
+        setStatus("Quick load failed (check console).", false);
+      }
+    });
+
+    // ====== SESSION GAME LIBRARY ======
+    function humanSize(bytes) {
+      if (bytes < 1024) return bytes + " B";
+      if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + " KB";
+      return Math.round(bytes / (1024 * 1024)) + " MB";
+    }
+
+    function renderLibrary() {
+      libraryItemsEl.innerHTML = "";
+      if (!library.length) {
+        libraryEmptyEl.style.display = "block";
+        return;
+      }
+      libraryEmptyEl.style.display = "none";
+
+      for (const item of library) {
+        const row = document.createElement("div");
+        row.className = "library-item";
+
+        const main = document.createElement("div");
+        main.className = "library-item-main";
+
+        const nameEl = document.createElement("div");
+        nameEl.className = "library-name";
+        nameEl.textContent = item.name;
+
+        const metaEl = document.createElement("div");
+        metaEl.className = "library-meta";
+        const dt = new Date(item.lastPlayed);
+        metaEl.textContent = humanSize(item.size) +
+          " • " + dt.toLocaleTimeString(undefined, {hour: "2-digit", minute: "2-digit"});
+
+        main.appendChild(nameEl);
+        main.appendChild(metaEl);
+
+        const actions = document.createElement("div");
+        actions.className = "library-actions";
+
+        const playBtn = document.createElement("button");
+        playBtn.className = "mini-btn";
+        playBtn.textContent = "Play";
+        playBtn.addEventListener("click", () => {
+          const file = inMemoryFiles.get(item.id);
+          if (!file) {
+            alert("This file is only kept for this tab/session. Please re-select the ROM.");
+            return;
+          }
+          pickedFile = file;
+          const sizeKB = Math.round(file.size / 1024);
+          fileLabel.textContent = `Selected: ${file.name} (${sizeKB} KB)`;
+          loadBtn.disabled = false;
+          setStatus("Loading from session library…", true);
+          startEmulatorWithFile(file);
+        });
+
+        const selectBtn = document.createElement("button");
+        selectBtn.className = "mini-btn secondary";
+        selectBtn.textContent = "Select";
+        selectBtn.addEventListener("click", () => {
+          const file = inMemoryFiles.get(item.id);
+          if (!file) {
+            alert("This file is only kept for this tab/session. Please re-select the ROM.");
+            return;
+          }
+          pickedFile = file;
+          fileLabel.textContent = `Selected from library: ${file.name} (${humanSize(file.size)})`;
+          loadBtn.disabled = false;
+          setStatus("Ready to load from library.", true);
+        });
+
+        actions.appendChild(playBtn);
+        actions.appendChild(selectBtn);
+
+        row.appendChild(main);
+        row.appendChild(actions);
+        libraryItemsEl.appendChild(row);
+      }
+    }
+
+    function addToLibrary(file) {
+      const now = Date.now();
+      const existing = library.find(
+        it => it.name === file.name && it.size === file.size
+      );
+      if (existing) {
+        existing.lastPlayed = now;
+        inMemoryFiles.set(existing.id, file);
+      } else {
+        const id = now.toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+        const entry = { id, name: file.name, size: file.size, lastPlayed: now };
+        library.unshift(entry);
+        inMemoryFiles.set(id, file);
+        if (library.length > LIBRARY_LIMIT) {
+          const removed = library.splice(LIBRARY_LIMIT);
+          removed.forEach(r => inMemoryFiles.delete(r.id));
+        }
+      }
+      renderLibrary();
+    }
+
+    // initial state
+    setEmuOnline(false);
+    renderLibrary();
+  </script>
 </body>
 </html>
