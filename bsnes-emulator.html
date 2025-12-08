@@ -4,9 +4,8 @@
   <meta charset="utf-8" />
   <title>SNES Emulator – FileConverter.run</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Play your own SNES ROMs in the browser using a JavaScript SNES emulator, wrapped in the FileConverter.run cyber interface." />
+  <meta name="description" content="Play your own SNES ROMs in the browser with controller support, fullscreen, sound, save states, and a cyber interface from FileConverter.run." />
 
-  <!-- Basic cyber theme to match FileConverter.run -->
   <style>
     :root {
       --bg: #020617;
@@ -18,9 +17,7 @@
       --text-muted: #9ca3af;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html, body {
       margin: 0;
@@ -53,11 +50,12 @@
       justify-content: space-between;
       gap: 12px;
       margin-bottom: 16px;
+      flex-wrap: wrap;
     }
 
     .nav-link {
       text-decoration: none;
-      color: #00eaff;
+      color: var(--accent);
       font-weight: 600;
       font-size: 0.95rem;
     }
@@ -81,9 +79,10 @@
     .card {
       border-radius: 16px;
       border: 1px solid var(--border);
-      background: radial-gradient(circle at top, rgba(56,189,248,0.07), transparent 60%),
-                  radial-gradient(circle at bottom, rgba(129,140,248,0.05), transparent 60%),
-                  var(--card);
+      background:
+        radial-gradient(circle at top, rgba(56,189,248,0.07), transparent 60%),
+        radial-gradient(circle at bottom, rgba(129,140,248,0.05), transparent 60%),
+        var(--card);
       padding: 16px;
       box-shadow:
         0 18px 45px rgba(15,23,42,0.85),
@@ -96,6 +95,7 @@
       justify-content: space-between;
       gap: 12px;
       margin-bottom: 12px;
+      flex-wrap: wrap;
     }
 
     .card-header-title {
@@ -139,7 +139,7 @@
       color: var(--text-muted);
       border-radius: 12px;
       border: 1px solid rgba(30,64,175,0.6);
-      background: rgba(15,23,42,0.85);
+      background: rgba(15,23,42,0.9);
       padding: 10px 12px;
     }
 
@@ -160,19 +160,17 @@
       margin-bottom: 3px;
     }
 
-    .emu-frame-wrap {
+    .emu-shell {
       border-radius: 14px;
       overflow: hidden;
       border: 1px solid rgba(15,23,42,0.95);
       background: #000;
+      min-height: 360px;
     }
 
-    iframe.snes-frame {
+    #fc-snes-game {
       width: 100%;
       height: min(720px, 75vh);
-      border: 0;
-      display: block;
-      background: #000;
     }
 
     footer {
@@ -206,8 +204,8 @@
     <header>
       <a href="/" class="nav-link">← Back to FileConverter.run</a>
       <div class="title-block">
-        <h1>SNES Emulator (JS Core)</h1>
-        <p>Play your own SNES ROMs directly in the browser – no installs, just upload and play.</p>
+        <h1>SNES Emulator (EmulatorJS)</h1>
+        <p>Play SNES ROMs with controller support, fullscreen, sound, and save states – all in your browser.</p>
       </div>
     </header>
 
@@ -215,52 +213,79 @@
       <div class="card-header">
         <div class="card-header-title">
           SNES Player
-          <span class="chip">Pure JavaScript Core</span>
+          <span class="chip">RetroArch Core via EmulatorJS</span>
         </div>
       </div>
 
       <p class="hint">
-        Load your own <strong>.smc</strong> or <strong>.sfc</strong> ROMs inside the emulator below.  
-        If audio doesn’t start, click once inside the game area to let the browser unlock sound.
+        💾 Load your own <strong>.smc</strong> / <strong>.sfc</strong> ROMs.  
+        Click inside the emulator, then use the built-in menu to <strong>load ROM, map controller, go fullscreen, and manage save states</strong>.
       </p>
 
       <div class="tips-grid">
         <section>
           <h3>How to Use</h3>
           <ul>
-            <li>Click inside the emulator frame.</li>
-            <li>Use its built-in menu to load your ROM file.</li>
-            <li>Play with keyboard controls (shown in the emulator UI).</li>
+            <li>Click once in the game window (unlocks sound).</li>
+            <li>Use the EmulatorJS menu (≡ icon / right-click) to:
+              <ul>
+                <li>Load a ROM from your device</li>
+                <li>Save / load state</li>
+                <li>Open control settings</li>
+                <li>Toggle fullscreen</li>
+              </ul>
+            </li>
           </ul>
         </section>
         <section>
-          <h3>Keyboard (Typical Mapping)</h3>
+          <h3>Keyboard & Controller</h3>
           <ul>
             <li>Arrows → D-Pad</li>
             <li>Enter → Start &nbsp; / &nbsp; Shift → Select</li>
-            <li>Z/X/S/A/D/C → Face &amp; shoulder buttons (varies by core)</li>
+            <li>Z / X / A / S → Face buttons (default)</li>
+            <li>Plug in an Xbox / PS / USB pad → map in <strong>Control Settings</strong>.</li>
           </ul>
         </section>
       </div>
 
-      <!-- SNES JS core page embedded here -->
-      <div class="emu-frame-wrap">
-        <iframe
-          class="snes-frame"
-          src="https://angelo-wf.github.io/SnesJs/"
-          title="SnesJs – JavaScript SNES Emulator"
-          loading="lazy"
-          allowfullscreen
-        ></iframe>
+      <!-- EmulatorJS SNES core goes here -->
+      <div class="emu-shell">
+        <div id="fc-snes-game"></div>
       </div>
 
       <footer>
-        Core powered by the open-source project
-        <a href="https://github.com/angelo-wf/SnesJs" target="_blank" rel="noopener noreferrer">SnesJs</a>
-        (pure JavaScript SNES emulator, MIT license).  
-        This page only wraps it with the FileConverter.run interface.
+        Emulator powered by
+        <a href="https://github.com/EmulatorJS/EmulatorJS" target="_blank" rel="noopener noreferrer">EmulatorJS</a>
+        (RetroArch cores in the browser, with save states, controller mapping, and fullscreen). :contentReference[oaicite:2]{index=2}
       </footer>
     </div>
   </div>
+
+  <!-- EmulatorJS config -->
+  <script>
+    // Where to render the emulator UI
+    EJS_player = '#fc-snes-game';
+
+    // SNES core (can also use 'bsnes' if you want the bsnes libretro core)
+    EJS_core = 'snes';
+
+    // Use official CDN so you don't have to host the core files
+    EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/'; // stable = recommended for production :contentReference[oaicite:3]{index=3}
+
+    // Leave empty to let users pick a ROM via the UI / drag & drop
+    EJS_gameUrl = '';
+
+    // UI theme + audio
+    EJS_color = '#00eaff';          // accent color for the EmulatorJS UI
+    EJS_backgroundColor = '#000';   // background inside the emulator shell
+    EJS_volume = 1;                 // full volume
+
+    // Optional: start in fullscreen after load (usually better to leave false)
+    EJS_fullscreenOnLoaded = false;
+    EJS_startOnLoaded = false;
+  </script>
+
+  <!-- EmulatorJS loader from CDN -->
+  <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 </body>
 </html>
