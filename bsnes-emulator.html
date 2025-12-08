@@ -267,6 +267,17 @@
           </div>
         </div>
 
+        <!-- NEW: Simple Load ROM controls -->
+        <div style="margin: 8px 0 12px; text-align:left;">
+          <button id="btnLoadRom" class="fc-btn" style="background:#0ea5e9; border-color:#38bdf8;">
+            🎮 Load SNES ROM
+          </button>
+          <input type="file" id="romInput" accept=".smc,.sfc,.fig,.zip" style="display:none;">
+          <div class="note-small">
+            Pick a <strong>.smc</strong> / <strong>.sfc</strong> file from your PC, then click inside the game window to start.
+          </div>
+        </div>
+
         <div class="emu-shell">
           <!--
             Using a full EmulatorJS frontend hosted externally, which includes:
@@ -287,23 +298,23 @@
 
         <div class="status-line">
           <span class="dot ok" id="status-dot"></span>
-          <span id="status-text">Core loaded. Click inside the emulator, then use its menu to load a ROM.</span>
+          <span id="status-text">Core loading… Once ready, use “Load SNES ROM” above.</span>
         </div>
       </div>
 
-      <!-- RIGHT: Options / Help panel (all the “badass” features explained) -->
+      <!-- RIGHT: Options / Help panel -->
       <aside class="card">
         <div class="panel-title">Emulator Options & Features</div>
 
         <div class="section">
           <h3>1. Load Your ROM</h3>
           <ul>
-            <li>Click once inside the emulator window (to focus & unlock sound).</li>
-            <li>Use the emulator’s menu (usually a <strong>☰ / menu</strong> icon or right-click) and choose <strong>Load Game / Load ROM</strong>.</li>
-            <li>Select your <strong>.smc</strong> or <strong>.sfc</strong> file from your computer.</li>
+            <li>Click <strong>“Load SNES ROM”</strong> on the left and choose your <strong>.smc</strong> / <strong>.sfc</strong> file.</li>
+            <li>After it loads, click once inside the emulator window (to focus & unlock sound).</li>
+            <li>You can also use the emulator’s own menu (☰) and choose <strong>Load Game / Load ROM</strong> if you prefer.</li>
           </ul>
           <p class="note-small">
-            If you see a “network error” inside the emulator, it usually means it tried to auto-load a demo ROM from the web and couldn’t. Just use the <strong>Load ROM</strong> option and pick your own file.
+            If you see a “network error” inside the emulator, it usually means it tried to auto-load a demo ROM from the web and couldn’t. Just use the big <strong>Load SNES ROM</strong> button instead.
           </p>
         </div>
 
@@ -386,11 +397,14 @@
     const btnFullscreen = document.getElementById('btn-frame-fullscreen');
     const btnReload = document.getElementById('btn-reload-core');
 
+    const romBtn = document.getElementById('btnLoadRom');
+    const romInput = document.getElementById('romInput');
+
     // Basic status updates for iframe load
     emuFrame.addEventListener('load', () => {
       statusDot.classList.remove('bad');
       statusDot.classList.add('ok');
-      statusText.textContent = 'Emulator loaded. Click inside, then use its menu to load a ROM.';
+      statusText.textContent = 'Emulator loaded. Use “Load SNES ROM” above, then click inside the game window.';
     });
 
     emuFrame.addEventListener('error', () => {
@@ -413,6 +427,39 @@
     btnReload.addEventListener('click', () => {
       statusText.textContent = 'Reloading emulator…';
       emuFrame.src = emuFrame.src;
+    });
+
+    // Simple Load ROM → send ROM bytes into EmulatorJS iframe
+    romBtn.addEventListener('click', () => {
+      romInput.click();
+    });
+
+    romInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      try {
+        statusText.textContent = 'Loading ROM…';
+        const arrayBuffer = await file.arrayBuffer();
+        const uint8 = new Uint8Array(arrayBuffer);
+
+        const frameWindow = emuFrame.contentWindow;
+        // EmulatorJS listens for this message format in many builds
+        frameWindow.postMessage({
+          type: 'ejs-load-rom',
+          name: file.name,
+          data: uint8
+        }, '*');
+
+        statusDot.classList.remove('bad');
+        statusDot.classList.add('ok');
+        statusText.textContent = `ROM “${file.name}” sent to emulator. Click inside the game window to play.`;
+      } catch (err) {
+        console.error('Error loading ROM:', err);
+        statusDot.classList.remove('ok');
+        statusDot.classList.add('bad');
+        statusText.textContent = 'Error loading ROM. Open DevTools console for details.';
+      }
     });
   </script>
 </body>
