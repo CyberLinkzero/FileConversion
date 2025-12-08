@@ -218,23 +218,17 @@
       </div>
 
       <p class="hint">
-        💾 Load your own <strong>.smc</strong> / <strong>.sfc</strong> ROMs.  
-        Click inside the emulator, then use the built-in menu to <strong>load ROM, map controller, go fullscreen, and manage save states</strong>.
+        💾 This page auto-loads a SNES ROM from your FileConverter.run repo.  
+        Click inside the game window to unlock sound, then use the EmulatorJS menu to manage <strong>save states, controls, and fullscreen</strong>.
       </p>
 
       <div class="tips-grid">
         <section>
           <h3>How to Use</h3>
           <ul>
-            <li>Click once in the game window (unlocks sound).</li>
-            <li>Use the EmulatorJS menu (≡ icon / right-click) to:
-              <ul>
-                <li>Load a ROM from your device</li>
-                <li>Save / load state</li>
-                <li>Open control settings</li>
-                <li>Toggle fullscreen</li>
-              </ul>
-            </li>
+            <li>Upload your ROM file (e.g. <code>mygame.smc</code>) into <code>/FileConversion/roms/</code> on GitHub.</li>
+            <li>Update the ROM URL in the script at the bottom of this file.</li>
+            <li>Reload this page. After it loads, click once in the game window (audio unlock), and the game should start.</li>
           </ul>
         </section>
         <section>
@@ -243,7 +237,7 @@
             <li>Arrows → D-Pad</li>
             <li>Enter → Start &nbsp; / &nbsp; Shift → Select</li>
             <li>Z / X / A / S → Face buttons (default)</li>
-            <li>Plug in an Xbox / PS / USB pad → map in <strong>Control Settings</strong>.</li>
+            <li>Plug in an Xbox / PS / USB pad → configure in <strong>Control Settings</strong> inside the emulator menu.</li>
           </ul>
         </section>
       </div>
@@ -256,7 +250,7 @@
       <footer>
         Emulator powered by
         <a href="https://github.com/EmulatorJS/EmulatorJS" target="_blank" rel="noopener noreferrer">EmulatorJS</a>
-        (RetroArch cores in the browser, with save states, controller mapping, and fullscreen). :contentReference[oaicite:2]{index=2}
+        (RetroArch cores in the browser, with save states, controller mapping, and fullscreen).
       </footer>
     </div>
   </div>
@@ -266,21 +260,24 @@
     // Where to render the emulator UI
     EJS_player = '#fc-snes-game';
 
-    // SNES core (can also use 'bsnes' if you want the bsnes libretro core)
+    // SNES core (EmulatorJS uses a SNES libretro core under this label)
     EJS_core = 'snes';
 
-    // Use official CDN so you don't have to host the core files
-    EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/'; // stable = recommended for production :contentReference[oaicite:3]{index=3}
+    // 👇 IMPORTANT: point this to your hosted ROM on GitHub Pages.
+    // Example: if you upload DAFFYDUCK.SMC to /FileConversion/roms/,
+    // set:
+    // EJS_gameUrl = 'https://cyberlinkzero.github.io/FileConversion/roms/DAFFYDUCK.SMC';
+    EJS_gameUrl = 'https://cyberlinkzero.github.io/FileConversion/roms/mygame.smc';
 
-    // Leave empty to let users pick a ROM via the UI / drag & drop
-    EJS_gameUrl = '';
+    // Use EmulatorJS CDN for cores + data
+    EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
 
-    // UI theme + audio
-    EJS_color = '#00eaff';          // accent color for the EmulatorJS UI
-    EJS_backgroundColor = '#000';   // background inside the emulator shell
-    EJS_volume = 1;                 // full volume
+    // UI + audio
+    EJS_color = '#00eaff';
+    EJS_backgroundColor = '#000';
+    EJS_volume = 1;
 
-    // Optional: start in fullscreen after load (usually better to leave false)
+    // Start only after user clicks inside (browser audio policies)
     EJS_fullscreenOnLoaded = false;
     EJS_startOnLoaded = false;
   </script>
