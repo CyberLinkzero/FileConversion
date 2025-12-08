@@ -127,14 +127,22 @@
       border: 1px solid rgba(15,23,42,0.95);
       background: #000;
       min-height: 360px;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
     }
 
-    .emu-frame {
+    .emu-container {
       width: 100%;
-      height: min(760px, 78vh);
-      border: 0;
-      display: block;
+      max-width: 960px;
+      margin: 0 auto;
+      aspect-ratio: 4 / 3;
       background: #000;
+    }
+
+    #game {
+      width: 100%;
+      height: 100%;
     }
 
     .status-line {
@@ -235,9 +243,6 @@
       .layout {
         grid-template-columns: minmax(0, 1fr);
       }
-      .emu-frame {
-        height: min(640px, 70vh);
-      }
     }
 
     @media (max-width: 600px) {
@@ -263,43 +268,27 @@
         <div class="card-header">
           <div class="card-header-title">
             SNES Player
-            <span class="chip">Full Emulator Frontend</span>
-          </div>
-        </div>
-
-        <!-- NEW: Simple Load ROM controls -->
-        <div style="margin: 8px 0 12px; text-align:left;">
-          <button id="btnLoadRom" class="fc-btn" style="background:#0ea5e9; border-color:#38bdf8;">
-            🎮 Load SNES ROM
-          </button>
-          <input type="file" id="romInput" accept=".smc,.sfc,.fig,.zip" style="display:none;">
-          <div class="note-small">
-            Pick a <strong>.smc</strong> / <strong>.sfc</strong> file from your PC, then click inside the game window to start.
+            <span class="chip">SNES9x Core (EmulatorJS)</span>
           </div>
         </div>
 
         <div class="emu-shell">
-          <!--
-            Using a full EmulatorJS frontend hosted externally, which includes:
-            - Load ROM button
-            - Save / Load state
-            - Controller mapping
-            - Video & fullscreen options
-          -->
-          <iframe
-            id="emu-frame"
-            class="emu-frame"
-            src="https://emulatorjs.org/games/snes/"
-            title="SNES Emulator"
-            loading="lazy"
-            allow="fullscreen"
-          ></iframe>
+          <div class="emu-container">
+            <!-- EmulatorJS will render into this div -->
+            <div id="game"></div>
+          </div>
         </div>
 
         <div class="status-line">
           <span class="dot ok" id="status-dot"></span>
-          <span id="status-text">Core loading… Once ready, use “Load SNES ROM” above.</span>
+          <span id="status-text">
+            Loading SNES core… Your ROM will start automatically when ready.
+          </span>
         </div>
+        <p class="note-small">
+          Current game: <strong id="rom-name-label">roms/SuperMarioWorld.smc</strong><br />
+          To change, upload a new ROM into your <code>roms/</code> folder and update the path in this page’s code.
+        </p>
       </div>
 
       <!-- RIGHT: Options / Help panel -->
@@ -307,160 +296,110 @@
         <div class="panel-title">Emulator Options & Features</div>
 
         <div class="section">
-          <h3>1. Load Your ROM</h3>
+          <h3>1. How this page works</h3>
           <ul>
-            <li>Click <strong>“Load SNES ROM”</strong> on the left and choose your <strong>.smc</strong> / <strong>.sfc</strong> file.</li>
-            <li>After it loads, click once inside the emulator window (to focus & unlock sound).</li>
-            <li>You can also use the emulator’s own menu (☰) and choose <strong>Load Game / Load ROM</strong> if you prefer.</li>
+            <li>Uses <strong>EmulatorJS</strong> with the <strong>SNES</strong> core.</li>
+            <li>Loads a ROM directly from your site via <code>EJS_gameUrl</code>.</li>
+            <li>Everything runs in-browser; no external Flappy/menus.</li>
           </ul>
           <p class="note-small">
-            If you see a “network error” inside the emulator, it usually means it tried to auto-load a demo ROM from the web and couldn’t. Just use the big <strong>Load SNES ROM</strong> button instead.
+            Make sure the <strong>data/</strong> folder from EmulatorJS and your <strong>roms/</strong> folder are in the same directory as this HTML file.
           </p>
         </div>
 
         <div class="section">
-          <h3>2. Controller & Keyboard</h3>
+          <h3>2. Change the game</h3>
+          <ul>
+            <li>Upload your SNES ROM to <code>roms/</code> in your GitHub repo, e.g. <code>roms/Zelda.smc</code>.</li>
+            <li>Open <code>snes-emulator.html</code> and change the <code>defaultRom</code> path in the script (near the bottom).</li>
+            <li>Reload the page; the new game auto-starts.</li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <h3>3. Controls</h3>
           <div class="pill-row">
-            <span class="pill">Controller plugins</span>
-            <span class="pill">Keyboard mapping</span>
-            <span class="pill">Virtual gamepad (mobile)</span>
+            <span class="pill">Keyboard</span>
+            <span class="pill">Controller</span>
+            <span class="pill">Virtual gamepad</span>
           </div>
           <ul>
-            <li>Plug in your Xbox / PlayStation / USB controller.</li>
-            <li>Open the emulator menu &gt; <strong>Controls / Input / Gamepad</strong>.</li>
-            <li>Map each SNES button (A, B, X, Y, L, R, Start, Select, D-pad) to your controller.</li>
-            <li>On keyboard, default bindings are usually:
+            <li>Click once inside the game screen to focus & unlock audio.</li>
+            <li>Use the EmulatorJS in-game menu (bottom/right overlay) to:
               <ul>
-                <li>Arrows → D-Pad</li>
-                <li>Enter → Start &nbsp; / &nbsp; Shift → Select</li>
-                <li>Z / X / A / S → Face buttons</li>
+                <li>Map controller buttons</li>
+                <li>Adjust keyboard bindings</li>
+                <li>Set up virtual gamepad on mobile</li>
               </ul>
             </li>
           </ul>
         </div>
 
         <div class="section">
-          <h3>3. Sound & Video Settings</h3>
+          <h3>4. Save States & Settings</h3>
           <div class="pill-row">
-            <span class="pill">Volume / mute</span>
-            <span class="pill">fullscreen</span>
-            <span class="pill">Scaling / filters</span>
-          </div>
-          <ul>
-            <li>Use the emulator’s <strong>Audio / Settings</strong> menu to adjust volume and mute.</li>
-            <li>Use the built-in <strong>Fullscreen</strong> button or your browser fullscreen (F11) for a bigger view.</li>
-            <li>Some cores expose video filters (scanlines, smoothing) in the <strong>Video</strong> menu.</li>
-          </ul>
-          <div class="btn-row">
-            <button class="fc-btn" id="btn-frame-fullscreen">
-              <span class="icon">⛶</span> Fullscreen Browser
-            </button>
-            <button class="fc-btn" id="btn-reload-core">
-              <span class="icon">⟳</span> Soft Reload Core
-            </button>
-          </div>
-          <p class="note-small">
-            The <strong>Fullscreen Browser</strong> button enlarges the whole page. The emulator’s own fullscreen option can also be used inside its menu.
-          </p>
-        </div>
-
-        <div class="section">
-          <h3>4. Save States & Local Saves</h3>
-          <div class="pill-row">
-            <span class="pill">Save state slots</span>
+            <span class="pill">Save state</span>
             <span class="pill">Load state</span>
-            <span class="pill">Persistent saves</span>
+            <span class="pill">Audio / video</span>
           </div>
           <ul>
-            <li>Use the emulator menu &gt; <strong>Save State</strong> to capture your current game position.</li>
-            <li>Use <strong>Load State</strong> to jump back instantly.</li>
-            <li>Many EmulatorJS frontends allow exporting / importing state files, and some store SRAM in browser storage.</li>
+            <li>Use the EmulatorJS menu to save & load states.</li>
+            <li>Audio & video filters are also available in the EmulatorJS UI.</li>
           </ul>
         </div>
 
         <div class="section">
           <h3>5. Performance Tips</h3>
           <ul>
-            <li>Close extra heavy tabs (YouTube, streaming, etc.).</li>
-            <li>Use a Chromium-based browser (Chrome / Edge / Brave) for best WASM performance.</li>
-            <li>On laptops, disable battery saver so the CPU/GPU aren’t throttled.</li>
+            <li>Close heavy tabs (YouTube, streaming, etc.).</li>
+            <li>Use Chrome / Edge / Brave for best performance.</li>
+            <li>Disable battery saver on laptops for smoother emulation.</li>
           </ul>
         </div>
       </aside>
     </div>
   </div>
 
+  <!-- EmulatorJS configuration -->
   <script>
-    const emuFrame = document.getElementById('emu-frame');
-    const statusDot = document.getElementById('status-dot');
-    const statusText = document.getElementById('status-text');
-    const btnFullscreen = document.getElementById('btn-frame-fullscreen');
-    const btnReload = document.getElementById('btn-reload-core');
+    // 👇 Set this to the ROM you want to auto-load
+    // Make sure the file exists in your repo: /roms/YourGame.smc
+    const defaultRom = "roms/SuperMarioWorld.smc";
 
-    const romBtn = document.getElementById('btnLoadRom');
-    const romInput = document.getElementById('romInput');
-
-    // Basic status updates for iframe load
-    emuFrame.addEventListener('load', () => {
-      statusDot.classList.remove('bad');
-      statusDot.classList.add('ok');
-      statusText.textContent = 'Emulator loaded. Use “Load SNES ROM” above, then click inside the game window.';
-    });
-
-    emuFrame.addEventListener('error', () => {
-      statusDot.classList.remove('ok');
-      statusDot.classList.add('bad');
-      statusText.textContent = 'Network error loading emulator. Check your connection or try again.';
-    });
-
-    // Fullscreen for the whole page
-    btnFullscreen.addEventListener('click', () => {
-      const docEl = document.documentElement;
-      if (!document.fullscreenElement) {
-        if (docEl.requestFullscreen) docEl.requestFullscreen();
-      } else {
-        if (document.exitFullscreen) document.exitFullscreen();
+    // Update label so the user sees which ROM is configured
+    document.addEventListener("DOMContentLoaded", () => {
+      const label = document.getElementById("rom-name-label");
+      if (label) {
+        label.textContent = defaultRom;
       }
     });
 
-    // Soft reload the iframe core
-    btnReload.addEventListener('click', () => {
-      statusText.textContent = 'Reloading emulator…';
-      emuFrame.src = emuFrame.src;
-    });
+    // EmulatorJS global config (must be set BEFORE loader.js)
+    window.EJS_player = "#game";     // Where to render
+    window.EJS_core   = "snes";      // SNES core (uses snes9x) :contentReference[oaicite:2]{index=2}
+    window.EJS_gameUrl = defaultRom; // ROM path on your site
+    window.EJS_gameName = "SNES Game";
+    window.EJS_color = "#00eaff";
+    window.EJS_pathtodata = "data/"; // Folder that contains loader.js and other files
 
-    // Simple Load ROM → send ROM bytes into EmulatorJS iframe
-    romBtn.addEventListener('click', () => {
-      romInput.click();
-    });
+    // Optional: start automatically when loaded
+    window.EJS_startOnLoaded = true;
 
-    romInput.addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
+    // Optional status hooks
+    window.EJS_ready = function () {
+      const dot = document.getElementById("status-dot");
+      const text = document.getElementById("status-text");
+      if (dot) dot.classList.add("ok");
+      if (text) text.textContent = "SNES core ready. Click inside the screen to start playing.";
+    };
 
-      try {
-        statusText.textContent = 'Loading ROM…';
-        const arrayBuffer = await file.arrayBuffer();
-        const uint8 = new Uint8Array(arrayBuffer);
-
-        const frameWindow = emuFrame.contentWindow;
-        // EmulatorJS listens for this message format in many builds
-        frameWindow.postMessage({
-          type: 'ejs-load-rom',
-          name: file.name,
-          data: uint8
-        }, '*');
-
-        statusDot.classList.remove('bad');
-        statusDot.classList.add('ok');
-        statusText.textContent = `ROM “${file.name}” sent to emulator. Click inside the game window to play.`;
-      } catch (err) {
-        console.error('Error loading ROM:', err);
-        statusDot.classList.remove('ok');
-        statusDot.classList.add('bad');
-        statusText.textContent = 'Error loading ROM. Open DevTools console for details.';
-      }
-    });
+    window.EJS_onGameStart = function () {
+      const text = document.getElementById("status-text");
+      if (text) text.textContent = "Game running. Use the emulator menu for settings and save states.";
+    };
   </script>
+
+  <!-- EmulatorJS loader (from the data/ folder you downloaded) -->
+  <script src="data/loader.js"></script>
 </body>
 </html>
