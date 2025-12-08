@@ -568,6 +568,7 @@
   let board = null;
   let game = new Chess();
   let isAIMoving = false;
+  let selectedSquare = null;   // ✅ for click-to-move
 
   const DIFFICULTY_DEPTH = {
     easy: 1,
@@ -694,7 +695,7 @@
 
   function highlightMovesFrom(square) {
     removeHighlights();
-    // highlight source square
+    // source square
     $('#board .square-' + square).addClass('highlight-source');
 
     const moves = game.moves({ square, verbose: true });
@@ -704,14 +705,13 @@
     }
   }
 
-  // --- Board event handlers ---
+  // --- Board event handlers (drag + click) ---
   function onDragStart(source, piece) {
     if (game.game_over()) return false;
     if (isAIMoving) return false;
-    // only allow dragging white pieces (player side)
-    if (piece.search(/^b/) !== -1) return false;
+    if (piece.search(/^b/) !== -1) return false; // only white moves
 
-    // show legal moves for the dragged piece
+    selectedSquare = source;          // keep in sync with click mode
     highlightMovesFrom(source);
     return true;
   }
@@ -728,7 +728,8 @@
       return "snapback";
     }
 
-    removeHighlights();  // clear highlights after a successful move
+    selectedSquare = null;
+    removeHighlights();
     updateStatusAndMoves();
     window.setTimeout(makeAIMove, 150);
   }
@@ -785,6 +786,7 @@
   function resetGame() {
     game.reset();
     board.start();
+    selectedSquare = null;
     removeHighlights();
     updateStatusAndMoves();
   }
@@ -796,6 +798,7 @@
       game.undo();
     }
     board.position(game.fen());
+    selectedSquare = null;
     removeHighlights();
     updateStatusAndMoves();
   }
@@ -837,27 +840,68 @@
 
   updateStatusAndMoves();
 
-  // --- Click-to-highlight: show legal moves when you click a piece ---
+  // --- Click-to-move handler ---
   $('#board').on('click', '.square-55d63', function () {
     if (game.game_over() || isAIMoving) {
+      selectedSquare = null;
       removeHighlights();
       return;
     }
 
-    const square = $(this).data('square'); // chessboard.js sets data-square
+    const square = $(this).data('square'); // set by chessboard.js
     if (!square) {
+      selectedSquare = null;
       removeHighlights();
       return;
     }
 
     const piece = game.get(square);
-    // Only highlight white pieces (the human player)
-    if (!piece || piece.color !== 'w') {
+
+    // If nothing selected yet
+    if (!selectedSquare) {
+      // Start selection only on white piece
+      if (!piece || piece.color !== 'w') {
+        selectedSquare = null;
+        removeHighlights();
+        return;
+      }
+      selectedSquare = square;
+      highlightMovesFrom(square);
+      return;
+    }
+
+    // Clicked the same square again -> unselect
+    if (selectedSquare === square) {
+      selectedSquare = null;
       removeHighlights();
       return;
     }
 
-    highlightMovesFrom(square);
+    // Attempt to move from selectedSquare to this clicked square
+    const legalMoves = game.moves({ square: selectedSquare, verbose: true });
+    const isLegalDest = legalMoves.some(m => m.to === square);
+
+    if (isLegalDest) {
+      const move = game.move({
+        from: selectedSquare,
+        to: square,
+        promotion: 'q'
+      });
+      board.position(game.fen());
+      selectedSquare = null;
+      removeHighlights();
+      updateStatusAndMoves();
+      window.setTimeout(makeAIMove, 150);
+      return;
+    }
+
+    // Not a legal destination: if clicked another white piece, switch selection
+    if (piece && piece.color === 'w') {
+      selectedSquare = square;
+      highlightMovesFrom(square);
+    } else {
+      // clicked empty or enemy not reachable -> keep current selection
+    }
   });
 
   // --- Wire UI events ---
@@ -872,6 +916,7 @@
   undoBtn.addEventListener("click", undoLastPair);
   downloadPgnBtn.addEventListener("click", downloadPGN);
 </script>
+
 
 </body>
 </html>
