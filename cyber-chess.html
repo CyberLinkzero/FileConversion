@@ -568,7 +568,7 @@
   let board = null;
   let game = new Chess();
   let isAIMoving = false;
-  let selectedSquare = null;   // ✅ for click-to-move
+  let selectedSquare = null;   // for click-to-move
 
   const DIFFICULTY_DEPTH = {
     easy: 1,
@@ -695,7 +695,6 @@
 
   function highlightMovesFrom(square) {
     removeHighlights();
-    // source square
     $('#board .square-' + square).addClass('highlight-source');
 
     const moves = game.moves({ square, verbose: true });
@@ -705,39 +704,7 @@
     }
   }
 
-  // --- Board event handlers (drag + click) ---
-  function onDragStart(source, piece) {
-    if (game.game_over()) return false;
-    if (isAIMoving) return false;
-    if (piece.search(/^b/) !== -1) return false; // only white moves
-
-    selectedSquare = source;          // keep in sync with click mode
-    highlightMovesFrom(source);
-    return true;
-  }
-
-  function onDrop(source, target) {
-    const move = game.move({
-      from: source,
-      to: target,
-      promotion: "q"
-    });
-
-    // illegal move
-    if (move === null) {
-      return "snapback";
-    }
-
-    selectedSquare = null;
-    removeHighlights();
-    updateStatusAndMoves();
-    window.setTimeout(makeAIMove, 150);
-  }
-
-  function onSnapEnd() {
-    board.position(game.fen());
-  }
-
+  // --- AI move ---
   function makeAIMove() {
     if (game.game_over()) {
       updateStatusAndMoves();
@@ -827,14 +794,11 @@
     URL.revokeObjectURL(url);
   }
 
-  // --- Init board ---
+  // --- Init board (click-only, no drag) ---
   const config = {
-    draggable: true,
+    draggable: false,                     // ✅ disable drag to avoid conflicts
     position: "start",
-    pieceTheme: "img/chess/{piece}.png", // local pieces
-    onDragStart: onDragStart,
-    onDrop: onDrop,
-    onSnapEnd: onSnapEnd
+    pieceTheme: "img/chess/{piece}.png"   // local pieces
   };
   board = Chessboard("board", config);
 
@@ -900,7 +864,10 @@
       selectedSquare = square;
       highlightMovesFrom(square);
     } else {
-      // clicked empty or enemy not reachable -> keep current selection
+      // clicked empty or enemy not reachable -> keep or clear selection
+      // we'll just clear for simplicity
+      selectedSquare = null;
+      removeHighlights();
     }
   });
 
