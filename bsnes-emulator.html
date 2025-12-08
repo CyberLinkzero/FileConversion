@@ -1,405 +1,95 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>SNES Emulator – FileConverter.run</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Play SNES games in your browser with controller support, sound, video options, save states, and a cyber-themed FileConverter.run interface." />
+<meta charset="utf-8">
+<title>SNES Emulator – Load Your Own ROM</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <style>
-    :root {
-      --bg: #020617;
-      --card: #020617;
-      --border: #1e293b;
-      --accent: #00eaff;
-      --accent-soft: rgba(56,189,248,0.15);
-      --text-main: #e5e7eb;
-      --text-muted: #9ca3af;
-      --danger: #fb7185;
-      --ok: #4ade80;
-    }
-
-    * { box-sizing: border-box; }
-
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      background:
-        radial-gradient(circle at top left, rgba(56,189,248,0.12), transparent 55%),
-        radial-gradient(circle at bottom right, rgba(129,140,248,0.14), transparent 55%),
-        var(--bg);
-      color: var(--text-main);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    body {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    .page {
-      max-width: 1200px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 16px 16px 32px;
-    }
-
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
-
-    .nav-link {
-      text-decoration: none;
-      color: var(--accent);
-      font-weight: 600;
-      font-size: 0.95rem;
-    }
-    .nav-link:hover { text-decoration: underline; }
-
-    .title-block h1 {
-      margin: 0;
-      font-size: 1.6rem;
-      letter-spacing: 0.03em;
-    }
-
-    .title-block p {
-      margin: 2px 0 0;
-      font-size: 0.9rem;
-      color: var(--text-muted);
-    }
-
-    .layout {
-      display: grid;
-      grid-template-columns: minmax(0, 2.1fr) minmax(260px, 1fr);
-      gap: 16px;
-    }
-
-    .card {
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      background:
-        radial-gradient(circle at top, rgba(56,189,248,0.07), transparent 60%),
-        radial-gradient(circle at bottom, rgba(129,140,248,0.05), transparent 60%),
-        var(--card);
-      padding: 16px;
-      box-shadow:
-        0 18px 45px rgba(15,23,42,0.85),
-        inset 0 0 0 1px rgba(15,23,42,0.9);
-    }
-
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-    }
-
-    .card-header-title {
-      font-size: 1rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .chip {
-      font-size: 0.7rem;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.45);
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .emu-shell {
-      border-radius: 14px;
-      overflow: hidden;
-      border: 1px solid rgba(15,23,42,0.95);
-      background: #000;
-      min-height: 360px;
-      display: flex;
-      align-items: stretch;
-      justify-content: center;
-    }
-
-    .emu-container {
-      width: 100%;
-      max-width: 960px;
-      margin: 0 auto;
-      aspect-ratio: 4 / 3;
-      background: #000;
-    }
-
-    #game {
-      width: 100%;
-      height: 100%;
-    }
-
-    .status-line {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-top: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      display: inline-block;
-    }
-    .dot.ok { background: var(--ok); }
-    .dot.bad { background: var(--danger); }
-
-    .panel-title {
-      font-size: 0.9rem;
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
-
-    .section {
-      margin-bottom: 10px;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    .section h3 {
-      margin: 0 0 4px;
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.09em;
-      color: #bfdbfe;
-    }
-
-    .section ul {
-      margin: 0;
-      padding-left: 16px;
-    }
-
-    .pill-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 6px;
-    }
-
-    .pill {
-      font-size: 0.7rem;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.45);
-      color: var(--text-muted);
-    }
-
-    .btn-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 8px 0 10px;
-    }
-
-    button.fc-btn {
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.6);
-      background: rgba(15,23,42,0.9);
-      color: var(--text-main);
-      font-size: 0.8rem;
-      padding: 6px 12px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    button.fc-btn span.icon {
-      font-size: 0.9rem;
-    }
-
-    button.fc-btn:hover {
-      border-color: var(--accent);
-    }
-
-    .note-small {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      opacity: 0.9;
-      margin-top: 4px;
-    }
-
-    @media (max-width: 900px) {
-      .layout {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    @media (max-width: 600px) {
-      .title-block h1 {
-        font-size: 1.3rem;
-      }
-    }
-  </style>
+<style>
+  body {
+    margin: 0; padding: 20px;
+    background: #020617; color: #e5e7eb;
+    font-family: system-ui;
+  }
+  h1 { margin-top: 0; }
+  #game {
+    width: 100%;
+    max-width: 800px;
+    aspect-ratio: 4 / 3;
+    margin-top: 20px;
+    background: #000;
+    border: 2px solid #1e293b;
+    border-radius: 12px;
+  }
+  #loadBtn {
+    background: #00eaff;
+    border: none;
+    padding: 12px 22px;
+    font-size: 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    color: #020617;
+    font-weight: bold;
+  }
+  #status { margin-top: 10px; color: #9ca3af; font-size: 14px; }
+</style>
 </head>
 <body>
-  <div class="page">
-    <header>
-      <a href="/" class="nav-link">← Back to FileConverter.run</a>
-      <div class="title-block">
-        <h1>SNES Emulator Hub</h1>
-        <p>Play SNES ROMs with controller support, sound, video options, save states, and a cyber interface.</p>
-      </div>
-    </header>
 
-    <div class="layout">
-      <!-- LEFT: Emulator -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-header-title">
-            SNES Player
-            <span class="chip">SNES9x Core (EmulatorJS)</span>
-          </div>
-        </div>
+<h1>SNES Emulator</h1>
+<p>Click the button below to load your own ROM (.smc / .sfc)</p>
 
-        <div class="emu-shell">
-          <div class="emu-container">
-            <!-- EmulatorJS will render into this div -->
-            <div id="game"></div>
-          </div>
-        </div>
+<button id="loadBtn">🎮 Load SNES ROM</button>
+<input type="file" id="romInput" accept=".smc,.sfc" style="display:none;">
 
-        <div class="status-line">
-          <span class="dot ok" id="status-dot"></span>
-          <span id="status-text">
-            Loading SNES core… Your ROM will start automatically when ready.
-          </span>
-        </div>
-        <p class="note-small">
-          Current game: <strong id="rom-name-label">roms/SuperMarioWorld.smc</strong><br />
-          To change, upload a new ROM into your <code>roms/</code> folder and update the path in this page’s code.
-        </p>
-      </div>
+<div id="game"></div>
 
-      <!-- RIGHT: Options / Help panel -->
-      <aside class="card">
-        <div class="panel-title">Emulator Options & Features</div>
+<p id="status">Waiting for ROM…</p>
 
-        <div class="section">
-          <h3>1. How this page works</h3>
-          <ul>
-            <li>Uses <strong>EmulatorJS</strong> with the <strong>SNES</strong> core.</li>
-            <li>Loads a ROM directly from your site via <code>EJS_gameUrl</code>.</li>
-            <li>Everything runs in-browser; no external Flappy/menus.</li>
-          </ul>
-          <p class="note-small">
-            Make sure the <strong>data/</strong> folder from EmulatorJS and your <strong>roms/</strong> folder are in the same directory as this HTML file.
-          </p>
-        </div>
+<script>
+  // EmulatorJS global configuration
+  window.EJS_player = "#game";  
+  window.EJS_core = "snes";      
+  window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+  window.EJS_language = "en";
+  window.EJS_onGameStart = () => {
+    document.getElementById("status").textContent = "Game running!";
+  };
 
-        <div class="section">
-          <h3>2. Change the game</h3>
-          <ul>
-            <li>Upload your SNES ROM to <code>roms/</code> in your GitHub repo, e.g. <code>roms/Zelda.smc</code>.</li>
-            <li>Open <code>snes-emulator.html</code> and change the <code>defaultRom</code> path in the script (near the bottom).</li>
-            <li>Reload the page; the new game auto-starts.</li>
-          </ul>
-        </div>
+  // Create emulator but do NOT load a ROM yet
+  const script = document.createElement("script");
+  script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
+  document.body.appendChild(script);
 
-        <div class="section">
-          <h3>3. Controls</h3>
-          <div class="pill-row">
-            <span class="pill">Keyboard</span>
-            <span class="pill">Controller</span>
-            <span class="pill">Virtual gamepad</span>
-          </div>
-          <ul>
-            <li>Click once inside the game screen to focus & unlock audio.</li>
-            <li>Use the EmulatorJS in-game menu (bottom/right overlay) to:
-              <ul>
-                <li>Map controller buttons</li>
-                <li>Adjust keyboard bindings</li>
-                <li>Set up virtual gamepad on mobile</li>
-              </ul>
-            </li>
-          </ul>
-        </div>
+  // Load button handler
+  const loadBtn = document.getElementById("loadBtn");
+  const romInput = document.getElementById("romInput");
 
-        <div class="section">
-          <h3>4. Save States & Settings</h3>
-          <div class="pill-row">
-            <span class="pill">Save state</span>
-            <span class="pill">Load state</span>
-            <span class="pill">Audio / video</span>
-          </div>
-          <ul>
-            <li>Use the EmulatorJS menu to save & load states.</li>
-            <li>Audio & video filters are also available in the EmulatorJS UI.</li>
-          </ul>
-        </div>
+  loadBtn.onclick = () => {
+    romInput.click();
+  };
 
-        <div class="section">
-          <h3>5. Performance Tips</h3>
-          <ul>
-            <li>Close heavy tabs (YouTube, streaming, etc.).</li>
-            <li>Use Chrome / Edge / Brave for best performance.</li>
-            <li>Disable battery saver on laptops for smoother emulation.</li>
-          </ul>
-        </div>
-      </aside>
-    </div>
-  </div>
+  // When user picks a ROM
+  romInput.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  <!-- EmulatorJS configuration -->
-  <script>
-    // 👇 Set this to the ROM you want to auto-load
-    // Make sure the file exists in your repo: /roms/YourGame.smc
-    const defaultRom = "roms/SuperMarioWorld.smc";
+    document.getElementById("status").textContent = "Loading ROM…";
 
-    // Update label so the user sees which ROM is configured
-    document.addEventListener("DOMContentLoaded", () => {
-      const label = document.getElementById("rom-name-label");
-      if (label) {
-        label.textContent = defaultRom;
-      }
-    });
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
 
-    // EmulatorJS global config (must be set BEFORE loader.js)
-    window.EJS_player = "#game";     // Where to render
-    window.EJS_core   = "snes";      // SNES core (uses snes9x) :contentReference[oaicite:2]{index=2}
-    window.EJS_gameUrl = defaultRom; // ROM path on your site
-    window.EJS_gameName = "SNES Game";
-    window.EJS_color = "#00eaff";
-    window.EJS_pathtodata = "data/"; // Folder that contains loader.js and other files
+    // Send ROM to EmulatorJS
+    window.postMessage({
+      type: "ejs-load-rom",
+      name: file.name,
+      data: bytes
+    }, "*");
 
-    // Optional: start automatically when loaded
-    window.EJS_startOnLoaded = true;
+    document.getElementById("status").textContent =
+      "ROM loaded! Click inside screen, then press Enter to start.";
+  };
+</script>
 
-    // Optional status hooks
-    window.EJS_ready = function () {
-      const dot = document.getElementById("status-dot");
-      const text = document.getElementById("status-text");
-      if (dot) dot.classList.add("ok");
-      if (text) text.textContent = "SNES core ready. Click inside the screen to start playing.";
-    };
-
-    window.EJS_onGameStart = function () {
-      const text = document.getElementById("status-text");
-      if (text) text.textContent = "Game running. Use the emulator menu for settings and save states.";
-    };
-  </script>
-
-  <!-- EmulatorJS loader (from the data/ folder you downloaded) -->
-  <script src="data/loader.js"></script>
 </body>
 </html>
