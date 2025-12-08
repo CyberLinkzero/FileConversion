@@ -2,16 +2,18 @@
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-W25SYMTSSR"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-W25SYMTSSR"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-W25SYMTSSR');
+  </script>
 
-  gtag('config', 'G-W25SYMTSSR');
-</script>
+  <!-- AdSense (loaded via consent script too) -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js?client=ca-pub-9800485035530027"
      crossorigin="anonymous"></script>
+
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
 
@@ -56,104 +58,287 @@
 
   <style>
     /* System font stack for faster LCP */
-    body{margin:0;padding:0;background:#0f1117;color:#fff;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
-    header{text-align:center;padding:20px 0;background:#0f1117;}
+    body{
+      margin:0;
+      padding:0;
+      background:#0f1117;
+      color:#fff;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+    }
+    header{
+      text-align:center;
+      padding:20px 0;
+      background:#0f1117;
+    }
     header h1{
-      font-size:2.6em;font-weight:700;margin:10px 0 0;
+      font-size:2.6em;
+      font-weight:700;
+      margin:10px 0 0;
       background:linear-gradient(90deg,#00ffff,#7dd3fc,#a78bfa,#ff00ff,#00ffcc,#00ffff);
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-      text-shadow:0 0 6px rgba(125,211,252,.5),0 0 12px rgba(125,211,252,.3),0 0 18px rgba(167,139,250,.2);
-      animation:cyberPulse 3s ease-in-out infinite alternate,gradientShift 4s linear infinite;
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      text-shadow:0 0 6px rgba(125,211,252,.5),
+                   0 0 12px rgba(125,211,252,.3),
+                   0 0 18px rgba(167,139,250,.2);
+      animation:cyberPulse 3s ease-in-out infinite alternate,
+                 gradientShift 4s linear infinite;
       background-size:400% auto;
     }
-    .sub{opacity:.9;margin:.5rem 0 1rem;}
-    @keyframes cyberPulse{
-      from{text-shadow:0 0 4px rgba(125,211,252,.3),0 0 8px rgba(125,211,252,.2),0 0 12px rgba(167,139,250,.1);}
-      to{text-shadow:0 0 10px rgba(125,211,252,.6),0 0 20px rgba(125,211,252,.4),0 0 30px rgba(255,0,255,.3);}
+    .sub{
+      opacity:.9;
+      margin:.5rem 0 1rem;
     }
-    @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-    .tabs{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;padding:10px 12px;border-top:1px solid #1f2430;border-bottom:1px solid #1f2430;}
-    .tab{color:#7dd3fc;text-decoration:none;padding:8px 12px;border-radius:8px;}
-    .chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:12px;}
-    .chip{background:#1a1f2c;border:1px solid #263044;padding:6px 10px;border-radius:999px;font-size:.9rem;color:#e5e7eb;}
-    .container{max-width:1200px;margin:0 auto;padding:0 16px;}
-    .panel{padding:20px 0;}
-    .grid{display:grid;grid-template-columns:1fr;gap:20px;}
-    .flex-sections{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;}
-    .card{background:#1a1f2c;border:1px solid #263044;border-radius:12px;padding:18px;contain:content;content-visibility:auto;contain-intrinsic-size:300px 200px;}
+    @keyframes cyberPulse{
+      from{
+        text-shadow:0 0 4px rgba(125,211,252,.3),
+                    0 0 8px rgba(125,211,252,.2),
+                    0 0 12px rgba(167,139,250,.1);
+      }
+      to{
+        text-shadow:0 0 10px rgba(125,211,252,.6),
+                    0 0 20px rgba(125,211,252,.4),
+                    0 0 30px rgba(255,0,255,.3);
+      }
+    }
+    @keyframes gradientShift{
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
+    .tabs{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:10px;
+      padding:10px 12px;
+      border-top:1px solid #1f2430;
+      border-bottom:1px solid #1f2430;
+    }
+    .tab{
+      color:#7dd3fc;
+      text-decoration:none;
+      padding:8px 12px;
+      border-radius:8px;
+    }
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:8px;
+      padding:12px;
+    }
+    .chip{
+      background:#1a1f2c;
+      border:1px solid #263044;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:.9rem;
+      color:#e5e7eb;
+    }
+    .container{
+      max-width:1200px;
+      margin:0 auto;
+      padding:0 16px;
+    }
+    .panel{
+      padding:20px 0;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:20px;
+    }
+    .flex-sections{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:16px;
+    }
+    .card{
+      background:#1a1f2c;
+      border:1px solid #263044;
+      border-radius:12px;
+      padding:18px;
+      contain:content;
+      content-visibility:auto;
+      contain-intrinsic-size:300px 200px;
+    }
     .center-text{text-align:center;}
-    .section-title{color:#7dd3fc;margin:10px 0 8px;}
-    .compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-    .note{font-size:.9rem;color:#9aa4b2;}
-    footer{background:#1a1f2c;color:#7dd3fc;padding:20px;border-top:1px solid #7dd3fc;margin-top:40px;}
-    img{max-width:100%;height:auto;display:block}
-    .sr-only{position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden}
-    .sr-only-focusable:focus{position:static;width:auto;height:auto}
-    @media (max-width:720px){.compare{grid-template-columns:1fr;}}
+    .section-title{
+      color:#7dd3fc;
+      margin:10px 0 8px;
+    }
+    .compare{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+    }
+    .note{
+      font-size:.9rem;
+      color:#9aa4b2;
+    }
+    footer{
+      background:#1a1f2c;
+      color:#7dd3fc;
+      padding:20px;
+      border-top:1px solid #7dd3fc;
+      margin-top:40px;
+    }
+    img{
+      max-width:100%;
+      height:auto;
+      display:block;
+    }
+    .sr-only{
+      position:absolute;
+      left:-10000px;
+      top:auto;
+      width:1px;
+      height:1px;
+      overflow:hidden;
+    }
+    .sr-only-focusable:focus{
+      position:static;
+      width:auto;
+      height:auto;
+    }
+    @media (max-width:720px){
+      .compare{grid-template-columns:1fr;}
+    }
     @media (prefers-reduced-motion:reduce){
-      *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+      *{
+        animation-duration:.01ms !important;
+        animation-iteration-count:1 !important;
+        transition-duration:.01ms !important;
+      }
     }
 
     /* Consent banner theme */
     :root{
-      --fc-bg:#0f1117;--fc-card:#1a1f2c;--fc-border:#263044;--fc-text:#e5e7eb;--fc-accent:#7dd3fc;
+      --fc-bg:#0f1117;
+      --fc-card:#1a1f2c;
+      --fc-border:#263044;
+      --fc-text:#e5e7eb;
+      --fc-accent:#7dd3fc;
     }
     .fc-consent-wrap{
-      position:fixed;inset-inline:0;bottom:0;z-index:99999;display:none;
-      background:linear-gradient(180deg, rgba(15,17,23,.7), #0f1117 60%);backdrop-filter:saturate(120%) blur(6px);
-      padding:16px;border-top:1px solid var(--fc-border);color:var(--fc-text);
+      position:fixed;
+      inset-inline:0;
+      bottom:0;
+      z-index:99999;
+      display:none;
+      background:linear-gradient(180deg, rgba(15,17,23,.7), #0f1117 60%);
+      backdrop-filter:saturate(120%) blur(6px);
+      padding:16px;
+      border-top:1px solid var(--fc-border);
+      color:var(--fc-text);
     }
-    .fc-consent{max-width:900px;margin:0 auto;background:var(--fc-card);border:1px solid var(--fc-border);
-      border-radius:12px;padding:16px;box-shadow:0 10px 40px rgba(0,0,0,.5);}
-    .fc-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
-    .fc-actions{display:flex;gap:8px;flex-wrap:wrap}
-    .fc-btn{border:1px solid var(--fc-border);background:#121723;color:var(--fc-text);padding:8px 12px;border-radius:10px;cursor:pointer}
-    .fc-btn.primary{background:var(--fc-accent);color:#001018;border-color:#3aa9d8;font-weight:700}
-    .fc-link{color:var(--fc-accent);text-decoration:none}
-    .fc-prefs{margin-top:10px;border-top:1px dashed var(--fc-border);padding-top:10px;display:none}
-    .fc-toggle{display:flex;align-items:center;gap:8px;margin-right:12px}
-    .fc-chip{background:#121723;border:1px solid var(--fc-border);padding:4px 8px;border-radius:999px;font-size:.85rem;opacity:.9}
-    .fc-privacy-fab{position:fixed;right:12px;bottom:12px;z-index:99998;background:#121723;border:1px solid var(--fc-border);
-      color:var(--fc-text);border-radius:999px;padding:8px 12px;cursor:pointer;font-size:.9rem}
+    .fc-consent{
+      max-width:1200px;      /* wide like main content */
+      width:100%;
+      margin:0 auto;         /* centered */
+      background:var(--fc-card);
+      border:1px solid var(--fc-border);
+      border-radius:12px;
+      padding:16px;
+      box-shadow:0 10px 40px rgba(0,0,0,.5);
+      text-align:left;       /* text left-aligned */
+    }
+    .fc-row{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .fc-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .fc-btn{
+      border:1px solid var(--fc-border);
+      background:#121723;
+      color:var(--fc-text);
+      padding:8px 12px;
+      border-radius:10px;
+      cursor:pointer;
+    }
+    .fc-btn.primary{
+      background:var(--fc-accent);
+      color:#001018;
+      border-color:#3aa9d8;
+      font-weight:700;
+    }
+    .fc-link{
+      color:var(--fc-accent);
+      text-decoration:none;
+    }
+    .fc-prefs{
+      margin-top:10px;
+      border-top:1px dashed var(--fc-border);
+      padding-top:10px;
+      display:none;
+    }
+    .fc-toggle{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-right:12px;
+    }
+    .fc-chip{
+      background:#121723;
+      border:1px solid var(--fc-border);
+      padding:4px 8px;
+      border-radius:999px;
+      font-size:.85rem;
+      opacity:.9;
+    }
+    .fc-privacy-fab{
+      position:fixed;
+      left:12px;   /* moved to bottom-left */
+      bottom:12px;
+      z-index:99998;
+      background:#121723;
+      border:1px solid var(--fc-border);
+      color:var(--fc-text);
+      border-radius:999px;
+      padding:8px 12px;
+      cursor:pointer;
+      font-size:.9rem;
+    }
+
     /* Category Dropdown Navigation */
-.tab-group {
-  position: relative;
-}
-
-.group-label {
-  cursor: pointer;
-  font-weight: 600;
-  color: #7dd3fc;
-}
-
-.dropdown {
-  display: none;
-  position: absolute;
-  background: #1a1f2c;
-  border: 1px solid #263044;
-  border-radius: 10px;
-  min-width: 220px;
-  padding: 10px;
-  z-index: 9999;
-}
-
-.tab-group:hover .dropdown {
-  display: block;
-}
-
-.dropdown .tab {
-  display: block;
-  padding: 8px 10px;
-  border-radius: 8px;
-  margin-bottom: 4px;
-  color: #e5e7eb;
-}
-
-.dropdown .tab:hover {
-  background: #263044;
-}
-
+    .tab-group{
+      position:relative;
+    }
+    .group-label{
+      cursor:pointer;
+      font-weight:600;
+      color:#7dd3fc;
+    }
+    .dropdown{
+      display:none;
+      position:absolute;
+      background:#1a1f2c;
+      border:1px solid #263044;
+      border-radius:10px;
+      min-width:220px;
+      padding:10px;
+      z-index:9999;
+    }
+    .tab-group:hover .dropdown{
+      display:block;
+    }
+    .dropdown .tab{
+      display:block;
+      padding:8px 10px;
+      border-radius:8px;
+      margin-bottom:4px;
+      color:#e5e7eb;
+    }
+    .dropdown .tab:hover{
+      background:#263044;
+    }
   </style>
 
   <!-- Structured Data: WebApplication + FAQ -->
@@ -172,10 +357,33 @@
   </script>
   <script type="application/ld+json">
   {
-    "@context":"https://schema.org","@type":"FAQPage","mainEntity":[
-      {"@type":"Question","name":"Do my files ever leave my computer?","acceptedAnswer":{"@type":"Answer","text":"No. All conversions run locally in your browser. Files never leave your device."}},
-      {"@type":"Question","name":"Is FileConverter.run free?","acceptedAnswer":{"@type":"Answer","text":"Yes. It’s free to use. We show privacy-respecting ads to keep it free."}},
-      {"@type":"Question","name":"Can I use it offline?","acceptedAnswer":{"@type":"Answer","text":"Once a tool page is loaded, most operations work without internet access."}}
+    "@context":"https://schema.org",
+    "@type":"FAQPage",
+    "mainEntity":[
+      {
+        "@type":"Question",
+        "name":"Do my files ever leave my computer?",
+        "acceptedAnswer":{
+          "@type":"Answer",
+          "text":"No. All conversions run locally in your browser. Files never leave your device."
+        }
+      },
+      {
+        "@type":"Question",
+        "name":"Is FileConverter.run free?",
+        "acceptedAnswer":{
+          "@type":"Answer",
+          "text":"Yes. It’s free to use. We show privacy-respecting ads to keep it free."
+        }
+      },
+      {
+        "@type":"Question",
+        "name":"Can I use it offline?",
+        "acceptedAnswer":{
+          "@type":"Answer",
+          "text":"Once a tool page is loaded, most operations work without internet access."
+        }
+      }
     ]
   }
   </script>
@@ -189,7 +397,8 @@
   <div class="container" style="display:flex;align-items:center;gap:.5rem;padding:10px 0;">
     <span style="opacity:.9;">Sponsored and built by</span>
     <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer" style="color:#7dd3fc;text-decoration:none;font-weight:600;">Knack.bz</a>
-    <button aria-label="Dismiss sponsor bar" onclick="document.getElementById('sponsored-bar').style.display='none'"
+    <button aria-label="Dismiss sponsor bar"
+      onclick="document.getElementById('sponsored-bar').style.display='none'"
       style="margin-left:auto;background:transparent;border:none;color:#9aa4b2;cursor:pointer;font-size:16px;line-height:1;">✕</button>
   </div>
 </div>
@@ -197,14 +406,14 @@
 <header>
   <h1>File Converter — Cyber Edition</h1>
   <p class="sub">Convert, edit, and manage files instantly — all inside your browser. No uploads, no accounts, no tracking. 100% private.</p>
-<link rel="stylesheet" href="nav.css">
+
+  <link rel="stylesheet" href="nav.css">
 
   <nav>
     <div data-nav-placeholder></div>
     <script src="nav-loader.js" defer></script>
     <script src="js/utils.js"></script>
   </nav>
-
 </header>
 
 <main id="main" class="container" role="main">
@@ -334,18 +543,23 @@
   </div>
 </footer>
 
-<script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
 
 <!-- Consent Banner -->
 <div class="fc-consent-wrap" id="fc-consent-wrap" role="dialog" aria-live="polite" aria-label="Privacy controls">
   <div class="fc-consent">
     <div class="fc-row">
       <div style="flex:1 1 520px">
-        <strong style="color:var(--fc-accent);display:block;text-align:left;"> Privacy & Cookies</strong>
+        <strong style="color:var(--fc-accent);display:block;text-align:left;">
+          Privacy &amp; Cookies
+        </strong>
         <p style="margin:.35rem 0 .5rem">
           We use strictly-necessary cookies for site features. With your consent, we’ll enable
           <span class="fc-chip">Analytics</span> and <span class="fc-chip">Ads</span> to keep FileConverter.run free.
-          Data may be shared with Google. See our <a class="fc-link" href="/privacy-policy.html" target="_blank" rel="noopener">Privacy Policy</a>.
+          Data may be shared with Google. See our
+          <a class="fc-link" href="/privacy-policy.html" target="_blank" rel="noopener">Privacy Policy</a>.
         </p>
         <button class="fc-btn" id="fc-customize">Customize</button>
       </div>
@@ -374,7 +588,9 @@
 </div>
 
 <!-- Floating button to reopen preferences -->
-<button class="fc-privacy-fab" id="fc-open" aria-label="Open privacy preferences">Privacy</button>
+<button class="fc-privacy-fab" id="fc-open" aria-label="Open privacy preferences">
+  Privacy
+</button>
 
 <!-- Consent Logic (loads GA/AdSense after consent) -->
 <script>
@@ -419,20 +635,20 @@
   function loadGA(){
     if (window.__gaLoaded) return; window.__gaLoaded = true;
     const s = document.createElement('script');
-    s.async = true; s.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+    s.async = true;
+    s.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
     document.head.appendChild(s);
     window.dataLayer = window.dataLayer || [];
     function gtag(){ dataLayer.push(arguments); }
     window.gtag = gtag;
     gtag('js', new Date());
-    // gtag('config', GA_ID, { 'anonymize_ip': true }); // optional added privacy
     gtag('config', GA_ID);
   }
   function loadAds(){
     if (window.__adsLoaded) return; window.__adsLoaded = true;
     const s = document.createElement('script');
     s.async = true;
-    s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADS_CLIENT}`;
+    s.src = `https://pagead2.googlesyndication.com/pagead/js?client=${ADS_CLIENT}`;
     s.crossOrigin = 'anonymous';
     document.head.appendChild(s);
   }
@@ -440,7 +656,9 @@
     if (c.analytics) loadGA();
     if (c.ads) loadAds();
     if (!c.ads){
-      document.querySelectorAll('.adsbygoogle,[data-ad-slot]').forEach(el=>{ el.style.display='none'; });
+      document.querySelectorAll('.adsbygoogle,[data-ad-slot]').forEach(el=>{
+        el.style.display='none';
+      });
     }
   }
 
@@ -453,36 +671,56 @@
   });
   $accept.addEventListener('click', ()=>{
     const c = { essential:true, analytics:true, ads:true, ts:Date.now() };
-    writeConsent(c); applyConsent(c); hideBanner();
+    writeConsent(c);
+    applyConsent(c);
+    hideBanner();
   });
   $reject.addEventListener('click', ()=>{
     const c = { essential:true, analytics:false, ads:false, ts:Date.now() };
-    writeConsent(c); applyConsent(c); hideBanner();
+    writeConsent(c);
+    applyConsent(c);
+    hideBanner();
   });
-  $customize.addEventListener('click', ()=>{ $prefs.style.display = 'block'; });
+  $customize.addEventListener('click', ()=>{
+    $prefs.style.display = 'block';
+  });
   $save.addEventListener('click', ()=>{
-    const c = { essential:true, analytics:$chkAnalytics.checked, ads:$chkAds.checked, ts:Date.now() };
-    writeConsent(c); applyConsent(c); hideBanner();
+    const c = {
+      essential:true,
+      analytics:$chkAnalytics.checked,
+      ads:$chkAds.checked,
+      ts:Date.now()
+    };
+    writeConsent(c);
+    applyConsent(c);
+    hideBanner();
   });
 
   const existing = readConsent();
-  if (existing){ applyConsent(existing); }
-  else if (shouldShowBanner()){ showBanner(); }
+  if (existing){
+    applyConsent(existing);
+  } else if (shouldShowBanner()){
+    showBanner();
+  }
 
   // Defer Tawk.to after load/idle for better INP
   window.addEventListener('load', ()=>{
     if ('requestIdleCallback' in window) {
       requestIdleCallback(()=>{
         var s=document.createElement('script');
-        s.async=true; s.src='https://embed.tawk.to/6906c86e40b306194f3da6e5/1j917ts2m';
-        s.charset='UTF-8'; s.crossOrigin='anonymous';
+        s.async=true;
+        s.src='https://embed.tawk.to/6906c86e40b306194f3da6e5/1j917ts2m';
+        s.charset='UTF-8';
+        s.crossOrigin='anonymous';
         document.head.appendChild(s);
       }, {timeout:3000});
     } else {
       setTimeout(()=>{
         var s=document.createElement('script');
-        s.async=true; s.src='https://embed.tawk.to/6906c86e40b306194f3da6e5/1j917ts2m';
-        s.charset='UTF-8'; s.crossOrigin='anonymous';
+        s.async=true;
+        s.src='https://embed.tawk.to/6906c86e40b306194f3da6e5/1j917ts2m';
+        s.charset='UTF-8';
+        s.crossOrigin='anonymous';
         document.head.appendChild(s);
       }, 2500);
     }
