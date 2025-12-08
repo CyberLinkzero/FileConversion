@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <title>SNES Emulator – FileConverter.run</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Play your own SNES ROMs in the browser with controller support, fullscreen, sound, save states, and a cyber interface from FileConverter.run." />
+  <meta name="description" content="Play SNES games in your browser with controller support, sound, video options, save states, and a cyber-themed FileConverter.run interface." />
 
   <style>
     :root {
@@ -15,6 +15,8 @@
       --accent-soft: rgba(56,189,248,0.15);
       --text-main: #e5e7eb;
       --text-muted: #9ca3af;
+      --danger: #fb7185;
+      --ok: #4ade80;
     }
 
     * { box-sizing: border-box; }
@@ -59,10 +61,7 @@
       font-weight: 600;
       font-size: 0.95rem;
     }
-
-    .nav-link:hover {
-      text-decoration: underline;
-    }
+    .nav-link:hover { text-decoration: underline; }
 
     .title-block h1 {
       margin: 0;
@@ -74,6 +73,12 @@
       margin: 2px 0 0;
       font-size: 0.9rem;
       color: var(--text-muted);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 2.1fr) minmax(260px, 1fr);
+      gap: 16px;
     }
 
     .card {
@@ -94,7 +99,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       flex-wrap: wrap;
     }
 
@@ -116,50 +121,6 @@
       letter-spacing: 0.08em;
     }
 
-    .hint {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: 10px;
-    }
-
-    .hint strong {
-      color: var(--accent);
-      font-weight: 600;
-    }
-
-    .tips-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .tips-grid section {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      border-radius: 12px;
-      border: 1px solid rgba(30,64,175,0.6);
-      background: rgba(15,23,42,0.9);
-      padding: 10px 12px;
-    }
-
-    .tips-grid h3 {
-      margin: 0 0 6px;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.09em;
-      color: #bfdbfe;
-    }
-
-    .tips-grid ul {
-      margin: 0;
-      padding-left: 18px;
-    }
-
-    .tips-grid li {
-      margin-bottom: 3px;
-    }
-
     .emu-shell {
       border-radius: 14px;
       overflow: hidden;
@@ -168,31 +129,118 @@
       min-height: 360px;
     }
 
-    #fc-snes-game {
+    .emu-frame {
       width: 100%;
-      height: min(720px, 75vh);
+      height: min(760px, 78vh);
+      border: 0;
+      display: block;
+      background: #000;
     }
 
-    footer {
-      margin-top: 14px;
+    .status-line {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+    .dot.ok { background: var(--ok); }
+    .dot.bad { background: var(--danger); }
+
+    .panel-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .section {
+      margin-bottom: 10px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .section h3 {
+      margin: 0 0 4px;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: #bfdbfe;
+    }
+
+    .section ul {
+      margin: 0;
+      padding-left: 16px;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .pill {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.45);
+      color: var(--text-muted);
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0 10px;
+    }
+
+    button.fc-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.6);
+      background: rgba(15,23,42,0.9);
+      color: var(--text-main);
+      font-size: 0.8rem;
+      padding: 6px 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button.fc-btn span.icon {
+      font-size: 0.9rem;
+    }
+
+    button.fc-btn:hover {
+      border-color: var(--accent);
+    }
+
+    .note-small {
       font-size: 0.7rem;
       color: var(--text-muted);
       opacity: 0.9;
+      margin-top: 4px;
     }
 
-    footer a {
-      color: var(--accent);
-      text-decoration: none;
-    }
-
-    footer a:hover {
-      text-decoration: underline;
-    }
-
-    @media (max-width: 768px) {
-      .tips-grid {
+    @media (max-width: 900px) {
+      .layout {
         grid-template-columns: minmax(0, 1fr);
       }
+      .emu-frame {
+        height: min(640px, 70vh);
+      }
+    }
+
+    @media (max-width: 600px) {
       .title-block h1 {
         font-size: 1.3rem;
       }
@@ -204,85 +252,168 @@
     <header>
       <a href="/" class="nav-link">← Back to FileConverter.run</a>
       <div class="title-block">
-        <h1>SNES Emulator (EmulatorJS)</h1>
-        <p>Play SNES ROMs with controller support, fullscreen, sound, and save states – all in your browser.</p>
+        <h1>SNES Emulator Hub</h1>
+        <p>Play SNES ROMs with controller support, sound, video options, save states, and a cyber interface.</p>
       </div>
     </header>
 
-    <div class="card">
-      <div class="card-header">
-        <div class="card-header-title">
-          SNES Player
-          <span class="chip">RetroArch Core via EmulatorJS</span>
+    <div class="layout">
+      <!-- LEFT: Emulator -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-title">
+            SNES Player
+            <span class="chip">Full Emulator Frontend</span>
+          </div>
+        </div>
+
+        <div class="emu-shell">
+          <!--
+            Using a full EmulatorJS frontend hosted externally, which includes:
+            - Load ROM button
+            - Save / Load state
+            - Controller mapping
+            - Video & fullscreen options
+          -->
+          <iframe
+            id="emu-frame"
+            class="emu-frame"
+            src="https://emulatorjs.org/games/snes/"
+            title="SNES Emulator"
+            loading="lazy"
+            allow="fullscreen"
+          ></iframe>
+        </div>
+
+        <div class="status-line">
+          <span class="dot ok" id="status-dot"></span>
+          <span id="status-text">Core loaded. Click inside the emulator, then use its menu to load a ROM.</span>
         </div>
       </div>
 
-      <p class="hint">
-        💾 This page auto-loads a SNES ROM from your FileConverter.run repo.  
-        Click inside the game window to unlock sound, then use the EmulatorJS menu to manage <strong>save states, controls, and fullscreen</strong>.
-      </p>
+      <!-- RIGHT: Options / Help panel (all the “badass” features explained) -->
+      <aside class="card">
+        <div class="panel-title">Emulator Options & Features</div>
 
-      <div class="tips-grid">
-        <section>
-          <h3>How to Use</h3>
+        <div class="section">
+          <h3>1. Load Your ROM</h3>
           <ul>
-            <li>Upload your ROM file (e.g. <code>mygame.smc</code>) into <code>/FileConversion/roms/</code> on GitHub.</li>
-            <li>Update the ROM URL in the script at the bottom of this file.</li>
-            <li>Reload this page. After it loads, click once in the game window (audio unlock), and the game should start.</li>
+            <li>Click once inside the emulator window (to focus & unlock sound).</li>
+            <li>Use the emulator’s menu (usually a <strong>☰ / menu</strong> icon or right-click) and choose <strong>Load Game / Load ROM</strong>.</li>
+            <li>Select your <strong>.smc</strong> or <strong>.sfc</strong> file from your computer.</li>
           </ul>
-        </section>
-        <section>
-          <h3>Keyboard & Controller</h3>
+          <p class="note-small">
+            If you see a “network error” inside the emulator, it usually means it tried to auto-load a demo ROM from the web and couldn’t. Just use the <strong>Load ROM</strong> option and pick your own file.
+          </p>
+        </div>
+
+        <div class="section">
+          <h3>2. Controller & Keyboard</h3>
+          <div class="pill-row">
+            <span class="pill">Controller plugins</span>
+            <span class="pill">Keyboard mapping</span>
+            <span class="pill">Virtual gamepad (mobile)</span>
+          </div>
           <ul>
-            <li>Arrows → D-Pad</li>
-            <li>Enter → Start &nbsp; / &nbsp; Shift → Select</li>
-            <li>Z / X / A / S → Face buttons (default)</li>
-            <li>Plug in an Xbox / PS / USB pad → configure in <strong>Control Settings</strong> inside the emulator menu.</li>
+            <li>Plug in your Xbox / PlayStation / USB controller.</li>
+            <li>Open the emulator menu &gt; <strong>Controls / Input / Gamepad</strong>.</li>
+            <li>Map each SNES button (A, B, X, Y, L, R, Start, Select, D-pad) to your controller.</li>
+            <li>On keyboard, default bindings are usually:
+              <ul>
+                <li>Arrows → D-Pad</li>
+                <li>Enter → Start &nbsp; / &nbsp; Shift → Select</li>
+                <li>Z / X / A / S → Face buttons</li>
+              </ul>
+            </li>
           </ul>
-        </section>
-      </div>
+        </div>
 
-      <!-- EmulatorJS SNES core goes here -->
-      <div class="emu-shell">
-        <div id="fc-snes-game"></div>
-      </div>
+        <div class="section">
+          <h3>3. Sound & Video Settings</h3>
+          <div class="pill-row">
+            <span class="pill">Volume / mute</span>
+            <span class="pill">fullscreen</span>
+            <span class="pill">Scaling / filters</span>
+          </div>
+          <ul>
+            <li>Use the emulator’s <strong>Audio / Settings</strong> menu to adjust volume and mute.</li>
+            <li>Use the built-in <strong>Fullscreen</strong> button or your browser fullscreen (F11) for a bigger view.</li>
+            <li>Some cores expose video filters (scanlines, smoothing) in the <strong>Video</strong> menu.</li>
+          </ul>
+          <div class="btn-row">
+            <button class="fc-btn" id="btn-frame-fullscreen">
+              <span class="icon">⛶</span> Fullscreen Browser
+            </button>
+            <button class="fc-btn" id="btn-reload-core">
+              <span class="icon">⟳</span> Soft Reload Core
+            </button>
+          </div>
+          <p class="note-small">
+            The <strong>Fullscreen Browser</strong> button enlarges the whole page. The emulator’s own fullscreen option can also be used inside its menu.
+          </p>
+        </div>
 
-      <footer>
-        Emulator powered by
-        <a href="https://github.com/EmulatorJS/EmulatorJS" target="_blank" rel="noopener noreferrer">EmulatorJS</a>
-        (RetroArch cores in the browser, with save states, controller mapping, and fullscreen).
-      </footer>
+        <div class="section">
+          <h3>4. Save States & Local Saves</h3>
+          <div class="pill-row">
+            <span class="pill">Save state slots</span>
+            <span class="pill">Load state</span>
+            <span class="pill">Persistent saves</span>
+          </div>
+          <ul>
+            <li>Use the emulator menu &gt; <strong>Save State</strong> to capture your current game position.</li>
+            <li>Use <strong>Load State</strong> to jump back instantly.</li>
+            <li>Many EmulatorJS frontends allow exporting / importing state files, and some store SRAM in browser storage.</li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <h3>5. Performance Tips</h3>
+          <ul>
+            <li>Close extra heavy tabs (YouTube, streaming, etc.).</li>
+            <li>Use a Chromium-based browser (Chrome / Edge / Brave) for best WASM performance.</li>
+            <li>On laptops, disable battery saver so the CPU/GPU aren’t throttled.</li>
+          </ul>
+        </div>
+      </aside>
     </div>
   </div>
 
-  <!-- EmulatorJS config -->
   <script>
-    // Where to render the emulator UI
-    EJS_player = '#fc-snes-game';
+    const emuFrame = document.getElementById('emu-frame');
+    const statusDot = document.getElementById('status-dot');
+    const statusText = document.getElementById('status-text');
+    const btnFullscreen = document.getElementById('btn-frame-fullscreen');
+    const btnReload = document.getElementById('btn-reload-core');
 
-    // SNES core (EmulatorJS uses a SNES libretro core under this label)
-    EJS_core = 'snes';
+    // Basic status updates for iframe load
+    emuFrame.addEventListener('load', () => {
+      statusDot.classList.remove('bad');
+      statusDot.classList.add('ok');
+      statusText.textContent = 'Emulator loaded. Click inside, then use its menu to load a ROM.';
+    });
 
-    // 👇 IMPORTANT: point this to your hosted ROM on GitHub Pages.
-    // Example: if you upload DAFFYDUCK.SMC to /FileConversion/roms/,
-    // set:
-    // EJS_gameUrl = 'https://cyberlinkzero.github.io/FileConversion/roms/DAFFYDUCK.SMC';
-    EJS_gameUrl = 'https://cyberlinkzero.github.io/FileConversion/roms/mygame.smc';
+    emuFrame.addEventListener('error', () => {
+      statusDot.classList.remove('ok');
+      statusDot.classList.add('bad');
+      statusText.textContent = 'Network error loading emulator. Check your connection or try again.';
+    });
 
-    // Use EmulatorJS CDN for cores + data
-    EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+    // Fullscreen for the whole page
+    btnFullscreen.addEventListener('click', () => {
+      const docEl = document.documentElement;
+      if (!document.fullscreenElement) {
+        if (docEl.requestFullscreen) docEl.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    });
 
-    // UI + audio
-    EJS_color = '#00eaff';
-    EJS_backgroundColor = '#000';
-    EJS_volume = 1;
-
-    // Start only after user clicks inside (browser audio policies)
-    EJS_fullscreenOnLoaded = false;
-    EJS_startOnLoaded = false;
+    // Soft reload the iframe core
+    btnReload.addEventListener('click', () => {
+      statusText.textContent = 'Reloading emulator…';
+      emuFrame.src = emuFrame.src;
+    });
   </script>
-
-  <!-- EmulatorJS loader from CDN -->
-  <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 </body>
 </html>
