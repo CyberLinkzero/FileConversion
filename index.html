@@ -263,19 +263,20 @@
       font-size:.85rem;
       opacity:.9;
     }
-    .fc-privacy-fab{
-      position:fixed;
-      left:12px;   /* bottom-left */
-      bottom:12px;
-      z-index:99998;
-      background:#121723;
-      border:1px solid var(--fc-border);
-      color:#var(--fc-text);
-      border-radius:999px;
-      padding:8px 12px;
-      cursor:pointer;
-      font-size:.9rem;
-    }
+   .fc-privacy-fab{
+  position:fixed;
+  left:12px;   /* bottom-left */
+  bottom:12px;
+  z-index:99998;
+  background:#121723;
+  border:1px solid var(--fc-border);
+  color:var(--fc-text);      /* FIXED — now uses the correct text color */
+  border-radius:999px;
+  padding:8px 12px;
+  cursor:pointer;
+  font-size:.9rem;
+}
+
 
     /* Make consent layout stack nicely on phones */
     @media (max-width:720px){
