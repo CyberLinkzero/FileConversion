@@ -305,19 +305,17 @@
   // -------------------------
   const memory = {
     schema: "fc-ai-memory-v1",
-    assistant: { name: "CJ" },   // changeable via "name:" command
+    assistant: { name: "CJ" },   // changeable via name commands
     profile: { style: "concise" },
-    // user-controlled memories:
-    facts: [
-      // { id, text, tags:[], createdAt, updatedAt }
-    ],
-    system: "",                  // rebuilt dynamically
+    facts: [],
+    system: "",
     threads: [{ id: "main", title: "Main", messages: [] }],
     perf: { estTokensPerSecond: 14 }
   };
 
   function nowISO(){ return new Date().toISOString(); }
   function uid(){ return Math.random().toString(16).slice(2) + "-" + Date.now().toString(16); }
+  function currentName(){ return (memory?.assistant?.name || "CJ").trim() || "CJ"; }
 
   async function saveMemory() { await store.save(JSON.stringify(memory)); }
   async function loadMemory() {
@@ -329,16 +327,16 @@
     } catch {}
   }
 
+  // Stronger & shorter => less drift on small models
   function rebuildSystemPrompt() {
-    const name = memory?.assistant?.name || "FileConverter AI";
+    const name = currentName();
     titleName.textContent = `${name} (Local)`;
 
     memory.system =
-`You are ${name}, the FileConverter.run local AI assistant.
-Your name is "${name}" and you must use that name consistently when asked.
-Help with file formats, conversions, troubleshooting, and workflows.
-Be concise and accurate. If a user asks for code, give clean copy/paste code.
-If you are unsure, say so.`;
+`You are ${name}, a local assistant for FileConverter.run.
+Your name is exactly "${name}". Never claim another name.
+If asked your name, answer exactly: "My name is ${name}."
+Stay focused on file conversion/troubleshooting. Be concise.`;
   }
 
   // -------------------------
@@ -358,7 +356,7 @@ If you are unsure, say so.`;
     for (const m of thread.messages) add(m.role, m.content);
     if (thread.messages.length === 0) {
       add("assistant",
-        `Hi — I’m ${memory?.assistant?.name || "FileConverter AI"} and I run locally on your device.\n\n` +
+        `Hi — I’m ${currentName()} and I run locally on your device.\n\n` +
         "• Auto recall is ON (keyword-based) using your saved Memories.\n" +
         "• Commands: name:, remember:, forget:\n"
       );
@@ -371,7 +369,6 @@ If you are unsure, say so.`;
   function norm(s){ return (s||"").toLowerCase(); }
 
   function extractTags(text) {
-    // allows #tags in memory text
     const tags = [];
     const re = /#([a-z0-9_-]{2,32})/ig;
     let m;
@@ -525,31 +522,40 @@ If you are unsure, say so.`;
     let score = 0;
     for (const t of tokens) {
       if (hay.includes(t)) score += 2;
-      // extra weight for tag matches
       if ((item.tags||[]).includes(t.replace("#",""))) score += 3;
     }
-    // small recency bonus
     const updated = Date.parse(item.updatedAt || item.createdAt || nowISO());
     const ageDays = Math.max(0, (Date.now() - updated) / (1000*60*60*24));
-    score += Math.max(0, 2 - ageDays/30); // up to +2
+    score += Math.max(0, 2 - ageDays/30);
     return score;
   }
 
   function recallMemories(userText, maxItems = 5) {
     const tokens = tokenize(userText);
     if (tokens.length === 0) return [];
-    const items = (memory.facts || []).map(it => ({ it, score: scoreMemoryItem(it, tokens) }))
+    return (memory.facts || [])
+      .map(it => ({ it, score: scoreMemoryItem(it, tokens) }))
       .filter(x => x.score > 0)
       .sort((a,b) => b.score - a.score)
       .slice(0, maxItems)
       .map(x => x.it);
-    return items;
+  }
+
+  // Prevent reinforcing wrong-name history
+  function normalizeAssistantTurnForPrompt(content) {
+    const name = currentName();
+    const s = (content || "").trim();
+    // If assistant ever said "I am X" and X != name, replace it in prompt context
+    const m = s.match(/^\s*i\s*am\s*["']?([^"'\n]+)["']?\s*[\.\!]?/i);
+    if (m && norm(m[1]) !== norm(name)) return `My name is ${name}.`;
+    return s;
   }
 
   function buildPrompt(system, messages, recalled) {
     const turns = messages.slice(-10).map(m => {
       const who = m.role === "user" ? "User" : "Assistant";
-      return `${who}: ${m.content}`;
+      const text = (m.role === "assistant") ? normalizeAssistantTurnForPrompt(m.content) : (m.content || "");
+      return `${who}: ${text}`;
     }).join("\n");
 
     const memBlock = (recalled && recalled.length)
@@ -606,7 +612,7 @@ If you are unsure, say so.`;
     const choice = computeSel.value;
     if (choice === "webgpu") return "webgpu";
     if (choice === "wasm") return "wasm";
-    return hasWebGPU() ? "webgpu" : "wasm"; // auto
+    return hasWebGPU() ? "webgpu" : "wasm";
   }
   function shouldAutoFallback() { return computeSel.value === "auto"; }
 
@@ -712,7 +718,6 @@ If you are unsure, say so.`;
 
       const device = pickDevice();
       devicePill.textContent = "device: " + device;
-
       setProgress(2, `Preparing (${device})…`);
 
       const loaded = await pipeline("text-generation", cfg.repo, {
@@ -767,18 +772,55 @@ If you are unsure, say so.`;
   }
 
   // -------------------------
-  // Commands: name / remember / forget
+  // Identity hard rules + sanitization
+  // -------------------------
+  function isAskName(text) {
+    const t = norm(text).trim();
+    return (
+      /^what('?s|\s+is)\s+your\s+name\??$/.test(t) ||
+      /^who\s+are\s+you\??$/.test(t) ||
+      /^your\s+name\??$/.test(t)
+    );
+  }
+
+  function sanitizeReply(reply) {
+    const name = currentName();
+    const s = (reply || "").trim();
+
+    // If the model claims a different name, hard-correct
+    const m = s.match(/^\s*i\s*am\s*["']?([^"'\n]+)["']?\s*[\.\!]?/i);
+    if (m && norm(m[1]) !== norm(name)) return `My name is ${name}.`;
+
+    // If user asked name and model didn't comply, correct it
+    if (/name/i.test(s) && !s.toLowerCase().includes(name.toLowerCase())) {
+      // don't over-correct normal answers; only if it looks like identity reply
+      if (/i am|my name|name is/i.test(s)) return `My name is ${name}.`;
+    }
+    return s;
+  }
+
+  // -------------------------
+  // Commands: name / remember / forget (plus natural language rename)
   // -------------------------
   function parseCommand(text) {
     const t = (text || "").trim();
-    const m1 = t.match(/^\s*name\s*:\s*(.+)\s*$/i);
-    if (m1) return { cmd: "name", arg: m1[1].trim() };
 
-    const m2 = t.match(/^\s*remember\s*:\s*(.+)\s*$/i);
-    if (m2) return { cmd: "remember", arg: m2[1].trim() };
+    // explicit commands
+    let m = t.match(/^\s*name\s*:\s*(.+)\s*$/i);
+    if (m) return { cmd: "name", arg: m[1].trim() };
 
-    const m3 = t.match(/^\s*forget\s*:\s*(.+)\s*$/i);
-    if (m3) return { cmd: "forget", arg: m3[1].trim() };
+    m = t.match(/^\s*remember\s*:\s*(.+)\s*$/i);
+    if (m) return { cmd: "remember", arg: m[1].trim() };
+
+    m = t.match(/^\s*forget\s*:\s*(.+)\s*$/i);
+    if (m) return { cmd: "forget", arg: m[1].trim() };
+
+    // natural language rename
+    m = t.match(/^\s*(change|set|make)\s+your\s+name\s+(to|as)\s+(.+)\s*$/i);
+    if (m) return { cmd: "name", arg: m[3].trim() };
+
+    m = t.match(/^\s*call\s+yourself\s+(.+)\s*$/i);
+    if (m) return { cmd: "name", arg: m[1].trim() };
 
     return null;
   }
@@ -796,7 +838,19 @@ If you are unsure, say so.`;
     const text = inputEl.value.trim();
     if (!text) return;
 
-    // commands run even if model isn't loaded
+    // Hard-answers: identity questions should NOT hit the model (guaranteed correctness)
+    if (isAskName(text)) {
+      inputEl.value = "";
+      memory.threads[0].messages.push({ role: "user", content: text });
+      add("user", text);
+      const reply = `My name is ${currentName()}.`;
+      memory.threads[0].messages.push({ role: "assistant", content: reply });
+      add("assistant", reply);
+      await saveMemory();
+      return;
+    }
+
+    // Commands run even if model isn't loaded
     const cmd = parseCommand(text);
     if (cmd) {
       inputEl.value = "";
@@ -804,7 +858,7 @@ If you are unsure, say so.`;
 
       if (cmd.cmd === "name") {
         memory.assistant = memory.assistant || {};
-        memory.assistant.name = cmd.arg.slice(0, 40) || "CJ";
+        memory.assistant.name = (cmd.arg || "CJ").slice(0, 40).trim() || "CJ";
         rebuildSystemPrompt();
         await saveMemory();
         renderMemories();
@@ -827,7 +881,6 @@ If you are unsure, say so.`;
           add("assistant", "⚠️ I couldn’t find a matching saved memory to forget. Try a keyword from the memory text.");
           return;
         }
-        // delete all matches
         for (const m of matches) deleteFact(m.id);
         await saveMemory();
         renderMemories();
@@ -860,7 +913,6 @@ If you are unsure, say so.`;
     add("assistant", "…");
     const placeholder = msgsEl.lastChild;
 
-    // snappy for easy stuff
     const isShort = text.length < 80;
     targetMaxNewTokens = isShort ? 90 : 220;
 
@@ -887,9 +939,10 @@ If you are unsure, say so.`;
       if (cancelRequested || myGen !== genToken) { placeholder.textContent = "⛔ Cancelled."; return; }
       if (mySession !== activeToken) throw new Error("Model session changed during reply. Please try again.");
 
-      const reply = (out?.[0]?.generated_text || "").trim();
-      if (!reply) { placeholder.textContent = "⚠️ Empty reply. Try a different model or reload."; return; }
+      const raw = (out?.[0]?.generated_text || "").trim();
+      if (!raw) { placeholder.textContent = "⚠️ Empty reply. Try a different model or reload."; return; }
 
+      const reply = sanitizeReply(raw);
       placeholder.textContent = reply;
 
       const secs = Math.max(0.01, (t1 - t0) / 1000);
@@ -905,7 +958,6 @@ If you are unsure, say so.`;
       const isTimeout = /timed out/i.test(msg);
       const usingGpu = devicePill.textContent.includes("webgpu");
 
-      // GPU watchdog: timeout on WebGPU in Auto → reload page once → then CPU fallback
       if (isTimeout && usingGpu && shouldAutoFallback()) {
         const st = getGpuResetState();
         const tries = st.tries;
@@ -988,7 +1040,7 @@ If you are unsure, say so.`;
     const pack = {
       schema: "fc-ai-memory-v1",
       exportedAt: new Date().toISOString(),
-      app: { name: "FileConverter AI", version: "1.0.0" },
+      app: { name: "FileConverter AI", version: "1.0.1" },
       ...memory
     };
     const blob = new Blob([JSON.stringify(pack, null, 2)], { type: "application/json" });
@@ -1009,12 +1061,11 @@ If you are unsure, say so.`;
       const pack = JSON.parse(text);
       if (pack.schema !== "fc-ai-memory-v1") throw new Error("Unsupported memory pack.");
 
-      // merge safe parts
       memory.assistant = pack.assistant ?? memory.assistant;
       memory.profile   = pack.profile   ?? memory.profile;
-      memory.facts      = pack.facts      ?? memory.facts;
-      memory.threads    = pack.threads    ?? memory.threads;
-      memory.perf       = pack.perf       ?? memory.perf;
+      memory.facts     = pack.facts     ?? memory.facts;
+      memory.threads   = pack.threads   ?? memory.threads;
+      memory.perf      = pack.perf      ?? memory.perf;
 
       rebuildSystemPrompt();
       await saveMemory();
@@ -1039,7 +1090,6 @@ If you are unsure, say so.`;
   renderThread();
   renderMemories();
 
-  // restore settings
   const savedModel = localStorage.getItem("fc_ai_model_key");
   modelSel.value = savedModel && MODELS[savedModel] ? savedModel : "qwen05";
 
@@ -1047,7 +1097,6 @@ If you are unsure, say so.`;
   computeSel.value = savedCompute || "auto";
   computeSel.addEventListener("change", () => localStorage.setItem("fc_ai_compute", computeSel.value));
 
-  // GPU reset retry message on reload
   const rs = getGpuResetState();
   if (rs.pending) {
     clearGpuResetPending();
