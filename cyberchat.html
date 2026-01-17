@@ -1,56 +1,247 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>CyberChat — EvolveBot</title>
+  <title>FileConverter AI (Local)</title>
   <style>
-    body{margin:0;background:#0f1117;color:#e5e7eb;font:16px/1.5 ui-sans-serif,system-ui}
-    header{background:linear-gradient(180deg,rgba(125,211,252,.08),rgba(167,139,250,.06));border-bottom:1px solid #212734;padding:18px}
-    .wrap{max-width:1100px;margin:0 auto;padding:18px}
-    .note{color:#9aa4b2}
-    code{background:#0b1220;border:1px solid #212734;border-radius:6px;padding:2px 6px}
-    .card{border:1px solid #212734;border-radius:12px;background:#0b1220;padding:16px;margin-top:16px}
+    body{margin:0;font-family:system-ui;background:#0b0f14;color:#e7eef7}
+    .wrap{max-width:980px;margin:auto;padding:18px}
+    .card{border:1px solid #1f2a37;border-radius:16px;background:#0f1620}
+    .top{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:14px;border-bottom:1px solid #1f2a37}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    select,button{background:#111b2a;color:#e7eef7;border:1px solid #223044;border-radius:12px;padding:10px}
+    button{cursor:pointer}
+    button:hover{filter:brightness(1.1)}
+    .status{opacity:.75;font-size:12px}
+    .msgs{height:62vh;overflow:auto;padding:16px}
+    .msg{margin:10px 0;padding:10px 12px;border-radius:14px;max-width:82%;border:1px solid #223044;white-space:pre-wrap}
+    .me{margin-left:auto;background:#122235}
+    .ai{margin-right:auto;background:#101a27}
+    .bar{display:flex;gap:10px;padding:12px;border-top:1px solid #1f2a37}
+    textarea{flex:1;resize:none;background:#0b1220;color:#e7eef7;border:1px solid #223044;border-radius:12px;padding:10px}
   </style>
 </head>
-    
 <body>
-  <header>
-    <link rel="stylesheet" href="site.css">
-
-    <div class="wrap">
-    <h1>CyberChat — EvolveBot Under Construction</h1>
-    <div class="note">Local app + website widget with pairing code and HTTPS.</div>
-  </div>
-     <div data-nav-placeholder></div>
-  <script src="nav-loader.js" defer></script>
-  <script src="js/utils.js"></script>
-  </header>
-  <div class="wrap">
-    <div class="card">
-      <h3>How to pair</h3>
-      <ol>
-        <li>Run the <b>CyberChatServer-Full.exe</b> on your PC.</li>
-        <li>Open <code>http://127.0.0.1:8000/pair</code> → copy the 6‑digit code.</li>
-        <li>Click the chat bubble → paste the code → <b>Pair</b>.</li>
-        <li>Click <b>Send</b> to chat. For HTTPS pages, click “Generate TLS” on the local page and use <code>https://127.0.0.1:8443</code>.</li>
-      </ol>
+<div class="wrap">
+  <div class="card">
+    <div class="top">
+      <div>
+        <b>FileConverter AI (Local)</b>
+        <div id="status" class="status">Booting…</div>
+      </div>
+      <div class="row">
+        <label class="status">Model</label>
+        <select id="model">
+          <option value="microsoft/Phi-3-mini-4k-instruct-onnx-web">Phi-3 Mini (ONNX Web) — recommended</option>
+          <option value="Xenova/Phi-3-mini-4k-instruct">Phi-3 Mini (Xenova) — cache-friendly</option>
+        </select>
+        <button id="reload">Load / Switch</button>
+        <button id="export">Export Memory</button>
+        <button id="importBtn">Import Memory</button>
+        <input id="importFile" type="file" accept="application/json" style="display:none" />
+      </div>
     </div>
 
-    <div class="card">
-      <h3>Embed in your site</h3>
-      <p>Add this line near the end of your page (adjust the path):</p>
-<pre><code>&lt;script src="/assets/cyberchat-widget.js"
-        data-endpoint="https://127.0.0.1:8443"
-        data-title="EvolveBot"
-        defer&gt;&lt;/script&gt;</code></pre>
+    <div id="msgs" class="msgs"></div>
+
+    <div class="bar">
+      <textarea id="input" rows="2" placeholder="Ask about file formats, conversions, errors…"></textarea>
+      <button id="send">Send</button>
     </div>
   </div>
+</div>
 
-  <!-- Widget -->
-  <script src="./assets.cyberchat-widget.js"
-          data-endpoint="https://127.0.0.1:8443"
-          data-title="EvolveBot"
-          defer></script>
+<script type="module">
+  import { pipeline, env } from "https://esm.run/@huggingface/transformers";
+
+  const statusEl = document.getElementById("status");
+  const msgsEl = document.getElementById("msgs");
+  const inputEl = document.getElementById("input");
+  const sendBtn = document.getElementById("send");
+  const modelSel = document.getElementById("model");
+  const reloadBtn = document.getElementById("reload");
+  const exportBtn = document.getElementById("export");
+  const importBtn = document.getElementById("importBtn");
+  const importFile = document.getElementById("importFile");
+
+  // ---- Local memory (portable) ----
+  const memory = {
+    schema: "fc-ai-memory-v1",
+    profile: { style: "concise" },
+    system: "You are FileConverter AI. Help with file formats, conversions, troubleshooting, and workflows. Be concise and accurate.",
+    threads: [{ id: "main", title: "Main", messages: [] }]
+  };
+
+  function add(role, text) {
+    const d = document.createElement("div");
+    d.className = "msg " + (role === "user" ? "me" : "ai");
+    d.textContent = text;
+    msgsEl.appendChild(d);
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+  }
+
+  // Persist in browser (so it survives refresh)
+  function saveLocal() {
+    localStorage.setItem("fc_ai_memory", JSON.stringify(memory));
+  }
+  function loadLocal() {
+    const raw = localStorage.getItem("fc_ai_memory");
+    if (!raw) return;
+    try {
+      const obj = JSON.parse(raw);
+      if (obj?.schema === "fc-ai-memory-v1") Object.assign(memory, obj);
+    } catch {}
+  }
+  loadLocal();
+
+  // Render existing messages
+  function renderThread() {
+    msgsEl.innerHTML = "";
+    for (const m of memory.threads[0].messages) add(m.role, m.content);
+    if (memory.threads[0].messages.length === 0) {
+      add("assistant", "Hi — I run locally on your device. What are you converting today?");
+    }
+  }
+  renderThread();
+
+  // ---- Transformers.js runtime ----
+  let generator = null;
+  let currentModel = null;
+
+  function hasWebGPU() {
+    return !!navigator.gpu;
+  }
+
+  function netLooksConstrained() {
+    const c = navigator.connection;
+    const saveData = c?.saveData === true;
+    const slow = ["slow-2g","2g","3g"].includes(c?.effectiveType);
+    return !!(saveData || slow);
+  }
+
+  async function loadModel(modelId, { auto = false } = {}) {
+    statusEl.textContent = auto ? "Auto-loading model…" : "Loading model…";
+    const device = hasWebGPU() ? "webgpu" : "wasm"; // WebGPU if available; else CPU fallback
+    statusEl.textContent = `Loading (${device})… first run can take a while.`;
+
+    // Optional: be more conservative on slow networks unless user explicitly clicks Load
+    if (auto && netLooksConstrained()) {
+      statusEl.textContent = "Skipped auto-download (Data Saver / slow network). Click Load to start.";
+      return;
+    }
+
+    // Reduce noisy logging (optional)
+    env.allowLocalModels = false;
+
+    generator = await pipeline("text-generation", modelId, { device });
+    currentModel = modelId;
+
+    statusEl.textContent = `Ready (${device}). Model: ${modelId}`;
+  }
+
+  // Basic chat prompt formatting (works well enough for instruct models)
+  function buildPrompt(system, messages) {
+    const turns = messages.slice(-10).map(m => {
+      const who = m.role === "user" ? "User" : "Assistant";
+      return `${who}: ${m.content}`;
+    }).join("\n");
+    return `${system}\n\n${turns}\nAssistant:`;
+  }
+
+  async function ensureLoadedAuto() {
+    const modelId = modelSel.value;
+    await loadModel(modelId, { auto: true });
+  }
+
+  async function send() {
+    const text = inputEl.value.trim();
+    if (!text) return;
+    inputEl.value = "";
+
+    memory.threads[0].messages.push({ role: "user", content: text });
+    add("user", text);
+    saveLocal();
+
+    if (!generator) {
+      add("assistant", "Model not loaded yet. Click “Load / Switch”.");
+      return;
+    }
+
+    // Create a single prompt from recent chat
+    const prompt = buildPrompt(memory.system, memory.threads[0].messages);
+
+    add("assistant", "…");
+    const placeholder = msgsEl.lastChild;
+
+    try {
+      const out = await generator(prompt, {
+        max_new_tokens: 220,
+        temperature: 0.3,
+        do_sample: true,
+        return_full_text: false
+      });
+
+      const reply = (out?.[0]?.generated_text || "").trim() || "(no output)";
+      placeholder.textContent = reply;
+
+      memory.threads[0].messages.push({ role: "assistant", content: reply });
+      saveLocal();
+    } catch (e) {
+      placeholder.textContent = "Error: " + (e?.message || e);
+    }
+  }
+
+  // Buttons
+  sendBtn.onclick = send;
+  inputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+  });
+
+  reloadBtn.onclick = async () => {
+    await loadModel(modelSel.value, { auto: false });
+  };
+
+  exportBtn.onclick = () => {
+    const pack = {
+      schema: "fc-ai-memory-v1",
+      exportedAt: new Date().toISOString(),
+      app: { name: "FileConverter AI", version: "1.0.0" },
+      ...memory
+    };
+    const blob = new Blob([JSON.stringify(pack, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "fileconverter-ai-memory.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  importBtn.onclick = () => importFile.click();
+  importFile.onchange = async () => {
+    const file = importFile.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const pack = JSON.parse(text);
+      if (pack.schema !== "fc-ai-memory-v1") throw new Error("Unsupported memory pack.");
+      // Merge
+      memory.profile = pack.profile ?? memory.profile;
+      memory.system = pack.system ?? memory.system;
+      memory.threads = pack.threads ?? memory.threads;
+      saveLocal();
+      renderThread();
+      add("assistant", "Memory imported.");
+    } catch (e) {
+      add("assistant", "Import failed: " + (e?.message || e));
+    } finally {
+      importFile.value = "";
+    }
+  };
+
+  // Auto-download on page load
+  window.addEventListener("load", ensureLoadedAuto);
+</script>
 </body>
 </html>
