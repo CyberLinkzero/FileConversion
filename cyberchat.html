@@ -15,7 +15,7 @@
     button:hover{filter:brightness(1.1)}
     button:disabled{opacity:.6;cursor:not-allowed}
     .status{opacity:.75;font-size:12px;line-height:1.35}
-    .layout{display:grid;grid-template-columns:1fr 360px;gap:0}
+    .layout{display:grid;grid-template-columns:1fr 380px;gap:0}
     @media (max-width: 980px){ .layout{grid-template-columns:1fr} .side{border-left:none;border-top:1px solid #1f2a37} }
     .msgs{height:62vh;overflow:auto;padding:16px;-webkit-overflow-scrolling:touch}
     .msg{margin:10px 0;padding:10px 12px;border-radius:14px;max-width:82%;border:1px solid #223044;white-space:pre-wrap;word-break:break-word}
@@ -33,10 +33,10 @@
     .danger{border-color:#7f1d1d}
     .danger:hover{filter:brightness(1.15)}
     .side{border-left:1px solid #1f2a37;background:#0c121b}
-    .sideHead{padding:14px;border-bottom:1px solid #1f2a37;display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .sideHead{padding:14px;border-bottom:1px solid #1f2a37;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
     .sideBody{padding:14px;max-height:calc(62vh + 84px);overflow:auto;-webkit-overflow-scrolling:touch}
     .memItem{border:1px solid #223044;border-radius:14px;padding:10px;margin:10px 0;background:#0b1220}
-    .memTop{display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .memTop{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
     .tag{font-size:11px;opacity:.8;border:1px solid #223044;border-radius:999px;padding:2px 8px}
     .memText{width:100%;margin-top:8px}
     .tiny{padding:6px 10px;border-radius:10px;font-size:12px}
@@ -67,39 +67,21 @@
       50%{height:16px;opacity:1}
     }
 
-    /* === MOBILE LAYOUT FIX === */
+    /* Side tabs */
+    .tabbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .tabbtn{padding:6px 10px;border-radius:999px;font-size:12px}
+    .tabbtn.on{border-color:#2dd4bf}
+    .stack{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .wide{width:100%}
+
+    /* Mobile layout */
     @media (max-width: 560px) {
       .wrap{padding:12px}
-
-      .top{
-        flex-direction:column;
-        align-items:stretch;
-        gap:12px;
-      }
-
-      .leftActions{
-        flex-direction:column;
-        align-items:flex-start;
-        width:100%;
-      }
-
-      .row{
-        width:100%;
-        justify-content:flex-start;
-        gap:8px;
-      }
-
-      .row > *{
-        flex:1 1 100%;
-        width:100%;
-      }
-
-      select,button,input{
-        width:100%;
-        font-size:14px;
-        padding:10px;
-      }
-
+      .top{flex-direction:column;align-items:stretch;gap:12px}
+      .leftActions{flex-direction:column;align-items:flex-start;width:100%}
+      .row{width:100%;justify-content:flex-start;gap:8px}
+      .row > *{flex:1 1 100%;width:100%}
+      select,button,input{width:100%;font-size:14px;padding:10px}
       .msgs{height:55vh}
       .layout{grid-template-columns:1fr}
     }
@@ -130,7 +112,7 @@
             Runs on your device. First load may download a model (can be large). Next loads are faster due to caching.
           </div>
           <div class="status muted">
-            Commands: <code>name: CJ</code> • <code>remember: ...</code> • <code>forget: ...</code>
+            Commands: <code>name: CJ</code> • <code>remember: ...</code> • <code>forget: ...</code> • <code>train: ...</code>
           </div>
         </div>
       </div>
@@ -155,7 +137,6 @@
         <button id="clear" class="danger">Clear chat</button>
 
         <button id="voiceToggle">🎙️ Voice: Off</button>
-
         <select id="voiceSelect" title="Voice"></select>
         <label class="status chk"><input id="autoSpeak" type="checkbox" checked> Speak replies</label>
 
@@ -187,25 +168,77 @@
 
       <aside class="side">
         <div class="sideHead">
-          <div>
-            <b>Memories</b>
+          <div class="stack">
+            <b id="sideTitle">Memories</b>
             <span class="status muted" id="memCount">0</span>
           </div>
-          <button id="addMemBtn" class="tiny">+ Add</button>
-        </div>
-        <div class="sideBody">
-          <div class="status">
-            Saved items you want the assistant to recall later. Use <code>remember:</code> in chat, or add here.
+
+          <div class="tabbar">
+            <button id="tabMem" class="tabbtn on">Memories</button>
+            <button id="tabTrain" class="tabbtn">Training</button>
           </div>
 
-          <div class="hr"></div>
+          <div class="stack">
+            <button id="addMemBtn" class="tiny">+ Add</button>
+            <button id="addTrainBtn" class="tiny" style="display:none">+ Add</button>
+          </div>
+        </div>
 
-          <div class="status muted">Search</div>
-          <input id="memSearch" placeholder="filter memories…" style="width:100%;margin-top:6px" />
+        <div class="sideBody">
+          <!-- Memories panel -->
+          <div id="memPanel">
+            <div class="status">
+              Saved items you want the assistant to recall later. Use <code>remember:</code> in chat, or add here.
+            </div>
 
-          <div class="hr"></div>
+            <div class="hr"></div>
 
-          <div id="memList"></div>
+            <div class="status muted">Search</div>
+            <input id="memSearch" placeholder="filter memories…" class="wide" style="margin-top:6px" />
+
+            <div class="hr"></div>
+
+            <div id="memList"></div>
+          </div>
+
+          <!-- Training panel -->
+          <div id="trainPanel" style="display:none">
+            <div class="status">
+              “Training” here means saved <b>rules</b>, <b>notes</b>, and <b>examples</b> that get injected into the prompt on every use.
+              This does <b>not</b> change model weights, but it makes answers behave more like ChatGPT (consistent style + better guidance).
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="status muted">Search training</div>
+            <input id="trainSearch" placeholder="filter training…" class="wide" style="margin-top:6px" />
+
+            <div class="hr"></div>
+
+            <div class="status muted">Rules (top behavior)</div>
+            <div id="ruleList"></div>
+            <button id="addRuleBtn" class="tiny">+ Add Rule</button>
+
+            <div class="hr"></div>
+
+            <div class="status muted">Notes (your knowledge)</div>
+            <div id="noteList"></div>
+            <button id="addNoteBtn" class="tiny">+ Add Note</button>
+
+            <div class="hr"></div>
+
+            <div class="status muted">Examples (User → Ideal answer)</div>
+            <div id="exList"></div>
+            <button id="addExBtn" class="tiny">+ Add Example</button>
+
+            <div class="hr"></div>
+
+            <div class="stack">
+              <button id="exportTrainBtn" class="tiny">Export Training</button>
+              <button id="importTrainBtn" class="tiny">Import Training</button>
+              <input id="importTrainFile" type="file" accept="application/json" style="display:none" />
+            </div>
+          </div>
         </div>
       </aside>
     </div>
@@ -247,13 +280,48 @@
   const autoSpeakEl    = document.getElementById("autoSpeak");
   const waveEl         = document.getElementById("wave");
 
+  // Side tabs
+  const sideTitle = document.getElementById("sideTitle");
+  const tabMem = document.getElementById("tabMem");
+  const tabTrain = document.getElementById("tabTrain");
+  const memPanel = document.getElementById("memPanel");
+  const trainPanel = document.getElementById("trainPanel");
+  const addMemBtn  = document.getElementById("addMemBtn");
+  const addTrainBtn  = document.getElementById("addTrainBtn"); // (kept for future; hidden now)
+
   // Memories panel
   const memCountEl = document.getElementById("memCount");
   const memListEl  = document.getElementById("memList");
   const memSearchEl= document.getElementById("memSearch");
-  const addMemBtn  = document.getElementById("addMemBtn");
+
+  // Training panel
+  const trainSearchEl = document.getElementById("trainSearch");
+  const ruleListEl = document.getElementById("ruleList");
+  const noteListEl = document.getElementById("noteList");
+  const exListEl = document.getElementById("exList");
+  const addRuleBtn = document.getElementById("addRuleBtn");
+  const addNoteBtn = document.getElementById("addNoteBtn");
+  const addExBtn = document.getElementById("addExBtn");
+  const exportTrainBtn = document.getElementById("exportTrainBtn");
+  const importTrainBtn = document.getElementById("importTrainBtn");
+  const importTrainFile = document.getElementById("importTrainFile");
 
   backBtn.onclick = () => { window.location.href = "https://fileconverter.run/"; };
+
+  function showTab(which) {
+    const isMem = which === "mem";
+    tabMem.classList.toggle("on", isMem);
+    tabTrain.classList.toggle("on", !isMem);
+    memPanel.style.display = isMem ? "" : "none";
+    trainPanel.style.display = isMem ? "none" : "";
+    addMemBtn.style.display = isMem ? "" : "none";
+    addTrainBtn.style.display = "none";
+    sideTitle.textContent = isMem ? "Memories" : "Training";
+    renderMemories();
+    renderTraining();
+  }
+  tabMem.onclick = () => showTab("mem");
+  tabTrain.onclick = () => showTab("train");
 
   // -------------------------
   // Models
@@ -379,13 +447,21 @@
   };
 
   // -------------------------
-  // Memory format
+  // Memory format (includes Training!)
   // -------------------------
   const memory = {
     schema: "fc-ai-memory-v1",
     assistant: { name: "CJ" },
     profile: { style: "concise" },
     facts: [],
+    training: {
+      rules: [
+        "Answer like ChatGPT: direct answer first, then steps, then a quick example.",
+        "Be concise. Use bullet points. Ask at most 1 clarifying question if needed."
+      ],
+      notes: [],
+      examples: []
+    },
     system: "",
     threads: [{ id: "main", title: "Main", messages: [] }],
     perf: { estTokensPerSecond: 12 }
@@ -405,6 +481,19 @@
     } catch {}
   }
 
+  function ensureTrainingDefaults() {
+    memory.training = memory.training || {};
+    memory.training.rules = Array.isArray(memory.training.rules) ? memory.training.rules : [];
+    memory.training.notes = Array.isArray(memory.training.notes) ? memory.training.notes : [];
+    memory.training.examples = Array.isArray(memory.training.examples) ? memory.training.examples : [];
+    if (memory.training.rules.length === 0) {
+      memory.training.rules.push(
+        "Answer like ChatGPT: direct answer first, then steps, then a quick example.",
+        "Be concise. Use bullet points. Ask at most 1 clarifying question if needed."
+      );
+    }
+  }
+
   function rebuildSystemPrompt() {
     const name = currentName();
     titleName.textContent = `${name} (Local)`;
@@ -413,12 +502,17 @@
 `You are ${name}, a local assistant for FileConverter.run.
 Your name is exactly "${name}". Never claim another name.
 If asked your name, answer exactly: "My name is ${name}."
-Stay focused on file conversion/troubleshooting. Be concise.
+
+Core behavior:
+- Be helpful, accurate, and practical.
+- Prefer bullet points and steps.
+- If user wants “ChatGPT-like” answers: be structured, calm, and direct.
+- If unsure: say what you’re assuming.
 
 Style rules:
 - No "As an AI..." disclaimers.
-- Keep answers under 6 lines when possible.
-- Prefer bullets. Ask 1 quick follow-up question if needed.`;
+- Keep answers under 8 lines when possible.
+- Ask at most 1 quick follow-up question if needed.`;
   }
 
   // -------------------------
@@ -439,8 +533,8 @@ Style rules:
     if (thread.messages.length === 0) {
       add("assistant",
         `Hi — I’m ${currentName()} and I run locally on your device.\n\n` +
-        "• Auto recall is ON (keyword-based) using your saved Memories.\n" +
-        "• Commands: name:, remember:, forget:\n" +
+        "• Commands: name:, remember:, forget:, train:\n" +
+        "• Training tab: add rules/notes/examples that get injected into my prompt.\n" +
         "• Voice: toggle 🎙️, then say the wake word to talk.\n" +
         `• Wake word: say “${currentName()}” or “Hey ${currentName()}”\n`
       );
@@ -485,6 +579,7 @@ Style rules:
   }
 
   function renderMemories() {
+    if (memPanel.style.display === "none") return;
     const q = norm(memSearchEl.value);
     const items = (memory.facts || []).filter(it => {
       if (!q) return true;
@@ -583,7 +678,281 @@ Style rules:
   };
 
   // -------------------------
-  // Retrieval (keyword-based)
+  // Training panel CRUD
+  // -------------------------
+  function trainingFilterFn(q) {
+    q = norm(q);
+    if (!q) return () => true;
+    return (s) => norm(s).includes(q);
+  }
+
+  function renderTraining() {
+    if (trainPanel.style.display === "none") return;
+    ensureTrainingDefaults();
+    const q = norm(trainSearchEl.value);
+    const ok = trainingFilterFn(q);
+
+    // Rules
+    ruleListEl.innerHTML = "";
+    const rules = memory.training.rules || [];
+    if (rules.length === 0) {
+      const d = document.createElement("div");
+      d.className = "status muted";
+      d.textContent = "No rules yet.";
+      ruleListEl.appendChild(d);
+    } else {
+      rules.forEach((r, idx) => {
+        if (q && !ok(r)) return;
+
+        const box = document.createElement("div");
+        box.className = "memItem";
+
+        const top = document.createElement("div");
+        top.className = "memTop";
+
+        const left = document.createElement("div");
+        left.className = "status muted";
+        left.textContent = "Rule #" + (idx + 1);
+
+        const right = document.createElement("div");
+        right.style.display = "flex";
+        right.style.gap = "8px";
+
+        const del = document.createElement("button");
+        del.className = "tiny danger";
+        del.textContent = "Delete";
+        del.onclick = async () => {
+          memory.training.rules.splice(idx, 1);
+          await saveMemory();
+          renderTraining();
+        };
+
+        right.appendChild(del);
+        top.appendChild(left);
+        top.appendChild(right);
+
+        const ta = document.createElement("textarea");
+        ta.className = "memText";
+        ta.rows = 2;
+        ta.value = r;
+
+        const saveBtn = document.createElement("button");
+        saveBtn.className = "tiny";
+        saveBtn.style.marginTop = "8px";
+        saveBtn.textContent = "Save";
+        saveBtn.onclick = async () => {
+          memory.training.rules[idx] = ta.value.trim();
+          await saveMemory();
+          renderTraining();
+        };
+
+        box.appendChild(top);
+        box.appendChild(ta);
+        box.appendChild(saveBtn);
+        ruleListEl.appendChild(box);
+      });
+    }
+
+    // Notes
+    noteListEl.innerHTML = "";
+    const notes = memory.training.notes || [];
+    if (notes.length === 0) {
+      const d = document.createElement("div");
+      d.className = "status muted";
+      d.textContent = "No notes yet.";
+      noteListEl.appendChild(d);
+    } else {
+      notes.forEach((n, idx) => {
+        const text = n?.text || "";
+        if (q && !ok(text)) return;
+
+        const box = document.createElement("div");
+        box.className = "memItem";
+
+        const top = document.createElement("div");
+        top.className = "memTop";
+
+        const left = document.createElement("div");
+        left.className = "status muted";
+        left.textContent = new Date(n.updatedAt || n.createdAt || nowISO()).toLocaleString();
+
+        const right = document.createElement("div");
+        right.style.display = "flex";
+        right.style.gap = "8px";
+
+        const del = document.createElement("button");
+        del.className = "tiny danger";
+        del.textContent = "Delete";
+        del.onclick = async () => {
+          memory.training.notes.splice(idx, 1);
+          await saveMemory();
+          renderTraining();
+        };
+
+        right.appendChild(del);
+        top.appendChild(left);
+        top.appendChild(right);
+
+        const ta = document.createElement("textarea");
+        ta.className = "memText";
+        ta.rows = 3;
+        ta.value = text;
+
+        const saveBtn = document.createElement("button");
+        saveBtn.className = "tiny";
+        saveBtn.style.marginTop = "8px";
+        saveBtn.textContent = "Save";
+        saveBtn.onclick = async () => {
+          memory.training.notes[idx].text = ta.value.trim();
+          memory.training.notes[idx].updatedAt = nowISO();
+          await saveMemory();
+          renderTraining();
+        };
+
+        box.appendChild(top);
+        box.appendChild(ta);
+        box.appendChild(saveBtn);
+        noteListEl.appendChild(box);
+      });
+    }
+
+    // Examples
+    exListEl.innerHTML = "";
+    const ex = memory.training.examples || [];
+    if (ex.length === 0) {
+      const d = document.createElement("div");
+      d.className = "status muted";
+      d.textContent = "No examples yet.";
+      exListEl.appendChild(d);
+    } else {
+      ex.forEach((e, idx) => {
+        const u = e?.user || "";
+        const a = e?.assistant || "";
+        const hay = (u + "\n" + a);
+        if (q && !ok(hay)) return;
+
+        const box = document.createElement("div");
+        box.className = "memItem";
+
+        const top = document.createElement("div");
+        top.className = "memTop";
+
+        const left = document.createElement("div");
+        left.className = "status muted";
+        left.textContent = "Example #" + (idx + 1);
+
+        const right = document.createElement("div");
+        right.style.display = "flex";
+        right.style.gap = "8px";
+
+        const del = document.createElement("button");
+        del.className = "tiny danger";
+        del.textContent = "Delete";
+        del.onclick = async () => {
+          memory.training.examples.splice(idx, 1);
+          await saveMemory();
+          renderTraining();
+        };
+
+        right.appendChild(del);
+        top.appendChild(left);
+        top.appendChild(right);
+
+        const uTa = document.createElement("textarea");
+        uTa.className = "memText";
+        uTa.rows = 2;
+        uTa.value = u;
+        uTa.placeholder = "User message…";
+
+        const aTa = document.createElement("textarea");
+        aTa.className = "memText";
+        aTa.rows = 3;
+        aTa.value = a;
+        aTa.placeholder = "Ideal assistant answer…";
+
+        const saveBtn = document.createElement("button");
+        saveBtn.className = "tiny";
+        saveBtn.style.marginTop = "8px";
+        saveBtn.textContent = "Save";
+        saveBtn.onclick = async () => {
+          memory.training.examples[idx].user = uTa.value.trim();
+          memory.training.examples[idx].assistant = aTa.value.trim();
+          memory.training.examples[idx].updatedAt = nowISO();
+          await saveMemory();
+          renderTraining();
+        };
+
+        box.appendChild(top);
+        box.appendChild(uTa);
+        box.appendChild(aTa);
+        box.appendChild(saveBtn);
+
+        exListEl.appendChild(box);
+      });
+    }
+  }
+
+  trainSearchEl.addEventListener("input", renderTraining);
+
+  addRuleBtn.onclick = async () => {
+    ensureTrainingDefaults();
+    memory.training.rules.push("Write your rule here…");
+    await saveMemory();
+    renderTraining();
+  };
+
+  addNoteBtn.onclick = async () => {
+    ensureTrainingDefaults();
+    memory.training.notes.unshift({ id: uid(), text: "Write your note here…", createdAt: nowISO(), updatedAt: nowISO() });
+    await saveMemory();
+    renderTraining();
+  };
+
+  addExBtn.onclick = async () => {
+    ensureTrainingDefaults();
+    memory.training.examples.unshift({ id: uid(), user: "User message…", assistant: "Ideal assistant answer…", createdAt: nowISO(), updatedAt: nowISO() });
+    await saveMemory();
+    renderTraining();
+  };
+
+  exportTrainBtn.onclick = async () => {
+    ensureTrainingDefaults();
+    const pack = {
+      schema: "fc-ai-training-v1",
+      exportedAt: nowISO(),
+      training: memory.training
+    };
+    const blob = new Blob([JSON.stringify(pack, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "fileconverter-ai-training.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  importTrainBtn.onclick = () => importTrainFile.click();
+  importTrainFile.onchange = async () => {
+    const file = importTrainFile.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const pack = JSON.parse(text);
+      if (pack?.schema !== "fc-ai-training-v1") throw new Error("Unsupported training pack.");
+      memory.training = pack.training || memory.training;
+      ensureTrainingDefaults();
+      await saveMemory();
+      renderTraining();
+      add("assistant", "✅ Training imported.");
+    } catch (err) {
+      add("assistant", "❌ Training import failed: " + ((err && (err.message || String(err))) || "Unknown error"));
+    } finally {
+      importTrainFile.value = "";
+    }
+  };
+
+  // -------------------------
+  // Retrieval + prompt building
   // -------------------------
   const STOPWORDS = new Set([
     "the","a","an","and","or","to","of","in","on","for","with","is","are","was","were",
@@ -601,48 +970,89 @@ Style rules:
       .filter(w => w.length >= 3 && !STOPWORDS.has(w));
   }
 
-  function scoreMemoryItem(item, tokens) {
-    const hay = (item.text + " " + (item.tags||[]).map(t => "#"+t).join(" ")).toLowerCase();
-    let score = 0;
-    for (const t of tokens) {
-      if (hay.includes(t)) score += 2;
-      if ((item.tags||[]).includes(t.replace("#",""))) score += 3;
-    }
-    const updated = Date.parse(item.updatedAt || item.createdAt || nowISO());
-    const ageDays = Math.max(0, (Date.now() - updated) / (1000*60*60*24));
-    score += Math.max(0, 2 - ageDays/30);
-    return score;
+  function scoreHay(hay, tokens) {
+    hay = (hay || "").toLowerCase();
+    let s = 0;
+    for (const t of tokens) if (hay.includes(t)) s += 1;
+    return s;
   }
 
   function recallMemories(userText, maxItems = 5) {
     const tokens = tokenize(userText);
     if (tokens.length === 0) return [];
     return (memory.facts || [])
-      .map(it => ({ it, score: scoreMemoryItem(it, tokens) }))
+      .map(it => {
+        const hay = (it.text + " " + (it.tags||[]).map(t => "#"+t).join(" ")).toLowerCase();
+        let score = 0;
+        for (const t of tokens) {
+          if (hay.includes(t)) score += 2;
+          if ((it.tags||[]).includes(t.replace("#",""))) score += 3;
+        }
+        return { it, score };
+      })
       .filter(x => x.score > 0)
       .sort((a,b) => b.score - a.score)
       .slice(0, maxItems)
       .map(x => x.it);
   }
 
-  // Smaller history on mobile to reduce memory spikes
+  // Training injection (rules + relevant notes/examples)
+  function buildTrainingBlock(userText) {
+    ensureTrainingDefaults();
+    const tokens = tokenize(userText);
+
+    const rules = (memory.training.rules || [])
+      .map(r => (r || "").trim())
+      .filter(Boolean)
+      .slice(0, 8);
+
+    const notesPicked = (memory.training.notes || [])
+      .map(n => ({ n, score: scoreHay(n?.text || "", tokens) }))
+      .filter(x => x.score > 0)
+      .sort((a,b) => b.score - a.score)
+      .slice(0, 4)
+      .map(x => (x.n.text || "").trim())
+      .filter(Boolean);
+
+    const exPicked = (memory.training.examples || [])
+      .map(e => ({ e, score: scoreHay((e?.user||"") + " " + (e?.assistant||""), tokens) }))
+      .filter(x => x.score > 0)
+      .sort((a,b) => b.score - a.score)
+      .slice(0, 2)
+      .map(x => x.e)
+      .filter(e => (e.user||"").trim() && (e.assistant||"").trim());
+
+    let out = "";
+    if (rules.length) out += "TRAINING RULES:\n" + rules.map(r => "- " + r).join("\n") + "\n\n";
+    if (notesPicked.length) out += "TRAINING NOTES:\n" + notesPicked.map(n => "- " + n).join("\n") + "\n\n";
+    if (exPicked.length) {
+      out += "TRAINING EXAMPLES:\n";
+      for (const e of exPicked) {
+        out += `User: ${e.user.trim()}\nAssistant: ${e.assistant.trim()}\n\n`;
+      }
+    }
+    return out.trim();
+  }
+
   function isMobileish() {
     return matchMedia("(max-width: 980px)").matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   }
 
-  function buildPrompt(system, messages, recalled) {
-    const maxTurns = isMobileish() ? 6 : 10;
+  function buildPrompt(system, messages, recalled, trainingBlock) {
+    const maxTurns = isMobileish() ? 6 : 12;
     const turns = messages.slice(-maxTurns).map(m => {
-      const who = m.role === "user" ? "User" : "Assistant";
+      const who = m.role === "user" ? "USER" : "ASSISTANT";
       const text = (m.content || "").trim();
       return `${who}: ${text}`;
     }).join("\n");
 
     const memBlock = (recalled && recalled.length)
-      ? "Relevant saved memories:\n" + recalled.map(m => "- " + m.text).join("\n") + "\n\n"
+      ? "RELEVANT MEMORIES:\n" + recalled.map(m => "- " + m.text).join("\n") + "\n\n"
       : "";
 
-    return `${system}\n\n${memBlock}${turns}\nAssistant:`;
+    const trainBlock = trainingBlock ? (trainingBlock + "\n\n") : "";
+
+    return `SYSTEM:\n${system}\n\n${trainBlock}${memBlock}${turns}\nASSISTANT:`;
   }
 
   // -------------------------
@@ -664,7 +1074,6 @@ Style rules:
   }
 
   function hasWebGPU() { return !!navigator.gpu; }
-
   function netLooksConstrained() {
     const c = navigator.connection;
     const saveData = c?.saveData === true;
@@ -677,10 +1086,7 @@ Style rules:
     thinkPill.classList.toggle("live", !!on);
   }
 
-  function setListening(on) {
-    waveEl.classList.toggle("on", !!on);
-  }
-
+  function setListening(on) { waveEl.classList.toggle("on", !!on); }
   function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
   async function withTimeout(promise, ms, label = "Operation") {
@@ -722,48 +1128,12 @@ Style rules:
   }
 
   // -------------------------
-  // GPU watchdog + reset (reload once)
-  // -------------------------
-  const WD_TIMEOUT_MS = isMobileish() ? 20000 : 25000;
-  const GPU_RESET_MAX_TRIES = 1;
-  const RESET_FLAG = "fc_ai_gpu_reset_pending";
-  const RESET_TRIES = "fc_ai_gpu_reset_tries";
-  const RESET_MODEL = "fc_ai_gpu_reset_model";
-
-  function markGpuResetPending(modelKey) {
-    const tries = Number(sessionStorage.getItem(RESET_TRIES) || "0");
-    sessionStorage.setItem(RESET_FLAG, "1");
-    sessionStorage.setItem(RESET_TRIES, String(tries + 1));
-    sessionStorage.setItem(RESET_MODEL, modelKey);
-  }
-  function clearGpuResetPending() {
-    sessionStorage.removeItem(RESET_FLAG);
-    sessionStorage.removeItem(RESET_MODEL);
-  }
-  function getGpuResetState() {
-    return {
-      pending: sessionStorage.getItem(RESET_FLAG) === "1",
-      tries: Number(sessionStorage.getItem(RESET_TRIES) || "0"),
-      modelKey: sessionStorage.getItem(RESET_MODEL)
-    };
-  }
-  function hardReloadForGpuReset() {
-    const url = new URL(window.location.href);
-    url.searchParams.set("r", String(Date.now()));
-    window.location.replace(url.toString());
-  }
-
-  // -------------------------
-  // Voice: TTS + STT + Echo prevention + WAKE WORD ALWAYS LISTENING
-  // + Mobile mic permission: "Voice On" prompts for mic permission
+  // Voice: TTS + STT + Wake word + mic permission prompt on toggle
   // -------------------------
   let voices = [];
   let voiceOn = false;
   let isListening = false;
   let isSpeaking = false;
-
-  // Persisted mic status (best-effort)
-  const MIC_OK_KEY = "fc_ai_mic_ok";
 
   function loadVoices() {
     voices = speechSynthesis.getVoices() || [];
@@ -790,7 +1160,6 @@ Style rules:
 
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
   let rec = null;
-
   function sttSupported() { return !!SpeechRec; }
 
   function setupRecognizer() {
@@ -802,23 +1171,15 @@ Style rules:
     return r;
   }
 
-  function safeRecStop() {
-    if (!rec) return;
-    try { rec.stop(); } catch {}
-  }
+  function safeRecStop() { if (!rec) return; try { rec.stop(); } catch {} }
 
   function setVoiceUI() {
     voiceToggleBtn.textContent = voiceOn ? "🎙️ Voice: On" : "🎙️ Voice: Off";
   }
 
-  // --- NEW: Mic permission helper (runs only on user gesture) ---
   async function ensureMicPermission() {
-    // If Permissions API says granted, we still keep a quick getUserMedia on mobile to be safe.
-    if (!navigator.mediaDevices?.getUserMedia) {
-      return { ok:false, reason:"getUserMedia not available" };
-    }
+    if (!navigator.mediaDevices?.getUserMedia) return { ok:false, reason:"getUserMedia not available" };
     try {
-      // Try to query permission state (not supported everywhere)
       let permState = null;
       try {
         if (navigator.permissions?.query) {
@@ -826,51 +1187,23 @@ Style rules:
           permState = p?.state || null;
         }
       } catch {}
+      if (permState === "denied") return { ok:false, reason:"Microphone permission denied" };
 
-      // If explicitly denied, don't spam getUserMedia; tell user to enable in site settings
-      if (permState === "denied") {
-        localStorage.setItem(MIC_OK_KEY, "0");
-        return { ok:false, reason:"Microphone permission denied" };
-      }
-
-      // Request mic once to trigger prompt (or confirm grant). Immediately stop tracks.
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      try {
-        stream.getTracks().forEach(t => t.stop());
-      } catch {}
-
-      localStorage.setItem(MIC_OK_KEY, "1");
+      try { stream.getTracks().forEach(t => t.stop()); } catch {}
       return { ok:true };
     } catch (e) {
-      localStorage.setItem(MIC_OK_KEY, "0");
       return { ok:false, reason: (e?.message || String(e) || "Mic request failed") };
     }
   }
 
-  // -------------------------
-  // Wake word: supports "NAME" and "Hey NAME"
-  // -------------------------
-  function normalizeText(t) {
-    return (t || "").toLowerCase().trim();
-  }
-
+  function normalizeText(t) { return (t || "").toLowerCase().trim(); }
   function isWakeWord(text) {
     const name = normalizeText(currentName());
     const t = normalizeText(text);
-
-    return (
-      t === name ||
-      t.startsWith(`hey ${name}`) ||
-      t.startsWith(`ok ${name}`) ||
-      t.startsWith(`${name},`) ||
-      t.startsWith(`${name} `)
-    );
+    return (t === name || t.startsWith(`hey ${name}`) || t.startsWith(`ok ${name}`) || t.startsWith(`${name},`) || t.startsWith(`${name} `));
   }
-
-  function escapeRegExp(s) {
-    return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  }
-
+  function escapeRegExp(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
   function stripWakeWord(text) {
     const name = escapeRegExp(currentName());
     return (text || "")
@@ -879,9 +1212,6 @@ Style rules:
       .trim();
   }
 
-  // -------------------------
-  // Always-listening wake-word mode
-  // -------------------------
   function startWakeListening() {
     if (!voiceOn) return;
     if (isSpeaking) return;
@@ -897,10 +1227,8 @@ Style rules:
         const chunk = e.results[i][0].transcript;
         if (e.results[i].isFinal) finalText += chunk + " ";
       }
-
       finalText = finalText.trim();
       if (!finalText) return;
-
       if (!isWakeWord(finalText)) return;
 
       const cleaned = stripWakeWord(finalText);
@@ -919,20 +1247,12 @@ Style rules:
       safeRecStop();
       isListening = false;
       setListening(false);
-
-      // On mobile, "not-allowed" / "service-not-allowed" often means permissions or HTTPS issues
-      // Keep UI friendly:
-      if (voiceOn && sttSupported()) {
-        setThinking(false, "idle");
-      }
     };
 
     rec.onend = () => {
       isListening = false;
       setListening(false);
-      if (voiceOn && !isSpeaking) {
-        setTimeout(startWakeListening, 300);
-      }
+      if (voiceOn && !isSpeaking) setTimeout(startWakeListening, 300);
     };
 
     try {
@@ -940,14 +1260,13 @@ Style rules:
       isListening = true;
       setListening(true);
       setThinking(true, `listening… say “${currentName()}”`);
-    } catch (e) {
-      // Some mobile browsers require a fresh tap to start recognition even after permission is granted
+    } catch {
       isListening = false;
       setListening(false);
       setThinking(false, "idle");
       add("assistant",
         "⚠️ I couldn’t start listening yet.\n" +
-        "Tip: Tap “🎙️ Voice” once more. On mobile, some browsers require a direct tap to start mic listening."
+        "Tip: Tap “🎙️ Voice” once more. Some mobile browsers require a direct tap to start mic listening."
       );
     }
   }
@@ -958,8 +1277,7 @@ Style rules:
 
     try { speechSynthesis.cancel(); } catch {}
 
-    const wasListening = isListening;
-    if (wasListening) {
+    if (isListening) {
       safeRecStop();
       isListening = false;
       setListening(false);
@@ -974,28 +1292,17 @@ Style rules:
       u.pitch = 1.0;
       u.volume = 1.0;
 
-      u.onstart = () => {
-        isSpeaking = true;
-        setThinking(true, "speaking…");
-      };
+      u.onstart = () => { isSpeaking = true; setThinking(true, "speaking…"); };
       u.onend = () => {
         isSpeaking = false;
-        if (voiceOn) {
-          setThinking(false, "idle");
-          setTimeout(startWakeListening, 250);
-        } else {
-          setThinking(false, "idle");
-        }
+        if (voiceOn) { setThinking(false, "idle"); setTimeout(startWakeListening, 250); }
+        else setThinking(false, "idle");
         resolve();
       };
       u.onerror = () => {
         isSpeaking = false;
-        if (voiceOn) {
-          setThinking(false, "idle");
-          setTimeout(startWakeListening, 250);
-        } else {
-          setThinking(false, "idle");
-        }
+        if (voiceOn) { setThinking(false, "idle"); setTimeout(startWakeListening, 250); }
+        else setThinking(false, "idle");
         resolve();
       };
 
@@ -1003,14 +1310,12 @@ Style rules:
     });
   }
 
-  // UPDATED: Voice toggle now explicitly requests mic permission on mobile (user gesture)
   voiceToggleBtn.onclick = async () => {
     voiceOn = !voiceOn;
     localStorage.setItem("fc_ai_voice_on", voiceOn ? "1" : "0");
     setVoiceUI();
 
     if (voiceOn) {
-      // TTS is fine anywhere; STT depends on browser
       if (!sttSupported()) {
         add("assistant",
           "🎙️ Voice enabled (speaking replies).\n\n" +
@@ -1021,7 +1326,6 @@ Style rules:
         return;
       }
 
-      // Ask for mic permission right now (so phone prompts immediately)
       const mic = await ensureMicPermission();
       if (!mic.ok) {
         add("assistant",
@@ -1049,7 +1353,7 @@ Style rules:
   };
 
   // -------------------------
-  // Model runtime + state machine
+  // Model runtime + state
   // -------------------------
   let generator = null;
   let loadToken = 0;
@@ -1149,7 +1453,7 @@ Style rules:
   }
 
   // -------------------------
-  // Identity + commands
+  // Commands (added train:)
   // -------------------------
   function isAskName(text) {
     const t = norm(text).trim();
@@ -1172,11 +1476,13 @@ Style rules:
     m = t.match(/^\s*forget\s*:\s*(.+)\s*$/i);
     if (m) return { cmd: "forget", arg: m[1].trim() };
 
-    m = t.match(/^\s*(change|set|make)\s+your\s+name\s+(to|as)\s+(.+)\s*$/i);
-    if (m) return { cmd: "name", arg: m[3].trim() };
-
-    m = t.match(/^\s*call\s+yourself\s+(.+)\s*$/i);
-    if (m) return { cmd: "name", arg: m[1].trim() };
+    // NEW: train:
+    // Examples:
+    //   train: rule Always answer in steps
+    //   train: note Our product supports HEIC->JPG
+    //   train: example User=... | Assistant=...
+    m = t.match(/^\s*train\s*:\s*(.+)\s*$/i);
+    if (m) return { cmd: "train", arg: m[1].trim() };
 
     return null;
   }
@@ -1195,8 +1501,41 @@ Style rules:
     return s;
   }
 
+  function handleTrainCommand(arg) {
+    ensureTrainingDefaults();
+    const a = (arg || "").trim();
+    if (!a) return { ok:false, msg:"Usage: train: rule ... OR train: note ... OR train: example User=... | Assistant=..." };
+
+    const mRule = a.match(/^rule\s+(.+)$/i);
+    if (mRule) {
+      memory.training.rules.push(mRule[1].trim());
+      return { ok:true, msg:"✅ Added training rule." };
+    }
+
+    const mNote = a.match(/^note\s+(.+)$/i);
+    if (mNote) {
+      memory.training.notes.unshift({ id: uid(), text: mNote[1].trim(), createdAt: nowISO(), updatedAt: nowISO() });
+      return { ok:true, msg:"✅ Added training note." };
+    }
+
+    const mEx = a.match(/^example\s+(.+)$/i);
+    if (mEx) {
+      const raw = mEx[1];
+      const parts = raw.split("|").map(s => s.trim());
+      const u = parts.find(p => /^user\s*=/.test(p.toLowerCase()))?.split("=").slice(1).join("=").trim();
+      const as = parts.find(p => /^assistant\s*=/.test(p.toLowerCase()))?.split("=").slice(1).join("=").trim();
+      if (!u || !as) return { ok:false, msg:"Example format: train: example User=... | Assistant=..." };
+      memory.training.examples.unshift({ id: uid(), user: u, assistant: as, createdAt: nowISO(), updatedAt: nowISO() });
+      return { ok:true, msg:"✅ Added training example." };
+    }
+
+    // default: treat as a note
+    memory.training.notes.unshift({ id: uid(), text: a, createdAt: nowISO(), updatedAt: nowISO() });
+    return { ok:true, msg:"✅ Added training note." };
+  }
+
   // -------------------------
-  // Send (typed wrapper)
+  // Send
   // -------------------------
   async function send() {
     const t = inputEl.value.trim();
@@ -1205,9 +1544,6 @@ Style rules:
     await sendText(t, { fromVoice: false });
   }
 
-  // -------------------------
-  // SendText (typed OR voice)
-  // -------------------------
   async function sendText(text, { fromVoice } = { fromVoice:false }) {
     if (!text) return;
 
@@ -1232,6 +1568,7 @@ Style rules:
         rebuildSystemPrompt();
         await saveMemory();
         renderMemories();
+        renderTraining();
         renderThread();
         const reply = `✅ Got it. My name is now ${memory.assistant.name}.`;
         add("assistant", reply);
@@ -1266,6 +1603,15 @@ Style rules:
         await speak(reply);
         return;
       }
+
+      if (cmd.cmd === "train") {
+        const res = handleTrainCommand(cmd.arg);
+        await saveMemory();
+        renderTraining();
+        add("assistant", res.msg);
+        await speak(res.msg);
+        return;
+      }
     }
 
     if (isLoading) { add("assistant", "⚠️ Still loading… wait for “Ready”, then send."); return; }
@@ -1292,24 +1638,27 @@ Style rules:
     const placeholder = msgsEl.lastChild;
 
     const isShort = text.length < 80;
-    targetMaxNewTokens = isMobileish() ? (isShort ? 80 : 140) : (isShort ? 90 : 220);
+    targetMaxNewTokens = isMobileish() ? (isShort ? 120 : 180) : (isShort ? 180 : 320);
 
     startThinkTimer();
 
     try {
       const recalled = recallMemories(text, 5);
-      const prompt = buildPrompt(memory.system, memory.threads[0].messages, recalled);
+      const trainingBlock = buildTrainingBlock(text);
+      const prompt = buildPrompt(memory.system, memory.threads[0].messages, recalled, trainingBlock);
       if (mySession !== activeToken) throw new Error("Model session changed. Please try again.");
 
       const t0 = performance.now();
       const out = await withTimeout(
         generator(prompt, {
           max_new_tokens: targetMaxNewTokens,
-          temperature: 0.3,
+          temperature: 0.35,
+          top_p: 0.92,
+          repetition_penalty: 1.12,
           do_sample: true,
           return_full_text: false
         }),
-        WD_TIMEOUT_MS,
+        isMobileish() ? 22000 : 26000,
         "Reply generation"
       );
       const t1 = performance.now();
@@ -1335,36 +1684,10 @@ Style rules:
     } catch (err) {
       console.error(err);
       const msg = (err && (err.message || String(err))) || "Unknown error";
-      const isTimeout = /timed out/i.test(msg);
-      const usingGpu = devicePill.textContent.includes("webgpu");
-
-      if (isTimeout && usingGpu && shouldAutoFallback()) {
-        const tries = Number(sessionStorage.getItem(RESET_TRIES) || "0");
-
-        if (tries <= GPU_RESET_MAX_TRIES) {
-          placeholder.textContent =
-            "⚠️ WebGPU got stuck (watchdog timeout).\n\n" +
-            "Attempting a GPU reset (page reload) and retrying once…";
-          await sleep(150);
-          markGpuResetPending(modelSel.value);
-          hardReloadForGpuReset();
-          return;
-        } else {
-          placeholder.textContent =
-            "⚠️ WebGPU got stuck again after a reset.\n\n" +
-            "Switching to CPU/WASM for reliability…";
-          computeSel.value = "wasm";
-          localStorage.setItem("fc_ai_compute", "wasm");
-          await loadModel(modelSel.value, { auto: false });
-          placeholder.textContent = "✅ CPU/WASM loaded. Send your message again (slower, but reliable).";
-          return;
-        }
-      }
-
       placeholder.textContent =
         "Error generating reply: " + msg + "\n\n" +
         "Tips:\n" +
-        "• If using WebGPU, try Auto compute mode (it can reset).\n" +
+        "• If using WebGPU, try Auto compute mode.\n" +
         "• Try Qwen2.5 0.5B for best stability.\n";
     } finally {
       stopThinkTimer();
@@ -1384,8 +1707,6 @@ Style rules:
   reloadBtn.addEventListener("click", async () => {
     localStorage.setItem("fc_ai_model_key", modelSel.value);
     localStorage.setItem("fc_ai_compute", computeSel.value);
-    clearGpuResetPending();
-    sessionStorage.setItem(RESET_TRIES, "0");
     await loadModel(modelSel.value, { auto: false });
   });
 
@@ -1419,7 +1740,7 @@ Style rules:
     const pack = {
       schema: "fc-ai-memory-v1",
       exportedAt: new Date().toISOString(),
-      app: { name: "FileConverter AI", version: "1.0.6-mic-permission-on-voice-toggle" },
+      app: { name: "FileConverter AI", version: "1.0.7-training-tab" },
       ...memory
     };
     const blob = new Blob([JSON.stringify(pack, null, 2)], { type: "application/json" });
@@ -1443,14 +1764,17 @@ Style rules:
       memory.assistant = pack.assistant ?? memory.assistant;
       memory.profile   = pack.profile   ?? memory.profile;
       memory.facts     = pack.facts     ?? memory.facts;
+      memory.training  = pack.training  ?? memory.training;
       memory.threads   = pack.threads   ?? memory.threads;
       memory.perf      = pack.perf      ?? memory.perf;
 
+      ensureTrainingDefaults();
       rebuildSystemPrompt();
       await saveMemory();
 
       renderThread();
       renderMemories();
+      renderTraining();
       add("assistant", "✅ Memory imported.");
       await speak("Memory imported.");
     } catch (err) {
@@ -1466,9 +1790,11 @@ Style rules:
   await store.init();
   await loadMemory();
   memory.facts = memory.facts || [];
+  ensureTrainingDefaults();
   rebuildSystemPrompt();
   renderThread();
   renderMemories();
+  renderTraining();
 
   const savedModel = localStorage.getItem("fc_ai_model_key");
   modelSel.value = savedModel && MODELS[savedModel] ? savedModel : "qwen05";
@@ -1477,35 +1803,15 @@ Style rules:
   computeSel.value = savedCompute || "auto";
   computeSel.addEventListener("change", () => localStorage.setItem("fc_ai_compute", computeSel.value));
 
-  // Voice UI init
+  // Voice init
   voiceOn = (localStorage.getItem("fc_ai_voice_on") === "1");
   setVoiceUI();
-
-  const rs = getGpuResetState();
-  if (rs.pending) {
-    clearGpuResetPending();
-    add("assistant",
-      "♻️ GPU reset complete (page reloaded).\n" +
-      "Retrying WebGPU once… If it hangs again, Auto mode will switch to CPU/WASM."
-    );
-  } else {
-    sessionStorage.setItem(RESET_TRIES, "0");
-  }
 
   setProgress(0, "Auto-load pending…");
   await loadModel(modelSel.value, { auto: true });
 
-  // IMPORTANT MOBILE REALITY:
-  // Even if voiceOn was saved, some browsers require a tap to start STT.
-  // We'll try, and if it fails, the user can tap the Voice button once.
-  if (voiceOn && sttSupported()) {
-    setTimeout(async () => {
-      // try to re-confirm mic without prompting (best effort)
-      // then try to start listening; if it fails, message appears inside startWakeListening catch.
-      try { await ensureMicPermission(); } catch {}
-      startWakeListening();
-    }, 350);
-  }
+  // Default to Memories tab
+  showTab("mem");
 </script>
 </body>
 </html>
