@@ -43,6 +43,29 @@
     .muted{opacity:.7}
     .hr{height:1px;background:#1f2a37;margin:12px 0}
     a{color:#8ab4ff}
+    .chk{display:flex;align-items:center;gap:8px}
+    .chk input{accent-color:#2dd4bf}
+
+    /* Listening waveform */
+    .wavewrap{display:flex;align-items:center;gap:8px;margin-top:6px}
+    .wave{
+      width:52px;height:16px;display:flex;gap:3px;align-items:flex-end;
+      opacity:.0;transform:scale(.98);
+      transition:opacity .15s ease, transform .15s ease;
+    }
+    .wave.on{opacity:1;transform:scale(1)}
+    .barx{
+      width:6px;height:6px;border-radius:4px;background:#2dd4bf;
+      animation: bounce 800ms infinite ease-in-out;
+    }
+    .barx:nth-child(2){animation-delay:120ms}
+    .barx:nth-child(3){animation-delay:240ms}
+    .barx:nth-child(4){animation-delay:360ms}
+    .barx:nth-child(5){animation-delay:480ms}
+    @keyframes bounce{
+      0%,100%{height:5px;opacity:.6}
+      50%{height:16px;opacity:1}
+    }
   </style>
 </head>
 <body>
@@ -58,7 +81,14 @@
             <span id="storePill" class="pill">storage: ?</span>
             <span id="thinkPill" class="pill">idle</span>
           </div>
-          <div id="status" class="status">Idle</div>
+
+          <div class="wavewrap">
+            <div id="wave" class="wave" aria-label="Listening indicator">
+              <div class="barx"></div><div class="barx"></div><div class="barx"></div><div class="barx"></div><div class="barx"></div>
+            </div>
+            <div id="status" class="status">Idle</div>
+          </div>
+
           <div class="status">
             Runs on your device. First load may download a model (can be large). Next loads are faster due to caching.
           </div>
@@ -86,6 +116,10 @@
         <button id="reload">Load / Switch</button>
         <button id="cancel" disabled>Cancel</button>
         <button id="clear" class="danger">Clear chat</button>
+
+        <button id="voiceToggle">🎙️ Voice Chat: Off</button>
+        <select id="voiceSelect" title="Voice"></select>
+        <label class="status chk"><input id="autoSpeak" type="checkbox" checked> Speak replies</label>
 
         <button id="export">Export Memory</button>
         <button id="importBtn">Import Memory</button>
@@ -168,6 +202,12 @@
   const thinkPill  = document.getElementById("thinkPill");
   const titleName  = document.getElementById("titleName");
   const backBtn    = document.getElementById("backBtn");
+
+  // Voice UI
+  const voiceToggleBtn = document.getElementById("voiceToggle");
+  const voiceSelectEl  = document.getElementById("voiceSelect");
+  const autoSpeakEl    = document.getElementById("autoSpeak");
+  const waveEl         = document.getElementById("wave");
 
   // Memories panel
   const memCountEl = document.getElementById("memCount");
@@ -301,11 +341,11 @@
   };
 
   // -------------------------
-  // Memory format (global memories + chat thread)
+  // Memory format
   // -------------------------
   const memory = {
     schema: "fc-ai-memory-v1",
-    assistant: { name: "CJ" },   // changeable via name commands
+    assistant: { name: "CJ" },
     profile: { style: "concise" },
     facts: [],
     system: "",
@@ -327,7 +367,6 @@
     } catch {}
   }
 
-  // Stronger & shorter => less drift on small models
   function rebuildSystemPrompt() {
     const name = currentName();
     titleName.textContent = `${name} (Local)`;
@@ -336,7 +375,12 @@
 `You are ${name}, a local assistant for FileConverter.run.
 Your name is exactly "${name}". Never claim another name.
 If asked your name, answer exactly: "My name is ${name}."
-Stay focused on file conversion/troubleshooting. Be concise.`;
+Stay focused on file conversion/troubleshooting. Be concise.
+
+Style rules:
+- No "As an AI..." disclaimers.
+- Keep answers under 6 lines when possible.
+- Prefer bullets. Ask 1 quick follow-up question if needed.`;
   }
 
   // -------------------------
@@ -358,13 +402,14 @@ Stay focused on file conversion/troubleshooting. Be concise.`;
       add("assistant",
         `Hi — I’m ${currentName()} and I run locally on your device.\n\n` +
         "• Auto recall is ON (keyword-based) using your saved Memories.\n" +
-        "• Commands: name:, remember:, forget:\n"
+        "• Commands: name:, remember:, forget:\n" +
+        "• Voice Chat: use 🎙️ to talk hands-free.\n"
       );
     }
   }
 
   // -------------------------
-  // Memories panel UI + ops
+  // Memories panel
   // -------------------------
   function norm(s){ return (s||"").toLowerCase(); }
 
@@ -499,7 +544,7 @@ Stay focused on file conversion/troubleshooting. Be concise.`;
   };
 
   // -------------------------
-  // Retrieval (keyword-based) for prompt injection
+  // Retrieval (keyword-based)
   // -------------------------
   const STOPWORDS = new Set([
     "the","a","an","and","or","to","of","in","on","for","with","is","are","was","were",
@@ -541,20 +586,10 @@ Stay focused on file conversion/troubleshooting. Be concise.`;
       .map(x => x.it);
   }
 
-  // Prevent reinforcing wrong-name history
-  function normalizeAssistantTurnForPrompt(content) {
-    const name = currentName();
-    const s = (content || "").trim();
-    // If assistant ever said "I am X" and X != name, replace it in prompt context
-    const m = s.match(/^\s*i\s*am\s*["']?([^"'\n]+)["']?\s*[\.\!]?/i);
-    if (m && norm(m[1]) !== norm(name)) return `My name is ${name}.`;
-    return s;
-  }
-
   function buildPrompt(system, messages, recalled) {
     const turns = messages.slice(-10).map(m => {
       const who = m.role === "user" ? "User" : "Assistant";
-      const text = (m.role === "assistant") ? normalizeAssistantTurnForPrompt(m.content) : (m.content || "");
+      const text = (m.content || "").trim();
       return `${who}: ${text}`;
     }).join("\n");
 
@@ -566,7 +601,7 @@ Stay focused on file conversion/troubleshooting. Be concise.`;
   }
 
   // -------------------------
-  // Progress + device + timeouts + thinking
+  // Progress + device + thinking
   // -------------------------
   function setProgress(p = 0, label = "") {
     const pct = Math.max(0, Math.min(100, Math.round(p)));
@@ -595,6 +630,10 @@ Stay focused on file conversion/troubleshooting. Be concise.`;
   function setThinking(on, label) {
     thinkPill.textContent = label || (on ? "thinking…" : "idle");
     thinkPill.classList.toggle("live", !!on);
+  }
+
+  function setListening(on) {
+    waveEl.classList.toggle("on", !!on);
   }
 
   function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -670,6 +709,169 @@ Stay focused on file conversion/troubleshooting. Be concise.`;
   }
 
   // -------------------------
+  // Voice: TTS + STT + Echo prevention
+  // -------------------------
+  let voices = [];
+  let voiceChatOn = false;
+  let isListening = false;
+  let isSpeaking = false;
+
+  function loadVoices() {
+    voices = speechSynthesis.getVoices() || [];
+    voiceSelectEl.innerHTML = "";
+    for (const v of voices) {
+      const opt = document.createElement("option");
+      opt.value = v.name;
+      opt.textContent = `${v.name} (${v.lang})`;
+      voiceSelectEl.appendChild(opt);
+    }
+    const preferred =
+      voices.find(v => /en-US/i.test(v.lang)) ||
+      voices.find(v => /^en/i.test(v.lang)) ||
+      voices[0];
+    if (preferred) voiceSelectEl.value = preferred.name;
+  }
+  speechSynthesis.onvoiceschanged = loadVoices;
+  loadVoices();
+
+  function getSelectedVoice() {
+    const name = voiceSelectEl.value;
+    return voices.find(v => v.name === name) || voices[0] || null;
+  }
+
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null;
+
+  function sttSupported() { return !!SpeechRec; }
+
+  function setupRecognizer() {
+    if (!sttSupported()) return null;
+    const r = new SpeechRec();
+    r.lang = "en-US";
+    r.continuous = true;
+    r.interimResults = true;
+
+    let finalText = "";
+    let silenceTimer = null;
+
+    function armSilenceSend() {
+      clearTimeout(silenceTimer);
+      silenceTimer = setTimeout(() => {
+        const t = (finalText || "").trim();
+        finalText = "";
+        if (t && voiceChatOn && !isSpeaking) sendText(t, { fromVoice: true });
+      }, 900);
+    }
+
+    r.onresult = (e) => {
+      if (isSpeaking) return; // echo prevention
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const chunk = e.results[i][0].transcript;
+        if (e.results[i].isFinal) finalText += chunk + " ";
+        else interim += chunk;
+      }
+      if ((finalText || interim).trim()) armSilenceSend();
+    };
+
+    r.onerror = (e) => {
+      add("assistant", `🎙️ Mic error: ${e.error || "unknown"}`);
+      stopVoiceChat();
+    };
+
+    r.onend = () => {
+      isListening = false;
+      setListening(false);
+      if (voiceChatOn && !isSpeaking) startVoiceChat(); // auto-restart
+    };
+
+    return r;
+  }
+
+  function startVoiceChat() {
+    if (!sttSupported()) {
+      add("assistant", "🎙️ Voice Chat needs Chrome/Edge (SpeechRecognition not available here).");
+      voiceChatOn = false;
+      voiceToggleBtn.textContent = "🎙️ Voice Chat: Off";
+      setListening(false);
+      return;
+    }
+    if (isSpeaking) return; // do not listen while speaking
+    if (isListening) return;
+    if (!rec) rec = setupRecognizer();
+    try {
+      rec.start();
+      isListening = true;
+      voiceChatOn = true;
+      voiceToggleBtn.textContent = "🎙️ Voice Chat: On";
+      setListening(true);
+      setThinking(true, "listening…");
+    } catch {}
+  }
+
+  function stopVoiceChat({ keepToggle = false } = {}) {
+    if (!keepToggle) voiceChatOn = false;
+    voiceToggleBtn.textContent = voiceChatOn ? "🎙️ Voice Chat: On" : "🎙️ Voice Chat: Off";
+    setListening(false);
+    if (!voiceChatOn) setThinking(false, "idle");
+    if (!rec) return;
+    try { rec.stop(); } catch {}
+    isListening = false;
+  }
+
+  async function speak(text) {
+    if (!autoSpeakEl.checked) return;
+    if (!text || !("speechSynthesis" in window)) return;
+
+    // Stop any current speech
+    speechSynthesis.cancel();
+
+    // Echo prevention: stop mic while speaking, then resume
+    const shouldResume = voiceChatOn;
+    if (shouldResume) stopVoiceChat({ keepToggle: true });
+
+    return new Promise((resolve) => {
+      const u = new SpeechSynthesisUtterance(text);
+      const v = getSelectedVoice();
+      if (v) u.voice = v;
+
+      u.rate = 1.02;
+      u.pitch = 1.0;
+      u.volume = 1.0;
+
+      u.onstart = () => {
+        isSpeaking = true;
+        setThinking(true, "speaking…");
+        setListening(false);
+      };
+      u.onend = () => {
+        isSpeaking = false;
+        if (voiceChatOn) startVoiceChat();
+        else setThinking(false, "idle");
+        resolve();
+      };
+      u.onerror = () => {
+        isSpeaking = false;
+        if (voiceChatOn) startVoiceChat();
+        else setThinking(false, "idle");
+        resolve();
+      };
+
+      speechSynthesis.speak(u);
+    });
+  }
+
+  voiceToggleBtn.onclick = () => {
+    if (voiceChatOn) {
+      voiceChatOn = false;
+      stopVoiceChat();
+    } else {
+      voiceChatOn = true;
+      startVoiceChat();
+    }
+  };
+
+  // -------------------------
   // Model runtime + state machine
   // -------------------------
   let generator = null;
@@ -708,7 +910,6 @@ Stay focused on file conversion/troubleshooting. Be concise.`;
     modelSel.disabled = true;
     computeSel.disabled = true;
     cancelBtn.disabled = true;
-    setThinking(true, "loading…");
 
     statusEl.textContent = (auto ? "Auto-loading: " : "Loading: ") + cfg.label;
     setProgress(1, "Starting…");
@@ -766,13 +967,13 @@ Stay focused on file conversion/troubleshooting. Be concise.`;
         computeSel.disabled = false;
         cancelBtn.disabled = true;
         stopThinkTimer();
-        setThinking(false, "idle");
+        if (!voiceChatOn && !isSpeaking) setThinking(false, "idle");
       }
     }
   }
 
   // -------------------------
-  // Identity hard rules + sanitization
+  // Identity + commands
   // -------------------------
   function isAskName(text) {
     const t = norm(text).trim();
@@ -783,29 +984,9 @@ Stay focused on file conversion/troubleshooting. Be concise.`;
     );
   }
 
-  function sanitizeReply(reply) {
-    const name = currentName();
-    const s = (reply || "").trim();
-
-    // If the model claims a different name, hard-correct
-    const m = s.match(/^\s*i\s*am\s*["']?([^"'\n]+)["']?\s*[\.\!]?/i);
-    if (m && norm(m[1]) !== norm(name)) return `My name is ${name}.`;
-
-    // If user asked name and model didn't comply, correct it
-    if (/name/i.test(s) && !s.toLowerCase().includes(name.toLowerCase())) {
-      // don't over-correct normal answers; only if it looks like identity reply
-      if (/i am|my name|name is/i.test(s)) return `My name is ${name}.`;
-    }
-    return s;
-  }
-
-  // -------------------------
-  // Commands: name / remember / forget (plus natural language rename)
-  // -------------------------
   function parseCommand(text) {
     const t = (text || "").trim();
 
-    // explicit commands
     let m = t.match(/^\s*name\s*:\s*(.+)\s*$/i);
     if (m) return { cmd: "name", arg: m[1].trim() };
 
@@ -831,29 +1012,45 @@ Stay focused on file conversion/troubleshooting. Be concise.`;
     return (memory.facts || []).filter(it => norm(it.text).includes(q) || (it.tags||[]).some(t => norm(t).includes(q)));
   }
 
+  function sanitizeReply(reply) {
+    const name = currentName();
+    const s = (reply || "").trim();
+    const m = s.match(/^\s*i\s*am\s*["']?([^"'\n]+)["']?\s*[\.\!]?/i);
+    if (m && norm(m[1]) !== norm(name)) return `My name is ${name}.`;
+    return s;
+  }
+
   // -------------------------
-  // Chat send
+  // Send (typed wrapper)
   // -------------------------
   async function send() {
-    const text = inputEl.value.trim();
+    const t = inputEl.value.trim();
+    if (!t) return;
+    inputEl.value = "";
+    await sendText(t, { fromVoice: false });
+  }
+
+  // -------------------------
+  // SendText (typed OR voice)
+  // -------------------------
+  async function sendText(text, { fromVoice } = { fromVoice:false }) {
     if (!text) return;
 
-    // Hard-answers: identity questions should NOT hit the model (guaranteed correctness)
+    // Hard identity: never call model
     if (isAskName(text)) {
-      inputEl.value = "";
       memory.threads[0].messages.push({ role: "user", content: text });
       add("user", text);
       const reply = `My name is ${currentName()}.`;
       memory.threads[0].messages.push({ role: "assistant", content: reply });
       add("assistant", reply);
       await saveMemory();
+      await speak(reply);
       return;
     }
 
-    // Commands run even if model isn't loaded
+    // Commands
     const cmd = parseCommand(text);
     if (cmd) {
-      inputEl.value = "";
       add("user", text);
 
       if (cmd.cmd === "name") {
@@ -862,7 +1059,9 @@ Stay focused on file conversion/troubleshooting. Be concise.`;
         rebuildSystemPrompt();
         await saveMemory();
         renderMemories();
-        add("assistant", `✅ Got it. My name is now ${memory.assistant.name}.`);
+        const reply = `✅ Got it. My name is now ${memory.assistant.name}.`;
+        add("assistant", reply);
+        await speak(reply);
         return;
       }
 
@@ -871,20 +1070,26 @@ Stay focused on file conversion/troubleshooting. Be concise.`;
         rebuildSystemPrompt();
         await saveMemory();
         renderMemories();
-        add("assistant", item ? `✅ Saved memory${item.tags?.length ? " ("+item.tags.map(t=>"#"+t).join(" ")+")" : ""}.` : "⚠️ Nothing to save.");
+        const reply = item ? `✅ Saved memory.` : "⚠️ Nothing to save.";
+        add("assistant", reply);
+        await speak(reply);
         return;
       }
 
       if (cmd.cmd === "forget") {
         const matches = findFactsToForget(cmd.arg);
         if (matches.length === 0) {
-          add("assistant", "⚠️ I couldn’t find a matching saved memory to forget. Try a keyword from the memory text.");
+          const reply = "⚠️ I couldn’t find a matching saved memory to forget. Try a keyword from the memory text.";
+          add("assistant", reply);
+          await speak(reply);
           return;
         }
         for (const m of matches) deleteFact(m.id);
         await saveMemory();
         renderMemories();
-        add("assistant", `✅ Forgot ${matches.length} memory item(s).`);
+        const reply = `✅ Forgot ${matches.length} memory item(s).`;
+        add("assistant", reply);
+        await speak(reply);
         return;
       }
     }
@@ -899,7 +1104,6 @@ Stay focused on file conversion/troubleshooting. Be concise.`;
     cancelRequested = false;
     cancelBtn.disabled = false;
 
-    inputEl.value = "";
     memory.threads[0].messages.push({ role: "user", content: text });
     add("user", text);
     await saveMemory();
@@ -952,6 +1156,8 @@ Stay focused on file conversion/troubleshooting. Be concise.`;
       memory.threads[0].messages.push({ role: "assistant", content: reply });
       await saveMemory();
 
+      await speak(reply);
+
     } catch (err) {
       console.error(err);
       const msg = (err && (err.message || String(err))) || "Unknown error";
@@ -959,8 +1165,7 @@ Stay focused on file conversion/troubleshooting. Be concise.`;
       const usingGpu = devicePill.textContent.includes("webgpu");
 
       if (isTimeout && usingGpu && shouldAutoFallback()) {
-        const st = getGpuResetState();
-        const tries = st.tries;
+        const tries = Number(sessionStorage.getItem(RESET_TRIES) || "0");
 
         if (tries <= GPU_RESET_MAX_TRIES) {
           placeholder.textContent =
@@ -995,7 +1200,7 @@ Stay focused on file conversion/troubleshooting. Be concise.`;
       reloadBtn.disabled = false;
       modelSel.disabled = false;
       computeSel.disabled = false;
-      setThinking(false, "idle");
+      if (!voiceChatOn && !isSpeaking) setThinking(false, "idle");
     }
   }
 
@@ -1019,8 +1224,8 @@ Stay focused on file conversion/troubleshooting. Be concise.`;
     cancelRequested = true;
     genToken++;
     stopThinkTimer();
-    setThinking(false, "idle");
     cancelBtn.disabled = true;
+    try { speechSynthesis.cancel(); } catch {}
     add("assistant", "⛔ Cancel requested. (Stopping output + not saving the reply.)");
   };
 
@@ -1040,7 +1245,7 @@ Stay focused on file conversion/troubleshooting. Be concise.`;
     const pack = {
       schema: "fc-ai-memory-v1",
       exportedAt: new Date().toISOString(),
-      app: { name: "FileConverter AI", version: "1.0.1" },
+      app: { name: "FileConverter AI", version: "1.0.2" },
       ...memory
     };
     const blob = new Blob([JSON.stringify(pack, null, 2)], { type: "application/json" });
@@ -1073,6 +1278,7 @@ Stay focused on file conversion/troubleshooting. Be concise.`;
       renderThread();
       renderMemories();
       add("assistant", "✅ Memory imported.");
+      await speak("Memory imported.");
     } catch (err) {
       add("assistant", "❌ Import failed: " + ((err && (err.message || String(err))) || "Unknown error"));
     } finally {
