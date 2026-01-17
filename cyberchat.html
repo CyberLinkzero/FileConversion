@@ -47,7 +47,7 @@
           </div>
           <div id="status" class="status">Idle</div>
           <div class="status">
-            Runs on your device. First load downloads a model (can be large). Next loads are faster due to caching.
+            Runs on your device. First load may download a model (can be large). Next loads are faster due to caching.
           </div>
         </div>
       </div>
@@ -58,6 +58,13 @@
           <option value="qwen05">Qwen2.5 0.5B Instruct (fast + reliable)</option>
           <option value="phi3x">Phi-3 Mini (Xenova, better quality)</option>
           <option value="gpt2tiny">DistilGPT-2 (tiny fallback test)</option>
+        </select>
+
+        <label class="status">Compute</label>
+        <select id="compute">
+          <option value="auto">Auto (WebGPU → reset → CPU)</option>
+          <option value="webgpu">WebGPU (fastest)</option>
+          <option value="wasm">CPU/WASM (most reliable)</option>
         </select>
 
         <button id="reload">Load / Switch</button>
@@ -100,6 +107,7 @@
   const inputEl    = document.getElementById("input");
   const sendBtn    = document.getElementById("send");
   const modelSel   = document.getElementById("model");
+  const computeSel = document.getElementById("compute");
   const reloadBtn  = document.getElementById("reload");
   const cancelBtn  = document.getElementById("cancel");
   const clearBtn   = document.getElementById("clear");
@@ -147,9 +155,7 @@
   const IDB_STORE = "kv";
   const IDB_KEY = "memory_json";
 
-  function hasOPFS() {
-    return !!(navigator.storage && navigator.storage.getDirectory);
-  }
+  function hasOPFS() { return !!(navigator.storage && navigator.storage.getDirectory); }
 
   async function idbOpen() {
     return new Promise((resolve, reject) => {
@@ -191,34 +197,26 @@
     const root = await navigator.storage.getDirectory();
     const parts = path.split("/").filter(Boolean);
     let dir = root;
-    for (let i = 0; i < parts.length - 1; i++) {
-      dir = await dir.getDirectoryHandle(parts[i], { create: true });
-    }
+    for (let i = 0; i < parts.length - 1; i++) dir = await dir.getDirectoryHandle(parts[i], { create: true });
     const fileHandle = await dir.getFileHandle(parts.at(-1), { create: true });
     const writable = await fileHandle.createWritable();
     await writable.write(text);
     await writable.close();
   }
-
   async function opfsReadText(path) {
     const root = await navigator.storage.getDirectory();
     const parts = path.split("/").filter(Boolean);
     let dir = root;
-    for (let i = 0; i < parts.length - 1; i++) {
-      dir = await dir.getDirectoryHandle(parts[i]);
-    }
+    for (let i = 0; i < parts.length - 1; i++) dir = await dir.getDirectoryHandle(parts[i]);
     const fileHandle = await dir.getFileHandle(parts.at(-1));
     const file = await fileHandle.getFile();
     return await file.text();
   }
-
   async function opfsDelete(path) {
     const root = await navigator.storage.getDirectory();
     const parts = path.split("/").filter(Boolean);
     let dir = root;
-    for (let i = 0; i < parts.length - 1; i++) {
-      dir = await dir.getDirectoryHandle(parts[i]);
-    }
+    for (let i = 0; i < parts.length - 1; i++) dir = await dir.getDirectoryHandle(parts[i]);
     await dir.removeEntry(parts.at(-1));
   }
 
@@ -235,30 +233,18 @@
     },
     async load() {
       try {
-        if (this.mode === "opfs") {
-          const txt = await opfsReadText(STORAGE_PATH);
-          return txt;
-        } else {
-          return await idbGet(IDB_KEY);
-        }
-      } catch {
-        return null;
-      }
+        if (this.mode === "opfs") return await opfsReadText(STORAGE_PATH);
+        return await idbGet(IDB_KEY);
+      } catch { return null; }
     },
     async save(text) {
-      if (this.mode === "opfs") {
-        await opfsWriteText(STORAGE_PATH, text);
-      } else {
-        await idbSet(IDB_KEY, text);
-      }
+      if (this.mode === "opfs") return await opfsWriteText(STORAGE_PATH, text);
+      return await idbSet(IDB_KEY, text);
     },
     async clear() {
       try {
-        if (this.mode === "opfs") {
-          await opfsDelete(STORAGE_PATH);
-        } else {
-          await idbDel(IDB_KEY);
-        }
+        if (this.mode === "opfs") await opfsDelete(STORAGE_PATH);
+        else await idbDel(IDB_KEY);
       } catch {}
     }
   };
@@ -271,7 +257,7 @@
     profile: { style: "concise" },
     system: "You are FileConverter AI. Help with file formats, conversions, troubleshooting, and workflows. Be concise and accurate. If a user asks for code, give clean copy/paste code.",
     threads: [{ id: "main", title: "Main", messages: [] }],
-    perf: { estTokensPerSecond: 14 } // updated after each completed reply (used for ETA estimate)
+    perf: { estTokensPerSecond: 14 }
   };
 
   function add(role, text) {
@@ -289,17 +275,13 @@
     if (thread.messages.length === 0) {
       add("assistant",
         "Hi — I run locally on your device.\n\n" +
-        "1) Click “Load / Switch” (or wait for auto-load)\n" +
-        "2) Ask me anything about file conversions.\n\n" +
-        "Tip: Start with Qwen2.5 0.5B (fast), then switch to Phi-3 (better answers)."
+        "• Compute is set to Auto: WebGPU first, then GPU reset if stuck, then CPU fallback.\n" +
+        "• Start with Qwen2.5 0.5B for speed; switch to Phi-3 for better answers."
       );
     }
   }
 
-  async function saveMemory() {
-    await store.save(JSON.stringify(memory));
-  }
-
+  async function saveMemory() { await store.save(JSON.stringify(memory)); }
   async function loadMemory() {
     const txt = await store.load();
     if (!txt) return;
@@ -310,7 +292,7 @@
   }
 
   // -------------------------
-  // Progress + state
+  // Helpers: progress, device, timeouts, thinking
   // -------------------------
   function setProgress(p = 0, label = "") {
     const pct = Math.max(0, Math.min(100, Math.round(p)));
@@ -328,6 +310,7 @@
   }
 
   function hasWebGPU() { return !!navigator.gpu; }
+
   function netLooksConstrained() {
     const c = navigator.connection;
     const saveData = c?.saveData === true;
@@ -340,21 +323,29 @@
     thinkPill.classList.toggle("live", !!on);
   }
 
-  // Tokens to prevent overlap / races
-  let generator = null;
-  let loadToken = 0;
-  let activeToken = 0;
-  let isLoading = false;
-  let isGenerating = false;
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-  // Cancel handling (soft-cancel)
-  let cancelRequested = false;
-  let genToken = 0;
+  async function withTimeout(promise, ms, label = "Operation") {
+    let t;
+    const timeout = new Promise((_, rej) => {
+      t = setTimeout(() => rej(new Error(`${label} timed out after ${ms}ms`)), ms);
+    });
+    try { return await Promise.race([promise, timeout]); }
+    finally { clearTimeout(t); }
+  }
+
+  function pickDevice() {
+    const choice = computeSel.value;
+    if (choice === "webgpu") return "webgpu";
+    if (choice === "wasm") return "wasm";
+    return hasWebGPU() ? "webgpu" : "wasm"; // auto
+  }
+  function shouldAutoFallback() { return computeSel.value === "auto"; }
 
   // Thinking timer + ETA
   let thinkTimer = null;
   let thinkStartMs = 0;
-  let targetMaxNewTokens = 220;
+  let targetMaxNewTokens = 180;
 
   function startThinkTimer() {
     stopThinkTimer();
@@ -364,20 +355,78 @@
       const tps = Math.max(1, Number(memory?.perf?.estTokensPerSecond || 14));
       const estTotal = targetMaxNewTokens / tps;
       const left = Math.max(0, estTotal - elapsed);
-
-      // ETA is an estimate only
       setThinking(true, `thinking… ${elapsed.toFixed(1)}s • ETA ${left.toFixed(1)}s`);
     }, 200);
   }
-
   function stopThinkTimer() {
     if (thinkTimer) clearInterval(thinkTimer);
     thinkTimer = null;
   }
 
   // -------------------------
-  // Model load
+  // GPU watchdog + "GPU reset"
+  //
+  // Reality check: browsers cannot truly reset the GPU driver.
+  // The only reliable reset is a full page reload (new WebGPU device/context).
+  // This implements: timeout → set a one-time "gpu_reset_pending" flag → reload page.
+  // On reload, it will try WebGPU once more. If it times out again, it flips to CPU.
   // -------------------------
+  const WD_TIMEOUT_MS = 25000;               // generation watchdog
+  const GPU_RESET_MAX_TRIES = 1;             // try 1 GPU reset per model selection
+  const RESET_FLAG = "fc_ai_gpu_reset_pending";
+  const RESET_TRIES = "fc_ai_gpu_reset_tries";
+  const RESET_MODEL = "fc_ai_gpu_reset_model";
+  const RESET_COMPUTE = "fc_ai_gpu_reset_compute";
+
+  function markGpuResetPending(modelKey) {
+    const tries = Number(sessionStorage.getItem(RESET_TRIES) || "0");
+    sessionStorage.setItem(RESET_FLAG, "1");
+    sessionStorage.setItem(RESET_TRIES, String(tries + 1));
+    sessionStorage.setItem(RESET_MODEL, modelKey);
+    sessionStorage.setItem(RESET_COMPUTE, computeSel.value);
+  }
+
+  function clearGpuResetPending() {
+    sessionStorage.removeItem(RESET_FLAG);
+    sessionStorage.removeItem(RESET_MODEL);
+    sessionStorage.removeItem(RESET_COMPUTE);
+  }
+
+  function getGpuResetState() {
+    return {
+      pending: sessionStorage.getItem(RESET_FLAG) === "1",
+      tries: Number(sessionStorage.getItem(RESET_TRIES) || "0"),
+      modelKey: sessionStorage.getItem(RESET_MODEL),
+      compute: sessionStorage.getItem(RESET_COMPUTE)
+    };
+  }
+
+  function hardReloadForGpuReset() {
+    // Force a real reload to recreate the WebGPU context/device.
+    // cache-busting query helps avoid weird hot-reload behavior.
+    const url = new URL(window.location.href);
+    url.searchParams.set("r", String(Date.now()));
+    window.location.replace(url.toString());
+  }
+
+  // -------------------------
+  // Model runtime + state machine
+  // -------------------------
+  let generator = null;
+  let loadToken = 0;
+  let activeToken = 0;
+  let isLoading = false;
+  let isGenerating = false;
+
+  // Cancel (soft cancel)
+  let cancelRequested = false;
+  let genToken = 0;
+
+  function estimateTokensFromText(text) {
+    const chars = (text || "").length;
+    return Math.max(1, Math.round(chars / 4));
+  }
+
   async function loadModel(modelKey, { auto = false } = {}) {
     const cfg = MODELS[modelKey] || MODELS.qwen05;
     const myToken = ++loadToken;
@@ -397,6 +446,7 @@
     reloadBtn.disabled = true;
     sendBtn.disabled = true;
     modelSel.disabled = true;
+    computeSel.disabled = true;
     cancelBtn.disabled = true;
     setThinking(true, "loading…");
 
@@ -406,7 +456,7 @@
     try {
       env.allowLocalModels = false;
 
-      const device = hasWebGPU() ? "webgpu" : "wasm";
+      const device = pickDevice();
       devicePill.textContent = "device: " + device;
 
       setProgress(2, `Preparing (${device})…`);
@@ -446,8 +496,7 @@
         "❌ Model load failed:\n" + msg + "\n\n" +
         "Try:\n" +
         "- Qwen2.5 0.5B (fast + reliable)\n" +
-        "- DistilGPT-2 (tiny) to confirm downloads work\n" +
-        "Then switch back to Phi-3."
+        "- CPU/WASM compute mode (most reliable)\n"
       );
     } finally {
       if (myToken === loadToken) {
@@ -455,6 +504,7 @@
         reloadBtn.disabled = false;
         sendBtn.disabled = false;
         modelSel.disabled = false;
+        computeSel.disabled = false;
         cancelBtn.disabled = true;
         stopThinkTimer();
         setThinking(false, "idle");
@@ -462,9 +512,6 @@
     }
   }
 
-  // -------------------------
-  // Chat generation
-  // -------------------------
   function buildPrompt(system, messages) {
     const turns = messages.slice(-10).map(m => {
       const who = m.role === "user" ? "User" : "Assistant";
@@ -473,32 +520,15 @@
     return `${system}\n\n${turns}\nAssistant:`;
   }
 
-  // rough token estimate (for ETA only)
-  function estimateTokensFromText(text) {
-    const chars = (text || "").length;
-    return Math.max(1, Math.round(chars / 4)); // crude but stable enough for speed estimate
-  }
-
   async function send() {
     const text = inputEl.value.trim();
     if (!text) return;
 
-    if (isLoading) {
-      add("assistant", "⚠️ Still loading the model… wait for “Ready”, then send.");
-      return;
-    }
+    if (isLoading) { add("assistant", "⚠️ Still loading… wait for “Ready”, then send."); return; }
+    if (isGenerating) { add("assistant", "⚠️ I’m already replying — wait, or press Cancel."); return; }
+    if (!generator || !activeToken) { add("assistant", "Model not loaded yet. Click “Load / Switch” first."); return; }
 
-    if (isGenerating) {
-      add("assistant", "⚠️ I’m already replying — wait a second, or press Cancel.");
-      return;
-    }
-
-    if (!generator || !activeToken) {
-      add("assistant", "Model not loaded yet. Click “Load / Switch” first.");
-      return;
-    }
-
-    // lock the session for this run
+    // lock session + generation
     const mySession = activeToken;
     const myGen = ++genToken;
 
@@ -514,53 +544,89 @@
     sendBtn.disabled = true;
     reloadBtn.disabled = true;
     modelSel.disabled = true;
+    computeSel.disabled = true;
 
     add("assistant", "…");
     const placeholder = msgsEl.lastChild;
+
+    // snappy for easy stuff
+    const isShort = text.length < 80;
+    targetMaxNewTokens = isShort ? 90 : 220;
 
     startThinkTimer();
 
     try {
       const prompt = buildPrompt(memory.system, memory.threads[0].messages);
-
       if (mySession !== activeToken) throw new Error("Model session changed. Please try again.");
 
       const t0 = performance.now();
-      const out = await generator(prompt, {
-        max_new_tokens: targetMaxNewTokens,
-        temperature: 0.3,
-        do_sample: true,
-        return_full_text: false
-      });
+      const out = await withTimeout(
+        generator(prompt, {
+          max_new_tokens: targetMaxNewTokens,
+          temperature: 0.3,
+          do_sample: true,
+          return_full_text: false
+        }),
+        WD_TIMEOUT_MS,
+        "Reply generation"
+      );
       const t1 = performance.now();
 
-      // If user cancelled or a newer generation started, ignore output
-      if (cancelRequested || myGen !== genToken) {
-        placeholder.textContent = "⛔ Cancelled.";
-        return;
-      }
-
-      // If a model reload happened while generating, ignore output
+      // cancelled / new gen => ignore
+      if (cancelRequested || myGen !== genToken) { placeholder.textContent = "⛔ Cancelled."; return; }
       if (mySession !== activeToken) throw new Error("Model session changed during reply. Please try again.");
 
-      const reply = (out?.[0]?.generated_text || "").trim() || "(no output)";
+      const reply = (out?.[0]?.generated_text || "").trim();
+      if (!reply) { placeholder.textContent = "⚠️ Empty reply. Try a different model or reload."; return; }
+
       placeholder.textContent = reply;
 
-      // update speed estimate for ETA
+      // speed estimate for ETA
       const secs = Math.max(0.01, (t1 - t0) / 1000);
       const estTokens = estimateTokensFromText(reply);
-      const tps = Math.max(1, Math.round(estTokens / secs));
-      memory.perf = memory.perf || {};
-      memory.perf.estTokensPerSecond = tps;
+      memory.perf.estTokensPerSecond = Math.max(1, Math.round(estTokens / secs));
 
       memory.threads[0].messages.push({ role: "assistant", content: reply });
       await saveMemory();
+
     } catch (err) {
       console.error(err);
       const msg = (err && (err.message || String(err))) || "Unknown error";
+      const isTimeout = /timed out/i.test(msg);
+      const usingGpu = devicePill.textContent.includes("webgpu");
+      const modelKey = modelSel.value;
+
+      // GPU watchdog path: timeout on WebGPU → GPU reset (page reload) → retry WebGPU once → then CPU fallback
+      if (isTimeout && usingGpu && shouldAutoFallback()) {
+        const st = getGpuResetState();
+        const tries = st.tries;
+
+        if (tries <= GPU_RESET_MAX_TRIES) {
+          placeholder.textContent =
+            "⚠️ WebGPU got stuck (watchdog timeout).\n\n" +
+            "Attempting a GPU reset (page reload) and retrying once…";
+          await sleep(150); // allow UI paint
+          markGpuResetPending(modelKey);
+          hardReloadForGpuReset();
+          return;
+        } else {
+          placeholder.textContent =
+            "⚠️ WebGPU got stuck again after a reset.\n\n" +
+            "Switching to CPU/WASM for reliability. Click “Load / Switch” (or I can auto-load CPU on refresh).";
+          computeSel.value = "wasm";
+          localStorage.setItem("fc_ai_compute", "wasm");
+          // auto reload model on CPU now:
+          await loadModel(modelSel.value, { auto: false });
+          placeholder.textContent = "✅ CPU/WASM loaded. Send your message again (slower, but reliable).";
+          return;
+        }
+      }
+
       placeholder.textContent =
         "Error generating reply: " + msg + "\n\n" +
-        "Tip: don’t click Load/Switch while it’s replying. If it keeps happening, reload the page and load the model again.";
+        "Tips:\n" +
+        "• If using WebGPU, try Auto compute mode (it can reset).\n" +
+        "• Try Qwen2.5 0.5B for best stability.\n";
     } finally {
       stopThinkTimer();
       isGenerating = false;
@@ -568,6 +634,7 @@
       sendBtn.disabled = false;
       reloadBtn.disabled = false;
       modelSel.disabled = false;
+      computeSel.disabled = false;
       setThinking(false, "idle");
     }
   }
@@ -576,8 +643,10 @@
   // Buttons
   // -------------------------
   reloadBtn.addEventListener("click", async () => {
-    await store.save(JSON.stringify(memory)); // keep memory safe
-    localStorage.setItem("fc_ai_model_key", modelSel.value); // small setting is fine in LS
+    localStorage.setItem("fc_ai_model_key", modelSel.value);
+    localStorage.setItem("fc_ai_compute", computeSel.value);
+    clearGpuResetPending();
+    sessionStorage.setItem(RESET_TRIES, "0");
     await loadModel(modelSel.value, { auto: false });
   });
 
@@ -587,10 +656,8 @@
   });
 
   cancelBtn.onclick = () => {
-    // soft-cancel: we can’t reliably abort the underlying inference yet,
-    // but we can stop UI and prevent saving/showing the result.
     cancelRequested = true;
-    genToken++; // invalidate current generation
+    genToken++;
     stopThinkTimer();
     setThinking(false, "idle");
     cancelBtn.disabled = true;
@@ -598,7 +665,6 @@
   };
 
   clearBtn.onclick = async () => {
-    // if generating, cancel first
     if (isGenerating) {
       cancelRequested = true;
       genToken++;
@@ -658,9 +724,31 @@
   await loadMemory();
   renderThread();
 
-  // default model preference (tiny setting stays in localStorage)
-  const savedKey = localStorage.getItem("fc_ai_model_key");
-  modelSel.value = savedKey && MODELS[savedKey] ? savedKey : "qwen05";
+  // restore settings
+  const savedModel = localStorage.getItem("fc_ai_model_key");
+  modelSel.value = savedModel && MODELS[savedModel] ? savedModel : "qwen05";
+
+  const savedCompute = localStorage.getItem("fc_ai_compute");
+  computeSel.value = savedCompute || "auto";
+  computeSel.addEventListener("change", () => localStorage.setItem("fc_ai_compute", computeSel.value));
+
+  // GPU reset retry logic on reload
+  const rs = getGpuResetState();
+  if (rs.pending) {
+    // Try to re-run with same model + WebGPU once, then clear pending
+    clearGpuResetPending();
+
+    // Ensure compute stays Auto/WebGPU for the retry (do not force CPU here)
+    if (computeSel.value === "wasm") computeSel.value = "auto";
+
+    add("assistant",
+      "♻️ GPU reset complete (page reloaded).\n" +
+      "Retrying WebGPU once… If it hangs again, Auto mode will switch to CPU/WASM."
+    );
+  } else {
+    // Fresh start resets tries counter
+    sessionStorage.setItem(RESET_TRIES, "0");
+  }
 
   setProgress(0, "Auto-load pending…");
   await loadModel(modelSel.value, { auto: true });
