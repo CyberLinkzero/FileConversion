@@ -8,15 +8,17 @@
     body{margin:0;font-family:system-ui;background:#0b0f14;color:#e7eef7}
     .wrap{max-width:1080px;margin:auto;padding:18px}
     .card{border:1px solid #1f2a37;border-radius:16px;background:#0f1620;overflow:hidden}
-    .top{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;padding:14px;border-bottom:1px solid #1f2a37}
+    .top{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;padding:14px;border-bottom:1px solid #1f2a37;flex-wrap:wrap}
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
     select,button,input{background:#111b2a;color:#e7eef7;border:1px solid #223044;border-radius:12px;padding:10px}
     button{cursor:pointer}
     button:hover{filter:brightness(1.1)}
     button:disabled{opacity:.6;cursor:not-allowed}
     .status{opacity:.75;font-size:12px;line-height:1.35}
-    .layout{display:grid;grid-template-columns:1fr 360px;gap:0}
-    @media (max-width: 980px){ .layout{grid-template-columns:1fr} .side{border-left:none;border-top:1px solid #1f2a37} }
+    .layout{display:flex;gap:0;align-items:stretch}
+    .mainPane{flex:1 1 auto;min-width:0}
+    .side{flex:0 0 360px;min-width:0;border-left:1px solid #1f2a37;background:#0c121b}
+    @media (max-width: 980px){ .layout{flex-direction:column} .side{flex:0 0 auto;border-left:none;border-top:1px solid #1f2a37} }
     .msgs{height:62vh;overflow:auto;padding:16px}
     .msg{margin:10px 0;padding:10px 12px;border-radius:14px;max-width:82%;border:1px solid #223044;white-space:pre-wrap}
     .me{margin-left:auto;background:#122235}
@@ -32,7 +34,7 @@
     .leftActions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .danger{border-color:#7f1d1d}
     .danger:hover{filter:brightness(1.15)}
-    .side{border-left:1px solid #1f2a37;background:#0c121b}
+    .side{background:#0c121b}
     .sideHead{padding:14px;border-bottom:1px solid #1f2a37;display:flex;align-items:center;justify-content:space-between;gap:10px}
     .sideBody{padding:14px;max-height:calc(62vh + 84px);overflow:auto}
     .memItem{border:1px solid #223044;border-radius:14px;padding:10px;margin:10px 0;background:#0b1220}
@@ -43,28 +45,10 @@
     .muted{opacity:.7}
     .hr{height:1px;background:#1f2a37;margin:12px 0}
     a{color:#8ab4ff}
-    .chk{display:flex;align-items:center;gap:8px}
-    .chk input{accent-color:#2dd4bf}
-
-    /* Listening waveform */
-    .wavewrap{display:flex;align-items:center;gap:8px;margin-top:6px}
-    .wave{
-      width:52px;height:16px;display:flex;gap:3px;align-items:flex-end;
-      opacity:.0;transform:scale(.98);
-      transition:opacity .15s ease, transform .15s ease;
-    }
-    .wave.on{opacity:1;transform:scale(1)}
-    .barx{
-      width:6px;height:6px;border-radius:4px;background:#2dd4bf;
-      animation: bounce 800ms infinite ease-in-out;
-    }
-    .barx:nth-child(2){animation-delay:120ms}
-    .barx:nth-child(3){animation-delay:240ms}
-    .barx:nth-child(4){animation-delay:360ms}
-    .barx:nth-child(5){animation-delay:480ms}
-    @keyframes bounce{
-      0%,100%{height:5px;opacity:.6}
-      50%{height:16px;opacity:1}
+    @media (max-width: 520px){
+      .row button, .row select { padding:8px 10px; border-radius:10px; }
+      .msgs{height:55vh}
+      textarea{font-size:16px}
     }
   </style>
 </head>
@@ -81,14 +65,7 @@
             <span id="storePill" class="pill">storage: ?</span>
             <span id="thinkPill" class="pill">idle</span>
           </div>
-
-          <div class="wavewrap">
-            <div id="wave" class="wave" aria-label="Listening indicator">
-              <div class="barx"></div><div class="barx"></div><div class="barx"></div><div class="barx"></div><div class="barx"></div>
-            </div>
-            <div id="status" class="status">Idle</div>
-          </div>
-
+          <div id="status" class="status">Idle</div>
           <div class="status">
             Runs on your device. First load may download a model (can be large). Next loads are faster due to caching.
           </div>
@@ -117,10 +94,6 @@
         <button id="cancel" disabled>Cancel</button>
         <button id="clear" class="danger">Clear chat</button>
 
-        <button id="voiceToggle">🎙️ Voice Chat: Off</button>
-        <select id="voiceSelect" title="Voice"></select>
-        <label class="status chk"><input id="autoSpeak" type="checkbox" checked> Speak replies</label>
-
         <button id="export">Export Memory</button>
         <button id="importBtn">Import Memory</button>
         <input id="importFile" type="file" accept="application/json" style="display:none" />
@@ -128,7 +101,7 @@
     </div>
 
     <div class="layout">
-      <div>
+      <div class="mainPane">
         <div class="progress-wrap">
           <div class="progress-head status">
             <span id="pLabel">Not loading</span>
@@ -202,12 +175,6 @@
   const thinkPill  = document.getElementById("thinkPill");
   const titleName  = document.getElementById("titleName");
   const backBtn    = document.getElementById("backBtn");
-
-  // Voice UI
-  const voiceToggleBtn = document.getElementById("voiceToggle");
-  const voiceSelectEl  = document.getElementById("voiceSelect");
-  const autoSpeakEl    = document.getElementById("autoSpeak");
-  const waveEl         = document.getElementById("wave");
 
   // Memories panel
   const memCountEl = document.getElementById("memCount");
@@ -341,21 +308,23 @@
   };
 
   // -------------------------
-  // Memory format
+  // Memory format (global memories + chat thread)
   // -------------------------
   const memory = {
     schema: "fc-ai-memory-v1",
-    assistant: { name: "CJ" },
+    assistant: { name: "CJ" },   // changeable via "name:" command
     profile: { style: "concise" },
-    facts: [],
-    system: "",
+    // user-controlled memories:
+    facts: [
+      // { id, text, tags:[], createdAt, updatedAt }
+    ],
+    system: "",                  // rebuilt dynamically
     threads: [{ id: "main", title: "Main", messages: [] }],
     perf: { estTokensPerSecond: 14 }
   };
 
   function nowISO(){ return new Date().toISOString(); }
   function uid(){ return Math.random().toString(16).slice(2) + "-" + Date.now().toString(16); }
-  function currentName(){ return (memory?.assistant?.name || "CJ").trim() || "CJ"; }
 
   async function saveMemory() { await store.save(JSON.stringify(memory)); }
   async function loadMemory() {
@@ -368,19 +337,16 @@
   }
 
   function rebuildSystemPrompt() {
-    const name = currentName();
+    const name = memory?.assistant?.name || "FileConverter AI";
     titleName.textContent = `${name} (Local)`;
 
     memory.system =
-`You are ${name}, a local assistant for FileConverter.run.
-Your name is exactly "${name}". Never claim another name.
-If asked your name, answer exactly: "My name is ${name}."
-Stay focused on file conversion/troubleshooting. Be concise.
-
-Style rules:
-- No "As an AI..." disclaimers.
-- Keep answers under 6 lines when possible.
-- Prefer bullets. Ask 1 quick follow-up question if needed.`;
+`You are ${name}, the FileConverter.run local AI assistant.
+Your name is "${name}" and you must use that name consistently when asked.
+Help with file formats, conversions, troubleshooting, and workflows.
+Be concise and accurate. If a user asks for code, give clean copy/paste code.
+If you are unsure, say so.
+Style: avoid long rambling; keep replies under 6 short lines when possible.`;
   }
 
   // -------------------------
@@ -400,20 +366,20 @@ Style rules:
     for (const m of thread.messages) add(m.role, m.content);
     if (thread.messages.length === 0) {
       add("assistant",
-        `Hi — I’m ${currentName()} and I run locally on your device.\n\n` +
+        `Hi — I’m ${memory?.assistant?.name || "FileConverter AI"} and I run locally on your device.\n\n` +
         "• Auto recall is ON (keyword-based) using your saved Memories.\n" +
-        "• Commands: name:, remember:, forget:\n" +
-        "• Voice Chat: use 🎙️ to talk hands-free.\n"
+        "• Commands: name:, remember:, forget:\n"
       );
     }
   }
 
   // -------------------------
-  // Memories panel
+  // Memories panel UI + ops
   // -------------------------
   function norm(s){ return (s||"").toLowerCase(); }
 
   function extractTags(text) {
+    // allows #tags in memory text
     const tags = [];
     const re = /#([a-z0-9_-]{2,32})/ig;
     let m;
@@ -544,7 +510,7 @@ Style rules:
   };
 
   // -------------------------
-  // Retrieval (keyword-based)
+  // Retrieval (keyword-based) for prompt injection
   // -------------------------
   const STOPWORDS = new Set([
     "the","a","an","and","or","to","of","in","on","for","with","is","are","was","were",
@@ -578,19 +544,19 @@ Style rules:
   function recallMemories(userText, maxItems = 5) {
     const tokens = tokenize(userText);
     if (tokens.length === 0) return [];
-    return (memory.facts || [])
-      .map(it => ({ it, score: scoreMemoryItem(it, tokens) }))
+    const items = (memory.facts || []).map(it => ({ it, score: scoreMemoryItem(it, tokens) }))
       .filter(x => x.score > 0)
       .sort((a,b) => b.score - a.score)
       .slice(0, maxItems)
       .map(x => x.it);
+    return items;
   }
 
   function buildPrompt(system, messages, recalled) {
-    const turns = messages.slice(-10).map(m => {
+    const maxTurns = isMobileLike() ? 6 : 10;
+    const turns = messages.slice(-maxTurns).map(m => {
       const who = m.role === "user" ? "User" : "Assistant";
-      const text = (m.content || "").trim();
-      return `${who}: ${text}`;
+      return `${who}: ${m.content}`;
     }).join("\n");
 
     const memBlock = (recalled && recalled.length)
@@ -601,7 +567,7 @@ Style rules:
   }
 
   // -------------------------
-  // Progress + device + thinking
+  // Progress + device + timeouts + thinking
   // -------------------------
   function setProgress(p = 0, label = "") {
     const pct = Math.max(0, Math.min(100, Math.round(p)));
@@ -620,6 +586,13 @@ Style rules:
 
   function hasWebGPU() { return !!navigator.gpu; }
 
+  function isMobileLike() {
+    const ua = navigator.userAgent || "";
+    const coarse = (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) || false;
+    const small = Math.min(window.innerWidth || 9999, window.innerHeight || 9999) < 820;
+    return coarse || /Android|iPhone|iPad|iPod/i.test(ua) || small;
+  }
+
   function netLooksConstrained() {
     const c = navigator.connection;
     const saveData = c?.saveData === true;
@@ -630,10 +603,6 @@ Style rules:
   function setThinking(on, label) {
     thinkPill.textContent = label || (on ? "thinking…" : "idle");
     thinkPill.classList.toggle("live", !!on);
-  }
-
-  function setListening(on) {
-    waveEl.classList.toggle("on", !!on);
   }
 
   function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -651,7 +620,8 @@ Style rules:
     const choice = computeSel.value;
     if (choice === "webgpu") return "webgpu";
     if (choice === "wasm") return "wasm";
-    return hasWebGPU() ? "webgpu" : "wasm";
+    // Auto: on phones/tablets default to CPU for stability
+    return isMobileLike() ? "wasm" : (hasWebGPU() ? "webgpu" : "wasm");
   }
   function shouldAutoFallback() { return computeSel.value === "auto"; }
 
@@ -709,169 +679,6 @@ Style rules:
   }
 
   // -------------------------
-  // Voice: TTS + STT + Echo prevention
-  // -------------------------
-  let voices = [];
-  let voiceChatOn = false;
-  let isListening = false;
-  let isSpeaking = false;
-
-  function loadVoices() {
-    voices = speechSynthesis.getVoices() || [];
-    voiceSelectEl.innerHTML = "";
-    for (const v of voices) {
-      const opt = document.createElement("option");
-      opt.value = v.name;
-      opt.textContent = `${v.name} (${v.lang})`;
-      voiceSelectEl.appendChild(opt);
-    }
-    const preferred =
-      voices.find(v => /en-US/i.test(v.lang)) ||
-      voices.find(v => /^en/i.test(v.lang)) ||
-      voices[0];
-    if (preferred) voiceSelectEl.value = preferred.name;
-  }
-  speechSynthesis.onvoiceschanged = loadVoices;
-  loadVoices();
-
-  function getSelectedVoice() {
-    const name = voiceSelectEl.value;
-    return voices.find(v => v.name === name) || voices[0] || null;
-  }
-
-  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  let rec = null;
-
-  function sttSupported() { return !!SpeechRec; }
-
-  function setupRecognizer() {
-    if (!sttSupported()) return null;
-    const r = new SpeechRec();
-    r.lang = "en-US";
-    r.continuous = true;
-    r.interimResults = true;
-
-    let finalText = "";
-    let silenceTimer = null;
-
-    function armSilenceSend() {
-      clearTimeout(silenceTimer);
-      silenceTimer = setTimeout(() => {
-        const t = (finalText || "").trim();
-        finalText = "";
-        if (t && voiceChatOn && !isSpeaking) sendText(t, { fromVoice: true });
-      }, 900);
-    }
-
-    r.onresult = (e) => {
-      if (isSpeaking) return; // echo prevention
-      let interim = "";
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const chunk = e.results[i][0].transcript;
-        if (e.results[i].isFinal) finalText += chunk + " ";
-        else interim += chunk;
-      }
-      if ((finalText || interim).trim()) armSilenceSend();
-    };
-
-    r.onerror = (e) => {
-      add("assistant", `🎙️ Mic error: ${e.error || "unknown"}`);
-      stopVoiceChat();
-    };
-
-    r.onend = () => {
-      isListening = false;
-      setListening(false);
-      if (voiceChatOn && !isSpeaking) startVoiceChat(); // auto-restart
-    };
-
-    return r;
-  }
-
-  function startVoiceChat() {
-    if (!sttSupported()) {
-      add("assistant", "🎙️ Voice Chat needs Chrome/Edge (SpeechRecognition not available here).");
-      voiceChatOn = false;
-      voiceToggleBtn.textContent = "🎙️ Voice Chat: Off";
-      setListening(false);
-      return;
-    }
-    if (isSpeaking) return; // do not listen while speaking
-    if (isListening) return;
-    if (!rec) rec = setupRecognizer();
-    try {
-      rec.start();
-      isListening = true;
-      voiceChatOn = true;
-      voiceToggleBtn.textContent = "🎙️ Voice Chat: On";
-      setListening(true);
-      setThinking(true, "listening…");
-    } catch {}
-  }
-
-  function stopVoiceChat({ keepToggle = false } = {}) {
-    if (!keepToggle) voiceChatOn = false;
-    voiceToggleBtn.textContent = voiceChatOn ? "🎙️ Voice Chat: On" : "🎙️ Voice Chat: Off";
-    setListening(false);
-    if (!voiceChatOn) setThinking(false, "idle");
-    if (!rec) return;
-    try { rec.stop(); } catch {}
-    isListening = false;
-  }
-
-  async function speak(text) {
-    if (!autoSpeakEl.checked) return;
-    if (!text || !("speechSynthesis" in window)) return;
-
-    // Stop any current speech
-    speechSynthesis.cancel();
-
-    // Echo prevention: stop mic while speaking, then resume
-    const shouldResume = voiceChatOn;
-    if (shouldResume) stopVoiceChat({ keepToggle: true });
-
-    return new Promise((resolve) => {
-      const u = new SpeechSynthesisUtterance(text);
-      const v = getSelectedVoice();
-      if (v) u.voice = v;
-
-      u.rate = 1.02;
-      u.pitch = 1.0;
-      u.volume = 1.0;
-
-      u.onstart = () => {
-        isSpeaking = true;
-        setThinking(true, "speaking…");
-        setListening(false);
-      };
-      u.onend = () => {
-        isSpeaking = false;
-        if (voiceChatOn) startVoiceChat();
-        else setThinking(false, "idle");
-        resolve();
-      };
-      u.onerror = () => {
-        isSpeaking = false;
-        if (voiceChatOn) startVoiceChat();
-        else setThinking(false, "idle");
-        resolve();
-      };
-
-      speechSynthesis.speak(u);
-    });
-  }
-
-  voiceToggleBtn.onclick = () => {
-    if (voiceChatOn) {
-      voiceChatOn = false;
-      stopVoiceChat();
-    } else {
-      voiceChatOn = true;
-      startVoiceChat();
-    }
-  };
-
-  // -------------------------
   // Model runtime + state machine
   // -------------------------
   let generator = null;
@@ -910,6 +717,7 @@ Style rules:
     modelSel.disabled = true;
     computeSel.disabled = true;
     cancelBtn.disabled = true;
+    setThinking(true, "loading…");
 
     statusEl.textContent = (auto ? "Auto-loading: " : "Loading: ") + cfg.label;
     setProgress(1, "Starting…");
@@ -919,6 +727,7 @@ Style rules:
 
       const device = pickDevice();
       devicePill.textContent = "device: " + device;
+
       setProgress(2, `Preparing (${device})…`);
 
       const loaded = await pipeline("text-generation", cfg.repo, {
@@ -967,41 +776,24 @@ Style rules:
         computeSel.disabled = false;
         cancelBtn.disabled = true;
         stopThinkTimer();
-        if (!voiceChatOn && !isSpeaking) setThinking(false, "idle");
+        setThinking(false, "idle");
       }
     }
   }
 
   // -------------------------
-  // Identity + commands
+  // Commands: name / remember / forget
   // -------------------------
-  function isAskName(text) {
-    const t = norm(text).trim();
-    return (
-      /^what('?s|\s+is)\s+your\s+name\??$/.test(t) ||
-      /^who\s+are\s+you\??$/.test(t) ||
-      /^your\s+name\??$/.test(t)
-    );
-  }
-
   function parseCommand(text) {
     const t = (text || "").trim();
+    const m1 = t.match(/^\s*name\s*:\s*(.+)\s*$/i);
+    if (m1) return { cmd: "name", arg: m1[1].trim() };
 
-    let m = t.match(/^\s*name\s*:\s*(.+)\s*$/i);
-    if (m) return { cmd: "name", arg: m[1].trim() };
+    const m2 = t.match(/^\s*remember\s*:\s*(.+)\s*$/i);
+    if (m2) return { cmd: "remember", arg: m2[1].trim() };
 
-    m = t.match(/^\s*remember\s*:\s*(.+)\s*$/i);
-    if (m) return { cmd: "remember", arg: m[1].trim() };
-
-    m = t.match(/^\s*forget\s*:\s*(.+)\s*$/i);
-    if (m) return { cmd: "forget", arg: m[1].trim() };
-
-    // natural language rename
-    m = t.match(/^\s*(change|set|make)\s+your\s+name\s+(to|as)\s+(.+)\s*$/i);
-    if (m) return { cmd: "name", arg: m[3].trim() };
-
-    m = t.match(/^\s*call\s+yourself\s+(.+)\s*$/i);
-    if (m) return { cmd: "name", arg: m[1].trim() };
+    const m3 = t.match(/^\s*forget\s*:\s*(.+)\s*$/i);
+    if (m3) return { cmd: "forget", arg: m3[1].trim() };
 
     return null;
   }
@@ -1012,56 +804,26 @@ Style rules:
     return (memory.facts || []).filter(it => norm(it.text).includes(q) || (it.tags||[]).some(t => norm(t).includes(q)));
   }
 
-  function sanitizeReply(reply) {
-    const name = currentName();
-    const s = (reply || "").trim();
-    const m = s.match(/^\s*i\s*am\s*["']?([^"'\n]+)["']?\s*[\.\!]?/i);
-    if (m && norm(m[1]) !== norm(name)) return `My name is ${name}.`;
-    return s;
-  }
-
   // -------------------------
-  // Send (typed wrapper)
+  // Chat send
   // -------------------------
   async function send() {
-    const t = inputEl.value.trim();
-    if (!t) return;
-    inputEl.value = "";
-    await sendText(t, { fromVoice: false });
-  }
-
-  // -------------------------
-  // SendText (typed OR voice)
-  // -------------------------
-  async function sendText(text, { fromVoice } = { fromVoice:false }) {
+    const text = inputEl.value.trim();
     if (!text) return;
 
-    // Hard identity: never call model
-    if (isAskName(text)) {
-      memory.threads[0].messages.push({ role: "user", content: text });
-      add("user", text);
-      const reply = `My name is ${currentName()}.`;
-      memory.threads[0].messages.push({ role: "assistant", content: reply });
-      add("assistant", reply);
-      await saveMemory();
-      await speak(reply);
-      return;
-    }
-
-    // Commands
+    // commands run even if model isn't loaded
     const cmd = parseCommand(text);
     if (cmd) {
+      inputEl.value = "";
       add("user", text);
 
       if (cmd.cmd === "name") {
         memory.assistant = memory.assistant || {};
-        memory.assistant.name = (cmd.arg || "CJ").slice(0, 40).trim() || "CJ";
+        memory.assistant.name = cmd.arg.slice(0, 40) || "CJ";
         rebuildSystemPrompt();
         await saveMemory();
         renderMemories();
-        const reply = `✅ Got it. My name is now ${memory.assistant.name}.`;
-        add("assistant", reply);
-        await speak(reply);
+        add("assistant", `✅ Got it. My name is now ${memory.assistant.name}.`);
         return;
       }
 
@@ -1070,26 +832,20 @@ Style rules:
         rebuildSystemPrompt();
         await saveMemory();
         renderMemories();
-        const reply = item ? `✅ Saved memory.` : "⚠️ Nothing to save.";
-        add("assistant", reply);
-        await speak(reply);
+        add("assistant", item ? `✅ Saved memory${item.tags?.length ? " ("+item.tags.map(t=>"#"+t).join(" ")+")" : ""}.` : "⚠️ Nothing to save.");
         return;
       }
 
       if (cmd.cmd === "forget") {
         const matches = findFactsToForget(cmd.arg);
         if (matches.length === 0) {
-          const reply = "⚠️ I couldn’t find a matching saved memory to forget. Try a keyword from the memory text.";
-          add("assistant", reply);
-          await speak(reply);
+          add("assistant", "⚠️ I couldn’t find a matching saved memory to forget. Try a keyword from the memory text.");
           return;
         }
         for (const m of matches) deleteFact(m.id);
         await saveMemory();
         renderMemories();
-        const reply = `✅ Forgot ${matches.length} memory item(s).`;
-        add("assistant", reply);
-        await speak(reply);
+        add("assistant", `✅ Forgot ${matches.length} memory item(s).`);
         return;
       }
     }
@@ -1104,6 +860,7 @@ Style rules:
     cancelRequested = false;
     cancelBtn.disabled = false;
 
+    inputEl.value = "";
     memory.threads[0].messages.push({ role: "user", content: text });
     add("user", text);
     await saveMemory();
@@ -1117,13 +874,14 @@ Style rules:
     add("assistant", "…");
     const placeholder = msgsEl.lastChild;
 
+    // snappy for easy stuff (+ extra safe on mobile)
     const isShort = text.length < 80;
-    targetMaxNewTokens = isShort ? 90 : 220;
+    targetMaxNewTokens = isMobileLike() ? 70 : (isShort ? 90 : 220);
 
     startThinkTimer();
 
     try {
-      const recalled = recallMemories(text, 5);
+      const recalled = recallMemories(text, isMobileLike() ? 3 : 5);
       const prompt = buildPrompt(memory.system, memory.threads[0].messages, recalled);
       if (mySession !== activeToken) throw new Error("Model session changed. Please try again.");
 
@@ -1143,10 +901,9 @@ Style rules:
       if (cancelRequested || myGen !== genToken) { placeholder.textContent = "⛔ Cancelled."; return; }
       if (mySession !== activeToken) throw new Error("Model session changed during reply. Please try again.");
 
-      const raw = (out?.[0]?.generated_text || "").trim();
-      if (!raw) { placeholder.textContent = "⚠️ Empty reply. Try a different model or reload."; return; }
+      const reply = (out?.[0]?.generated_text || "").trim();
+      if (!reply) { placeholder.textContent = "⚠️ Empty reply. Try a different model or reload."; return; }
 
-      const reply = sanitizeReply(raw);
       placeholder.textContent = reply;
 
       const secs = Math.max(0.01, (t1 - t0) / 1000);
@@ -1156,16 +913,16 @@ Style rules:
       memory.threads[0].messages.push({ role: "assistant", content: reply });
       await saveMemory();
 
-      await speak(reply);
-
     } catch (err) {
       console.error(err);
       const msg = (err && (err.message || String(err))) || "Unknown error";
       const isTimeout = /timed out/i.test(msg);
       const usingGpu = devicePill.textContent.includes("webgpu");
 
+      // GPU watchdog: timeout on WebGPU in Auto → reload page once → then CPU fallback
       if (isTimeout && usingGpu && shouldAutoFallback()) {
-        const tries = Number(sessionStorage.getItem(RESET_TRIES) || "0");
+        const st = getGpuResetState();
+        const tries = st.tries;
 
         if (tries <= GPU_RESET_MAX_TRIES) {
           placeholder.textContent =
@@ -1200,7 +957,7 @@ Style rules:
       reloadBtn.disabled = false;
       modelSel.disabled = false;
       computeSel.disabled = false;
-      if (!voiceChatOn && !isSpeaking) setThinking(false, "idle");
+      setThinking(false, "idle");
     }
   }
 
@@ -1224,8 +981,8 @@ Style rules:
     cancelRequested = true;
     genToken++;
     stopThinkTimer();
+    setThinking(false, "idle");
     cancelBtn.disabled = true;
-    try { speechSynthesis.cancel(); } catch {}
     add("assistant", "⛔ Cancel requested. (Stopping output + not saving the reply.)");
   };
 
@@ -1245,7 +1002,7 @@ Style rules:
     const pack = {
       schema: "fc-ai-memory-v1",
       exportedAt: new Date().toISOString(),
-      app: { name: "FileConverter AI", version: "1.0.2" },
+      app: { name: "FileConverter AI", version: "1.0.0" },
       ...memory
     };
     const blob = new Blob([JSON.stringify(pack, null, 2)], { type: "application/json" });
@@ -1268,9 +1025,9 @@ Style rules:
 
       memory.assistant = pack.assistant ?? memory.assistant;
       memory.profile   = pack.profile   ?? memory.profile;
-      memory.facts     = pack.facts     ?? memory.facts;
-      memory.threads   = pack.threads   ?? memory.threads;
-      memory.perf      = pack.perf      ?? memory.perf;
+      memory.facts      = pack.facts      ?? memory.facts;
+      memory.threads    = pack.threads    ?? memory.threads;
+      memory.perf       = pack.perf       ?? memory.perf;
 
       rebuildSystemPrompt();
       await saveMemory();
@@ -1278,7 +1035,6 @@ Style rules:
       renderThread();
       renderMemories();
       add("assistant", "✅ Memory imported.");
-      await speak("Memory imported.");
     } catch (err) {
       add("assistant", "❌ Import failed: " + ((err && (err.message || String(err))) || "Unknown error"));
     } finally {
@@ -1302,6 +1058,14 @@ Style rules:
   const savedCompute = localStorage.getItem("fc_ai_compute");
   computeSel.value = savedCompute || "auto";
   computeSel.addEventListener("change", () => localStorage.setItem("fc_ai_compute", computeSel.value));
+
+  // Mobile safety defaults (prevents crashes on phones/tablets)
+  if (isMobileLike()) {
+    modelSel.value = "qwen05";
+    computeSel.value = "wasm";
+    localStorage.setItem("fc_ai_model_key", "qwen05");
+    localStorage.setItem("fc_ai_compute", "wasm");
+  }
 
   const rs = getGpuResetState();
   if (rs.pending) {
