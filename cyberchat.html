@@ -26,18 +26,29 @@
     .progress-outer{height:10px;background:#0b1220;border:1px solid #223044;border-radius:999px;overflow:hidden}
     #pBar{height:100%;width:0%;background:#2dd4bf}
     .pill{display:inline-block;padding:2px 8px;border:1px solid #223044;border-radius:999px;background:#0b1220;margin-left:6px}
-    code{background:#0b1220;border:1px solid #223044;border-radius:8px;padding:1px 6px}
+    .pill.live{border-color:#2dd4bf}
+    .leftActions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .danger{border-color:#7f1d1d}
+    .danger:hover{filter:brightness(1.15)}
   </style>
 </head>
 <body>
 <div class="wrap">
   <div class="card">
     <div class="top">
-      <div>
-        <div><b>FileConverter AI (Local)</b> <span id="devicePill" class="pill">device: ?</span></div>
-        <div id="status" class="status">Idle</div>
-        <div class="status">
-          Runs on your device. First load downloads the model (can be hundreds of MB). Next loads are faster due to browser caching.
+      <div class="leftActions">
+        <button id="backBtn" title="Back to FileConverter.run">← Back</button>
+        <div>
+          <div>
+            <b>FileConverter AI (Local)</b>
+            <span id="devicePill" class="pill">device: ?</span>
+            <span id="storePill" class="pill">storage: ?</span>
+            <span id="thinkPill" class="pill">idle</span>
+          </div>
+          <div id="status" class="status">Idle</div>
+          <div class="status">
+            Runs on your device. First load downloads a model (can be large). Next loads are faster due to caching.
+          </div>
         </div>
       </div>
 
@@ -45,12 +56,14 @@
         <label class="status">Model</label>
         <select id="model">
           <option value="qwen05">Qwen2.5 0.5B Instruct (fast + reliable)</option>
-          <option value="phi3x">Phi-3 Mini (Xenova, best quality)</option>
-          <option value="phi3ms">Phi-3 Mini (Microsoft ONNX Web, fixed)</option>
+          <option value="phi3x">Phi-3 Mini (Xenova, better quality)</option>
           <option value="gpt2tiny">DistilGPT-2 (tiny fallback test)</option>
         </select>
 
         <button id="reload">Load / Switch</button>
+        <button id="cancel" disabled>Cancel</button>
+        <button id="clear" class="danger">Clear chat</button>
+
         <button id="export">Export Memory</button>
         <button id="importBtn">Import Memory</button>
         <input id="importFile" type="file" accept="application/json" style="display:none" />
@@ -77,72 +90,189 @@
 </div>
 
 <script type="module">
-  // Pinned v3 for WebGPU support
   import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2";
 
-  const statusEl  = document.getElementById("status");
-  const devicePill= document.getElementById("devicePill");
-  const msgsEl    = document.getElementById("msgs");
-  const inputEl   = document.getElementById("input");
-  const sendBtn   = document.getElementById("send");
-  const modelSel  = document.getElementById("model");
-  const reloadBtn = document.getElementById("reload");
+  // -------------------------
+  // UI refs
+  // -------------------------
+  const statusEl   = document.getElementById("status");
+  const msgsEl     = document.getElementById("msgs");
+  const inputEl    = document.getElementById("input");
+  const sendBtn    = document.getElementById("send");
+  const modelSel   = document.getElementById("model");
+  const reloadBtn  = document.getElementById("reload");
+  const cancelBtn  = document.getElementById("cancel");
+  const clearBtn   = document.getElementById("clear");
+  const exportBtn  = document.getElementById("export");
+  const importBtn  = document.getElementById("importBtn");
+  const importFile = document.getElementById("importFile");
 
-  const exportBtn = document.getElementById("export");
-  const importBtn = document.getElementById("importBtn");
-  const importFile= document.getElementById("importFile");
+  const pBar       = document.getElementById("pBar");
+  const pLabel     = document.getElementById("pLabel");
+  const pPct       = document.getElementById("pPct");
 
-  const pBar   = document.getElementById("pBar");
-  const pLabel = document.getElementById("pLabel");
-  const pPct   = document.getElementById("pPct");
+  const devicePill = document.getElementById("devicePill");
+  const storePill  = document.getElementById("storePill");
+  const thinkPill  = document.getElementById("thinkPill");
+  const backBtn    = document.getElementById("backBtn");
 
-  // ---- Model menu (key -> HF repo + options) ----
-  // NOTE:
-  // - Qwen2.5 example is recommended by Transformers.js v3 blog: dtype q4 + webgpu.
-  // - Xenova Phi-3 is packaged to work with Transformers.js.
-  // - Microsoft Phi-3 ONNX Web repo needs model_file_name + subfolder because files are named model_q4f16.onnx etc.
+  backBtn.onclick = () => { window.location.href = "https://fileconverter.run/"; };
+
+  // -------------------------
+  // Models
+  // -------------------------
   const MODELS = {
     qwen05: {
       label: "onnx-community/Qwen2.5-0.5B-Instruct",
-      repo: "onnx-community/Qwen2.5-0.5B-Instruct",
-      opts: { dtype: "q4" }
+      repo:  "onnx-community/Qwen2.5-0.5B-Instruct",
+      opts:  { dtype: "q4" }
     },
     phi3x: {
       label: "Xenova/Phi-3-mini-4k-instruct",
-      repo: "Xenova/Phi-3-mini-4k-instruct",
-      opts: { dtype: "q4f16", use_external_data_format: true }
-    },
-    phi3ms: {
-      label: "microsoft/Phi-3-mini-4k-instruct-onnx-web (model_q4f16)",
-      repo: "microsoft/Phi-3-mini-4k-instruct-onnx-web",
-      // The files live under /onnx and are named model_q4f16.onnx + model_q4f16.onnx_data
-      opts: { subfolder: "onnx", model_file_name: "model_q4f16", use_external_data_format: true }
+      repo:  "Xenova/Phi-3-mini-4k-instruct",
+      opts:  { dtype: "q4f16", use_external_data_format: true }
     },
     gpt2tiny: {
       label: "Xenova/distilgpt2",
-      repo: "Xenova/distilgpt2",
-      opts: {}
+      repo:  "Xenova/distilgpt2",
+      opts:  {}
     }
   };
 
-  // ---- Local memory (portable) ----
+  // -------------------------
+  // Storage: OPFS (best) + IndexedDB fallback
+  // -------------------------
+  const STORAGE_PATH = "fc_ai/memory.json";
+  const IDB_NAME = "fc_ai_db";
+  const IDB_STORE = "kv";
+  const IDB_KEY = "memory_json";
+
+  function hasOPFS() {
+    return !!(navigator.storage && navigator.storage.getDirectory);
+  }
+
+  async function idbOpen() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(IDB_NAME, 1);
+      req.onupgradeneeded = () => req.result.createObjectStore(IDB_STORE);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function idbGet(key) {
+    const db = await idbOpen();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, "readonly");
+      const req = tx.objectStore(IDB_STORE).get(key);
+      req.onsuccess = () => resolve(req.result ?? null);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function idbSet(key, val) {
+    const db = await idbOpen();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, "readwrite");
+      tx.objectStore(IDB_STORE).put(val, key);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+  async function idbDel(key) {
+    const db = await idbOpen();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, "readwrite");
+      tx.objectStore(IDB_STORE).delete(key);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  async function opfsWriteText(path, text) {
+    const root = await navigator.storage.getDirectory();
+    const parts = path.split("/").filter(Boolean);
+    let dir = root;
+    for (let i = 0; i < parts.length - 1; i++) {
+      dir = await dir.getDirectoryHandle(parts[i], { create: true });
+    }
+    const fileHandle = await dir.getFileHandle(parts.at(-1), { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(text);
+    await writable.close();
+  }
+
+  async function opfsReadText(path) {
+    const root = await navigator.storage.getDirectory();
+    const parts = path.split("/").filter(Boolean);
+    let dir = root;
+    for (let i = 0; i < parts.length - 1; i++) {
+      dir = await dir.getDirectoryHandle(parts[i]);
+    }
+    const fileHandle = await dir.getFileHandle(parts.at(-1));
+    const file = await fileHandle.getFile();
+    return await file.text();
+  }
+
+  async function opfsDelete(path) {
+    const root = await navigator.storage.getDirectory();
+    const parts = path.split("/").filter(Boolean);
+    let dir = root;
+    for (let i = 0; i < parts.length - 1; i++) {
+      dir = await dir.getDirectoryHandle(parts[i]);
+    }
+    await dir.removeEntry(parts.at(-1));
+  }
+
+  const store = {
+    mode: "idb",
+    async init() {
+      if (hasOPFS()) {
+        this.mode = "opfs";
+        storePill.textContent = "storage: OPFS";
+      } else {
+        this.mode = "idb";
+        storePill.textContent = "storage: IndexedDB";
+      }
+    },
+    async load() {
+      try {
+        if (this.mode === "opfs") {
+          const txt = await opfsReadText(STORAGE_PATH);
+          return txt;
+        } else {
+          return await idbGet(IDB_KEY);
+        }
+      } catch {
+        return null;
+      }
+    },
+    async save(text) {
+      if (this.mode === "opfs") {
+        await opfsWriteText(STORAGE_PATH, text);
+      } else {
+        await idbSet(IDB_KEY, text);
+      }
+    },
+    async clear() {
+      try {
+        if (this.mode === "opfs") {
+          await opfsDelete(STORAGE_PATH);
+        } else {
+          await idbDel(IDB_KEY);
+        }
+      } catch {}
+    }
+  };
+
+  // -------------------------
+  // Memory (portable pack format)
+  // -------------------------
   const memory = {
     schema: "fc-ai-memory-v1",
     profile: { style: "concise" },
     system: "You are FileConverter AI. Help with file formats, conversions, troubleshooting, and workflows. Be concise and accurate. If a user asks for code, give clean copy/paste code.",
-    threads: [{ id: "main", title: "Main", messages: [] }]
+    threads: [{ id: "main", title: "Main", messages: [] }],
+    perf: { estTokensPerSecond: 14 } // updated after each completed reply (used for ETA estimate)
   };
-
-  function saveLocal() { localStorage.setItem("fc_ai_memory", JSON.stringify(memory)); }
-  function loadLocal() {
-    const raw = localStorage.getItem("fc_ai_memory");
-    if (!raw) return;
-    try {
-      const obj = JSON.parse(raw);
-      if (obj?.schema === "fc-ai-memory-v1") Object.assign(memory, obj);
-    } catch {}
-  }
-  loadLocal();
 
   function add(role, text) {
     const d = document.createElement("div");
@@ -161,19 +291,34 @@
         "Hi — I run locally on your device.\n\n" +
         "1) Click “Load / Switch” (or wait for auto-load)\n" +
         "2) Ask me anything about file conversions.\n\n" +
-        "Tip: The best starter model is Qwen2.5 0.5B Instruct (fast + reliable)."
+        "Tip: Start with Qwen2.5 0.5B (fast), then switch to Phi-3 (better answers)."
       );
     }
   }
-  renderThread();
 
-  // ---- Progress helpers ----
+  async function saveMemory() {
+    await store.save(JSON.stringify(memory));
+  }
+
+  async function loadMemory() {
+    const txt = await store.load();
+    if (!txt) return;
+    try {
+      const obj = JSON.parse(txt);
+      if (obj?.schema === "fc-ai-memory-v1") Object.assign(memory, obj);
+    } catch {}
+  }
+
+  // -------------------------
+  // Progress + state
+  // -------------------------
   function setProgress(p = 0, label = "") {
     const pct = Math.max(0, Math.min(100, Math.round(p)));
     pBar.style.width = pct + "%";
     pPct.textContent = pct + "%";
     if (label) pLabel.textContent = label;
   }
+
   function formatBytes(n) {
     if (typeof n !== "number" || !isFinite(n)) return "";
     const units = ["B","KB","MB","GB"];
@@ -181,6 +326,7 @@
     while (v >= 1024 && u < units.length - 1) { v /= 1024; u++; }
     return `${v.toFixed(u === 0 ? 0 : 1)} ${units[u]}`;
   }
+
   function hasWebGPU() { return !!navigator.gpu; }
   function netLooksConstrained() {
     const c = navigator.connection;
@@ -189,77 +335,136 @@
     return !!(saveData || slow);
   }
 
-  // ---- Model runtime ----
-  let generator = null;
-  let currentModelKey = null;
-  let currentDevice = null;
+  function setThinking(on, label) {
+    thinkPill.textContent = label || (on ? "thinking…" : "idle");
+    thinkPill.classList.toggle("live", !!on);
+  }
 
+  // Tokens to prevent overlap / races
+  let generator = null;
+  let loadToken = 0;
+  let activeToken = 0;
+  let isLoading = false;
+  let isGenerating = false;
+
+  // Cancel handling (soft-cancel)
+  let cancelRequested = false;
+  let genToken = 0;
+
+  // Thinking timer + ETA
+  let thinkTimer = null;
+  let thinkStartMs = 0;
+  let targetMaxNewTokens = 220;
+
+  function startThinkTimer() {
+    stopThinkTimer();
+    thinkStartMs = performance.now();
+    thinkTimer = setInterval(() => {
+      const elapsed = (performance.now() - thinkStartMs) / 1000;
+      const tps = Math.max(1, Number(memory?.perf?.estTokensPerSecond || 14));
+      const estTotal = targetMaxNewTokens / tps;
+      const left = Math.max(0, estTotal - elapsed);
+
+      // ETA is an estimate only
+      setThinking(true, `thinking… ${elapsed.toFixed(1)}s • ETA ${left.toFixed(1)}s`);
+    }, 200);
+  }
+
+  function stopThinkTimer() {
+    if (thinkTimer) clearInterval(thinkTimer);
+    thinkTimer = null;
+  }
+
+  // -------------------------
+  // Model load
+  // -------------------------
   async function loadModel(modelKey, { auto = false } = {}) {
     const cfg = MODELS[modelKey] || MODELS.qwen05;
+    const myToken = ++loadToken;
 
-    reloadBtn.disabled = true;
-    sendBtn.disabled = true;
+    if (isGenerating) {
+      add("assistant", "⚠️ Finish the current reply (or press Cancel) before switching models.");
+      return;
+    }
 
     if (auto && netLooksConstrained()) {
       statusEl.textContent = "Skipped auto-download (Data Saver / slow network). Click “Load / Switch” to start.";
       setProgress(0, "Skipped auto-download");
-      reloadBtn.disabled = false;
-      sendBtn.disabled = false;
       return;
     }
 
-    statusEl.textContent = auto ? "Auto-loading model…" : "Loading model…";
+    isLoading = true;
+    reloadBtn.disabled = true;
+    sendBtn.disabled = true;
+    modelSel.disabled = true;
+    cancelBtn.disabled = true;
+    setThinking(true, "loading…");
+
+    statusEl.textContent = (auto ? "Auto-loading: " : "Loading: ") + cfg.label;
     setProgress(1, "Starting…");
 
     try {
       env.allowLocalModels = false;
 
       const device = hasWebGPU() ? "webgpu" : "wasm";
-      currentDevice = device;
       devicePill.textContent = "device: " + device;
 
-      statusEl.textContent = `Loading (${device}) — ${cfg.label}`;
       setProgress(2, `Preparing (${device})…`);
 
-      generator = await pipeline("text-generation", cfg.repo, {
+      const loaded = await pipeline("text-generation", cfg.repo, {
         device,
         ...cfg.opts,
         progress_callback: (prog) => {
           const pct = (prog?.progress ?? prog?.percentage ?? 0);
           const stage = prog?.status || prog?.file || prog?.name || "Downloading…";
-          const loaded = prog?.loaded;
-          const total  = prog?.total;
-          const bytes = (loaded && total) ? ` (${formatBytes(loaded)} / ${formatBytes(total)})` : "";
+          const loadedB = prog?.loaded;
+          const totalB  = prog?.total;
+          const bytes = (loadedB && totalB) ? ` (${formatBytes(loadedB)} / ${formatBytes(totalB)})` : "";
           setProgress(pct, `${stage}${bytes}`);
         }
       });
 
-      currentModelKey = modelKey;
-      statusEl.textContent = `Ready (${device}). Model: ${cfg.label}`;
+      if (myToken !== loadToken) return;
+
+      generator = loaded;
+      activeToken = myToken;
+
+      statusEl.textContent = `Ready. Model: ${cfg.label}`;
       setProgress(100, "Done");
     } catch (err) {
       console.error(err);
-      generator = null;
-      currentModelKey = null;
+      if (myToken !== loadToken) return;
 
-      statusEl.textContent = "Load failed. (Open DevTools Console for full details.)";
+      generator = null;
+      activeToken = 0;
+
+      statusEl.textContent = "Load failed. (Open DevTools Console for details.)";
       setProgress(0, "Failed");
 
       const msg = (err && (err.message || String(err))) || "Unknown error";
       add("assistant",
         "❌ Model load failed:\n" + msg + "\n\n" +
         "Try:\n" +
-        "- Switch to “Qwen2.5 0.5B Instruct” (fast + reliable)\n" +
-        "- Or “DistilGPT-2” to verify downloads work.\n\n" +
-        "If you want Phi-3, pick “Phi-3 Mini (Xenova)” or “Phi-3 Mini (Microsoft ONNX Web, fixed)”."
+        "- Qwen2.5 0.5B (fast + reliable)\n" +
+        "- DistilGPT-2 (tiny) to confirm downloads work\n" +
+        "Then switch back to Phi-3."
       );
     } finally {
-      reloadBtn.disabled = false;
-      sendBtn.disabled = false;
+      if (myToken === loadToken) {
+        isLoading = false;
+        reloadBtn.disabled = false;
+        sendBtn.disabled = false;
+        modelSel.disabled = false;
+        cancelBtn.disabled = true;
+        stopThinkTimer();
+        setThinking(false, "idle");
+      }
     }
   }
 
-  // Simple prompt formatting (good enough for these instruct models)
+  // -------------------------
+  // Chat generation
+  // -------------------------
   function buildPrompt(system, messages) {
     const turns = messages.slice(-10).map(m => {
       const who = m.role === "user" ? "User" : "Assistant";
@@ -268,46 +473,111 @@
     return `${system}\n\n${turns}\nAssistant:`;
   }
 
+  // rough token estimate (for ETA only)
+  function estimateTokensFromText(text) {
+    const chars = (text || "").length;
+    return Math.max(1, Math.round(chars / 4)); // crude but stable enough for speed estimate
+  }
+
   async function send() {
     const text = inputEl.value.trim();
     if (!text) return;
-    inputEl.value = "";
 
-    memory.threads[0].messages.push({ role: "user", content: text });
-    add("user", text);
-    saveLocal();
+    if (isLoading) {
+      add("assistant", "⚠️ Still loading the model… wait for “Ready”, then send.");
+      return;
+    }
 
-    if (!generator) {
+    if (isGenerating) {
+      add("assistant", "⚠️ I’m already replying — wait a second, or press Cancel.");
+      return;
+    }
+
+    if (!generator || !activeToken) {
       add("assistant", "Model not loaded yet. Click “Load / Switch” first.");
       return;
     }
 
+    // lock the session for this run
+    const mySession = activeToken;
+    const myGen = ++genToken;
+
+    cancelRequested = false;
+    cancelBtn.disabled = false;
+
+    inputEl.value = "";
+    memory.threads[0].messages.push({ role: "user", content: text });
+    add("user", text);
+    await saveMemory();
+
+    isGenerating = true;
+    sendBtn.disabled = true;
+    reloadBtn.disabled = true;
+    modelSel.disabled = true;
+
     add("assistant", "…");
     const placeholder = msgsEl.lastChild;
+
+    startThinkTimer();
 
     try {
       const prompt = buildPrompt(memory.system, memory.threads[0].messages);
 
+      if (mySession !== activeToken) throw new Error("Model session changed. Please try again.");
+
+      const t0 = performance.now();
       const out = await generator(prompt, {
-        max_new_tokens: 220,
+        max_new_tokens: targetMaxNewTokens,
         temperature: 0.3,
         do_sample: true,
         return_full_text: false
       });
+      const t1 = performance.now();
+
+      // If user cancelled or a newer generation started, ignore output
+      if (cancelRequested || myGen !== genToken) {
+        placeholder.textContent = "⛔ Cancelled.";
+        return;
+      }
+
+      // If a model reload happened while generating, ignore output
+      if (mySession !== activeToken) throw new Error("Model session changed during reply. Please try again.");
 
       const reply = (out?.[0]?.generated_text || "").trim() || "(no output)";
       placeholder.textContent = reply;
 
+      // update speed estimate for ETA
+      const secs = Math.max(0.01, (t1 - t0) / 1000);
+      const estTokens = estimateTokensFromText(reply);
+      const tps = Math.max(1, Math.round(estTokens / secs));
+      memory.perf = memory.perf || {};
+      memory.perf.estTokensPerSecond = tps;
+
       memory.threads[0].messages.push({ role: "assistant", content: reply });
-      saveLocal();
+      await saveMemory();
     } catch (err) {
       console.error(err);
-      placeholder.textContent = "Error generating reply: " + ((err && (err.message || String(err))) || "Unknown error");
+      const msg = (err && (err.message || String(err))) || "Unknown error";
+      placeholder.textContent =
+        "Error generating reply: " + msg + "\n\n" +
+        "Tip: don’t click Load/Switch while it’s replying. If it keeps happening, reload the page and load the model again.";
+    } finally {
+      stopThinkTimer();
+      isGenerating = false;
+      cancelBtn.disabled = true;
+      sendBtn.disabled = false;
+      reloadBtn.disabled = false;
+      modelSel.disabled = false;
+      setThinking(false, "idle");
     }
   }
 
-  // ---- UI wiring ----
+  // -------------------------
+  // Buttons
+  // -------------------------
   reloadBtn.addEventListener("click", async () => {
+    await store.save(JSON.stringify(memory)); // keep memory safe
+    localStorage.setItem("fc_ai_model_key", modelSel.value); // small setting is fine in LS
     await loadModel(modelSel.value, { auto: false });
   });
 
@@ -316,7 +586,32 @@
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
   });
 
-  exportBtn.onclick = () => {
+  cancelBtn.onclick = () => {
+    // soft-cancel: we can’t reliably abort the underlying inference yet,
+    // but we can stop UI and prevent saving/showing the result.
+    cancelRequested = true;
+    genToken++; // invalidate current generation
+    stopThinkTimer();
+    setThinking(false, "idle");
+    cancelBtn.disabled = true;
+    add("assistant", "⛔ Cancel requested. (Stopping output + not saving the reply.)");
+  };
+
+  clearBtn.onclick = async () => {
+    // if generating, cancel first
+    if (isGenerating) {
+      cancelRequested = true;
+      genToken++;
+      stopThinkTimer();
+      isGenerating = false;
+    }
+    memory.threads = [{ id: "main", title: "Main", messages: [] }];
+    await store.clear();
+    await saveMemory();
+    renderThread();
+  };
+
+  exportBtn.onclick = async () => {
     const pack = {
       schema: "fc-ai-memory-v1",
       exportedAt: new Date().toISOString(),
@@ -344,8 +639,9 @@
       memory.profile = pack.profile ?? memory.profile;
       memory.system  = pack.system  ?? memory.system;
       memory.threads = pack.threads ?? memory.threads;
+      memory.perf    = pack.perf    ?? memory.perf;
 
-      saveLocal();
+      await saveMemory();
       renderThread();
       add("assistant", "✅ Memory imported.");
     } catch (err) {
@@ -355,22 +651,19 @@
     }
   };
 
-  // ---- Auto-load on page load ----
-  window.addEventListener("load", async () => {
-    // Default to Qwen (fast + reliable) on first visit
-    if (!localStorage.getItem("fc_ai_model_key")) {
-      modelSel.value = "qwen05";
-    } else {
-      modelSel.value = localStorage.getItem("fc_ai_model_key");
-    }
+  // -------------------------
+  // Boot
+  // -------------------------
+  await store.init();
+  await loadMemory();
+  renderThread();
 
-    modelSel.addEventListener("change", () => {
-      localStorage.setItem("fc_ai_model_key", modelSel.value);
-    });
+  // default model preference (tiny setting stays in localStorage)
+  const savedKey = localStorage.getItem("fc_ai_model_key");
+  modelSel.value = savedKey && MODELS[savedKey] ? savedKey : "qwen05";
 
-    setProgress(0, "Auto-load pending…");
-    await loadModel(modelSel.value, { auto: true });
-  });
+  setProgress(0, "Auto-load pending…");
+  await loadModel(modelSel.value, { auto: true });
 </script>
 </body>
 </html>
