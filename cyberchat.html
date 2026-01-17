@@ -67,12 +67,40 @@
       50%{height:16px;opacity:1}
     }
 
-    /* Mobile tweak: buttons full-width in tight space */
-    @media (max-width: 560px){
+    /* === MOBILE LAYOUT FIX === */
+    @media (max-width: 560px) {
       .wrap{padding:12px}
-      .row{justify-content:flex-start}
-      select,button,input{padding:10px}
-      .msgs{height:56vh}
+
+      .top{
+        flex-direction:column;
+        align-items:stretch;
+        gap:12px;
+      }
+
+      .leftActions{
+        flex-direction:column;
+        align-items:flex-start;
+        width:100%;
+      }
+
+      .row{
+        width:100%;
+        justify-content:flex-start;
+        gap:8px;
+      }
+
+      .row > *{
+        flex:1 1 100%;
+        width:100%;
+      }
+
+      select,button,input{
+        width:100%;
+        font-size:14px;
+        padding:10px;
+      }
+
+      .msgs{height:55vh}
       .layout{grid-template-columns:1fr}
     }
   </style>
@@ -415,7 +443,8 @@ Style rules:
         `Hi — I’m ${currentName()} and I run locally on your device.\n\n` +
         "• Auto recall is ON (keyword-based) using your saved Memories.\n" +
         "• Commands: name:, remember:, forget:\n" +
-        "• Voice: toggle 🎙️, then use Hold to Talk (mobile-friendly).\n"
+        "• Voice: toggle 🎙️, then use Hold to Talk (mobile-friendly).\n" +
+        `• Wake word: say “${currentName()}” or “Hey ${currentName()}”\n`
       );
     }
   }
@@ -782,6 +811,35 @@ Style rules:
     pttBtn.disabled = !voiceOn || !sttSupported();
   }
 
+  // -------------------------
+  // Wake word: supports "NAME" and "Hey NAME"
+  // -------------------------
+  function normalizeText(t) {
+    return (t || "").toLowerCase().trim();
+  }
+
+  function isWakeWord(text) {
+    const name = normalizeText(currentName());
+    const t = normalizeText(text);
+
+    return (
+      t === name ||
+      t.startsWith(`hey ${name}`) ||
+      t.startsWith(`ok ${name}`) ||
+      t.startsWith(`${name},`) ||
+      t.startsWith(`${name} `)
+    );
+  }
+
+  function stripWakeWord(text) {
+    const name = currentName();
+    // remove: "hey NAME", "ok NAME", "NAME," or "NAME "
+    return (text || "")
+      .replace(new RegExp(`^(hey|ok)?\\s*${name}[,\\s]+`, "i"), "")
+      .replace(new RegExp(`^${name}[,\\s]+`, "i"), "")
+      .trim();
+  }
+
   // Push-to-talk: hold to record, release to send
   let pttFinal = "";
   let pttInterim = "";
@@ -830,7 +888,7 @@ Style rules:
       rec.start();
       isListening = true;
       setListening(true);
-      setThinking(true, "listening… (hold to talk)");
+      setThinking(true, `listening… say “${currentName()}” or “Hey ${currentName()}”`);
     } catch (e) {
       add("assistant", "🎙️ Couldn’t start mic. Check site mic permission.");
       isListening = false;
@@ -848,8 +906,21 @@ Style rules:
     // Give the recognizer a moment to flush final results
     await sleep(120);
 
-    const text = (pttFinal || pttInterim || "").trim();
+    let text = (pttFinal || pttInterim || "").trim();
     resetPTTBuffers();
+
+    // Wake-word gate: ignore speech that doesn't start with NAME / Hey NAME
+    if (!text) {
+      if (voiceOn && !isSpeaking) setThinking(false, "idle");
+      return;
+    }
+    if (!isWakeWord(text)) {
+      // silently ignore to prevent accidental sends
+      setThinking(false, "idle");
+      return;
+    }
+
+    text = stripWakeWord(text);
     if (text) await sendText(text, { fromVoice:true });
     else if (voiceOn && !isSpeaking) setThinking(false, "idle");
   }
@@ -863,7 +934,6 @@ Style rules:
     pttBtn.addEventListener("pointerup", up);
     pttBtn.addEventListener("pointercancel", up);
     pttBtn.addEventListener("pointerleave", (e) => {
-      // If they drag finger off button on mobile, end
       if (isListening) up(e);
     });
   }
@@ -873,10 +943,8 @@ Style rules:
     if (!autoSpeakEl.checked) return;
     if (!text || !("speechSynthesis" in window)) return;
 
-    // Stop any current speech
     try { speechSynthesis.cancel(); } catch {}
 
-    // Echo prevention: stop listening while speaking
     const wasListening = isListening;
     if (wasListening) { safeRecStop(); isListening = false; setListening(false); }
 
@@ -911,11 +979,13 @@ Style rules:
   voiceToggleBtn.onclick = () => {
     voiceOn = !voiceOn;
     setVoiceUI();
+    localStorage.setItem("fc_ai_voice_on", voiceOn ? "1" : "0");
+
     if (voiceOn) {
       if (!sttSupported()) {
         add("assistant", "🎙️ Voice enabled (TTS). STT isn’t available in this browser, so use typing or a supported browser for mic.");
       } else {
-        add("assistant", "🎙️ Voice enabled. Use “Hold to Talk” to speak (most reliable on phones).");
+        add("assistant", `🎙️ Voice enabled. Use “Hold to Talk” and start with “${currentName()}” or “Hey ${currentName()}”.`);
       }
       setThinking(false, "idle");
     } else {
@@ -935,7 +1005,6 @@ Style rules:
   let isLoading = false;
   let isGenerating = false;
 
-  // Cancel (soft cancel)
   let cancelRequested = false;
   let genToken = 0;
 
@@ -957,11 +1026,6 @@ Style rules:
       statusEl.textContent = "Skipped auto-download (Data Saver / slow network). Click “Load / Switch” to start.";
       setProgress(0, "Skipped auto-download");
       return;
-    }
-
-    // Mobile stability: prefer WASM unless user forces WebGPU
-    if (computeSel.value === "auto" && isMobileish() && hasWebGPU()) {
-      // keep auto, but device selection will pick webgpu; let user choose.
     }
 
     isLoading = true;
@@ -1056,7 +1120,6 @@ Style rules:
     m = t.match(/^\s*forget\s*:\s*(.+)\s*$/i);
     if (m) return { cmd: "forget", arg: m[1].trim() };
 
-    // natural language rename
     m = t.match(/^\s*(change|set|make)\s+your\s+name\s+(to|as)\s+(.+)\s*$/i);
     if (m) return { cmd: "name", arg: m[3].trim() };
 
@@ -1096,7 +1159,6 @@ Style rules:
   async function sendText(text, { fromVoice } = { fromVoice:false }) {
     if (!text) return;
 
-    // Hard identity: never call model
     if (isAskName(text)) {
       memory.threads[0].messages.push({ role: "user", content: text });
       add("user", text);
@@ -1108,7 +1170,6 @@ Style rules:
       return;
     }
 
-    // Commands
     const cmd = parseCommand(text);
     if (cmd) {
       add("user", text);
@@ -1119,6 +1180,7 @@ Style rules:
         rebuildSystemPrompt();
         await saveMemory();
         renderMemories();
+        renderThread();
         const reply = `✅ Got it. My name is now ${memory.assistant.name}.`;
         add("assistant", reply);
         await speak(reply);
@@ -1305,7 +1367,7 @@ Style rules:
     const pack = {
       schema: "fc-ai-memory-v1",
       exportedAt: new Date().toISOString(),
-      app: { name: "FileConverter AI", version: "1.0.3-mobile-safe" },
+      app: { name: "FileConverter AI", version: "1.0.4-wakeword-mobilefix" },
       ...memory
     };
     const blob = new Blob([JSON.stringify(pack, null, 2)], { type: "application/json" });
@@ -1366,7 +1428,6 @@ Style rules:
   // Voice UI init
   voiceOn = (localStorage.getItem("fc_ai_voice_on") === "1");
   setVoiceUI();
-  voiceToggleBtn.addEventListener("click", () => localStorage.setItem("fc_ai_voice_on", voiceOn ? "1" : "0"));
 
   const rs = getGpuResetState();
   if (rs.pending) {
