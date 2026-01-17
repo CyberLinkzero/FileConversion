@@ -703,7 +703,7 @@ Style rules:
   // Thinking timer + ETA
   let thinkTimer = null;
   let thinkStartMs = 0;
-  let targetMaxNewTokens = 140; // safer default
+  let targetMaxNewTokens = 140;
 
   function startThinkTimer() {
     stopThinkTimer();
@@ -755,11 +755,15 @@ Style rules:
 
   // -------------------------
   // Voice: TTS + STT + Echo prevention + WAKE WORD ALWAYS LISTENING
+  // + Mobile mic permission: "Voice On" prompts for mic permission
   // -------------------------
   let voices = [];
   let voiceOn = false;
   let isListening = false;
   let isSpeaking = false;
+
+  // Persisted mic status (best-effort)
+  const MIC_OK_KEY = "fc_ai_mic_ok";
 
   function loadVoices() {
     voices = speechSynthesis.getVoices() || [];
@@ -793,7 +797,6 @@ Style rules:
     if (!sttSupported()) return null;
     const r = new SpeechRec();
     r.lang = "en-US";
-    // Mobile: continuous often causes crashes; keep it short-session and auto-restart in onend
     r.continuous = !isMobileish();
     r.interimResults = true;
     return r;
@@ -806,6 +809,42 @@ Style rules:
 
   function setVoiceUI() {
     voiceToggleBtn.textContent = voiceOn ? "🎙️ Voice: On" : "🎙️ Voice: Off";
+  }
+
+  // --- NEW: Mic permission helper (runs only on user gesture) ---
+  async function ensureMicPermission() {
+    // If Permissions API says granted, we still keep a quick getUserMedia on mobile to be safe.
+    if (!navigator.mediaDevices?.getUserMedia) {
+      return { ok:false, reason:"getUserMedia not available" };
+    }
+    try {
+      // Try to query permission state (not supported everywhere)
+      let permState = null;
+      try {
+        if (navigator.permissions?.query) {
+          const p = await navigator.permissions.query({ name: "microphone" });
+          permState = p?.state || null;
+        }
+      } catch {}
+
+      // If explicitly denied, don't spam getUserMedia; tell user to enable in site settings
+      if (permState === "denied") {
+        localStorage.setItem(MIC_OK_KEY, "0");
+        return { ok:false, reason:"Microphone permission denied" };
+      }
+
+      // Request mic once to trigger prompt (or confirm grant). Immediately stop tracks.
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      try {
+        stream.getTracks().forEach(t => t.stop());
+      } catch {}
+
+      localStorage.setItem(MIC_OK_KEY, "1");
+      return { ok:true };
+    } catch (e) {
+      localStorage.setItem(MIC_OK_KEY, "0");
+      return { ok:false, reason: (e?.message || String(e) || "Mic request failed") };
+    }
   }
 
   // -------------------------
@@ -862,22 +901,17 @@ Style rules:
       finalText = finalText.trim();
       if (!finalText) return;
 
-      if (!isWakeWord(finalText)) {
-        // ignore anything that isn't wake-word prefixed
-        return;
-      }
+      if (!isWakeWord(finalText)) return;
 
       const cleaned = stripWakeWord(finalText);
       if (!cleaned) return;
 
-      // stop listening while we respond (prevents double-trigger / echo)
       safeRecStop();
       isListening = false;
       setListening(false);
 
       await sendText(cleaned, { fromVoice: true });
 
-      // restart after a tiny delay
       if (voiceOn) setTimeout(startWakeListening, 400);
     };
 
@@ -885,6 +919,12 @@ Style rules:
       safeRecStop();
       isListening = false;
       setListening(false);
+
+      // On mobile, "not-allowed" / "service-not-allowed" often means permissions or HTTPS issues
+      // Keep UI friendly:
+      if (voiceOn && sttSupported()) {
+        setThinking(false, "idle");
+      }
     };
 
     rec.onend = () => {
@@ -900,7 +940,16 @@ Style rules:
       isListening = true;
       setListening(true);
       setThinking(true, `listening… say “${currentName()}”`);
-    } catch {}
+    } catch (e) {
+      // Some mobile browsers require a fresh tap to start recognition even after permission is granted
+      isListening = false;
+      setListening(false);
+      setThinking(false, "idle");
+      add("assistant",
+        "⚠️ I couldn’t start listening yet.\n" +
+        "Tip: Tap “🎙️ Voice” once more. On mobile, some browsers require a direct tap to start mic listening."
+      );
+    }
   }
 
   async function speak(text) {
@@ -954,18 +1003,42 @@ Style rules:
     });
   }
 
-  voiceToggleBtn.onclick = () => {
+  // UPDATED: Voice toggle now explicitly requests mic permission on mobile (user gesture)
+  voiceToggleBtn.onclick = async () => {
     voiceOn = !voiceOn;
     localStorage.setItem("fc_ai_voice_on", voiceOn ? "1" : "0");
     setVoiceUI();
 
     if (voiceOn) {
+      // TTS is fine anywhere; STT depends on browser
       if (!sttSupported()) {
-        add("assistant", "🎙️ Voice enabled (TTS), but speech recognition (mic) isn’t supported in this browser.");
+        add("assistant",
+          "🎙️ Voice enabled (speaking replies).\n\n" +
+          "⚠️ Mic speech recognition isn’t supported in this browser (common on iPhone/iPad Safari).\n" +
+          "Try Android Chrome for wake-word listening."
+        );
         setThinking(false, "idle");
         return;
       }
-      add("assistant", `🎙️ Voice enabled. Say “${currentName()} …” or “Hey ${currentName()} …” to talk.`);
+
+      // Ask for mic permission right now (so phone prompts immediately)
+      const mic = await ensureMicPermission();
+      if (!mic.ok) {
+        add("assistant",
+          "❌ Mic permission failed.\n\n" +
+          "Fix:\n" +
+          "• Enable Microphone permission for this site in your browser settings\n" +
+          "• Make sure the page is on HTTPS (mic won’t work on insecure origins)\n\n" +
+          "Details: " + (mic.reason || "unknown")
+        );
+        voiceOn = false;
+        localStorage.setItem("fc_ai_voice_on", "0");
+        setVoiceUI();
+        setThinking(false, "idle");
+        return;
+      }
+
+      add("assistant", `🎙️ Mic ready. Say “${currentName()} …” or “Hey ${currentName()} …” to talk.`);
       startWakeListening();
     } else {
       safeRecStop();
@@ -1346,7 +1419,7 @@ Style rules:
     const pack = {
       schema: "fc-ai-memory-v1",
       exportedAt: new Date().toISOString(),
-      app: { name: "FileConverter AI", version: "1.0.5-wakeword-alwayslisten" },
+      app: { name: "FileConverter AI", version: "1.0.6-mic-permission-on-voice-toggle" },
       ...memory
     };
     const blob = new Blob([JSON.stringify(pack, null, 2)], { type: "application/json" });
@@ -1422,9 +1495,16 @@ Style rules:
   setProgress(0, "Auto-load pending…");
   await loadModel(modelSel.value, { auto: true });
 
-  // If voice was ON last time, start listening immediately
+  // IMPORTANT MOBILE REALITY:
+  // Even if voiceOn was saved, some browsers require a tap to start STT.
+  // We'll try, and if it fails, the user can tap the Voice button once.
   if (voiceOn && sttSupported()) {
-    setTimeout(startWakeListening, 350);
+    setTimeout(async () => {
+      // try to re-confirm mic without prompting (best effort)
+      // then try to start listening; if it fails, message appears inside startWakeListening catch.
+      try { await ensureMicPermission(); } catch {}
+      startWakeListening();
+    }, 350);
   }
 </script>
 </body>
