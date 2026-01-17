@@ -3,23 +3,29 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>FileConverter AI (Local)</title>
+  <title>FileConverter AI (Local • Transformers.js)</title>
   <style>
     body{margin:0;font-family:system-ui;background:#0b0f14;color:#e7eef7}
     .wrap{max-width:980px;margin:auto;padding:18px}
     .card{border:1px solid #1f2a37;border-radius:16px;background:#0f1620}
-    .top{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:14px;border-bottom:1px solid #1f2a37}
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .top{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;padding:14px;border-bottom:1px solid #1f2a37}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
     select,button{background:#111b2a;color:#e7eef7;border:1px solid #223044;border-radius:12px;padding:10px}
     button{cursor:pointer}
     button:hover{filter:brightness(1.1)}
-    .status{opacity:.75;font-size:12px}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    .status{opacity:.75;font-size:12px;line-height:1.35}
     .msgs{height:62vh;overflow:auto;padding:16px}
     .msg{margin:10px 0;padding:10px 12px;border-radius:14px;max-width:82%;border:1px solid #223044;white-space:pre-wrap}
     .me{margin-left:auto;background:#122235}
     .ai{margin-right:auto;background:#101a27}
     .bar{display:flex;gap:10px;padding:12px;border-top:1px solid #1f2a37}
     textarea{flex:1;resize:none;background:#0b1220;color:#e7eef7;border:1px solid #223044;border-radius:12px;padding:10px}
+    a{color:#8ab4ff}
+    .progress-wrap{padding:0 14px 14px 14px}
+    .progress-head{display:flex;justify-content:space-between;gap:10px}
+    .progress-outer{height:10px;background:#0b1220;border:1px solid #223044;border-radius:999px;overflow:hidden}
+    #pBar{height:100%;width:0%;background:#2dd4bf}
   </style>
 </head>
 <body>
@@ -27,19 +33,36 @@
   <div class="card">
     <div class="top">
       <div>
-        <b>FileConverter AI (Local)</b>
-        <div id="status" class="status">Booting…</div>
+        <div><b>FileConverter AI (Local)</b></div>
+        <div id="status" class="status">Idle</div>
+        <div class="status">
+          Runs on your device. First load may download a large model (hundreds of MB). Subsequent loads are faster due to browser caching.
+        </div>
       </div>
+
       <div class="row">
         <label class="status">Model</label>
         <select id="model">
           <option value="microsoft/Phi-3-mini-4k-instruct-onnx-web">Phi-3 Mini (ONNX Web) — recommended</option>
-          <option value="Xenova/Phi-3-mini-4k-instruct">Phi-3 Mini (Xenova) — cache-friendly</option>
+          <option value="Xenova/Phi-3-mini-4k-instruct">Phi-3 Mini (Xenova) — alternative</option>
+          <option value="Xenova/distilgpt2">DistilGPT-2 (tiny fallback test)</option>
         </select>
+
         <button id="reload">Load / Switch</button>
         <button id="export">Export Memory</button>
         <button id="importBtn">Import Memory</button>
         <input id="importFile" type="file" accept="application/json" style="display:none" />
+      </div>
+    </div>
+
+    <!-- Progress UI -->
+    <div class="progress-wrap">
+      <div class="progress-head status">
+        <span id="pLabel">Not loading</span>
+        <span id="pPct">0%</span>
+      </div>
+      <div class="progress-outer">
+        <div id="pBar"></div>
       </div>
     </div>
 
@@ -53,19 +76,27 @@
 </div>
 
 <script type="module">
-  import { pipeline, env } from "https://esm.run/@huggingface/transformers";
+  // Pinned version for stability (WebGPU support is in v3)
+  import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2";
 
-  const statusEl = document.getElementById("status");
-  const msgsEl = document.getElementById("msgs");
-  const inputEl = document.getElementById("input");
-  const sendBtn = document.getElementById("send");
-  const modelSel = document.getElementById("model");
+  const statusEl  = document.getElementById("status");
+  const msgsEl    = document.getElementById("msgs");
+  const inputEl   = document.getElementById("input");
+  const sendBtn   = document.getElementById("send");
+  const modelSel  = document.getElementById("model");
   const reloadBtn = document.getElementById("reload");
+
   const exportBtn = document.getElementById("export");
   const importBtn = document.getElementById("importBtn");
-  const importFile = document.getElementById("importFile");
+  const importFile= document.getElementById("importFile");
 
-  // ---- Local memory (portable) ----
+  const pBar   = document.getElementById("pBar");
+  const pLabel = document.getElementById("pLabel");
+  const pPct   = document.getElementById("pPct");
+
+  // -------------------------
+  // Portable local "memory pack"
+  // -------------------------
   const memory = {
     schema: "fc-ai-memory-v1",
     profile: { style: "concise" },
@@ -73,15 +104,6 @@
     threads: [{ id: "main", title: "Main", messages: [] }]
   };
 
-  function add(role, text) {
-    const d = document.createElement("div");
-    d.className = "msg " + (role === "user" ? "me" : "ai");
-    d.textContent = text;
-    msgsEl.appendChild(d);
-    msgsEl.scrollTop = msgsEl.scrollHeight;
-  }
-
-  // Persist in browser (so it survives refresh)
   function saveLocal() {
     localStorage.setItem("fc_ai_memory", JSON.stringify(memory));
   }
@@ -95,63 +117,127 @@
   }
   loadLocal();
 
-  // Render existing messages
+  function add(role, text) {
+    const d = document.createElement("div");
+    d.className = "msg " + (role === "user" ? "me" : "ai");
+    d.textContent = text;
+    msgsEl.appendChild(d);
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+  }
+
   function renderThread() {
     msgsEl.innerHTML = "";
-    for (const m of memory.threads[0].messages) add(m.role, m.content);
-    if (memory.threads[0].messages.length === 0) {
-      add("assistant", "Hi — I run locally on your device. What are you converting today?");
+    const thread = memory.threads[0];
+    for (const m of thread.messages) add(m.role, m.content);
+    if (thread.messages.length === 0) {
+      add("assistant", "Hi — I run locally on your device. Click “Load / Switch” (or wait for auto-load), then ask me anything about file conversions.");
     }
   }
   renderThread();
 
-  // ---- Transformers.js runtime ----
-  let generator = null;
-  let currentModel = null;
-
-  function hasWebGPU() {
-    return !!navigator.gpu;
+  // -------------------------
+  // Progress helpers
+  // -------------------------
+  function setProgress(p = 0, label = "") {
+    const pct = Math.max(0, Math.min(100, Math.round(p)));
+    pBar.style.width = pct + "%";
+    pPct.textContent = pct + "%";
+    if (label) pLabel.textContent = label;
   }
+
+  function formatBytes(n) {
+    if (typeof n !== "number" || !isFinite(n)) return "";
+    const units = ["B","KB","MB","GB"];
+    let u = 0, v = n;
+    while (v >= 1024 && u < units.length - 1) { v /= 1024; u++; }
+    return `${v.toFixed(u === 0 ? 0 : 1)} ${units[u]}`;
+  }
+
+  function hasWebGPU() { return !!navigator.gpu; }
 
   function netLooksConstrained() {
     const c = navigator.connection;
     const saveData = c?.saveData === true;
-    const slow = ["slow-2g","2g","3g"].includes(c?.effectiveType);
+    const slow = ["slow-2g", "2g", "3g"].includes(c?.effectiveType);
     return !!(saveData || slow);
   }
 
-  async function loadModel(modelId, { auto = false } = {}) {
-    statusEl.textContent = auto ? "Auto-loading model…" : "Loading model…";
-    const device = hasWebGPU() ? "webgpu" : "wasm"; // WebGPU if available; else CPU fallback
-    statusEl.textContent = `Loading (${device})… first run can take a while.`;
+  // -------------------------
+  // Model runtime
+  // -------------------------
+  let generator = null;
+  let currentModel = null;
+  let currentDevice = null;
 
-    // Optional: be more conservative on slow networks unless user explicitly clicks Load
+  async function loadModel(modelId, { auto = false } = {}) {
+    // UI lock
+    reloadBtn.disabled = true;
+    sendBtn.disabled = true;
+
+    // Respect slow networks for auto-load only (manual click always loads)
     if (auto && netLooksConstrained()) {
-      statusEl.textContent = "Skipped auto-download (Data Saver / slow network). Click Load to start.";
+      statusEl.textContent = "Skipped auto-download (Data Saver / slow network). Click “Load / Switch” to start.";
+      setProgress(0, "Skipped auto-download");
+      reloadBtn.disabled = false;
+      sendBtn.disabled = false;
       return;
     }
 
-    // Reduce noisy logging (optional)
-    env.allowLocalModels = false;
+    statusEl.textContent = auto ? "Auto-loading model…" : "Loading model…";
+    setProgress(1, "Starting…");
 
-    generator = await pipeline("text-generation", modelId, { device });
-    currentModel = modelId;
+    try {
+      // Use remote models only
+      env.allowLocalModels = false;
 
-    statusEl.textContent = `Ready (${device}). Model: ${modelId}`;
+      const device = hasWebGPU() ? "webgpu" : "wasm";
+      currentDevice = device;
+
+      statusEl.textContent = `Loading (${device}) — first load can take a while.`;
+      setProgress(2, `Preparing (${device})…`);
+
+      generator = await pipeline("text-generation", modelId, {
+        device,
+        // Helps with models stored as multiple external data shards (common for ONNX)
+        use_external_data_format: true,
+
+        // Progress callback: updates bar + labels
+        progress_callback: (prog) => {
+          const pct = (prog?.progress ?? prog?.percentage ?? 0);
+          const stage = prog?.status || prog?.file || prog?.name || "Downloading…";
+          const loaded = prog?.loaded;
+          const total  = prog?.total;
+          const bytes = (loaded && total) ? ` (${formatBytes(loaded)} / ${formatBytes(total)})` : "";
+          setProgress(pct, `${stage}${bytes}`);
+        }
+      });
+
+      currentModel = modelId;
+      statusEl.textContent = `Ready (${device}). Model: ${modelId}`;
+      setProgress(100, "Done");
+    } catch (err) {
+      console.error(err);
+      generator = null;
+      currentModel = null;
+
+      statusEl.textContent = "Load failed. (Open DevTools Console for details.)";
+      setProgress(0, "Failed");
+
+      const msg = (err && (err.message || String(err))) || "Unknown error";
+      add("assistant", "❌ Model load failed:\n" + msg + "\n\nTry the tiny fallback model (DistilGPT-2) to confirm loading works, or use Chrome/Edge with WebGPU enabled.");
+    } finally {
+      reloadBtn.disabled = false;
+      sendBtn.disabled = false;
+    }
   }
 
-  // Basic chat prompt formatting (works well enough for instruct models)
+  // Build a simple instruct-style prompt
   function buildPrompt(system, messages) {
     const turns = messages.slice(-10).map(m => {
       const who = m.role === "user" ? "User" : "Assistant";
       return `${who}: ${m.content}`;
     }).join("\n");
     return `${system}\n\n${turns}\nAssistant:`;
-  }
-
-  async function ensureLoadedAuto() {
-    const modelId = modelSel.value;
-    await loadModel(modelId, { auto: true });
   }
 
   async function send() {
@@ -164,17 +250,16 @@
     saveLocal();
 
     if (!generator) {
-      add("assistant", "Model not loaded yet. Click “Load / Switch”.");
+      add("assistant", "Model not loaded yet. Click “Load / Switch” first.");
       return;
     }
-
-    // Create a single prompt from recent chat
-    const prompt = buildPrompt(memory.system, memory.threads[0].messages);
 
     add("assistant", "…");
     const placeholder = msgsEl.lastChild;
 
     try {
+      const prompt = buildPrompt(memory.system, memory.threads[0].messages);
+
       const out = await generator(prompt, {
         max_new_tokens: 220,
         temperature: 0.3,
@@ -187,20 +272,23 @@
 
       memory.threads[0].messages.push({ role: "assistant", content: reply });
       saveLocal();
-    } catch (e) {
-      placeholder.textContent = "Error: " + (e?.message || e);
+    } catch (err) {
+      console.error(err);
+      placeholder.textContent = "Error generating reply: " + ((err && (err.message || String(err))) || "Unknown error");
     }
   }
 
-  // Buttons
+  // -------------------------
+  // Buttons / events
+  // -------------------------
+  reloadBtn.addEventListener("click", async () => {
+    await loadModel(modelSel.value, { auto: false });
+  });
+
   sendBtn.onclick = send;
   inputEl.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
   });
-
-  reloadBtn.onclick = async () => {
-    await loadModel(modelSel.value, { auto: false });
-  };
 
   exportBtn.onclick = () => {
     const pack = {
@@ -226,22 +314,26 @@
       const text = await file.text();
       const pack = JSON.parse(text);
       if (pack.schema !== "fc-ai-memory-v1") throw new Error("Unsupported memory pack.");
-      // Merge
+
       memory.profile = pack.profile ?? memory.profile;
-      memory.system = pack.system ?? memory.system;
+      memory.system  = pack.system  ?? memory.system;
       memory.threads = pack.threads ?? memory.threads;
+
       saveLocal();
       renderThread();
-      add("assistant", "Memory imported.");
-    } catch (e) {
-      add("assistant", "Import failed: " + (e?.message || e));
+      add("assistant", "✅ Memory imported.");
+    } catch (err) {
+      add("assistant", "❌ Import failed: " + ((err && (err.message || String(err))) || "Unknown error"));
     } finally {
       importFile.value = "";
     }
   };
 
   // Auto-download on page load
-  window.addEventListener("load", ensureLoadedAuto);
+  window.addEventListener("load", async () => {
+    setProgress(0, "Auto-load pending…");
+    await loadModel(modelSel.value, { auto: true });
+  });
 </script>
 </body>
 </html>
