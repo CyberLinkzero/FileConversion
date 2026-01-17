@@ -21,11 +21,12 @@
     .ai{margin-right:auto;background:#101a27}
     .bar{display:flex;gap:10px;padding:12px;border-top:1px solid #1f2a37}
     textarea{flex:1;resize:none;background:#0b1220;color:#e7eef7;border:1px solid #223044;border-radius:12px;padding:10px}
-    a{color:#8ab4ff}
     .progress-wrap{padding:0 14px 14px 14px}
     .progress-head{display:flex;justify-content:space-between;gap:10px}
     .progress-outer{height:10px;background:#0b1220;border:1px solid #223044;border-radius:999px;overflow:hidden}
     #pBar{height:100%;width:0%;background:#2dd4bf}
+    .pill{display:inline-block;padding:2px 8px;border:1px solid #223044;border-radius:999px;background:#0b1220;margin-left:6px}
+    code{background:#0b1220;border:1px solid #223044;border-radius:8px;padding:1px 6px}
   </style>
 </head>
 <body>
@@ -33,19 +34,20 @@
   <div class="card">
     <div class="top">
       <div>
-        <div><b>FileConverter AI (Local)</b></div>
+        <div><b>FileConverter AI (Local)</b> <span id="devicePill" class="pill">device: ?</span></div>
         <div id="status" class="status">Idle</div>
         <div class="status">
-          Runs on your device. First load may download a large model (hundreds of MB). Subsequent loads are faster due to browser caching.
+          Runs on your device. First load downloads the model (can be hundreds of MB). Next loads are faster due to browser caching.
         </div>
       </div>
 
       <div class="row">
         <label class="status">Model</label>
         <select id="model">
-          <option value="microsoft/Phi-3-mini-4k-instruct-onnx-web">Phi-3 Mini (ONNX Web) — recommended</option>
-          <option value="Xenova/Phi-3-mini-4k-instruct">Phi-3 Mini (Xenova) — alternative</option>
-          <option value="Xenova/distilgpt2">DistilGPT-2 (tiny fallback test)</option>
+          <option value="qwen05">Qwen2.5 0.5B Instruct (fast + reliable)</option>
+          <option value="phi3x">Phi-3 Mini (Xenova, best quality)</option>
+          <option value="phi3ms">Phi-3 Mini (Microsoft ONNX Web, fixed)</option>
+          <option value="gpt2tiny">DistilGPT-2 (tiny fallback test)</option>
         </select>
 
         <button id="reload">Load / Switch</button>
@@ -55,7 +57,6 @@
       </div>
     </div>
 
-    <!-- Progress UI -->
     <div class="progress-wrap">
       <div class="progress-head status">
         <span id="pLabel">Not loading</span>
@@ -76,10 +77,11 @@
 </div>
 
 <script type="module">
-  // Pinned version for stability (WebGPU support is in v3)
+  // Pinned v3 for WebGPU support
   import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2";
 
   const statusEl  = document.getElementById("status");
+  const devicePill= document.getElementById("devicePill");
   const msgsEl    = document.getElementById("msgs");
   const inputEl   = document.getElementById("input");
   const sendBtn   = document.getElementById("send");
@@ -94,19 +96,44 @@
   const pLabel = document.getElementById("pLabel");
   const pPct   = document.getElementById("pPct");
 
-  // -------------------------
-  // Portable local "memory pack"
-  // -------------------------
+  // ---- Model menu (key -> HF repo + options) ----
+  // NOTE:
+  // - Qwen2.5 example is recommended by Transformers.js v3 blog: dtype q4 + webgpu.
+  // - Xenova Phi-3 is packaged to work with Transformers.js.
+  // - Microsoft Phi-3 ONNX Web repo needs model_file_name + subfolder because files are named model_q4f16.onnx etc.
+  const MODELS = {
+    qwen05: {
+      label: "onnx-community/Qwen2.5-0.5B-Instruct",
+      repo: "onnx-community/Qwen2.5-0.5B-Instruct",
+      opts: { dtype: "q4" }
+    },
+    phi3x: {
+      label: "Xenova/Phi-3-mini-4k-instruct",
+      repo: "Xenova/Phi-3-mini-4k-instruct",
+      opts: { dtype: "q4f16", use_external_data_format: true }
+    },
+    phi3ms: {
+      label: "microsoft/Phi-3-mini-4k-instruct-onnx-web (model_q4f16)",
+      repo: "microsoft/Phi-3-mini-4k-instruct-onnx-web",
+      // The files live under /onnx and are named model_q4f16.onnx + model_q4f16.onnx_data
+      opts: { subfolder: "onnx", model_file_name: "model_q4f16", use_external_data_format: true }
+    },
+    gpt2tiny: {
+      label: "Xenova/distilgpt2",
+      repo: "Xenova/distilgpt2",
+      opts: {}
+    }
+  };
+
+  // ---- Local memory (portable) ----
   const memory = {
     schema: "fc-ai-memory-v1",
     profile: { style: "concise" },
-    system: "You are FileConverter AI. Help with file formats, conversions, troubleshooting, and workflows. Be concise and accurate.",
+    system: "You are FileConverter AI. Help with file formats, conversions, troubleshooting, and workflows. Be concise and accurate. If a user asks for code, give clean copy/paste code.",
     threads: [{ id: "main", title: "Main", messages: [] }]
   };
 
-  function saveLocal() {
-    localStorage.setItem("fc_ai_memory", JSON.stringify(memory));
-  }
+  function saveLocal() { localStorage.setItem("fc_ai_memory", JSON.stringify(memory)); }
   function loadLocal() {
     const raw = localStorage.getItem("fc_ai_memory");
     if (!raw) return;
@@ -130,21 +157,23 @@
     const thread = memory.threads[0];
     for (const m of thread.messages) add(m.role, m.content);
     if (thread.messages.length === 0) {
-      add("assistant", "Hi — I run locally on your device. Click “Load / Switch” (or wait for auto-load), then ask me anything about file conversions.");
+      add("assistant",
+        "Hi — I run locally on your device.\n\n" +
+        "1) Click “Load / Switch” (or wait for auto-load)\n" +
+        "2) Ask me anything about file conversions.\n\n" +
+        "Tip: The best starter model is Qwen2.5 0.5B Instruct (fast + reliable)."
+      );
     }
   }
   renderThread();
 
-  // -------------------------
-  // Progress helpers
-  // -------------------------
+  // ---- Progress helpers ----
   function setProgress(p = 0, label = "") {
     const pct = Math.max(0, Math.min(100, Math.round(p)));
     pBar.style.width = pct + "%";
     pPct.textContent = pct + "%";
     if (label) pLabel.textContent = label;
   }
-
   function formatBytes(n) {
     if (typeof n !== "number" || !isFinite(n)) return "";
     const units = ["B","KB","MB","GB"];
@@ -152,9 +181,7 @@
     while (v >= 1024 && u < units.length - 1) { v /= 1024; u++; }
     return `${v.toFixed(u === 0 ? 0 : 1)} ${units[u]}`;
   }
-
   function hasWebGPU() { return !!navigator.gpu; }
-
   function netLooksConstrained() {
     const c = navigator.connection;
     const saveData = c?.saveData === true;
@@ -162,19 +189,17 @@
     return !!(saveData || slow);
   }
 
-  // -------------------------
-  // Model runtime
-  // -------------------------
+  // ---- Model runtime ----
   let generator = null;
-  let currentModel = null;
+  let currentModelKey = null;
   let currentDevice = null;
 
-  async function loadModel(modelId, { auto = false } = {}) {
-    // UI lock
+  async function loadModel(modelKey, { auto = false } = {}) {
+    const cfg = MODELS[modelKey] || MODELS.qwen05;
+
     reloadBtn.disabled = true;
     sendBtn.disabled = true;
 
-    // Respect slow networks for auto-load only (manual click always loads)
     if (auto && netLooksConstrained()) {
       statusEl.textContent = "Skipped auto-download (Data Saver / slow network). Click “Load / Switch” to start.";
       setProgress(0, "Skipped auto-download");
@@ -187,21 +212,18 @@
     setProgress(1, "Starting…");
 
     try {
-      // Use remote models only
       env.allowLocalModels = false;
 
       const device = hasWebGPU() ? "webgpu" : "wasm";
       currentDevice = device;
+      devicePill.textContent = "device: " + device;
 
-      statusEl.textContent = `Loading (${device}) — first load can take a while.`;
+      statusEl.textContent = `Loading (${device}) — ${cfg.label}`;
       setProgress(2, `Preparing (${device})…`);
 
-      generator = await pipeline("text-generation", modelId, {
+      generator = await pipeline("text-generation", cfg.repo, {
         device,
-        // Helps with models stored as multiple external data shards (common for ONNX)
-        use_external_data_format: true,
-
-        // Progress callback: updates bar + labels
+        ...cfg.opts,
         progress_callback: (prog) => {
           const pct = (prog?.progress ?? prog?.percentage ?? 0);
           const stage = prog?.status || prog?.file || prog?.name || "Downloading…";
@@ -212,26 +234,32 @@
         }
       });
 
-      currentModel = modelId;
-      statusEl.textContent = `Ready (${device}). Model: ${modelId}`;
+      currentModelKey = modelKey;
+      statusEl.textContent = `Ready (${device}). Model: ${cfg.label}`;
       setProgress(100, "Done");
     } catch (err) {
       console.error(err);
       generator = null;
-      currentModel = null;
+      currentModelKey = null;
 
-      statusEl.textContent = "Load failed. (Open DevTools Console for details.)";
+      statusEl.textContent = "Load failed. (Open DevTools Console for full details.)";
       setProgress(0, "Failed");
 
       const msg = (err && (err.message || String(err))) || "Unknown error";
-      add("assistant", "❌ Model load failed:\n" + msg + "\n\nTry the tiny fallback model (DistilGPT-2) to confirm loading works, or use Chrome/Edge with WebGPU enabled.");
+      add("assistant",
+        "❌ Model load failed:\n" + msg + "\n\n" +
+        "Try:\n" +
+        "- Switch to “Qwen2.5 0.5B Instruct” (fast + reliable)\n" +
+        "- Or “DistilGPT-2” to verify downloads work.\n\n" +
+        "If you want Phi-3, pick “Phi-3 Mini (Xenova)” or “Phi-3 Mini (Microsoft ONNX Web, fixed)”."
+      );
     } finally {
       reloadBtn.disabled = false;
       sendBtn.disabled = false;
     }
   }
 
-  // Build a simple instruct-style prompt
+  // Simple prompt formatting (good enough for these instruct models)
   function buildPrompt(system, messages) {
     const turns = messages.slice(-10).map(m => {
       const who = m.role === "user" ? "User" : "Assistant";
@@ -278,9 +306,7 @@
     }
   }
 
-  // -------------------------
-  // Buttons / events
-  // -------------------------
+  // ---- UI wiring ----
   reloadBtn.addEventListener("click", async () => {
     await loadModel(modelSel.value, { auto: false });
   });
@@ -329,8 +355,19 @@
     }
   };
 
-  // Auto-download on page load
+  // ---- Auto-load on page load ----
   window.addEventListener("load", async () => {
+    // Default to Qwen (fast + reliable) on first visit
+    if (!localStorage.getItem("fc_ai_model_key")) {
+      modelSel.value = "qwen05";
+    } else {
+      modelSel.value = localStorage.getItem("fc_ai_model_key");
+    }
+
+    modelSel.addEventListener("change", () => {
+      localStorage.setItem("fc_ai_model_key", modelSel.value);
+    });
+
     setProgress(0, "Auto-load pending…");
     await loadModel(modelSel.value, { auto: true });
   });
