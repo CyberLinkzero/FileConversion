@@ -6,22 +6,24 @@
   <title>FileConverter AI (Local • Transformers.js)</title>
   <style>
     body{margin:0;font-family:system-ui;background:#0b0f14;color:#e7eef7}
-    .wrap{max-width:980px;margin:auto;padding:18px}
-    .card{border:1px solid #1f2a37;border-radius:16px;background:#0f1620}
+    .wrap{max-width:1080px;margin:auto;padding:18px}
+    .card{border:1px solid #1f2a37;border-radius:16px;background:#0f1620;overflow:hidden}
     .top{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;padding:14px;border-bottom:1px solid #1f2a37}
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
-    select,button{background:#111b2a;color:#e7eef7;border:1px solid #223044;border-radius:12px;padding:10px}
+    select,button,input{background:#111b2a;color:#e7eef7;border:1px solid #223044;border-radius:12px;padding:10px}
     button{cursor:pointer}
     button:hover{filter:brightness(1.1)}
     button:disabled{opacity:.6;cursor:not-allowed}
     .status{opacity:.75;font-size:12px;line-height:1.35}
+    .layout{display:grid;grid-template-columns:1fr 360px;gap:0}
+    @media (max-width: 980px){ .layout{grid-template-columns:1fr} .side{border-left:none;border-top:1px solid #1f2a37} }
     .msgs{height:62vh;overflow:auto;padding:16px}
     .msg{margin:10px 0;padding:10px 12px;border-radius:14px;max-width:82%;border:1px solid #223044;white-space:pre-wrap}
     .me{margin-left:auto;background:#122235}
     .ai{margin-right:auto;background:#101a27}
     .bar{display:flex;gap:10px;padding:12px;border-top:1px solid #1f2a37}
     textarea{flex:1;resize:none;background:#0b1220;color:#e7eef7;border:1px solid #223044;border-radius:12px;padding:10px}
-    .progress-wrap{padding:0 14px 14px 14px}
+    .progress-wrap{padding:0 14px 14px 14px;border-bottom:1px solid #1f2a37}
     .progress-head{display:flex;justify-content:space-between;gap:10px}
     .progress-outer{height:10px;background:#0b1220;border:1px solid #223044;border-radius:999px;overflow:hidden}
     #pBar{height:100%;width:0%;background:#2dd4bf}
@@ -30,6 +32,17 @@
     .leftActions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .danger{border-color:#7f1d1d}
     .danger:hover{filter:brightness(1.15)}
+    .side{border-left:1px solid #1f2a37;background:#0c121b}
+    .sideHead{padding:14px;border-bottom:1px solid #1f2a37;display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .sideBody{padding:14px;max-height:calc(62vh + 84px);overflow:auto}
+    .memItem{border:1px solid #223044;border-radius:14px;padding:10px;margin:10px 0;background:#0b1220}
+    .memTop{display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .tag{font-size:11px;opacity:.8;border:1px solid #223044;border-radius:999px;padding:2px 8px}
+    .memText{width:100%;margin-top:8px}
+    .tiny{padding:6px 10px;border-radius:10px;font-size:12px}
+    .muted{opacity:.7}
+    .hr{height:1px;background:#1f2a37;margin:12px 0}
+    a{color:#8ab4ff}
   </style>
 </head>
 <body>
@@ -40,7 +53,7 @@
         <button id="backBtn" title="Back to FileConverter.run">← Back</button>
         <div>
           <div>
-            <b>FileConverter AI (Local)</b>
+            <b id="titleName">FileConverter AI (Local)</b>
             <span id="devicePill" class="pill">device: ?</span>
             <span id="storePill" class="pill">storage: ?</span>
             <span id="thinkPill" class="pill">idle</span>
@@ -48,6 +61,9 @@
           <div id="status" class="status">Idle</div>
           <div class="status">
             Runs on your device. First load may download a model (can be large). Next loads are faster due to caching.
+          </div>
+          <div class="status muted">
+            Commands: <code>name: CJ</code> • <code>remember: ...</code> • <code>forget: ...</code>
           </div>
         </div>
       </div>
@@ -77,21 +93,49 @@
       </div>
     </div>
 
-    <div class="progress-wrap">
-      <div class="progress-head status">
-        <span id="pLabel">Not loading</span>
-        <span id="pPct">0%</span>
-      </div>
-      <div class="progress-outer">
-        <div id="pBar"></div>
-      </div>
-    </div>
+    <div class="layout">
+      <div>
+        <div class="progress-wrap">
+          <div class="progress-head status">
+            <span id="pLabel">Not loading</span>
+            <span id="pPct">0%</span>
+          </div>
+          <div class="progress-outer">
+            <div id="pBar"></div>
+          </div>
+        </div>
 
-    <div id="msgs" class="msgs"></div>
+        <div id="msgs" class="msgs"></div>
 
-    <div class="bar">
-      <textarea id="input" rows="2" placeholder="Ask about file formats, conversions, errors…"></textarea>
-      <button id="send">Send</button>
+        <div class="bar">
+          <textarea id="input" rows="2" placeholder="Ask about file formats, conversions, errors…"></textarea>
+          <button id="send">Send</button>
+        </div>
+      </div>
+
+      <aside class="side">
+        <div class="sideHead">
+          <div>
+            <b>Memories</b>
+            <span class="status muted" id="memCount">0</span>
+          </div>
+          <button id="addMemBtn" class="tiny">+ Add</button>
+        </div>
+        <div class="sideBody">
+          <div class="status">
+            Saved items you want the assistant to recall later. Use <code>remember:</code> in chat, or add here.
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="status muted">Search</div>
+          <input id="memSearch" placeholder="filter memories…" style="width:100%;margin-top:6px" />
+
+          <div class="hr"></div>
+
+          <div id="memList"></div>
+        </div>
+      </aside>
     </div>
   </div>
 </div>
@@ -122,7 +166,14 @@
   const devicePill = document.getElementById("devicePill");
   const storePill  = document.getElementById("storePill");
   const thinkPill  = document.getElementById("thinkPill");
+  const titleName  = document.getElementById("titleName");
   const backBtn    = document.getElementById("backBtn");
+
+  // Memories panel
+  const memCountEl = document.getElementById("memCount");
+  const memListEl  = document.getElementById("memList");
+  const memSearchEl= document.getElementById("memSearch");
+  const addMemBtn  = document.getElementById("addMemBtn");
 
   backBtn.onclick = () => { window.location.href = "https://fileconverter.run/"; };
 
@@ -250,16 +301,49 @@
   };
 
   // -------------------------
-  // Memory (portable pack format)
+  // Memory format (global memories + chat thread)
   // -------------------------
   const memory = {
     schema: "fc-ai-memory-v1",
+    assistant: { name: "CJ" },   // changeable via "name:" command
     profile: { style: "concise" },
-    system: "You are FileConverter AI. Help with file formats, conversions, troubleshooting, and workflows. Be concise and accurate. If a user asks for code, give clean copy/paste code.",
+    // user-controlled memories:
+    facts: [
+      // { id, text, tags:[], createdAt, updatedAt }
+    ],
+    system: "",                  // rebuilt dynamically
     threads: [{ id: "main", title: "Main", messages: [] }],
     perf: { estTokensPerSecond: 14 }
   };
 
+  function nowISO(){ return new Date().toISOString(); }
+  function uid(){ return Math.random().toString(16).slice(2) + "-" + Date.now().toString(16); }
+
+  async function saveMemory() { await store.save(JSON.stringify(memory)); }
+  async function loadMemory() {
+    const txt = await store.load();
+    if (!txt) return;
+    try {
+      const obj = JSON.parse(txt);
+      if (obj?.schema === "fc-ai-memory-v1") Object.assign(memory, obj);
+    } catch {}
+  }
+
+  function rebuildSystemPrompt() {
+    const name = memory?.assistant?.name || "FileConverter AI";
+    titleName.textContent = `${name} (Local)`;
+
+    memory.system =
+`You are ${name}, the FileConverter.run local AI assistant.
+Your name is "${name}" and you must use that name consistently when asked.
+Help with file formats, conversions, troubleshooting, and workflows.
+Be concise and accurate. If a user asks for code, give clean copy/paste code.
+If you are unsure, say so.`;
+  }
+
+  // -------------------------
+  // Chat UI
+  // -------------------------
   function add(role, text) {
     const d = document.createElement("div");
     d.className = "msg " + (role === "user" ? "me" : "ai");
@@ -274,25 +358,209 @@
     for (const m of thread.messages) add(m.role, m.content);
     if (thread.messages.length === 0) {
       add("assistant",
-        "Hi — I run locally on your device.\n\n" +
-        "• Compute is set to Auto: WebGPU first, then GPU reset if stuck, then CPU fallback.\n" +
-        "• Start with Qwen2.5 0.5B for speed; switch to Phi-3 for better answers."
+        `Hi — I’m ${memory?.assistant?.name || "FileConverter AI"} and I run locally on your device.\n\n` +
+        "• Auto recall is ON (keyword-based) using your saved Memories.\n" +
+        "• Commands: name:, remember:, forget:\n"
       );
     }
   }
 
-  async function saveMemory() { await store.save(JSON.stringify(memory)); }
-  async function loadMemory() {
-    const txt = await store.load();
-    if (!txt) return;
-    try {
-      const obj = JSON.parse(txt);
-      if (obj?.schema === "fc-ai-memory-v1") Object.assign(memory, obj);
-    } catch {}
+  // -------------------------
+  // Memories panel UI + ops
+  // -------------------------
+  function norm(s){ return (s||"").toLowerCase(); }
+
+  function extractTags(text) {
+    // allows #tags in memory text
+    const tags = [];
+    const re = /#([a-z0-9_-]{2,32})/ig;
+    let m;
+    while ((m = re.exec(text)) !== null) tags.push(m[1].toLowerCase());
+    return Array.from(new Set(tags));
+  }
+
+  function upsertFact(text) {
+    const clean = (text || "").trim();
+    if (!clean) return null;
+    const tags = extractTags(clean);
+    const id = uid();
+    const item = { id, text: clean, tags, createdAt: nowISO(), updatedAt: nowISO() };
+    memory.facts = memory.facts || [];
+    memory.facts.unshift(item);
+    return item;
+  }
+
+  function deleteFact(id) {
+    memory.facts = (memory.facts || []).filter(x => x.id !== id);
+  }
+
+  function updateFact(id, newText) {
+    const clean = (newText || "").trim();
+    const idx = (memory.facts || []).findIndex(x => x.id === id);
+    if (idx === -1) return;
+    memory.facts[idx].text = clean;
+    memory.facts[idx].tags = extractTags(clean);
+    memory.facts[idx].updatedAt = nowISO();
+  }
+
+  function renderMemories() {
+    const q = norm(memSearchEl.value);
+    const items = (memory.facts || []).filter(it => {
+      if (!q) return true;
+      return norm(it.text).includes(q) || (it.tags||[]).some(t => norm(t).includes(q));
+    });
+
+    memCountEl.textContent = `${(memory.facts||[]).length} saved`;
+    memListEl.innerHTML = "";
+
+    if (items.length === 0) {
+      const d = document.createElement("div");
+      d.className = "status muted";
+      d.textContent = q ? "No matches." : "No memories yet. Use remember: in chat or + Add.";
+      memListEl.appendChild(d);
+      return;
+    }
+
+    for (const it of items) {
+      const box = document.createElement("div");
+      box.className = "memItem";
+
+      const top = document.createElement("div");
+      top.className = "memTop";
+
+      const left = document.createElement("div");
+      left.className = "status muted";
+      left.textContent = new Date(it.updatedAt || it.createdAt).toLocaleString();
+
+      const right = document.createElement("div");
+      right.style.display = "flex";
+      right.style.gap = "8px";
+
+      const del = document.createElement("button");
+      del.className = "tiny danger";
+      del.textContent = "Delete";
+      del.onclick = async () => {
+        deleteFact(it.id);
+        await saveMemory();
+        renderMemories();
+      };
+
+      right.appendChild(del);
+
+      top.appendChild(left);
+      top.appendChild(right);
+
+      const tagsLine = document.createElement("div");
+      tagsLine.style.marginTop = "8px";
+      if ((it.tags||[]).length) {
+        for (const t of it.tags) {
+          const tg = document.createElement("span");
+          tg.className = "tag";
+          tg.textContent = "#" + t;
+          tg.style.marginRight = "6px";
+          tagsLine.appendChild(tg);
+        }
+      } else {
+        const tg = document.createElement("span");
+        tg.className = "tag";
+        tg.textContent = "no tags";
+        tagsLine.appendChild(tg);
+      }
+
+      const ta = document.createElement("textarea");
+      ta.className = "memText";
+      ta.rows = 3;
+      ta.value = it.text;
+
+      const saveBtn = document.createElement("button");
+      saveBtn.className = "tiny";
+      saveBtn.style.marginTop = "8px";
+      saveBtn.textContent = "Save";
+      saveBtn.onclick = async () => {
+        updateFact(it.id, ta.value);
+        await saveMemory();
+        renderMemories();
+      };
+
+      box.appendChild(top);
+      box.appendChild(tagsLine);
+      box.appendChild(ta);
+      box.appendChild(saveBtn);
+
+      memListEl.appendChild(box);
+    }
+  }
+
+  memSearchEl.addEventListener("input", renderMemories);
+
+  addMemBtn.onclick = async () => {
+    const text = prompt("Add a memory (you can include #tags):");
+    if (!text) return;
+    upsertFact(text);
+    await saveMemory();
+    renderMemories();
+  };
+
+  // -------------------------
+  // Retrieval (keyword-based) for prompt injection
+  // -------------------------
+  const STOPWORDS = new Set([
+    "the","a","an","and","or","to","of","in","on","for","with","is","are","was","were",
+    "it","that","this","as","be","by","from","at","you","i","we","they","he","she","them",
+    "my","your","our","their","me","us","do","does","did","can","could","should","would",
+    "what","why","how","when","where","which","who"
+  ]);
+
+  function tokenize(text) {
+    return (text || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9#_\-\s]/g, " ")
+      .split(/\s+/)
+      .filter(Boolean)
+      .filter(w => w.length >= 3 && !STOPWORDS.has(w));
+  }
+
+  function scoreMemoryItem(item, tokens) {
+    const hay = (item.text + " " + (item.tags||[]).map(t => "#"+t).join(" ")).toLowerCase();
+    let score = 0;
+    for (const t of tokens) {
+      if (hay.includes(t)) score += 2;
+      // extra weight for tag matches
+      if ((item.tags||[]).includes(t.replace("#",""))) score += 3;
+    }
+    // small recency bonus
+    const updated = Date.parse(item.updatedAt || item.createdAt || nowISO());
+    const ageDays = Math.max(0, (Date.now() - updated) / (1000*60*60*24));
+    score += Math.max(0, 2 - ageDays/30); // up to +2
+    return score;
+  }
+
+  function recallMemories(userText, maxItems = 5) {
+    const tokens = tokenize(userText);
+    if (tokens.length === 0) return [];
+    const items = (memory.facts || []).map(it => ({ it, score: scoreMemoryItem(it, tokens) }))
+      .filter(x => x.score > 0)
+      .sort((a,b) => b.score - a.score)
+      .slice(0, maxItems)
+      .map(x => x.it);
+    return items;
+  }
+
+  function buildPrompt(system, messages, recalled) {
+    const turns = messages.slice(-10).map(m => {
+      const who = m.role === "user" ? "User" : "Assistant";
+      return `${who}: ${m.content}`;
+    }).join("\n");
+
+    const memBlock = (recalled && recalled.length)
+      ? "Relevant saved memories:\n" + recalled.map(m => "- " + m.text).join("\n") + "\n\n"
+      : "";
+
+    return `${system}\n\n${memBlock}${turns}\nAssistant:`;
   }
 
   // -------------------------
-  // Helpers: progress, device, timeouts, thinking
+  // Progress + device + timeouts + thinking
   // -------------------------
   function setProgress(p = 0, label = "") {
     const pct = Math.max(0, Math.min(100, Math.round(p)));
@@ -364,46 +632,32 @@
   }
 
   // -------------------------
-  // GPU watchdog + "GPU reset"
-  //
-  // Reality check: browsers cannot truly reset the GPU driver.
-  // The only reliable reset is a full page reload (new WebGPU device/context).
-  // This implements: timeout → set a one-time "gpu_reset_pending" flag → reload page.
-  // On reload, it will try WebGPU once more. If it times out again, it flips to CPU.
+  // GPU watchdog + "GPU reset" (reload page once)
   // -------------------------
-  const WD_TIMEOUT_MS = 25000;               // generation watchdog
-  const GPU_RESET_MAX_TRIES = 1;             // try 1 GPU reset per model selection
+  const WD_TIMEOUT_MS = 25000;
+  const GPU_RESET_MAX_TRIES = 1;
   const RESET_FLAG = "fc_ai_gpu_reset_pending";
   const RESET_TRIES = "fc_ai_gpu_reset_tries";
   const RESET_MODEL = "fc_ai_gpu_reset_model";
-  const RESET_COMPUTE = "fc_ai_gpu_reset_compute";
 
   function markGpuResetPending(modelKey) {
     const tries = Number(sessionStorage.getItem(RESET_TRIES) || "0");
     sessionStorage.setItem(RESET_FLAG, "1");
     sessionStorage.setItem(RESET_TRIES, String(tries + 1));
     sessionStorage.setItem(RESET_MODEL, modelKey);
-    sessionStorage.setItem(RESET_COMPUTE, computeSel.value);
   }
-
   function clearGpuResetPending() {
     sessionStorage.removeItem(RESET_FLAG);
     sessionStorage.removeItem(RESET_MODEL);
-    sessionStorage.removeItem(RESET_COMPUTE);
   }
-
   function getGpuResetState() {
     return {
       pending: sessionStorage.getItem(RESET_FLAG) === "1",
       tries: Number(sessionStorage.getItem(RESET_TRIES) || "0"),
-      modelKey: sessionStorage.getItem(RESET_MODEL),
-      compute: sessionStorage.getItem(RESET_COMPUTE)
+      modelKey: sessionStorage.getItem(RESET_MODEL)
     };
   }
-
   function hardReloadForGpuReset() {
-    // Force a real reload to recreate the WebGPU context/device.
-    // cache-busting query helps avoid weird hot-reload behavior.
     const url = new URL(window.location.href);
     url.searchParams.set("r", String(Date.now()));
     window.location.replace(url.toString());
@@ -512,23 +766,80 @@
     }
   }
 
-  function buildPrompt(system, messages) {
-    const turns = messages.slice(-10).map(m => {
-      const who = m.role === "user" ? "User" : "Assistant";
-      return `${who}: ${m.content}`;
-    }).join("\n");
-    return `${system}\n\n${turns}\nAssistant:`;
+  // -------------------------
+  // Commands: name / remember / forget
+  // -------------------------
+  function parseCommand(text) {
+    const t = (text || "").trim();
+    const m1 = t.match(/^\s*name\s*:\s*(.+)\s*$/i);
+    if (m1) return { cmd: "name", arg: m1[1].trim() };
+
+    const m2 = t.match(/^\s*remember\s*:\s*(.+)\s*$/i);
+    if (m2) return { cmd: "remember", arg: m2[1].trim() };
+
+    const m3 = t.match(/^\s*forget\s*:\s*(.+)\s*$/i);
+    if (m3) return { cmd: "forget", arg: m3[1].trim() };
+
+    return null;
   }
 
+  function findFactsToForget(query) {
+    const q = norm(query);
+    if (!q) return [];
+    return (memory.facts || []).filter(it => norm(it.text).includes(q) || (it.tags||[]).some(t => norm(t).includes(q)));
+  }
+
+  // -------------------------
+  // Chat send
+  // -------------------------
   async function send() {
     const text = inputEl.value.trim();
     if (!text) return;
+
+    // commands run even if model isn't loaded
+    const cmd = parseCommand(text);
+    if (cmd) {
+      inputEl.value = "";
+      add("user", text);
+
+      if (cmd.cmd === "name") {
+        memory.assistant = memory.assistant || {};
+        memory.assistant.name = cmd.arg.slice(0, 40) || "CJ";
+        rebuildSystemPrompt();
+        await saveMemory();
+        renderMemories();
+        add("assistant", `✅ Got it. My name is now ${memory.assistant.name}.`);
+        return;
+      }
+
+      if (cmd.cmd === "remember") {
+        const item = upsertFact(cmd.arg);
+        rebuildSystemPrompt();
+        await saveMemory();
+        renderMemories();
+        add("assistant", item ? `✅ Saved memory${item.tags?.length ? " ("+item.tags.map(t=>"#"+t).join(" ")+")" : ""}.` : "⚠️ Nothing to save.");
+        return;
+      }
+
+      if (cmd.cmd === "forget") {
+        const matches = findFactsToForget(cmd.arg);
+        if (matches.length === 0) {
+          add("assistant", "⚠️ I couldn’t find a matching saved memory to forget. Try a keyword from the memory text.");
+          return;
+        }
+        // delete all matches
+        for (const m of matches) deleteFact(m.id);
+        await saveMemory();
+        renderMemories();
+        add("assistant", `✅ Forgot ${matches.length} memory item(s).`);
+        return;
+      }
+    }
 
     if (isLoading) { add("assistant", "⚠️ Still loading… wait for “Ready”, then send."); return; }
     if (isGenerating) { add("assistant", "⚠️ I’m already replying — wait, or press Cancel."); return; }
     if (!generator || !activeToken) { add("assistant", "Model not loaded yet. Click “Load / Switch” first."); return; }
 
-    // lock session + generation
     const mySession = activeToken;
     const myGen = ++genToken;
 
@@ -556,7 +867,8 @@
     startThinkTimer();
 
     try {
-      const prompt = buildPrompt(memory.system, memory.threads[0].messages);
+      const recalled = recallMemories(text, 5);
+      const prompt = buildPrompt(memory.system, memory.threads[0].messages, recalled);
       if (mySession !== activeToken) throw new Error("Model session changed. Please try again.");
 
       const t0 = performance.now();
@@ -572,7 +884,6 @@
       );
       const t1 = performance.now();
 
-      // cancelled / new gen => ignore
       if (cancelRequested || myGen !== genToken) { placeholder.textContent = "⛔ Cancelled."; return; }
       if (mySession !== activeToken) throw new Error("Model session changed during reply. Please try again.");
 
@@ -581,7 +892,6 @@
 
       placeholder.textContent = reply;
 
-      // speed estimate for ETA
       const secs = Math.max(0.01, (t1 - t0) / 1000);
       const estTokens = estimateTokensFromText(reply);
       memory.perf.estTokensPerSecond = Math.max(1, Math.round(estTokens / secs));
@@ -594,9 +904,8 @@
       const msg = (err && (err.message || String(err))) || "Unknown error";
       const isTimeout = /timed out/i.test(msg);
       const usingGpu = devicePill.textContent.includes("webgpu");
-      const modelKey = modelSel.value;
 
-      // GPU watchdog path: timeout on WebGPU → GPU reset (page reload) → retry WebGPU once → then CPU fallback
+      // GPU watchdog: timeout on WebGPU in Auto → reload page once → then CPU fallback
       if (isTimeout && usingGpu && shouldAutoFallback()) {
         const st = getGpuResetState();
         const tries = st.tries;
@@ -605,17 +914,16 @@
           placeholder.textContent =
             "⚠️ WebGPU got stuck (watchdog timeout).\n\n" +
             "Attempting a GPU reset (page reload) and retrying once…";
-          await sleep(150); // allow UI paint
-          markGpuResetPending(modelKey);
+          await sleep(150);
+          markGpuResetPending(modelSel.value);
           hardReloadForGpuReset();
           return;
         } else {
           placeholder.textContent =
             "⚠️ WebGPU got stuck again after a reset.\n\n" +
-            "Switching to CPU/WASM for reliability. Click “Load / Switch” (or I can auto-load CPU on refresh).";
+            "Switching to CPU/WASM for reliability…";
           computeSel.value = "wasm";
           localStorage.setItem("fc_ai_compute", "wasm");
-          // auto reload model on CPU now:
           await loadModel(modelSel.value, { auto: false });
           placeholder.textContent = "✅ CPU/WASM loaded. Send your message again (slower, but reliable).";
           return;
@@ -672,7 +980,6 @@
       isGenerating = false;
     }
     memory.threads = [{ id: "main", title: "Main", messages: [] }];
-    await store.clear();
     await saveMemory();
     renderThread();
   };
@@ -702,13 +1009,18 @@
       const pack = JSON.parse(text);
       if (pack.schema !== "fc-ai-memory-v1") throw new Error("Unsupported memory pack.");
 
-      memory.profile = pack.profile ?? memory.profile;
-      memory.system  = pack.system  ?? memory.system;
-      memory.threads = pack.threads ?? memory.threads;
-      memory.perf    = pack.perf    ?? memory.perf;
+      // merge safe parts
+      memory.assistant = pack.assistant ?? memory.assistant;
+      memory.profile   = pack.profile   ?? memory.profile;
+      memory.facts      = pack.facts      ?? memory.facts;
+      memory.threads    = pack.threads    ?? memory.threads;
+      memory.perf       = pack.perf       ?? memory.perf;
 
+      rebuildSystemPrompt();
       await saveMemory();
+
       renderThread();
+      renderMemories();
       add("assistant", "✅ Memory imported.");
     } catch (err) {
       add("assistant", "❌ Import failed: " + ((err && (err.message || String(err))) || "Unknown error"));
@@ -722,7 +1034,10 @@
   // -------------------------
   await store.init();
   await loadMemory();
+  memory.facts = memory.facts || [];
+  rebuildSystemPrompt();
   renderThread();
+  renderMemories();
 
   // restore settings
   const savedModel = localStorage.getItem("fc_ai_model_key");
@@ -732,21 +1047,15 @@
   computeSel.value = savedCompute || "auto";
   computeSel.addEventListener("change", () => localStorage.setItem("fc_ai_compute", computeSel.value));
 
-  // GPU reset retry logic on reload
+  // GPU reset retry message on reload
   const rs = getGpuResetState();
   if (rs.pending) {
-    // Try to re-run with same model + WebGPU once, then clear pending
     clearGpuResetPending();
-
-    // Ensure compute stays Auto/WebGPU for the retry (do not force CPU here)
-    if (computeSel.value === "wasm") computeSel.value = "auto";
-
     add("assistant",
       "♻️ GPU reset complete (page reloaded).\n" +
       "Retrying WebGPU once… If it hangs again, Auto mode will switch to CPU/WASM."
     );
   } else {
-    // Fresh start resets tries counter
     sessionStorage.setItem(RESET_TRIES, "0");
   }
 
