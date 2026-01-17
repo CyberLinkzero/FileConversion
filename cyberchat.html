@@ -155,7 +155,6 @@
         <button id="clear" class="danger">Clear chat</button>
 
         <button id="voiceToggle">🎙️ Voice: Off</button>
-        <button id="pttBtn" class="tiny" title="Hold to talk" disabled>Hold to Talk</button>
 
         <select id="voiceSelect" title="Voice"></select>
         <label class="status chk"><input id="autoSpeak" type="checkbox" checked> Speak replies</label>
@@ -244,7 +243,6 @@
 
   // Voice UI
   const voiceToggleBtn = document.getElementById("voiceToggle");
-  const pttBtn         = document.getElementById("pttBtn");
   const voiceSelectEl  = document.getElementById("voiceSelect");
   const autoSpeakEl    = document.getElementById("autoSpeak");
   const waveEl         = document.getElementById("wave");
@@ -443,7 +441,7 @@ Style rules:
         `Hi — I’m ${currentName()} and I run locally on your device.\n\n` +
         "• Auto recall is ON (keyword-based) using your saved Memories.\n" +
         "• Commands: name:, remember:, forget:\n" +
-        "• Voice: toggle 🎙️, then use Hold to Talk (mobile-friendly).\n" +
+        "• Voice: toggle 🎙️, then say the wake word to talk.\n" +
         `• Wake word: say “${currentName()}” or “Hey ${currentName()}”\n`
       );
     }
@@ -756,7 +754,7 @@ Style rules:
   }
 
   // -------------------------
-  // Voice: TTS + STT + Echo prevention + mobile-safe PTT
+  // Voice: TTS + STT + Echo prevention + WAKE WORD ALWAYS LISTENING
   // -------------------------
   let voices = [];
   let voiceOn = false;
@@ -795,7 +793,7 @@ Style rules:
     if (!sttSupported()) return null;
     const r = new SpeechRec();
     r.lang = "en-US";
-    // Mobile: continuous often causes crashes/restarts; keep it short-session
+    // Mobile: continuous often causes crashes; keep it short-session and auto-restart in onend
     r.continuous = !isMobileish();
     r.interimResults = true;
     return r;
@@ -808,7 +806,6 @@ Style rules:
 
   function setVoiceUI() {
     voiceToggleBtn.textContent = voiceOn ? "🎙️ Voice: On" : "🎙️ Voice: Off";
-    pttBtn.disabled = !voiceOn || !sttSupported();
   }
 
   // -------------------------
@@ -831,113 +828,80 @@ Style rules:
     );
   }
 
+  function escapeRegExp(s) {
+    return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
   function stripWakeWord(text) {
-    const name = currentName();
-    // remove: "hey NAME", "ok NAME", "NAME," or "NAME "
+    const name = escapeRegExp(currentName());
     return (text || "")
       .replace(new RegExp(`^(hey|ok)?\\s*${name}[,\\s]+`, "i"), "")
       .replace(new RegExp(`^${name}[,\\s]+`, "i"), "")
       .trim();
   }
 
-  // Push-to-talk: hold to record, release to send
-  let pttFinal = "";
-  let pttInterim = "";
-  let pttSilenceTimer = null;
-
-  function resetPTTBuffers() {
-    pttFinal = "";
-    pttInterim = "";
-    clearTimeout(pttSilenceTimer);
-    pttSilenceTimer = null;
-  }
-
-  function startPTT() {
+  // -------------------------
+  // Always-listening wake-word mode
+  // -------------------------
+  function startWakeListening() {
     if (!voiceOn) return;
     if (isSpeaking) return;
-    if (!sttSupported()) {
-      add("assistant", "🎙️ Speech-to-text isn’t supported in this browser. Try Chrome/Edge (Android) or desktop.");
-      return;
-    }
-    if (!rec) rec = setupRecognizer();
-    resetPTTBuffers();
+    if (!sttSupported()) return;
 
-    rec.onresult = (e) => {
+    if (!rec) rec = setupRecognizer();
+
+    rec.onresult = async (e) => {
       if (isSpeaking) return;
-      let interim = "";
+
+      let finalText = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const chunk = e.results[i][0].transcript;
-        if (e.results[i].isFinal) pttFinal += chunk + " ";
-        else interim += chunk;
+        if (e.results[i].isFinal) finalText += chunk + " ";
       }
-      pttInterim = interim;
+
+      finalText = finalText.trim();
+      if (!finalText) return;
+
+      if (!isWakeWord(finalText)) {
+        // ignore anything that isn't wake-word prefixed
+        return;
+      }
+
+      const cleaned = stripWakeWord(finalText);
+      if (!cleaned) return;
+
+      // stop listening while we respond (prevents double-trigger / echo)
+      safeRecStop();
+      isListening = false;
+      setListening(false);
+
+      await sendText(cleaned, { fromVoice: true });
+
+      // restart after a tiny delay
+      if (voiceOn) setTimeout(startWakeListening, 400);
     };
 
-    rec.onerror = (e) => {
-      add("assistant", `🎙️ Mic error: ${e.error || "unknown"}`);
-      stopPTT();
+    rec.onerror = () => {
+      safeRecStop();
+      isListening = false;
+      setListening(false);
     };
 
     rec.onend = () => {
       isListening = false;
       setListening(false);
-      if (!voiceOn) setThinking(false, "idle");
+      if (voiceOn && !isSpeaking) {
+        setTimeout(startWakeListening, 300);
+      }
     };
 
     try {
       rec.start();
       isListening = true;
       setListening(true);
-      setThinking(true, `listening… say “${currentName()}” or “Hey ${currentName()}”`);
-    } catch (e) {
-      add("assistant", "🎙️ Couldn’t start mic. Check site mic permission.");
-      isListening = false;
-      setListening(false);
-      setThinking(false, "idle");
-    }
+      setThinking(true, `listening… say “${currentName()}”`);
+    } catch {}
   }
-
-  async function stopPTT() {
-    if (!rec) return;
-    safeRecStop();
-    isListening = false;
-    setListening(false);
-
-    // Give the recognizer a moment to flush final results
-    await sleep(120);
-
-    let text = (pttFinal || pttInterim || "").trim();
-    resetPTTBuffers();
-
-    // Wake-word gate: ignore speech that doesn't start with NAME / Hey NAME
-    if (!text) {
-      if (voiceOn && !isSpeaking) setThinking(false, "idle");
-      return;
-    }
-    if (!isWakeWord(text)) {
-      // silently ignore to prevent accidental sends
-      setThinking(false, "idle");
-      return;
-    }
-
-    text = stripWakeWord(text);
-    if (text) await sendText(text, { fromVoice:true });
-    else if (voiceOn && !isSpeaking) setThinking(false, "idle");
-  }
-
-  // Bind press/hold events (mouse + touch)
-  function bindPTT() {
-    const down = (e) => { e.preventDefault(); startPTT(); };
-    const up   = (e) => { e.preventDefault(); stopPTT(); };
-
-    pttBtn.addEventListener("pointerdown", down);
-    pttBtn.addEventListener("pointerup", up);
-    pttBtn.addEventListener("pointercancel", up);
-    pttBtn.addEventListener("pointerleave", (e) => {
-      if (isListening) up(e);
-    });
-  }
-  bindPTT();
 
   async function speak(text) {
     if (!autoSpeakEl.checked) return;
@@ -946,7 +910,11 @@ Style rules:
     try { speechSynthesis.cancel(); } catch {}
 
     const wasListening = isListening;
-    if (wasListening) { safeRecStop(); isListening = false; setListening(false); }
+    if (wasListening) {
+      safeRecStop();
+      isListening = false;
+      setListening(false);
+    }
 
     return new Promise((resolve) => {
       const u = new SpeechSynthesisUtterance(text);
@@ -963,12 +931,22 @@ Style rules:
       };
       u.onend = () => {
         isSpeaking = false;
-        if (voiceOn) setThinking(false, "idle");
+        if (voiceOn) {
+          setThinking(false, "idle");
+          setTimeout(startWakeListening, 250);
+        } else {
+          setThinking(false, "idle");
+        }
         resolve();
       };
       u.onerror = () => {
         isSpeaking = false;
-        if (voiceOn) setThinking(false, "idle");
+        if (voiceOn) {
+          setThinking(false, "idle");
+          setTimeout(startWakeListening, 250);
+        } else {
+          setThinking(false, "idle");
+        }
         resolve();
       };
 
@@ -978,16 +956,17 @@ Style rules:
 
   voiceToggleBtn.onclick = () => {
     voiceOn = !voiceOn;
-    setVoiceUI();
     localStorage.setItem("fc_ai_voice_on", voiceOn ? "1" : "0");
+    setVoiceUI();
 
     if (voiceOn) {
       if (!sttSupported()) {
-        add("assistant", "🎙️ Voice enabled (TTS). STT isn’t available in this browser, so use typing or a supported browser for mic.");
-      } else {
-        add("assistant", `🎙️ Voice enabled. Use “Hold to Talk” and start with “${currentName()}” or “Hey ${currentName()}”.`);
+        add("assistant", "🎙️ Voice enabled (TTS), but speech recognition (mic) isn’t supported in this browser.");
+        setThinking(false, "idle");
+        return;
       }
-      setThinking(false, "idle");
+      add("assistant", `🎙️ Voice enabled. Say “${currentName()} …” or “Hey ${currentName()} …” to talk.`);
+      startWakeListening();
     } else {
       safeRecStop();
       isListening = false;
@@ -1367,7 +1346,7 @@ Style rules:
     const pack = {
       schema: "fc-ai-memory-v1",
       exportedAt: new Date().toISOString(),
-      app: { name: "FileConverter AI", version: "1.0.4-wakeword-mobilefix" },
+      app: { name: "FileConverter AI", version: "1.0.5-wakeword-alwayslisten" },
       ...memory
     };
     const blob = new Blob([JSON.stringify(pack, null, 2)], { type: "application/json" });
@@ -1442,6 +1421,11 @@ Style rules:
 
   setProgress(0, "Auto-load pending…");
   await loadModel(modelSel.value, { auto: true });
+
+  // If voice was ON last time, start listening immediately
+  if (voiceOn && sttSupported()) {
+    setTimeout(startWakeListening, 350);
+  }
 </script>
 </body>
 </html>
