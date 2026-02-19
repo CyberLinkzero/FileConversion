@@ -1160,6 +1160,13 @@ Style rules:
 
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
   let rec = null;
+  // --- Wake/command timing ---
+const COMMAND_LISTEN_MS = 12000; // <-- increase this (e.g. 8000, 12000, 15000)
+const WAKE_ACK = true;           // say "Yes?" after wake word (optional)
+let inCommandMode = false;
+let commandTimer = null;
+let commandBuffer = "";
+
   function sttSupported() { return !!SpeechRec; }
 
   function setupRecognizer() {
