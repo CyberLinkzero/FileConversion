@@ -27,19 +27,71 @@
   <title>Image Converter & Resizer — PNG, JPEG, WebP, AVIF | FileConverter.run</title>
   <meta name="description" content="Convert and resize images privately in your browser. PNG/JPEG/WebP/AVIF, batch processing, transparency preserved, icon sizes like 16x16 and 32x32, and no uploads.">
   <link rel="stylesheet" href="site.css"/>
+  <link rel="stylesheet" href="nav.css"/>
 
   <style>
-    :root{ --bg:#0f1117; --panel:#1a1f2c; --line:#263044; --brand:#7dd3fc; --muted:#9aa4b2; }
-    html,body{margin:0;background:var(--bg);color:#fff;font-family:Arial,Helvetica,sans-serif;}
-    header{text-align:center;padding:22px 0;border-bottom:1px solid #1f2430;}
+    :root{
+      --bg:#0f1117;
+      --panel:#1a1f2c;
+      --panel2:#121826;
+      --panel3:#0d1422;
+      --line:#263044;
+      --line2:#33425d;
+      --brand:#7dd3fc;
+      --accent:#a78bfa;
+      --muted:#9aa4b2;
+      --text:#e5e7eb;
+      --ok:#34d399;
+      --warn:#fbbf24;
+      --danger:#fb7185;
+      --shadow:0 18px 40px rgba(0,0,0,.28);
+      --glow:0 0 24px rgba(125,211,252,.12);
+      --radius:18px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{
+      margin:0;
+      background:
+        radial-gradient(circle at top right, rgba(125,211,252,.08), transparent 28%),
+        radial-gradient(circle at top left, rgba(167,139,250,.08), transparent 24%),
+        var(--bg);
+      color:#fff;
+      font-family:Arial,Helvetica,sans-serif;
+    }
+
+    a{color:var(--brand)}
+
+    .page-shell{
+      max-width:1200px;
+      margin:0 auto;
+      padding:0 16px;
+    }
+
+    header{
+      padding:0 0 18px;
+      border-bottom:1px solid #1f2430;
+      background:
+        radial-gradient(circle at top right, rgba(125,211,252,.08), transparent 30%),
+        radial-gradient(circle at top left, rgba(167,139,250,.08), transparent 24%),
+        linear-gradient(180deg,#0f1117,#0d121d);
+    }
+
     .glow-title{
-      font-size: clamp(1.8rem, 3.5vw, 2.6rem); font-weight:800; margin:8px 0 6px; letter-spacing:.3px;
+      font-size: clamp(1.9rem, 3.8vw, 3rem);
+      font-weight:800;
+      margin:8px 0 6px;
+      letter-spacing:.3px;
       background:linear-gradient(90deg,#00ffff,#7dd3fc,#a78bfa,#ff00ff,#00ffcc,#00ffff);
-      -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+      -webkit-background-clip:text;
+      background-clip:text;
+      -webkit-text-fill-color:transparent;
       text-shadow:0 0 6px rgba(125,211,252,.45),0 0 12px rgba(125,211,252,.25),0 0 30px rgba(167,139,250,.2);
       animation:cyberPulse 3s ease-in-out infinite alternate, gradientShift 6s linear infinite;
       background-size:400% auto;
+      text-align:center;
     }
+
     @keyframes cyberPulse{
       from{ text-shadow:0 0 4px rgba(125,211,252,.25),0 0 8px rgba(125,211,252,.18),0 0 12px rgba(167,139,250,.12)}
       to{   text-shadow:0 0 10px rgba(125,211,252,.6),0 0 20px rgba(125,211,252,.4),0 0 30px rgba(255,0,255,.28)}
@@ -49,44 +101,535 @@
       50%{background-position:100% 50%}
       100%{background-position:0% 50%}
     }
-    header p.sub{opacity:.9;margin:0 0 10px;color:#e5e7eb}
 
-    nav.tabs{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:10px 12px;border-top:1px solid #1f2430;border-bottom:1px solid #1f2430;}
-    nav.tabs .tab{color:var(--brand);text-decoration:none;padding:8px 12px;border-radius:8px}
-    nav.tabs .tab.active{font-weight:700;border-bottom:2px solid var(--brand)}
-    .container{max-width:1200px;margin:0 auto;padding:0 16px}
+    .top-title{
+      text-align:center;
+      padding:22px 0 12px;
+    }
+
+    .sub{
+      opacity:.95;
+      margin:0 auto;
+      color:#e5e7eb;
+      max-width:860px;
+      line-height:1.55;
+    }
+
+    .hero-card{
+      margin-top:14px;
+      background:
+        radial-gradient(circle at top right, rgba(125,211,252,.14), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(167,139,250,.12), transparent 24%),
+        linear-gradient(180deg,#121826,#0b1220);
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      padding:22px;
+    }
+
+    .hero-grid{
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:18px;
+      align-items:stretch;
+    }
+
+    .hero-copy h2{
+      margin:0 0 10px;
+      font-size:clamp(1.2rem,2.4vw,2rem);
+      color:#fff;
+    }
+
+    .hero-copy p{
+      margin:0 0 12px;
+      color:#d6e4f3;
+      max-width:760px;
+      line-height:1.6;
+    }
+
+    .hero-actions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+
+    .btn{
+      appearance:none;
+      border:0;
+      padding:11px 16px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:800;
+      background:linear-gradient(90deg,var(--brand),var(--accent));
+      color:#07101a;
+      transition:.18s ease;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+    }
+
+    .btn:hover{
+      transform:translateY(-1px);
+      box-shadow:0 10px 26px rgba(125,211,252,.2);
+    }
+
+    .btn.sec{
+      background:var(--panel3);
+      color:var(--text);
+      border:1px solid var(--line);
+    }
+
+    .hero-pills{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:16px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#0d1523;
+      color:#d6e7f5;
+      font-size:.93rem;
+    }
+
+    .hero-side{
+      background:linear-gradient(180deg,#0f1625,#101828);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:12px;
+    }
+
+    .hero-side h3{
+      margin:0;
+      color:var(--brand);
+      font-size:1.05rem;
+    }
+
+    .hero-side ul{
+      margin:0;
+      padding-left:18px;
+      color:#d7e7f5;
+      line-height:1.55;
+    }
+
+    .container{
+      max-width:1200px;
+      margin:0 auto;
+      padding:0 16px;
+    }
+
     .panel{padding:22px 0}
-    .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
-    .section-title{color:var(--brand);margin:10px 0 8px}
-    .chips{display:flex;flex-wrap:wrap;gap:8px;padding:10px 0}
-    .chip{background:#101826;border:1px solid var(--line);padding:6px 10px;border-radius:999px;font-size:.9rem;color:#e5e7eb}
+
+    .card{
+      background:linear-gradient(180deg,var(--panel),#171d29);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:18px;
+      box-shadow:var(--glow);
+    }
+
+    .section-title{
+      color:var(--brand);
+      margin:10px 0 8px;
+    }
+
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      padding:10px 0;
+    }
+
+    .chip{
+      background:#101826;
+      border:1px solid var(--line);
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:.9rem;
+      color:#e5e7eb;
+    }
+
+    .info{
+      max-width:1100px;
+      margin:18px auto;
+      background:linear-gradient(180deg,var(--panel),#171d29);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:18px;
+      color:#e6edf3;
+      box-shadow:var(--glow);
+    }
+
+    .info h3{
+      margin:0 0 8px;
+      color:var(--brand);
+    }
+
+    .info ul{
+      margin:8px 0 0 16px;
+      line-height:1.6;
+    }
+
+    .info p{
+      margin:8px 0 0;
+    }
 
     /* Tool */
-    #fc-tool{background:#0f1117;padding:12px 0}
-    #fc-shell{background:#141a26;border:1px dashed var(--line);border-radius:12px;padding:16px}
-    #fc-shell h2{margin:0 0 8px;color:var(--brand)}
-    #fc-shell p{margin:0 0 10px;color:#e5e7eb}
-    #fc-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
-    #fc-actions input, #fc-actions select, #fc-actions button{
-      background:#0f1117;color:#e5e7eb;border:1px solid var(--line);border-radius:10px;padding:8px 10px
+    #fc-tool{
+      background:transparent;
+      padding:12px 0;
     }
-    #fc-actions button:hover{background:var(--brand);color:#0f1117;cursor:pointer}
-    #fc-results{margin-top:14px;min-height:60px;background:#0f1117;border:1px solid var(--line);border-radius:10px;padding:10px}
+
+    .tool-layout{
+      display:grid;
+      grid-template-columns:1.05fr .95fr;
+      gap:18px;
+      align-items:start;
+    }
+
+    #fc-shell{
+      background:linear-gradient(180deg,#141a26,#101726);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:var(--glow);
+    }
+
+    #fc-shell h2{
+      margin:0 0 8px;
+      color:var(--brand);
+    }
+
+    #fc-shell p{
+      margin:0 0 10px;
+      color:#e5e7eb;
+      line-height:1.55;
+    }
+
+    .dropzone{
+      border:2px dashed #33425d;
+      border-radius:16px;
+      padding:24px 16px;
+      text-align:center;
+      background:linear-gradient(180deg,#0f1624,#0b1220);
+      transition:.18s ease;
+      margin-top:10px;
+      cursor:pointer;
+    }
+
+    .dropzone:hover{
+      border-color:var(--brand);
+      box-shadow:0 10px 24px rgba(125,211,252,.08);
+    }
+
+    .dropzone.drag{
+      border-color:#00ffff;
+      box-shadow:0 0 0 4px rgba(0,255,255,.08);
+      background:#122034;
+    }
+
+    .drop-big{
+      font-size:1.05rem;
+      font-weight:700;
+      color:#e8f5ff;
+    }
+
+    .drop-small{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:.95rem;
+    }
+
+    .file-pill{
+      display:none;
+      margin-top:10px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:#0d1523;
+      border:1px solid var(--line);
+      color:#d6e7f5;
+      font-size:.92rem;
+      word-break:break-word;
+    }
+
+    .controls-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+      margin-top:14px;
+    }
+
+    .field{
+      display:grid;
+      gap:6px;
+    }
+
+    .field label{
+      color:#d9e5f3;
+      font-size:.95rem;
+    }
+
+    .field input,
+    .field select,
+    .field button{
+      background:#0f1117;
+      color:#e5e7eb;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 12px;
+      width:100%;
+      transition:.18s ease;
+    }
+
+    .field input:focus,
+    .field select:focus{
+      outline:none;
+      border-color:var(--brand);
+      box-shadow:0 0 0 3px rgba(125,211,252,.12);
+    }
+
+    .toggle-wrap{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:14px;
+    }
+
+    .toggle-chip{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      border:1px solid var(--line);
+      padding:10px 12px;
+      border-radius:999px;
+      background:#0d1523;
+      color:#e5f2ff;
+    }
+
+    .toggle-chip input{
+      accent-color:var(--brand);
+      width:auto;
+    }
+
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:16px;
+      padding:14px;
+      background:#0b1322;
+      border:1px solid var(--line);
+      border-radius:16px;
+    }
+
+    .toolbar button{
+      appearance:none;
+      border:0;
+      padding:11px 16px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:800;
+      background:linear-gradient(90deg,var(--brand),var(--accent));
+      color:#07101a;
+      transition:.18s ease;
+      min-width:180px;
+    }
+
+    .toolbar button:hover{
+      transform:translateY(-1px);
+      box-shadow:0 10px 26px rgba(125,211,252,.2);
+    }
+
+    .icon-hint{
+      font-size:.9rem;
+      color:var(--muted);
+      margin-top:10px;
+      line-height:1.55;
+    }
+
+    #fc-results{
+      margin-top:14px;
+      min-height:120px;
+      background:#0f1117;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+    }
+
+    .empty-state{
+      color:var(--muted);
+      text-align:center;
+      padding:24px 12px;
+    }
+
     #fc-log{
-      margin-top:10px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-      font-size:.9rem; color:#cbd5e1; white-space:pre-wrap; background:#0c1624; border:1px solid var(--line); border-radius:8px; padding:10px
+      margin-top:10px;
+      font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size:.9rem;
+      color:#cbd5e1;
+      white-space:pre-wrap;
+      background:#0c1624;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;
+      min-height:96px;
+      max-height:220px;
+      overflow:auto;
     }
-    .icon-hint{font-size:.85rem;color:var(--muted);margin-top:4px}
 
-    /* AdSense-friendly info */
-    .info{max-width:1100px;margin:18px auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;color:#e6edf3}
-    .info h3{margin:0 0 8px;color:var(--brand)}
-    .info p{margin:6px 0 0}
-    .info ul{margin:8px 0 0 16px}
-    .guide{width:100%;border-collapse:collapse}
-    .guide th,.guide td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+    .progress{
+      height:10px;
+      background:#0a1424;
+      border:1px solid #263044;
+      border-radius:999px;
+      overflow:hidden;
+      margin-top:12px;
+    }
 
-    footer{background:var(--panel);color:var(--brand);padding:20px;border-top:1px solid var(--brand);margin-top:40px}
+    .progress > i{
+      display:block;
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg,var(--brand),var(--accent));
+      box-shadow:0 0 16px rgba(125,211,252,.35);
+      transition:width .25s ease;
+    }
+
+    .result-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:14px;
+    }
+
+    .result-card{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      background:#0c1624;
+      box-shadow:0 10px 20px rgba(0,0,0,.18);
+    }
+
+    .result-card .meta{
+      font-size:.88rem;
+      color:var(--muted);
+      line-height:1.45;
+      margin-bottom:8px;
+    }
+
+    .result-card img{
+      width:100%;
+      max-height:220px;
+      object-fit:contain;
+      display:block;
+      margin:8px 0 10px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      background:#09111d;
+    }
+
+    .download-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      text-decoration:none;
+      background:linear-gradient(90deg,var(--brand),var(--accent));
+      color:#07101a;
+      padding:9px 12px;
+      border-radius:10px;
+      font-weight:700;
+    }
+
+    .stats-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .stat-card{
+      background:linear-gradient(180deg,var(--panel),#171d29);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:var(--glow);
+    }
+
+    .stat-card h4{
+      margin:0 0 10px;
+      color:var(--brand);
+      font-size:1rem;
+    }
+
+    .stat-card p,
+    .stat-card li{
+      color:#d7e7f5;
+      line-height:1.6;
+    }
+
+    .stat-card ul{
+      margin:.2rem 0 0;
+      padding-left:18px;
+    }
+
+    footer{
+      background:var(--panel);
+      color:var(--brand);
+      padding:20px;
+      border-top:1px solid var(--brand);
+      margin-top:40px;
+    }
+
+    @media (max-width:1080px){
+      .hero-grid,
+      .tool-layout,
+      .stats-grid{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width:720px){
+      .page-shell,
+      .container{
+        padding-left:12px;
+        padding-right:12px;
+      }
+
+      .hero-card,
+      .card,
+      .info,
+      #fc-shell,
+      .stat-card{
+        padding:14px;
+      }
+
+      .controls-grid{
+        grid-template-columns:1fr;
+      }
+
+      .toolbar button{
+        width:100%;
+      }
+
+      .hero-actions{
+        flex-direction:column;
+        align-items:stretch;
+      }
+    }
   </style>
 </head>
 
@@ -104,22 +647,62 @@
   </div>
 
   <header>
-    <h1 class="glow-title">Image Converter & Resizer</h1>
-    <p class="sub">Convert & optimize images privately in your browser — no uploads.</p>
-    <div class="container">
-      <div class="chips">
-        <span class="chip">HEIC → JPG</span><span class="chip">PNG ↔ JPG</span>
-        <span class="chip">PNG/WebP Transparency</span><span class="chip">Batch Convert</span>
-        <span class="chip">Resize & Compress</span><span class="chip">AVIF/WebP</span>
+    <div class="page-shell">
+      <div class="top-title">
+        <h1 class="glow-title">Image Converter & Resizer</h1>
+        <p class="sub">Convert, resize, compress, and generate icon PNGs privately in your browser — no uploads, no waiting, no account required.</p>
+      </div>
+
+      <div class="hero-card">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <h2>Fast image tools with a cleaner cyber UI</h2>
+            <p>
+              Convert PNG, JPEG, WebP, and AVIF, resize images for faster pages, preserve transparency where needed,
+              and generate icon sizes like 16×16, 32×32, and 64×64 from the same source file.
+            </p>
+
+            <div class="hero-actions">
+              <a class="btn" href="#fc-tool">Start converting</a>
+              <a class="btn sec" href="#tips">Quick tips</a>
+            </div>
+
+            <div class="hero-pills">
+              <span class="pill">⚡ Batch convert</span>
+              <span class="pill">🔒 No uploads</span>
+              <span class="pill">🖼 Transparency support</span>
+              <span class="pill">📱 Icon PNG output</span>
+            </div>
+          </div>
+
+          <div class="hero-side">
+            <h3>Best for</h3>
+            <ul>
+              <li>Product photos and e-commerce images</li>
+              <li>Social posts and web optimization</li>
+              <li>Favicon and app icon generation</li>
+              <li>Reducing image size without leaving your browser</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="chips" style="justify-content:center; margin-top:16px;">
+        <span class="chip">HEIC → JPG</span>
+        <span class="chip">PNG ↔ JPG</span>
+        <span class="chip">PNG/WebP Transparency</span>
+        <span class="chip">Batch Convert</span>
+        <span class="chip">Resize & Compress</span>
+        <span class="chip">AVIF/WebP</span>
         <span class="chip">Icon PNGs 16 / 32 / 64px</span>
       </div>
+
+      <div style="margin-top:16px;">
+        <div data-nav-placeholder></div>
+        <script src="js/utils.js"></script>
+        <script src="nav-loader.js" defer></script>
+      </div>
     </div>
-
-    
- <div data-nav-placeholder></div>
-    <script src="js/utils.js"></script>
-<script src="nav-loader.js" defer></script>
-
   </header>
 
   <!-- AdSense-friendly context -->
@@ -135,54 +718,87 @@
   </section>
 
   <main class="container">
-    <!-- Tool -->
     <section id="fc-tool" class="panel">
-      <div id="fc-shell" class="card">
-        <h2>Start Converting</h2>
-        <p>Choose files, set format/quality/size, then convert. Results show below with previews & downloads.</p>
+      <div class="tool-layout">
+        <div id="fc-shell">
+          <h2>Start Converting</h2>
+          <p>Choose files, set your output format, size, and quality, then convert everything in one pass.</p>
 
-        <div id="fc-actions">
-          <input type="file" id="fc-files" accept="image/*" multiple>
-          <label>Format
-            <select id="fc-format">
-              <option value="jpeg">JPEG</option>
-              <option value="png">PNG</option>
-              <option value="webp">WebP</option>
-              <option value="avif">AVIF</option>
-            </select>
-          </label>
-          <label>Quality
-            <select id="fc-quality">
-              <option>80</option><option>85</option><option selected>90</option><option>95</option>
-            </select>
-          </label>
-          <label>Max width <input type="number" id="fc-maxw" placeholder="e.g., 1600"></label>
-          <label>Max height <input type="number" id="fc-maxh" placeholder="e.g., 1600"></label>
+          <div id="fc-drop" class="dropzone" tabindex="0" role="button" aria-label="Choose image files">
+            <div class="drop-big">Drag & drop image files here</div>
+            <div class="drop-small">or click to browse from your device</div>
+            <div id="fc-file-pill" class="file-pill"></div>
+          </div>
 
-          <!-- Icon controls -->
-          <label style="display:flex;align-items:center;gap:4px;">
-            <input type="checkbox" id="fc-icon-mode">
-            Also generate icons
-          </label>
-          <label>Icon sizes
-            <input type="text" id="fc-icon-sizes" value="16,32,64" size="10" placeholder="16,32,64">
-          </label>
-          <!-- /Icon controls -->
+          <input type="file" id="fc-files" accept="image/*" multiple hidden>
 
-          <button id="fc-convert" type="button">Convert Selected</button>
+          <div class="controls-grid">
+            <div class="field">
+              <label for="fc-format">Format</label>
+              <select id="fc-format">
+                <option value="jpeg">JPEG</option>
+                <option value="png">PNG</option>
+                <option value="webp">WebP</option>
+                <option value="avif">AVIF</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="fc-quality">Quality</label>
+              <select id="fc-quality">
+                <option>80</option>
+                <option>85</option>
+                <option selected>90</option>
+                <option>95</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="fc-maxw">Max width</label>
+              <input type="number" id="fc-maxw" placeholder="e.g., 1600">
+            </div>
+
+            <div class="field">
+              <label for="fc-maxh">Max height</label>
+              <input type="number" id="fc-maxh" placeholder="e.g., 1600">
+            </div>
+          </div>
+
+          <div class="toggle-wrap">
+            <label class="toggle-chip">
+              <input type="checkbox" id="fc-icon-mode">
+              Also generate icons
+            </label>
+
+            <label class="toggle-chip">
+              <span>Icon sizes</span>
+              <input type="text" id="fc-icon-sizes" value="16,32,64" placeholder="16,32,64" style="width:120px; padding:6px 8px;">
+            </label>
+          </div>
+
+          <div class="toolbar">
+            <button id="fc-convert" type="button">Convert Selected</button>
+          </div>
+
+          <div class="icon-hint">
+            Tip: Icon sizes are in pixels. Try <strong>16</strong> for classic favicons, <strong>32</strong> for high-DPI tabs, and <strong>64</strong>+ for shortcuts.
+          </div>
+
+          <div class="progress"><i id="fc-progress-fill"></i></div>
+          <div id="fc-log" aria-live="polite" role="status"></div>
         </div>
 
-        <div class="icon-hint">
-          Tip: Icon sizes are in pixels. Try <strong>16</strong> for classic favicons, <strong>32</strong> for high-DPI tabs, and <strong>64</strong>+ for shortcuts.
+        <div class="card">
+          <h3 class="section-title">Results</h3>
+          <p style="color:var(--muted);margin-top:0;">Converted files and generated icons will appear here with previews and download buttons.</p>
+          <div id="fc-results" aria-live="polite">
+            <div class="empty-state">Results will appear here after conversion.</div>
+          </div>
         </div>
-
-        <div id="fc-results" aria-live="polite">Results will appear here after conversion.</div>
-        <div id="fc-log" aria-live="polite" role="status"></div>
       </div>
     </section>
 
-    <!-- Helpful content -->
-    <section class="panel">
+    <section class="panel" id="tips">
       <div class="card">
         <h3 class="section-title">Quick Tips</h3>
         <ul>
@@ -193,6 +809,38 @@
         </ul>
       </div>
     </section>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h4>Best workflow</h4>
+        <ul>
+          <li>Drop or select your images</li>
+          <li>Choose format and quality</li>
+          <li>Set max width and height if needed</li>
+          <li>Enable icon mode for favicon sizes</li>
+        </ul>
+      </div>
+
+      <div class="stat-card">
+        <h4>Best uses</h4>
+        <ul>
+          <li>Store and product imagery</li>
+          <li>Website performance optimization</li>
+          <li>App shortcuts and favicon exports</li>
+          <li>Batch resizing for social content</li>
+        </ul>
+      </div>
+
+      <div class="stat-card">
+        <h4>Privacy benefits</h4>
+        <ul>
+          <li>No uploads to remote servers</li>
+          <li>No account required</li>
+          <li>Fast local processing</li>
+          <li>Better control over sensitive images</li>
+        </ul>
+      </div>
+    </div>
   </main>
 
   <footer>
@@ -215,26 +863,84 @@
     const $ = (id)=>document.getElementById(id);
     const logEl = $('fc-log');
     const resultsEl = $('fc-results');
+    const progressEl = $('fc-progress-fill');
 
-    // Icon controls
+    const filesInput = $('fc-files');
+    const dropzone = $('fc-drop');
+    const filePill = $('fc-file-pill');
+
     const iconModeEl = $('fc-icon-mode');
     const iconSizesEl = $('fc-icon-sizes');
+
+    function setProgress(pct){
+      progressEl.style.width = Math.max(0, Math.min(100, pct)) + '%';
+    }
 
     function log(msg){
       logEl.textContent += msg + '\n';
       logEl.scrollTop = logEl.scrollHeight;
     }
-    function clearLog(){ logEl.textContent=''; }
+
+    function clearLog(){
+      logEl.textContent = '';
+      setProgress(0);
+    }
+
+    function showPickedFiles(){
+      const files = Array.from(filesInput.files || []);
+      if(!files.length){
+        filePill.style.display = 'none';
+        filePill.textContent = '';
+        return;
+      }
+      filePill.style.display = 'inline-flex';
+      filePill.textContent = files.length === 1 ? files[0].name : `${files.length} files selected`;
+    }
+
+    dropzone.addEventListener('click', ()=> filesInput.click());
+    dropzone.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        filesInput.click();
+      }
+    });
+
+    dropzone.addEventListener('dragover', (e)=>{
+      e.preventDefault();
+      dropzone.classList.add('drag');
+    });
+
+    dropzone.addEventListener('dragleave', ()=>{
+      dropzone.classList.remove('drag');
+    });
+
+    dropzone.addEventListener('drop', (e)=>{
+      e.preventDefault();
+      dropzone.classList.remove('drag');
+      if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
+        filesInput.files = e.dataTransfer.files;
+        showPickedFiles();
+        log(`Loaded ${e.dataTransfer.files.length} dropped file(s).`);
+      }
+    });
+
+    filesInput.addEventListener('change', ()=>{
+      showPickedFiles();
+      const count = (filesInput.files || []).length;
+      if(count) log(`Loaded ${count} selected file(s).`);
+    });
 
     function getQuality01(){
       const v = Number(($('fc-quality').value || '90'));
       return Math.max(0.1, Math.min(1, v/100));
     }
+
     function getMaxes(){
       const mw = Number($('fc-maxw').value || 0) || 0;
       const mh = Number($('fc-maxh').value || 0) || 0;
       return {mw:mw, mh:mh};
     }
+
     function scaleWH(w,h,mw,mh){
       if ((mw<=0 && mh<=0) || ((mw<=0 || w<=mw) && (mh<=0 || h<=mh))) return {w,h};
       const rW = mw>0 ? mw/w : 1;
@@ -242,6 +948,7 @@
       const r = Math.min(rW, rH);
       return { w: Math.max(1, Math.round(w*r)), h: Math.max(1, Math.round(h*r)) };
     }
+
     function chosenMimeAndExt(fmt){
       switch(String(fmt||'jpeg').toLowerCase()){
         case 'png':  return { mime:'image/png',  ext:'png'  };
@@ -252,27 +959,31 @@
         default:     return { mime:'image/jpeg', ext:'jpg'  };
       }
     }
+
     function resultCard(name, metaText, url){
       const card = document.createElement('div');
-      card.style.border='1px solid var(--line)'; card.style.borderRadius='8px';
-      card.style.padding='10px'; card.style.margin='10px 0'; card.style.background='#0c1624';
+      card.className = 'result-card';
 
-      const meta=document.createElement('div');
-      meta.className='small'; meta.style.color='var(--muted)'; meta.textContent=metaText;
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.textContent = metaText;
 
-      const img=document.createElement('img');
-      img.src=url; img.alt=name; img.style.maxWidth='100%'; img.style.display='block'; img.style.margin='8px 0';
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = name;
 
-      const a=document.createElement('a');
-      a.href=url; a.download=name; a.textContent='Download '+name;
-      a.style.display='inline-block'; a.style.marginRight='8px'; a.style.textDecoration='none';
-      a.style.background='var(--brand)'; a.style.padding='6px 10px'; a.style.borderRadius='8px'; a.style.color='#0f1117';
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      a.textContent = 'Download ' + name;
+      a.className = 'download-btn';
 
-      card.appendChild(meta); card.appendChild(img); card.appendChild(a);
+      card.appendChild(meta);
+      card.appendChild(img);
+      card.appendChild(a);
       return card;
     }
 
-    // Parse "16,32,64" → [16,32,64]
     function parseIconSizes(str){
       if (!str) return [16,32,64];
       const nums = String(str)
@@ -285,7 +996,6 @@
 
     async function loadImageFromFile(file){
       const url = URL.createObjectURL(file);
-      // Prefer createImageBitmap when available (faster, fewer CORS quirks)
       try{
         const bmp = await createImageBitmap(file);
         return {
@@ -298,7 +1008,6 @@
           url
         };
       }catch{
-        // Fallback to Image()
         const img = await new Promise((res,rej)=>{
           const im=new Image();
           im.onload=()=>res(im);
@@ -316,11 +1025,14 @@
         };
       }
     }
+
     function canvasOf(w,h){
-      const c=document.createElement('canvas'); c.width=w; c.height=h; return c;
+      const c=document.createElement('canvas');
+      c.width=w;
+      c.height=h;
+      return c;
     }
 
-    // Draw centered, square icon from original source
     function drawIconCanvas(src, size){
       const canvas = canvasOf(size, size);
       const ctx = canvas.getContext('2d');
@@ -337,16 +1049,15 @@
     }
 
     async function canvasToBlobSmart(canvas, mime, q){
-      // Try requested mime
       let blob = await new Promise(res=>canvas.toBlob(res, mime, q));
       if (blob) return blob;
-      // Graceful fallbacks (e.g., Safari AVIF)
+
       const tries = ['image/webp','image/jpeg','image/png'];
       for (const m of tries){
         blob = await new Promise(res=>canvas.toBlob(res, m, q));
         if (blob) return blob;
       }
-      // Last resort: dataURL → blob
+
       const dataURL = canvas.toDataURL('image/png');
       const resp = await fetch(dataURL);
       return await resp.blob();
@@ -355,12 +1066,14 @@
     $('fc-convert').addEventListener('click', async ()=>{
       clearLog();
       resultsEl.innerHTML = '';
+
       try{
-        const files = Array.from(($('fc-files').files||[]));
+        const files = Array.from((filesInput.files||[]));
         if(!files.length){
           alert('Choose one or more images first.');
           return;
         }
+
         const fmt = $('fc-format').value || 'jpeg';
         const { mime, ext } = chosenMimeAndExt(fmt);
         const q = getQuality01();
@@ -374,9 +1087,16 @@
           log(`Icon mode: ON — sizes: ${iconSizes.join(', ')}px (PNG)`);
         }
 
-        for (const f of files){
+        const grid = document.createElement('div');
+        grid.className = 'result-grid';
+        resultsEl.appendChild(grid);
+
+        for (let idx=0; idx<files.length; idx++){
+          const f = files[idx];
           try{
+            setProgress(Math.round((idx / files.length) * 100));
             log(`Reading ${f.name}…`);
+
             const src = await loadImageFromFile(f);
             const {w,h} = scaleWH(src.w, src.h, mw, mh);
             const canvas = canvasOf(w,h);
@@ -390,14 +1110,14 @@
               if (outBlob.type === 'image/webp') outExt='webp';
               if (outBlob.type === 'image/avif') outExt='avif';
             }
+
             const base = f.name.replace(/\.[^.]+$/,'');
             const outName = `${base}.${outExt}`;
             const outUrl = URL.createObjectURL(outBlob);
             const meta = `Input: ${f.name} | ${src.w}×${src.h} → ${w}×${h} | Output: ${outExt.toUpperCase()}`;
-            resultsEl.appendChild(resultCard(outName, meta, outUrl));
+            grid.appendChild(resultCard(outName, meta, outUrl));
             log(`Done: ${outName}`);
 
-            // Icon PNGs
             if (iconMode && iconSizes.length){
               log(`Generating icons for ${f.name}…`);
               for (const size of iconSizes){
@@ -406,7 +1126,7 @@
                 const iconUrl = URL.createObjectURL(iconBlob);
                 const iconName = `${base}-${size}x${size}.png`;
                 const iconMeta = `ICON: ${size}×${size} PNG from ${f.name}`;
-                resultsEl.appendChild(resultCard(iconName, iconMeta, iconUrl));
+                grid.appendChild(resultCard(iconName, iconMeta, iconUrl));
                 log(`Icon generated: ${iconName}`);
               }
             }
@@ -416,6 +1136,8 @@
             log(`❌ ${f.name}: ${e && e.message ? e.message : e}`);
           }
         }
+
+        setProgress(100);
         window.scrollTo({ top: document.body.scrollHeight, behavior:'smooth' });
       }catch(err){
         log('Fatal error: ' + (err && err.message ? err.message : err));
