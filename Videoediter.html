@@ -2,260 +2,857 @@
 <html lang="en">
 <head>
   <link rel="stylesheet" href="site.css">
+  <link rel="stylesheet" href="nav.css">
 
-<style>
-  .info{background:#1a1f2c;border:1px solid #263044;border-radius:12px;padding:18px;margin:18px auto;max-width:1100px}
-  .info h2,.info h3{color:#7dd3fc;margin:.2rem 0 .6rem}
-  .info .note{color:#9aa4b2;font-size:.95rem}
-  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-  @media (max-width:900px){ .grid-3{grid-template-columns:1fr} }
-  .guide{width:100%;border-collapse:collapse}
-  .guide th,.guide td{border-bottom:1px solid #263044;padding:8px;text-align:left;vertical-align:top}
-</style>
+  <!-- Tawk.to -->
+  <script type="text/javascript">
+  var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+  (function(){
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true;
+    s1.src='https://embed.tawk.to/6906c86e40b306194f3da6e5/1j917ts2m';
+    s1.charset='UTF-8';
+    s1.setAttribute('crossorigin','*');
+    s0.parentNode.insertBefore(s1,s0);
+  })();
+  </script>
 
-  <!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/6906c86e40b306194f3da6e5/1j917ts2m';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Tawk.to Script-->
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-W25SYMTSSR"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  <!-- Google tag -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-W25SYMTSSR"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-W25SYMTSSR');
+  </script>
 
-  gtag('config', 'G-W25SYMTSSR');
-</script>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9800485035530027"
+  <!-- AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js?client=ca-pub-9800485035530027"
      crossorigin="anonymous"></script>
   <meta name="google-adsense-account" content="ca-pub-9800485035530027">
-  
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>File Converter — Cyber Edition · Browser Video Editor</title>
-  <meta name="description" content="Free in‑browser video editor with cuts, text overlays, audio mixing, and export to MP4/WebM. Runs locally with FFmpeg.wasm. Part of File Converter — Cyber Edition." />
+  <meta name="description" content="Free in-browser video editor with cuts, text overlays, audio mixing, thumbnails, and export to MP4/WebM. Runs locally with FFmpeg.wasm inside your browser." />
   <link rel="preconnect" href="https://unpkg.com" crossorigin>
+
   <style>
     :root{
-      --bg:#0f1117; --card:#151823; --muted:#a0a6b8; --text:#e9ecf1; --brand:#7dd3fc; --accent:#a78bfa;
+      --bg:#0f1117;
+      --panel:#151823;
+      --panel2:#0d1422;
+      --panel3:#101827;
+      --line:#263044;
+      --line2:#33425d;
+      --text:#e9ecf1;
+      --muted:#9aa4b2;
+      --brand:#7dd3fc;
+      --accent:#a78bfa;
+      --ok:#34d399;
+      --warn:#fbbf24;
+      --danger:#fb7185;
       --radius:18px;
+      --shadow:0 18px 40px rgba(0,0,0,.28);
+      --glow:0 0 24px rgba(125,211,252,.12);
     }
+
     *,*::before,*::after{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0; font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial; background:radial-gradient(1000px 600px at 10% -10%, #1a1f2e 0%, transparent 60%),
-      radial-gradient(800px 500px at 90% -20%, #121827 0%, transparent 60%), var(--bg); color:var(--text)}
-    header{max-width:1100px; margin:24px auto 0; padding:0 16px}
-    .title{display:flex; align-items:center; gap:12px}
-    .logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--accent));display:grid;place-items:center;color:#0b1220;font-weight:800;box-shadow:0 0 30px rgba(125,211,252,.6), inset 0 0 18px rgba(167,139,250,.45)}
-    h1{font-size:clamp(22px,4vw,32px); margin:0}
-    p.sub{color:var(--muted); margin:6px 0 0}
 
-    main{max-width:1100px; margin:22px auto 60px; padding:0 16px; display:grid; grid-template-columns:340px 1fr; gap:16px}
-    fieldset{border:1px solid #1f2433; border-radius:14px; padding:14px; background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01))}
-    legend{padding:0 8px; color:var(--brand)}
-    label{display:block; margin:8px 0 6px; font-size:.95rem; color:var(--muted)}
-    input,select,button,textarea{width:100%; padding:10px 12px; border-radius:12px; border:1px solid #263047; background:#0e1422; color:var(--text)}
-    button{cursor:pointer; background:linear-gradient(135deg,var(--brand),var(--accent)); color:#0b1220; font-weight:700}
-    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    body{
+      margin:0;
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+      background:
+        radial-gradient(circle at top right, rgba(125,211,252,.08), transparent 28%),
+        radial-gradient(circle at top left, rgba(167,139,250,.08), transparent 24%),
+        radial-gradient(1000px 600px at 10% -10%, #1a1f2e 0%, transparent 60%),
+        radial-gradient(800px 500px at 90% -20%, #121827 0%, transparent 60%),
+        var(--bg);
+      color:var(--text);
+    }
+
+    a{color:var(--brand)}
+
+    .page-shell{
+      max-width:1200px;
+      margin:0 auto;
+      padding:0 16px;
+    }
+
+    header{
+      padding:0 0 18px;
+      border-bottom:1px solid #1f2430;
+      background:
+        radial-gradient(circle at top right, rgba(125,211,252,.08), transparent 30%),
+        radial-gradient(circle at top left, rgba(167,139,250,.08), transparent 24%),
+        linear-gradient(180deg,#0f1117,#0d121d);
+    }
+
+    .top-title{
+      text-align:center;
+      padding:22px 0 12px;
+    }
+
+    .glow-title{
+      font-size:clamp(1.9rem,3.8vw,3rem);
+      font-weight:800;
+      text-align:center;
+      margin:10px 0 4px;
+      letter-spacing:.3px;
+      background:linear-gradient(90deg,#00ffff,#7dd3fc,#a78bfa,#ff00ff,#00ffcc,#00ffff);
+      -webkit-background-clip:text;
+      background-clip:text;
+      -webkit-text-fill-color:transparent;
+      text-shadow:0 0 6px rgba(125,211,252,.45),0 0 12px rgba(125,211,252,.25),0 0 18px rgba(167,139,250,.2);
+      animation:cyberPulse 3s ease-in-out infinite alternate, gradientShift 6s linear infinite;
+      background-size:400% auto;
+    }
+
+    .sub{
+      color:#d9e7f5;
+      opacity:.95;
+      margin:.45rem auto 0;
+      max-width:860px;
+    }
+
+    .hero-card{
+      margin-top:14px;
+      background:
+        radial-gradient(circle at top right, rgba(125,211,252,.14), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(167,139,250,.12), transparent 24%),
+        linear-gradient(180deg,#121826,#0b1220);
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      padding:22px;
+    }
+
+    .hero-grid{
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:18px;
+      align-items:stretch;
+    }
+
+    .hero-copy h2{
+      margin:0 0 10px;
+      font-size:clamp(1.25rem,2.4vw,2rem);
+      color:#fff;
+    }
+
+    .hero-copy p{
+      margin:0 0 12px;
+      color:#d6e4f3;
+      max-width:760px;
+      line-height:1.6;
+    }
+
+    .hero-actions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+
+    .hero-pills{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:16px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#0d1523;
+      color:#d6e7f5;
+      font-size:.93rem;
+    }
+
+    .hero-side{
+      background:linear-gradient(180deg,#0f1625,#101828);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:12px;
+    }
+
+    .hero-side h3{
+      margin:0;
+      color:var(--brand);
+      font-size:1.05rem;
+    }
+
+    .hero-side ul{
+      margin:0;
+      padding-left:18px;
+      color:#d7e7f5;
+      line-height:1.55;
+    }
+
+    .hero-side li{margin:.2rem 0}
+
+    .sponsor-wrap{
+      margin-top:16px;
+    }
+
+    .sponsor-bar{
+      position:sticky;
+      top:0;
+      z-index:9999;
+      width:100%;
+      background:#0f1117;
+      color:#e5e7eb;
+      border-bottom:1px solid #1f2430;
+      border-radius:14px;
+      overflow:hidden;
+    }
+
+    .sponsor-bar-inner{
+      padding:10px 12px;
+      display:flex;
+      align-items:center;
+      gap:.5rem;
+    }
+
+    .info{
+      background:linear-gradient(180deg,#1a1f2c,#171d29);
+      border:1px solid #263044;
+      border-radius:16px;
+      padding:18px;
+      margin:18px auto;
+      color:#e6edf3;
+      box-shadow:var(--glow);
+    }
+
+    .info h2,.info h3{color:#7dd3fc;margin:.2rem 0 .6rem}
+    .info .note{color:#9aa4b2;font-size:.95rem}
+    .info ul{margin:8px 0 0 16px;line-height:1.6}
+
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:22px 16px 64px;
+    }
+
+    .grid-main{
+      display:grid;
+      grid-template-columns:390px 1fr;
+      gap:18px;
+      align-items:start;
+    }
+
+    .card{
+      background:linear-gradient(180deg,#121826,#0b1220);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--glow);
+      overflow:hidden;
+    }
+
+    .pad{padding:18px}
+    .stack{display:grid;gap:14px}
+
+    .section-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    .section-head h3{
+      margin:0;
+      font-size:1.05rem;
+      color:var(--brand);
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:6px 10px;
+      color:#cfe6ff;
+      background:#0d1523;
+      font-size:.84rem;
+      white-space:nowrap;
+    }
+
+    fieldset{
+      border:1px solid #1f2433;
+      border-radius:16px;
+      padding:14px;
+      background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));
+      margin:0;
+    }
+
+    legend{
+      padding:0 8px;
+      color:var(--brand);
+      font-weight:700;
+    }
+
+    label{
+      display:block;
+      margin:8px 0 6px;
+      font-size:.95rem;
+      color:#d9e5f3;
+    }
+
+    input,select,button,textarea{
+      width:100%;
+      padding:11px 12px;
+      border-radius:12px;
+      border:1px solid #263047;
+      background:#0e1422;
+      color:var(--text);
+      transition:.18s ease;
+    }
+
+    input:focus,select:focus,textarea:focus{
+      outline:none;
+      border-color:var(--brand);
+      box-shadow:0 0 0 3px rgba(125,211,252,.12);
+    }
+
+    button{
+      cursor:pointer;
+      background:linear-gradient(135deg,var(--brand),var(--accent));
+      color:#0b1220;
+      font-weight:700;
+      border:none;
+      box-shadow:0 10px 22px rgba(125,211,252,.12);
+    }
+
+    button:hover{
+      transform:translateY(-1px);
+      box-shadow:0 12px 26px rgba(125,211,252,.2);
+    }
+
+    .btn-sec{
+      background:#0d1523;
+      color:var(--text);
+      border:1px solid var(--line);
+      box-shadow:none;
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
     .row>*{flex:1}
-    .stack{display:grid; gap:8px}
+
     .muted{color:var(--muted)}
-    .warn{color:#fbbf24}
-    video{width:100%; max-height:60vh; background:#000; border-radius:14px}
-    footer{max-width:1100px; margin:24px auto 80px; padding:0 16px; color:var(--muted)}
-    .footer-nav{display:flex; flex-wrap:wrap; gap:10px; margin-top:8px}
-    .footer-nav a{color:var(--brand); text-decoration:none}
+    .warn{color:var(--warn)}
+
+    .dropzone{
+      border:2px dashed #33425d;
+      border-radius:16px;
+      padding:18px 14px;
+      text-align:center;
+      background:linear-gradient(180deg,#0f1624,#0b1220);
+      transition:.18s ease;
+    }
+
+    .dropzone:hover{
+      border-color:var(--brand);
+      box-shadow:0 10px 24px rgba(125,211,252,.08);
+    }
+
+    .tip{
+      font-size:.92rem;
+      color:var(--muted);
+      line-height:1.55;
+    }
+
+    .clips-list{
+      display:grid;
+      gap:12px;
+      margin-top:6px;
+    }
+
+    .clip-card{
+      border:1px solid #263044;
+      border-radius:14px;
+      padding:12px;
+      background:#0d1523;
+    }
+
+    .clip-head{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+      color:#d8e7f4;
+    }
+
+    .clip-num{
+      width:26px;
+      height:26px;
+      border-radius:999px;
+      display:grid;
+      place-items:center;
+      background:linear-gradient(135deg,var(--brand),var(--accent));
+      color:#081018;
+      font-weight:800;
+      font-size:.85rem;
+      flex:0 0 auto;
+    }
+
+    .clip-name{
+      font-weight:700;
+      word-break:break-word;
+    }
+
+    .clip-meta{
+      color:var(--muted);
+      font-size:.9rem;
+    }
+
+    .toolbar{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-top:10px;
+      padding:14px;
+      background:#0b1322;
+      border:1px solid var(--line);
+      border-radius:16px;
+    }
+
+    .toolbar button{
+      flex:1 1 180px;
+    }
+
+    .logbox{
+      white-space:pre-wrap;
+      margin-top:10px;
+      color:var(--muted);
+      min-height:88px;
+      max-height:220px;
+      overflow:auto;
+      background:#07101a;
+      border:1px dashed var(--line);
+      border-radius:14px;
+      padding:12px;
+      font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    }
+
+    .bar{
+      height:10px;
+      background:#0a1424;
+      border:1px solid #263044;
+      border-radius:999px;
+      overflow:hidden;
+      margin-top:12px;
+    }
+
+    .bar > i{
+      display:block;
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg,var(--brand),var(--accent));
+      box-shadow:0 0 16px rgba(125,211,252,.35);
+      transition:width .25s ease;
+    }
+
+    video{
+      width:100%;
+      max-height:62vh;
+      background:#000;
+      border-radius:16px;
+      border:1px solid #263044;
+    }
+
+    .thumb-grid{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+
+    .thumb-grid img{
+      width:160px;
+      border-radius:10px;
+      border:1px solid #263044;
+      box-shadow:0 10px 20px rgba(0,0,0,.2);
+    }
+
+    .stat-row{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .stat-card{
+      background:linear-gradient(180deg,#121826,#0b1220);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:var(--glow);
+    }
+
+    .stat-card h4{
+      margin:0 0 10px;
+      color:var(--brand);
+      font-size:1rem;
+    }
+
+    .stat-card p,.stat-card li{
+      color:#d7e7f5;
+      line-height:1.6;
+    }
+
+    .stat-card ul{
+      margin:.2rem 0 0;
+      padding-left:18px;
+    }
+
+    footer{
+      max-width:1200px;
+      margin:24px auto 80px;
+      padding:0 16px;
+      color:var(--muted);
+      text-align:center;
+    }
+
+    .footer-nav{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      justify-content:center;
+      margin-top:8px;
+    }
+
+    .footer-nav a{
+      color:var(--brand);
+      text-decoration:none;
+    }
+
+    @keyframes cyberPulse{
+      from { text-shadow:0 0 4px rgba(125,211,252,.25),0 0 8px rgba(125,211,252,.18),0 0 12px rgba(167,139,250,.12); }
+      to   { text-shadow:0 0 10px rgba(125,211,252,.6),0 0 20px rgba(125,211,252,.4),0 0 30px rgba(255,0,255,.28); }
+    }
+
+    @keyframes gradientShift{
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
+
+    @media (max-width:1080px){
+      .hero-grid,
+      .grid-main,
+      .stat-row{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width:720px){
+      .page-shell,
+      .wrap{
+        padding-left:12px;
+        padding-right:12px;
+      }
+
+      .hero-card,
+      .pad,
+      .info,
+      .stat-card{
+        padding:14px;
+      }
+
+      .toolbar{
+        align-items:stretch;
+      }
+
+      .toolbar button{
+        width:100%;
+      }
+
+      .hero-actions{
+        flex-direction:column;
+        align-items:stretch;
+      }
+    }
   </style>
-
-<style>
-.glow-title{
-  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
-  font-weight: 800;
-  text-align: center;
-  margin: 10px 0 4px;
-  letter-spacing: .3px;
-  background: linear-gradient(90deg,#00ffff,#7dd3fc,#a78bfa,#ff00ff,#00ffcc,#00ffff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 6px rgba(125,211,252,.45), 0 0 12px rgba(125,211,252,.25), 0 0 18px rgba(167,139,250,.2);
-  animation: cyberPulse 3s ease-in-out infinite alternate, gradientShift 6s linear infinite;
-  background-size: 400% auto;
-}
-@keyframes cyberPulse {
-  from { text-shadow: 0 0 4px rgba(125,211,252,.25), 0 0 8px rgba(125,211,252,.18), 0 0 12px rgba(167,139,250,.12); }
-  to   { text-shadow: 0 0 10px rgba(125,211,252,.6), 0 0 20px rgba(125,211,252,.4), 0 0 30px rgba(255,0,255,.28); }
-}
-@keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
-.info{max-width:900px;margin:18px auto;background:#1a1f2c;border:1px solid #273142;border-radius:12px;padding:18px;color:#e6edf3}
-.info h3{margin:0 0 8px;color:#7dd3fc}
-.info p{margin:6px 0 0}
-.info ul{margin:8px 0 0 16px}
-</style>
-
 </head>
 <body>
   <header>
-    <div class="title">
-      <div class="logo">🎬</div>
-      <div>
+    <div class="page-shell">
+      <div class="top-title">
         <h1 class="glow-title">Browser Video Editor</h1>
-        <p class="sub">Cuts • text overlays • optional music • export to MP4/WebM — runs locally in your browser.</p>
-        <p class="sub"><a href="./" style="color:var(--brand)">← Back to File Converter</a></p>
+        <p class="sub">Cuts, text overlays, optional music, thumbnails, and export to MP4 or WebM — all locally in your browser.</p>
+      </div>
+
+      <div class="hero-card">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <h2>Edit clips privately without uploading your media</h2>
+            <p>
+              Combine multiple video files, trim each clip, add timed text overlays, replace or mix in audio,
+              preview your merged cut, and export everything locally with FFmpeg.wasm.
+            </p>
+
+            <div class="hero-actions">
+              <a href="#editor" style="text-decoration:none"><button type="button">Start editing</button></a>
+              <a href="./" style="text-decoration:none"><button type="button" class="btn-sec">← Back to File Converter</button></a>
+            </div>
+
+            <div class="hero-pills">
+              <span class="pill">⚡ In-browser editing</span>
+              <span class="pill">🔒 No uploads</span>
+              <span class="pill">🎬 Multi-clip merge</span>
+              <span class="pill">🎵 Audio mix modes</span>
+            </div>
+          </div>
+
+          <div class="hero-side">
+            <h3>Best for</h3>
+            <ul>
+              <li>Splicing multiple clips together fast</li>
+              <li>Adding intro titles or captions</li>
+              <li>Replacing or mixing background music</li>
+              <li>Creating previews before final export</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <div data-nav-placeholder></div>
+        <script src="nav-loader.js" defer></script>
+        <script src="js/utils.js"></script>
+      </div>
+
+      <div class="sponsor-wrap">
+        <div id="sponsored-bar" class="sponsor-bar" role="banner" aria-label="Sponsored by Knack.bz">
+          <div class="sponsor-bar-inner">
+            <span style="opacity:.9;">Sponsored by</span>
+            <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer" style="font-weight:600;">Knack.bz</a>
+            <button aria-label="Dismiss sponsor bar"
+                    onclick="document.getElementById('sponsored-bar').style.display='none'"
+                    style="margin-left:auto;background:transparent;border:none;color:#9aa4b2;cursor:pointer;font-size:16px;line-height:1;box-shadow:none;width:auto;padding:0;">
+              ✕
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </header>
- <div data-nav-placeholder></div>
-  <script src="nav-loader.js" defer></script>
-  <script src="js/utils.js"></script>
 
-<section id="adsense-content" class="info">
-  <h3>Why Local File Conversion?</h3>
-  <ul>
-    <li>Your files never leave your device—great for privacy and speed.</li>
-    <li>No sign-ups or uploads required; everything runs in your browser.</li>
-    <li>Perfect for students, small businesses, creators, and teams.</li>
-  </ul>
-</section>
-<!-- Sponsored Header Bar (dismissible) -->
-<div id="sponsored-bar" role="banner" aria-label="Sponsored by Knack.bz"
-     style="position:sticky; top:0; z-index:9999; width:100%;
-            background:#0f1117; color:#e5e7eb; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-            border-bottom:1px solid #1f2430;">
-  <div style="max-width:1200px; margin:0 auto; padding:10px 10px; display:flex; align-items:center; justify-content:center; gap:.5rem;">
-    <span style="opacity:.9;">Sponsored by</span>
-    <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer"
-       style="color:#7dd3fc; text-decoration:none; font-weight:600;">
-      Knack.bz
-    </a>
-    <button aria-label="Dismiss sponsor bar"
-            onclick="document.getElementById('sponsored-bar').style.display='none'"
-            style="margin-left:auto; background:transparent; border:none; color:#9aa4b2; cursor:pointer; font-size:16px; line-height:1;">
-      ✕
-    </button>
+  <section id="adsense-content" class="info page-shell">
+    <h3>Why local video editing?</h3>
+    <ul>
+      <li>Your files never leave your device, which is better for privacy and often faster for short jobs.</li>
+      <li>No sign-ups, no uploads, and no waiting for a remote queue.</li>
+      <li>Great for creators, teams, product demos, training clips, and quick social edits.</li>
+    </ul>
+  </section>
+
+  <div class="wrap" id="editor">
+    <div class="grid-main">
+      <!-- Left controls -->
+      <section class="card">
+        <div class="pad stack">
+          <div class="section-head">
+            <h3>Editing Controls</h3>
+            <span class="badge">Local workflow</span>
+          </div>
+
+          <fieldset>
+            <legend>1) Media</legend>
+            <div class="dropzone">
+              <label>Video files (you can add multiple — order = splice order)
+                <input id="videoFiles" type="file" accept="video/*" multiple />
+              </label>
+              <label>Optional audio track (music / voice-over)
+                <input id="audioFile" type="file" accept="audio/*" />
+              </label>
+              <div class="tip">Tip: select multiple clips at once. You can set per-clip in and out points below.</div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>2) Clip Cuts</legend>
+            <div id="clips" class="clips-list"></div>
+            <div class="toolbar">
+              <button id="scanClips" type="button">Scan durations</button>
+              <button id="addSplit" type="button" class="btn-sec">Add split marker tip</button>
+            </div>
+            <div class="tip">Use seconds for in and out points, like 0, 3.5, or 12.2. Leave blank to use the whole clip.</div>
+          </fieldset>
+
+          <fieldset>
+            <legend>3) Text Overlays</legend>
+            <div class="stack">
+              <label>Text
+                <input id="txt" placeholder="Your title or caption" />
+              </label>
+
+              <div class="row">
+                <label>Start (s)<input id="txtStart" type="number" step="0.1" value="0"></label>
+                <label>End (s)<input id="txtEnd" type="number" step="0.1" value="5"></label>
+              </div>
+
+              <div class="row">
+                <label>Font size (px)<input id="txtSize" type="number" value="64"></label>
+                <label>Position
+                  <select id="txtPos">
+                    <option value="center">Center</option>
+                    <option value="top">Top</option>
+                    <option value="bottom">Bottom</option>
+                    <option value="custom">Custom (X,Y)</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="row" id="customXY" style="display:none">
+                <label>X (px)<input id="txtX" type="number" value="40"></label>
+                <label>Y (px)<input id="txtY" type="number" value="60"></label>
+              </div>
+
+              <label class="muted">Font file (optional; improves drawtext)
+                <input id="fontFile" type="file" accept=".ttf,.otf,.ttc,.otc" />
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>4) Output</legend>
+            <div class="row">
+              <label>Preset
+                <select id="preset">
+                  <option value="orig">Original resolution</option>
+                  <option value="1920x1080">1080p (1920×1080)</option>
+                  <option value="1280x720">720p (1280×720)</option>
+                  <option value="3840x2160">4K (3840×2160)</option>
+                </select>
+              </label>
+              <label>FPS
+                <select id="fps">
+                  <option>24</option>
+                  <option selected>30</option>
+                  <option>60</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="row">
+              <label>Format
+                <select id="format">
+                  <option value="mp4">MP4 (H.264/AAC)</option>
+                  <option value="webm">WebM (VP9/Opus)</option>
+                </select>
+              </label>
+
+              <label>Audio splice
+                <select id="audioMode">
+                  <option value="keep">Keep original (no music)</option>
+                  <option value="replace">Replace with music</option>
+                  <option value="mix">Mix with music</option>
+                  <option value="crossfade">Music with 1s crossfade at joins</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="toolbar">
+              <button id="export" type="button">Export</button>
+            </div>
+
+            <div id="log" class="logbox"></div>
+            <div class="bar"><i id="progressFill"></i></div>
+            <div class="tip warn">First export loads ffmpeg.wasm. On GitHub Pages it runs single-threaded. For maximum speed, host with COOP/COEP headers.</div>
+          </fieldset>
+        </div>
+      </section>
+
+      <!-- Right preview -->
+      <section class="card">
+        <div class="pad stack">
+          <div class="section-head">
+            <h3>Preview & Output</h3>
+            <span class="badge">Preview area</span>
+          </div>
+
+          <fieldset>
+            <legend>Preview</legend>
+            <video id="player" controls></video>
+
+            <div class="toolbar">
+              <button id="preview" type="button">Preview merged cut</button>
+              <button id="thumbs" type="button" class="btn-sec">Make thumbnails</button>
+            </div>
+
+            <div id="thumbRow" class="thumb-grid"></div>
+          </fieldset>
+
+          <section class="info" style="margin:0;">
+            <h3>Quick notes</h3>
+            <p class="note">Preview uses a temporary merged render. Export creates the final downloadable file in your selected format.</p>
+          </section>
+        </div>
+      </section>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <h4>Suggested workflow</h4>
+        <ul>
+          <li>Select your clips in the right order</li>
+          <li>Scan durations</li>
+          <li>Set per-clip in/out points</li>
+          <li>Add text overlays and optional music</li>
+          <li>Preview before exporting</li>
+        </ul>
+      </div>
+
+      <div class="stat-card">
+        <h4>Best uses</h4>
+        <ul>
+          <li>Product or training snippets</li>
+          <li>Quick social media edits</li>
+          <li>Simple titles and captions</li>
+          <li>Combining clips into one timeline</li>
+        </ul>
+      </div>
+
+      <div class="stat-card">
+        <h4>Current limitations</h4>
+        <ul>
+          <li>No drag timeline editor yet</li>
+          <li>Long renders can take time in-browser</li>
+          <li>FFmpeg.wasm is powerful but heavier than native desktop apps</li>
+        </ul>
+      </div>
+    </div>
   </div>
-</div>
-
-
-  <main>
-    <section class="stack">
-      <fieldset>
-        <legend>1) Media</legend>
-        <label>Video files (you can add multiple – order = splice order)
-          <input id="videoFiles" type="file" accept="video/*" multiple />
-        </label>
-        <label>Optional audio track (music / voice‑over)
-          <input id="audioFile" type="file" accept="audio/*" />
-        </label>
-        <small class="muted">Tip: select multiple clips at once. You can set per‑clip in/out below.</small>
-      </fieldset>
-
-      <fieldset>
-        <legend>2) Clip Cuts</legend>
-        <div id="clips"></div>
-        <div class="row">
-          <button id="scanClips" type="button">Scan durations</button>
-          <button id="addSplit" type="button">Add split marker to selected</button>
-        </div>
-        <small class="muted">Use seconds for in/out (e.g. 0, 3.5, 12.2). Leave blank = whole clip.</small>
-      </fieldset>
-
-      <fieldset>
-        <legend>3) Text Overlays</legend>
-        <div class="stack">
-          <label>Text
-            <input id="txt" placeholder="Your title or caption" />
-          </label>
-          <div class="row">
-            <label>Start (s)<input id="txtStart" type="number" step="0.1" value="0"></label>
-            <label>End (s)<input id="txtEnd" type="number" step="0.1" value="5"></label>
-          </div>
-          <div class="row">
-            <label>Font size (px)<input id="txtSize" type="number" value="64"></label>
-            <label>Position
-              <select id="txtPos">
-                <option value="center">Center</option>
-                <option value="top">Top</option>
-                <option value="bottom">Bottom</option>
-                <option value="custom">Custom (X,Y)</option>
-              </select>
-            </label>
-          </div>
-          <div class="row" id="customXY" style="display:none">
-            <label>X (px)<input id="txtX" type="number" value="40"></label>
-            <label>Y (px)<input id="txtY" type="number" value="60"></label>
-          </div>
-          <label class="muted">Font file (optional; improves drawtext)
-            <input id="fontFile" type="file" accept=".ttf,.otf,.ttc,.otc" />
-          </label>
-        </div>
-      </fieldset>
-
-      <fieldset>
-        <legend>4) Output</legend>
-        <div class="row">
-          <label>Preset
-            <select id="preset">
-              <option value="orig">Original resolution</option>
-              <option value="1920x1080">1080p (1920×1080)</option>
-              <option value="1280x720">720p (1280×720)</option>
-              <option value="3840x2160">4K (3840×2160)</option>
-            </select>
-          </label>
-          <label>FPS
-            <select id="fps">
-              <option>24</option><option selected>30</option><option>60</option>
-            </select>
-          </label>
-        </div>
-        <div class="row">
-          <label>Format
-            <select id="format">
-              <option value="mp4">MP4 (H.264/AAC)</option>
-              <option value="webm">WebM (VP9/Opus)</option>
-            </select>
-          </label>
-          <label>Audio splice
-            <select id="audioMode">
-              <option value="keep">Keep original (no music)</option>
-              <option value="replace">Replace with music</option>
-              <option value="mix">Mix with music</option>
-              <option value="crossfade">Music with 1s crossfade at joins</option>
-            </select>
-          </label>
-        </div>
-        <button id="export" type="button">Export</button>
-        <div id="log" style="white-space:pre-wrap;margin-top:8px;color:var(--muted)"></div>
-        <small class="warn">First export loads ffmpeg.wasm. On GitHub Pages it runs single‑threaded (fine). For maximum speed, host with COOP/COEP headers.</small>
-      </fieldset>
-    </section>
-
-    <section>
-      <fieldset>
-        <legend>Preview</legend>
-        <video id="player" controls></video>
-        <div class="row" style="margin-top:8px">
-          <button id="preview" type="button">Preview merged cut</button>
-          <button id="thumbs" type="button">Make thumbnails</button>
-        </div>
-        <div id="thumbRow" class="row" style="flex-wrap:wrap;margin-top:8px"></div>
-      </fieldset>
-    </section>
-  </main>
 
   <footer>
     <div>© <span id="year"></span> File Converter — Cyber Edition</div>
-   
-
+    <div class="footer-nav">
+      <a href="about.html">About</a>
+      <a href="faq.html">FAQ</a>
+      <a href="privacy-policy.html">Privacy Policy</a>
+      <a href="terms.html">Terms</a>
+      <a href="contact.html">Contact</a>
+    </div>
   </footer>
 
   <script type="module">
@@ -264,40 +861,66 @@ s0.parentNode.insertBefore(s1,s0);
     const $ = (id)=>document.getElementById(id);
     const txtPos = $("txtPos");
     const customXY = $("customXY");
+    const progressFill = $("progressFill");
+
     txtPos.onchange = ()=> customXY.style.display = (txtPos.value==="custom")?"grid":"none";
 
-    let clipList = []; // [{file, name, in, out, dur}]
+    let clipList = [];
     let audioBlob = null;
     let ffmpeg;
 
-    function log(msg){ $("log").textContent += msg + "\n"; }
+    function log(msg){
+      $("log").textContent += msg + "\n";
+      $("log").scrollTop = $("log").scrollHeight;
+    }
+
+    function setProgress(pct){
+      progressFill.style.width = Math.max(0, Math.min(100, pct)) + "%";
+    }
+
     $("year").textContent = new Date().getFullYear();
 
-    // Load files
     $("videoFiles").onchange = (e)=>{
       clipList = [...e.target.files].map(f=>({file:f, name:f.name, in:null, out:null, dur:null}));
       renderClipRows();
+      log(`Loaded ${clipList.length} video clip(s).`);
+      setProgress(8);
     };
-    $("audioFile").onchange = (e)=> audioBlob = e.target.files[0] || null;
+
+    $("audioFile").onchange = (e)=>{
+      audioBlob = e.target.files[0] || null;
+      if(audioBlob) log(`Loaded audio track: ${audioBlob.name}`);
+    };
 
     function renderClipRows(){
       const clipsDiv = $("clips");
       clipsDiv.innerHTML = "";
+
+      if(!clipList.length){
+        clipsDiv.innerHTML = `<div class="tip">No clips added yet.</div>`;
+        return;
+      }
+
       clipList.forEach((c,idx)=>{
         const wrap = document.createElement("div");
-        wrap.className = "stack";
-        wrap.style.border = "1px solid #1f2433"; wrap.style.borderRadius = "10px"; wrap.style.padding = "8px";
+        wrap.className = "clip-card";
         wrap.innerHTML = `
-          <div class="row" style="font-size:.9rem"><strong>${idx+1}.</strong> <span>${c.name}</span> <span class="muted">duration: ${c.dur ?? "?"}s</span></div>
+          <div class="clip-head">
+            <div class="clip-num">${idx+1}</div>
+            <div class="clip-name">${c.name}</div>
+            <div class="clip-meta">duration: ${c.dur ?? "?"}s</div>
+          </div>
           <div class="row">
             <label>In (s)<input data-k="in" data-i="${idx}" type="number" step="0.1" value="${c.in ?? ""}"></label>
             <label>Out (s)<input data-k="out" data-i="${idx}" type="number" step="0.1" value="${c.out ?? ""}"></label>
           </div>`;
         clipsDiv.appendChild(wrap);
       });
+
       clipsDiv.querySelectorAll("input[data-k]").forEach(inp=>{
         inp.oninput = (e)=>{
-          const i = +e.target.dataset.i, k = e.target.dataset.k;
+          const i = +e.target.dataset.i;
+          const k = e.target.dataset.k;
           const v = e.target.value === "" ? null : parseFloat(e.target.value);
           clipList[i][k] = v;
         };
@@ -306,45 +929,61 @@ s0.parentNode.insertBefore(s1,s0);
 
     $("scanClips").onclick = async ()=>{
       if (!clipList.length) return;
-      for (const c of clipList){ c.dur = await getDuration(c.file); }
+      log("Scanning durations...");
+      setProgress(15);
+      for (let i=0;i<clipList.length;i++){
+        clipList[i].dur = await getDuration(clipList[i].file);
+        setProgress(15 + Math.round(((i+1)/clipList.length)*15));
+      }
       renderClipRows();
+      log("Durations scanned.");
     };
 
     function getDuration(file){
       return new Promise(res=>{
         const v = document.createElement("video");
-        v.preload="metadata";
+        v.preload = "metadata";
         v.onloadedmetadata = ()=> res(parseFloat(v.duration.toFixed(3)));
         v.src = URL.createObjectURL(file);
       });
     }
 
-    $("addSplit").onclick = ()=> alert("Tip: to split a clip, add the same file twice and set different in/out.");
+    $("addSplit").onclick = ()=> alert("Tip: to split a clip, add the same file twice and set different in/out values.");
 
     $("preview").onclick = async ()=>{
       if (!clipList.length) return;
       const url = await buildMerged("preview.webm", {format:"webm", preview:true});
       $("player").src = url;
     };
+
     $("thumbs").onclick = async ()=>{
       if (!clipList.length) return;
       const url = await buildMerged("thumbsrc.webm", {format:"webm", preview:true});
       makeThumbs(url);
     };
+
     $("export").onclick = async ()=>{
       if (!clipList.length) return;
       const fmt = $("format").value;
       const fname = `export_${Date.now()}.${fmt}`;
       const url = await buildMerged(fname, {format:fmt, preview:false});
       const a = document.createElement("a");
-      a.href = url; a.download = fname; a.click();
+      a.href = url;
+      a.download = fname;
+      a.click();
     };
 
     async function ensureFF(){
       if (ffmpeg) return;
-      ffmpeg = createFFmpeg({ log:true, corePath: "https://unpkg.com/@ffmpeg/core@0.12.8/dist/ffmpeg-core.js" });
+      log("Loading FFmpeg...");
+      setProgress(25);
+      ffmpeg = createFFmpeg({
+        log:true,
+        corePath:"https://unpkg.com/@ffmpeg/core@0.12.8/dist/ffmpeg-core.js"
+      });
       await ffmpeg.load();
       log("FFmpeg loaded.");
+      setProgress(35);
     }
 
     function parseWH(){
@@ -357,20 +996,21 @@ s0.parentNode.insertBefore(s1,s0);
     async function buildMerged(outName, {format, preview}){
       await ensureFF();
 
-      // Write inputs
       for (let i=0;i<clipList.length;i++){
         await ffmpeg.FS("writeFile", `v${i}.mp4`, await fetchFile(clipList[i].file));
       }
-      if (audioBlob){ await ffmpeg.FS("writeFile", `music`, await fetchFile(audioBlob)); }
+      if (audioBlob){
+        await ffmpeg.FS("writeFile", "music", await fetchFile(audioBlob));
+      }
 
       const fps = parseInt($("fps").value,10);
       const wh = parseWH();
       const scalePad = wh
         ? `scale=${wh.w}:${wh.h}:force_original_aspect_ratio=decrease,pad=${wh.w}:${wh.h}:(ow-iw)/2:(oh-ih)/2`
-        : "scale=trunc(iw/2)*2:trunc(ih/2)*2"; // ensure even dims
+        : "scale=trunc(iw/2)*2:trunc(ih/2)*2";
 
       const filterGraph = [];
-      // Trim each clip
+
       for (let i=0;i<clipList.length;i++){
         const c = clipList[i];
         const tIn = (c.in ?? 0);
@@ -380,43 +1020,59 @@ s0.parentNode.insertBefore(s1,s0);
           `[${i}:a]atrim=${tIn}:${tOut},asetpts=PTS-STARTPTS[a${i}t]`
         );
       }
-      // Concat
+
       filterGraph.push(`${Array.from({length:clipList.length},(_,i)=>`[v${i}t]`).join("")}concat=n=${clipList.length}:v=1:a=0[vcat]`);
       filterGraph.push(`${Array.from({length:clipList.length},(_,i)=>`[a${i}t]`).join("")}concat=n=${clipList.length}:v=0:a=1[acat]`);
 
-      // Text overlay
       let vmap = "[vcat]";
       const txt = $("txt").value.trim();
+
       if (txt){
         const pos = $("txtPos").value;
         let x="(w-text_w)/2", y="(h-text_h)/2";
-        if (pos==="top"){ y="50"; }
-        if (pos==="bottom"){ y="h-text_h-50"; }
-        if (pos==="custom"){ x=$("txtX").value||"40"; y=$("txtY").value||"60"; }
+        if (pos==="top") y="50";
+        if (pos==="bottom") y="h-text_h-50";
+        if (pos==="custom"){
+          x=$("txtX").value||"40";
+          y=$("txtY").value||"60";
+        }
+
         const enable = `between(t\\,${$("txtStart").value||0}\\,${$("txtEnd").value||5})`;
         const fontopt = $("fontFile").files[0] ? ":fontfile='userfont.ttf'" : "";
+
         if ($("fontFile").files[0]){
           await ffmpeg.FS("writeFile", "userfont.ttf", await fetchFile($("fontFile").files[0]));
         }
+
         const safeText = txt.replace(/:/g,"\\:").replace(/'/g,"\\'");
         filterGraph.push(`[vcat]drawtext=text='${safeText}':fontsize=${$("txtSize").value||64}:fontcolor=white:borderw=2:x=${x}:y=${y}:enable='${enable}'${fontopt}[vtx]`);
         vmap = "[vtx]";
       }
 
-      // Music / audio mode
       let amap = "[acat]";
       const hasMusic = !!audioBlob;
+
       if (hasMusic){
-        const last = clipList.length; // music input index
+        const last = clipList.length;
         const mode = $("audioMode").value;
-        if (mode==="replace"){ filterGraph.push(`[${last}:a]anull[amusic]`); amap = "[amusic]"; }
-        else if (mode==="mix"){ filterGraph.push(`[acat][${last}:a]amix=inputs=2:dropout_transition=2[amix]`); amap = "[amix]"; }
-        else if (mode==="crossfade"){ filterGraph.push(`[${last}:a]afade=t=in:ss=0:d=1,afade=t=out:st=10:d=1[amusicf]`, `[acat][amusicf]amix=inputs=2:dropout_transition=2[amix]`); amap = "[amix]"; }
+
+        if (mode==="replace"){
+          filterGraph.push(`[${last}:a]anull[amusic]`);
+          amap = "[amusic]";
+        } else if (mode==="mix"){
+          filterGraph.push(`[acat][${last}:a]amix=inputs=2:dropout_transition=2[amix]`);
+          amap = "[amix]";
+        } else if (mode==="crossfade"){
+          filterGraph.push(
+            `[${last}:a]afade=t=in:ss=0:d=1,afade=t=out:st=10:d=1[amusicf]`,
+            `[acat][amusicf]amix=inputs=2:dropout_transition=2[amix]`
+          );
+          amap = "[amix]";
+        }
       }
 
-      // Build args
       const inputs = [];
-      for (let i=0;i<clipList.length;i++){ inputs.push("-i", `v${i}.mp4`); }
+      for (let i=0;i<clipList.length;i++) inputs.push("-i", `v${i}.mp4`);
       if (hasMusic) inputs.push("-i","music");
 
       const args = [
@@ -433,22 +1089,30 @@ s0.parentNode.insertBefore(s1,s0);
         args.push("-c:v","libvpx-vp9","-b:v","0","-crf","32","-c:a","libopus","-b:a","128k", outName);
       }
 
-      log("Rendering… this can take a while for long clips.");
+      log("Rendering... this can take a while for long clips.");
+      setProgress(preview ? 60 : 55);
+
       await ffmpeg.run(...args);
+
       const data = ffmpeg.FS("readFile", outName);
-      const blob = new Blob([data.buffer], { type: (format==="mp4"?"video/mp4":"video/webm") });
+      const blob = new Blob([data.buffer], { type:(format==="mp4"?"video/mp4":"video/webm") });
       const url = URL.createObjectURL(blob);
+
       if (preview) $("player").src = url;
+
       log(`Done: ${outName} (${(data.length/1e6).toFixed(2)} MB)`);
+      setProgress(100);
       return url;
     }
 
     async function makeThumbs(videoUrl){
       const v = document.createElement("video");
-      v.src = videoUrl; v.muted = true;
+      v.src = videoUrl;
+      v.muted = true;
       await v.play().catch(()=>{});
       const canvas = document.createElement("canvas");
-      canvas.width = 320; canvas.height = 180;
+      canvas.width = 320;
+      canvas.height = 180;
       const ctx = canvas.getContext("2d");
       $("thumbRow").innerHTML = "";
       const points = [0,1,2,3,4];
@@ -458,12 +1122,13 @@ s0.parentNode.insertBefore(s1,s0);
         ctx.drawImage(v,0,0,canvas.width,canvas.height);
         const img = new Image();
         img.src = canvas.toDataURL("image/jpeg", .8);
-        img.style.width="160px"; img.style.borderRadius="8px";
         $("thumbRow").appendChild(img);
       }
       v.pause();
+      log("Thumbnails created.");
     }
+
+    renderClipRows();
   </script>
 </body>
-<script src="js/utils.js"></script>
 </html>
