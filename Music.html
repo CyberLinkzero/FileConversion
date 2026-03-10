@@ -2,94 +2,656 @@
 <html lang="en">
 <head>
   <link rel="stylesheet" href="site.css">
+  <link rel="stylesheet" href="nav.css">
 
   <meta charset="utf-8">
-  <title> Music → Tabs, Sheet, Vocals & Auto-Lyrics(Local + Cached) Coming Soon Under Construction </title>
+  <title>Music → Tabs, Sheet, Vocals & Auto-Lyrics (Local) | FileConverter.run</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Analyze once, render Tabs or Sheet instantly. 100% local with OPFS caching. Optional vocal melody and local auto-lyrics via localhost helper Under Constructiion.">
+  <meta name="description" content="Analyze once, render tabs or sheet instantly. 100% local with OPFS caching. Optional vocal melody and local auto-lyrics.">
+
   <style>
-    :root{--bg:#0f1117;--panel:#121826;--ink:#e5f2ff;--muted:#9aa4b2;--line:#263044;--cyan:#67e8f9;--vio:#a78bfa}
-    *{box-sizing:border-box} html,body{height:100%}
-    body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial}
-    header{padding:22px 16px;text-align:center;border-bottom:1px solid #1f2430}
-    h1{margin:0;font-size:28px;background:linear-gradient(90deg,var(--cyan),var(--vio));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-    .wrap{max-width:1200px;margin:0 auto;padding:18px 16px 64px}
-    .card{background:linear-gradient(180deg,#121826,#0b1220);border:1px solid var(--line);border-radius:16px;box-shadow:0 0 24px rgba(103,232,249,.14)}
+    :root{
+      --bg:#0f1117;
+      --panel:#121826;
+      --panel2:#0b1220;
+      --panel3:#0a1424;
+      --ink:#e5f2ff;
+      --muted:#9aa4b2;
+      --line:#263044;
+      --cyan:#67e8f9;
+      --vio:#a78bfa;
+      --green:#34d399;
+      --danger:#fb7185;
+      --shadow:0 18px 40px rgba(0,0,0,.28);
+      --glow:0 0 24px rgba(103,232,249,.12);
+      --radius:18px;
+      --radiusSm:12px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+
+    body{
+      margin:0;
+      background:
+        radial-gradient(circle at top right, rgba(103,232,249,.08), transparent 26%),
+        radial-gradient(circle at top left, rgba(167,139,250,.08), transparent 20%),
+        var(--bg);
+      color:var(--ink);
+      font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    }
+
+    a{color:var(--cyan)}
+
+    header{
+      padding:0 0 18px;
+      border-bottom:1px solid #1f2430;
+      background:
+        radial-gradient(circle at top right, rgba(103,232,249,.08), transparent 28%),
+        radial-gradient(circle at top left, rgba(167,139,250,.08), transparent 24%),
+        linear-gradient(180deg,#0f1117,#0d121d);
+    }
+
+    .page-shell{
+      max-width:1280px;
+      margin:0 auto;
+      padding:0 16px;
+    }
+
+    .top-title{
+      text-align:center;
+      padding:22px 0 12px;
+    }
+
+    h1{
+      margin:0;
+      font-size:clamp(1.8rem,3.6vw,3rem);
+      font-weight:800;
+      background:linear-gradient(90deg,var(--cyan),#7dd3fc,var(--vio),#ff72d2,var(--cyan));
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-size:300% auto;
+      text-shadow:0 0 8px rgba(103,232,249,.25);
+      animation:glowShift 6s linear infinite;
+      letter-spacing:.3px;
+    }
+
+    .hero-sub{
+      margin:.55rem auto 0;
+      max-width:860px;
+      color:#d9e7f5;
+      opacity:.95;
+    }
+
+    .hero-card{
+      margin-top:14px;
+      background:
+        radial-gradient(circle at top right, rgba(103,232,249,.12), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(167,139,250,.12), transparent 24%),
+        linear-gradient(180deg,#121826,#0b1220);
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      padding:22px;
+    }
+
+    .hero-grid{
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:18px;
+      align-items:stretch;
+    }
+
+    .hero-copy h2{
+      margin:0 0 10px;
+      font-size:clamp(1.2rem,2.2vw,2rem);
+      color:#fff;
+    }
+
+    .hero-copy p{
+      margin:0 0 12px;
+      color:#d6e4f3;
+      max-width:780px;
+    }
+
+    .hero-actions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+
+    .btn{
+      appearance:none;
+      border:0;
+      padding:11px 16px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:800;
+      background:linear-gradient(90deg,var(--cyan),var(--vio));
+      color:#07101a;
+      transition:.18s ease;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+    }
+
+    .btn:hover{
+      transform:translateY(-1px);
+      box-shadow:0 10px 26px rgba(103,232,249,.2);
+    }
+
+    .btn.sec{
+      background:var(--panel3);
+      color:var(--ink);
+      border:1px solid var(--line);
+    }
+
+    .btn.ghost{
+      background:transparent;
+      border:1px dashed var(--line);
+      color:var(--muted);
+    }
+
+    .btn.danger{
+      background:#2a1118;
+      color:#ffd8df;
+      border:1px solid #5d2433;
+    }
+
+    .btn:disabled{
+      opacity:.6;
+      cursor:not-allowed;
+      transform:none;
+      box-shadow:none;
+    }
+
+    .hero-pills{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:16px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#0d1523;
+      color:#d6e7f5;
+      font-size:.93rem;
+    }
+
+    .hero-side{
+      background:linear-gradient(180deg,#0f1625,#101828);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:12px;
+    }
+
+    .hero-side h3{
+      margin:0;
+      color:var(--cyan);
+      font-size:1.05rem;
+    }
+
+    .hero-side ul{
+      margin:0;
+      padding-left:18px;
+      color:#d7e7f5;
+    }
+
+    .hero-side li{margin:.2rem 0}
+
+    .wrap{
+      max-width:1280px;
+      margin:0 auto;
+      padding:22px 16px 64px;
+    }
+
+    .grid-main{
+      display:grid;
+      grid-template-columns:1.08fr .92fr;
+      gap:18px;
+      align-items:start;
+    }
+
+    .card{
+      background:linear-gradient(180deg,#121826,#0b1220);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--glow);
+      overflow:hidden;
+    }
+
     .pad{padding:18px}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-    @media (max-width:1000px){.row{grid-template-columns:1fr}}
-    label.title{display:block;font-size:13px;color:#cfe6ff;margin:8px 0 6px}
-    .drop{border:2px dashed var(--line);border-radius:12px;padding:18px;text-align:center;cursor:pointer}
-    .drop.drag{border-color:var(--cyan);background:rgba(103,232,249,.06)}
-    .chips{display:flex;flex-wrap:wrap;gap:8px}
-    .chip{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--line);padding:8px 12px;border-radius:999px}
-    textarea{width:100%;min-height:120px;resize:vertical;border-radius:12px;padding:12px 14px;background:#0a1424;border:1px solid #263044;color:var(--ink)}
-    .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
-    .btn{border:0;padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:700;background:linear-gradient(90deg,var(--cyan),var(--vio));color:#07101a}
-    .btn.sec{background:#0a1424;color:var(--ink);border:1px solid #263044}
-    .btn.ghost{background:transparent;border:1px dashed var(--line);color:var(--muted)}
-    .btn:disabled{opacity:.6;cursor:not-allowed}
-    .bar{height:8px;background:#0a1424;border:1px solid #263044;border-radius:999px;overflow:hidden;margin-top:10px}
-    .bar>i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),var(--vio));transition:width .25s}
-    pre{margin:10px 0 0;padding:12px;border:1px dashed var(--line);border-radius:12px;background:#07101a;color:#cfe6ff;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;max-height:240px;overflow:auto;white-space:pre-wrap}
+
+    .section-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    .section-head h3{
+      margin:0;
+      font-size:1.05rem;
+      color:var(--cyan);
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:6px 10px;
+      color:#cfe6ff;
+      background:#0d1523;
+      font-size:.84rem;
+      white-space:nowrap;
+    }
+
+    label.title{
+      display:block;
+      font-size:13px;
+      color:#cfe6ff;
+      margin:10px 0 8px;
+      font-weight:700;
+      letter-spacing:.2px;
+    }
+
+    .drop{
+      border:2px dashed var(--line);
+      border-radius:16px;
+      padding:26px 16px;
+      text-align:center;
+      cursor:pointer;
+      background:
+        linear-gradient(180deg, rgba(103,232,249,.03), rgba(167,139,250,.03)),
+        #0c1422;
+      transition:.18s ease;
+    }
+
+    .drop:hover{
+      border-color:#3d546f;
+      box-shadow:0 10px 24px rgba(103,232,249,.08);
+      transform:translateY(-1px);
+    }
+
+    .drop.drag{
+      border-color:var(--cyan);
+      background:rgba(103,232,249,.06);
+      box-shadow:0 0 0 4px rgba(103,232,249,.08);
+    }
+
+    .drop-big{
+      font-size:1.05rem;
+      font-weight:700;
+      color:#e8f5ff;
+    }
+
+    .drop-small{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:.95rem;
+    }
+
+    .fname{
+      margin-top:8px;
+      color:#cfe6ff;
+      font-size:.94rem;
+      word-break:break-word;
+    }
+
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    .chip{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      border:1px solid var(--line);
+      padding:9px 12px;
+      border-radius:999px;
+      background:#0d1523;
+      color:#e5f2ff;
+      transition:.16s ease;
+    }
+
+    .chip:hover{
+      border-color:#45627f;
+      background:#111b2b;
+    }
+
+    .chip input{
+      accent-color:var(--cyan);
+      cursor:pointer;
+    }
+
+    textarea,
+    select,
+    input[type="text"]{
+      width:100%;
+      border-radius:12px;
+      padding:12px 14px;
+      background:#0a1424;
+      border:1px solid #263044;
+      color:var(--ink);
+      transition:.18s ease;
+    }
+
+    textarea{
+      min-height:220px;
+      resize:vertical;
+      line-height:1.55;
+    }
+
+    textarea:focus,
+    select:focus,
+    input[type="text"]:focus{
+      outline:none;
+      border-color:var(--cyan);
+      box-shadow:0 0 0 3px rgba(103,232,249,.1);
+    }
+
+    .stack{display:grid;gap:14px}
+
+    .actions{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-top:16px;
+      padding:16px;
+      background:#0b1322;
+      border:1px solid var(--line);
+      border-radius:16px;
+    }
+
+    .status{
+      color:#d8e7f4;
+      font-weight:600;
+      min-height:22px;
+    }
+
+    .bar{
+      height:10px;
+      background:#0a1424;
+      border:1px solid #263044;
+      border-radius:999px;
+      overflow:hidden;
+      margin-top:12px;
+    }
+
+    .bar>i{
+      display:block;
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg,var(--cyan),var(--vio));
+      transition:width .25s;
+      box-shadow:0 0 16px rgba(103,232,249,.35);
+    }
+
+    pre{
+      margin:12px 0 0;
+      padding:14px;
+      border:1px dashed var(--line);
+      border-radius:14px;
+      background:#07101a;
+      color:#cfe6ff;
+      font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+      max-height:280px;
+      overflow:auto;
+      white-space:pre-wrap;
+    }
+
     .muted{color:var(--muted)}
-    #scoreWrap{margin-top:16px;background:#0a1424;border:1px solid #263044;border-radius:12px;padding:12px}
-    .badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:#cfe6ff}
+
+    #scoreWrap{
+      margin-top:16px;
+      background:#0a1424;
+      border:1px solid #263044;
+      border-radius:14px;
+      padding:12px;
+    }
+
+    .info-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .info-card{
+      background:linear-gradient(180deg,#121826,#0b1220);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:var(--glow);
+    }
+
+    .info-card h4{
+      margin:0 0 10px;
+      color:var(--cyan);
+      font-size:1rem;
+    }
+
+    .info-card p,
+    .info-card li{
+      color:#d7e7f5;
+    }
+
+    .info-card ul{
+      margin:.2rem 0 0;
+      padding-left:18px;
+    }
+
+    .hint{
+      font-size:.92rem;
+      color:var(--muted);
+    }
+
+    footer{
+      background:#121826;
+      color:var(--cyan);
+      padding:20px;
+      border-top:1px solid var(--cyan);
+      margin-top:40px;
+      text-align:center;
+    }
+
     /* Modal */
-    #transcriber-modal{display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:99999;}
-    #transcriber-card{max-width:640px; margin:10vh auto; background:#121826; color:#e5f2ff; border:1px solid #263044; border-radius:16px; padding:18px;}
-    .btn{cursor:pointer}
+    #transcriber-modal{
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.6);
+      z-index:99999;
+      backdrop-filter:blur(4px);
+    }
+
+    #transcriber-card{
+      max-width:700px;
+      margin:8vh auto;
+      background:
+        radial-gradient(circle at top right, rgba(103,232,249,.12), transparent 30%),
+        linear-gradient(180deg,#121826,#0b1220);
+      color:#e5f2ff;
+      border:1px solid #263044;
+      border-radius:20px;
+      padding:22px;
+      box-shadow:var(--shadow);
+    }
+
+    #transcriber-card h3{
+      margin:0 0 8px;
+      background:linear-gradient(90deg,#67e8f9,#a78bfa);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      font-size:1.3rem;
+    }
+
+    @keyframes glowShift{
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
+
+    @media (max-width:1080px){
+      .hero-grid,
+      .grid-main,
+      .info-grid{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width:720px){
+      .page-shell,
+      .wrap{
+        padding-left:12px;
+        padding-right:12px;
+      }
+
+      .hero-card,
+      .pad,
+      .info-card,
+      #transcriber-card{
+        padding:14px;
+      }
+
+      .actions{
+        align-items:stretch;
+      }
+
+      .actions .btn{
+        width:100%;
+      }
+
+      .hero-actions{
+        flex-direction:column;
+        align-items:stretch;
+      }
+    }
   </style>
 </head>
 <body>
 <header>
-  
+  <div id="sponsored-bar" style="position:sticky;top:0;z-index:9999;width:100%;background:#0f1117;color:#e5e7eb;border-bottom:1px solid #1f2430;">
+    <div class="page-shell" style="display:flex;align-items:center;gap:.5rem;padding:10px 0;">
+      <span style="opacity:.9;">Sponsored and built by</span>
+      <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer" style="color:#7dd3fc;text-decoration:none;font-weight:600;">Knack.bz</a>
+      <button aria-label="Dismiss sponsor bar"
+        onclick="document.getElementById('sponsored-bar').style.display='none'"
+        style="margin-left:auto;background:transparent;border:none;color:#9aa4b2;cursor:pointer;font-size:16px;line-height:1;">✕</button>
+    </div>
+  </div>
 
+  <div class="page-shell">
+    <div class="top-title">
+      <h1>Music → Tabs, Sheet, Vocals & Auto-Lyrics</h1>
+      <p class="hero-sub">Analyze once, render instantly. 100% on your device with OPFS cache, optional vocal melody extraction, and optional local auto-lyrics.</p>
+    </div>
 
-  <h1>Music → Tabs, Sheet, Vocals & Auto-Lyrics (Local) Under Construction</h1>
-  <p class="muted" style="margin:.3rem 0 0">Analyze once, render instantly. 100% on your device. OPFS cache. Optional local auto-lyrics.</p>
+    <div class="hero-card">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <h2>Turn songs into usable music output with a cleaner cyber UI</h2>
+          <p>
+            Drop in an audio or video file, analyze it locally, and export tabs, sheet-style output,
+            structured JSON, or timed VTT cues. This page is built for quick iteration and future upgrades.
+          </p>
 
-  <div data-nav-placeholder></div>
-  <script src="nav-loader.js" defer></script>
-  <script src="js/utils.js"></script>
-</header>
-
-<div class="wrap">
-  <div class="card"><div class="pad">
-    <div class="row">
-      <div>
-        <label class="title">Audio/Video file</label>
-        <input id="file" type="file" accept="audio/*,video/*" hidden>
-        <div id="drop" class="drop" aria-label="Choose file" tabindex="0" role="button">
-          <div>Drag & drop here</div>
-          <div style="margin-top:8px">
-            <button id="pickBtn" type="button" class="btn sec" style="padding:8px 12px">Browse…</button>
+          <div class="hero-actions">
+            <a class="btn" href="#toolArea">Start analyzing</a>
+            <a class="btn sec" href="#moreInfo">How it works</a>
           </div>
-          <div id="fname" class="muted" style="margin-top:6px"></div>
+
+          <div class="hero-pills">
+            <span class="pill">⚡ Analyze once</span>
+            <span class="pill">🔒 Fully local</span>
+            <span class="pill">💾 OPFS cache</span>
+            <span class="pill">🎙 Optional auto-lyrics</span>
+          </div>
         </div>
 
-        <div class="chips" style="margin-top:10px">
+        <div class="hero-side">
+          <h3>Best for</h3>
+          <ul>
+            <li>Fast chord timeline generation</li>
+            <li>Quick tab exports for guitar, bass, piano, and drums</li>
+            <li>Local sheet preview with vocal melody</li>
+            <li>Reusing cached analysis without reprocessing</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-shell" style="margin-top:16px;">
+    <div data-nav-placeholder></div>
+    <script src="nav-loader.js" defer></script>
+    <script src="js/utils.js"></script>
+  </div>
+</header>
+
+<div class="wrap" id="toolArea">
+  <div class="grid-main">
+    <!-- Left tools -->
+    <div class="card">
+      <div class="pad">
+        <div class="section-head">
+          <h3>Input & Analysis Setup</h3>
+          <span class="badge">Local only</span>
+        </div>
+
+        <label class="title">Audio / Video file</label>
+        <input id="file" type="file" accept="audio/*,video/*" hidden>
+        <div id="drop" class="drop" aria-label="Choose file" tabindex="0" role="button">
+          <div class="drop-big">Drag & drop a file here</div>
+          <div class="drop-small">or browse from your device</div>
+          <div style="margin-top:12px">
+            <button id="pickBtn" type="button" class="btn sec" style="padding:9px 12px">Browse…</button>
+          </div>
+          <div id="fname" class="fname"></div>
+        </div>
+
+        <div class="chips" style="margin-top:12px">
           <span id="cacheBadge" class="badge" style="display:none">Cached analysis found</span>
           <button id="useCache" class="btn sec" style="display:none">Use cached analysis</button>
           <button id="clearCache" class="btn sec" style="display:none">Clear cache</button>
         </div>
 
-        <label class="title" style="margin-top:14px">Output</label>
+        <label class="title" style="margin-top:16px">Output mode</label>
         <div class="chips">
           <label class="chip"><input type="radio" name="mode" value="tabs" checked> Tabs</label>
           <label class="chip"><input type="radio" name="mode" value="sheet"> Sheet music</label>
-          <label class="chip"><input type="checkbox" id="vocals"> Include vocal melody (notes)</label>
+          <label class="chip"><input type="checkbox" id="vocals"> Include vocal melody</label>
         </div>
 
-        <div class="chips" style="margin-top:8px">
-          <label class="chip"><input type="checkbox" id="auto-lyrics"> Auto-transcribe lyrics (local)</label>
+        <label class="title" style="margin-top:16px">Lyrics options</label>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="auto-lyrics"> Auto-transcribe lyrics (local helper)</label>
         </div>
 
-        <label class="title" style="margin-top:14px">Segmentation (fallback)</label>
+        <label class="title" style="margin-top:16px">Segmentation fallback</label>
         <div class="chips">
           <label class="chip">
             <span>Force split every</span>
-            <select id="force-split" style="background:#0a1424;border:1px solid #263044;color:#e5f2ff;border-radius:10px;padding:6px 10px;margin-left:8px">
+            <select id="force-split" style="width:auto;min-width:110px;margin-left:4px">
               <option value="0">— none —</option>
               <option value="2">2s</option>
               <option value="4" selected>4s</option>
@@ -98,7 +660,7 @@
           </label>
         </div>
 
-        <label class="title" style="margin-top:14px">Tabs instruments</label>
+        <label class="title" style="margin-top:16px">Tabs instruments</label>
         <div class="chips" id="chips">
           <label class="chip"><input type="checkbox" value="guitar" checked> Guitar</label>
           <label class="chip"><input type="checkbox" value="bass"> Bass</label>
@@ -106,7 +668,7 @@
           <label class="chip"><input type="checkbox" value="drums"> Drums</label>
         </div>
 
-        <label class="title" style="margin-top:14px">Exports</label>
+        <label class="title" style="margin-top:16px">Export formats</label>
         <div class="chips">
           <label class="chip"><input type="checkbox" id="fmt-md" checked> Markdown (.md)</label>
           <label class="chip"><input type="checkbox" id="fmt-txt"> Text Tabs (.txt)</label>
@@ -114,52 +676,109 @@
           <label class="chip"><input type="checkbox" id="fmt-vtt"> WebVTT (.vtt)</label>
         </div>
       </div>
+    </div>
 
-      <div>
+    <!-- Right preview / lyrics -->
+    <div class="card">
+      <div class="pad">
+        <div class="section-head">
+          <h3>Lyrics & Render Preview</h3>
+          <span class="badge">Preview area</span>
+        </div>
+
         <label class="title">Lyrics (optional)</label>
-        <textarea id="lyrics" placeholder="Paste lyrics to sync under notes… (auto-lyrics will overwrite this)"></textarea>
+        <textarea id="lyrics" placeholder="Paste lyrics to sync under notes… auto-lyrics will overwrite this if enabled."></textarea>
+
         <div id="scoreWrap" style="display:none">
+          <label class="title" style="margin-top:14px">Rendered score preview</label>
           <div id="score"></div>
+        </div>
+
+        <div class="hint" style="margin-top:12px">
+          Tip: use <strong>Tabs</strong> for fast exports or <strong>Sheet music</strong> when you want a rendered notation preview with optional melody.
         </div>
       </div>
     </div>
+  </div>
 
-    <div class="actions">
-      <button id="convert" class="btn">Analyze (one pass)</button>
-      <button id="render" class="btn sec" disabled>Render Output</button>
-      <button id="abort" class="btn sec" disabled>Abort</button>
-      <span id="status" class="muted"></span>
+  <div class="card" style="margin-top:18px;">
+    <div class="pad">
+      <div class="section-head">
+        <h3>Actions & Progress</h3>
+        <span class="badge">One-pass workflow</span>
+      </div>
+
+      <div class="actions">
+        <button id="convert" class="btn">Analyze (one pass)</button>
+        <button id="render" class="btn sec" disabled>Render Output</button>
+        <button id="abort" class="btn danger" disabled>Abort</button>
+        <span id="status" class="status"></span>
+      </div>
+
+      <div class="bar"><i id="progress-fill"></i></div>
+      <pre id="log"></pre>
     </div>
-    <div class="bar"><i id="progress-fill"></i></div>
-    <pre id="log"></pre>
-  </div></div>
+  </div>
+
+  <div class="info-grid" id="moreInfo">
+    <div class="info-card">
+      <h4>How this page works</h4>
+      <ul>
+        <li>Decode audio locally</li>
+        <li>Analyze chord spans once</li>
+        <li>Reuse cached analysis when available</li>
+        <li>Render tabs or sheet output without redoing every step</li>
+      </ul>
+    </div>
+
+    <div class="info-card">
+      <h4>Best workflow</h4>
+      <ul>
+        <li>Pick your file</li>
+        <li>Analyze once</li>
+        <li>Reuse cache for layout changes</li>
+        <li>Toggle instruments and export types as needed</li>
+      </ul>
+    </div>
+
+    <div class="info-card">
+      <h4>Under construction notes</h4>
+      <ul>
+        <li>Sheet rendering falls back to tabs if needed</li>
+        <li>Auto-lyrics requires a tiny local helper</li>
+        <li>UI is ready for future model upgrades</li>
+      </ul>
+    </div>
+  </div>
 </div>
 
 <!-- Permission / Setup Modal -->
 <div id="transcriber-modal">
   <div id="transcriber-card">
-    <h3 style="margin:0 0 8px; background:linear-gradient(90deg,#67e8f9,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
-      Allow local lyrics transcription?
-    </h3>
+    <h3>Allow local lyrics transcription?</h3>
     <p style="color:#9aa4b2; margin:.5rem 0 1rem;">
       We can auto-transcribe lyrics <strong>fully on your device</strong>. We’ll help set up a tiny local tool
       (Python + Whisper) and connect to it at <code>http://127.0.0.1:8765</code>. Nothing leaves your computer.
     </p>
     <ol style="margin:0 0 1rem 1.2rem; color:#cfe6ff;">
       <li>We’ll download a small setup script for your OS.</li>
-      <li>You run it once (it may install Python/pip if missing).</li>
-      <li>It starts a safe local server; this page will detect it automatically.</li>
+      <li>You run it once.</li>
+      <li>The page auto-detects when the local server is ready.</li>
     </ol>
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
       <button id="allow-setup" class="btn" style="padding:10px 14px;">Allow & Download</button>
       <button id="deny-setup" class="btn sec" style="padding:10px 14px;">Not now</button>
     </div>
     <div id="setup-steps" style="display:none; margin-top:12px; color:#9aa4b2;">
-      <p><strong>Next:</strong> Run the downloaded script. Keep this page open — we’ll auto-detect when the server is ready.</p>
+      <p><strong>Next:</strong> Run the downloaded script. Keep this page open — it will auto-detect when the server is ready.</p>
       <p id="probe-status">Probing <code>127.0.0.1:8765</code>…</p>
     </div>
   </div>
 </div>
+
+<footer>
+  <p>© <span id="year"></span> File Converter — Cyber Edition</p>
+</footer>
 
 <script type="module">
 /* ========= Lazy VexFlow loader (no top-level import) ========= */
@@ -206,18 +825,21 @@ const steps = document.getElementById('setup-steps');
 const probeEl = document.getElementById('probe-status');
 const splitSel = document.getElementById('force-split');
 const pickBtn = document.getElementById('pickBtn');
+const yearEl = document.getElementById('year');
+
+if (yearEl) yearEl.textContent = new Date().getFullYear();
 
 const getMode = () => (document.querySelector('input[name="mode"]:checked')?.value)||'tabs';
 
 /* ========= Small utils ========= */
 const setProgress = p => fill.style.width = Math.max(0,Math.min(100,p)) + '%';
 const tick = () => new Promise(r=>setTimeout(r,0));
-function makeLog(el){ let buf=[],s=false; return (msg)=>{ buf.push(msg); if(!s){ s=true; setTimeout(()=>{ el.textContent+=buf.join('\n')+'\n'; el.scrollTop=el.scrollHeight; buf=[]; s=false; },50);} }; }
+function makeLog(el){ let buf=[],s=false; return (msg)=>{ buf.push(msg); if(!s){ s=true; setTimeout(()=>{ el.textContent+=buf.join('\\n')+'\\n'; el.scrollTop=el.scrollHeight; buf=[]; s=false; },50);} }; }
 const log = makeLog(logEl);
 const pad = (n,l=2)=> String(n).padStart(l,'0');
 const fmtTime = (t)=>{ const m=Math.floor(t/60), s=Math.floor(t%60), ms=Math.round((t-Math.floor(t))*1000); return `${pad(m)}:${pad(s)}.${pad(ms,3)}`; };
 
-log('🎵 Music tab page script init');
+log('🎵 Music page UI initialized');
 
 /* ========= File state ========= */
 let currentFile = null;
@@ -228,8 +850,6 @@ function setCurrentFile(file){
 }
 
 /* ========= File input UX ========= */
-
-/* Click anywhere on drop zone (except Browse button) */
 drop.addEventListener('click', (e)=>{
   if (e.target.id === 'pickBtn') return;
   log('Drop zone clicked → opening file picker');
@@ -237,7 +857,6 @@ drop.addEventListener('click', (e)=>{
   fileEl.click();
 });
 
-/* Explicit Browse button */
 if (pickBtn){
   pickBtn.addEventListener('click', (e)=>{
     e.stopPropagation();
@@ -247,7 +866,6 @@ if (pickBtn){
   });
 }
 
-/* Keyboard accessibility */
 drop.addEventListener('keydown', (e)=>{
   if(e.key === 'Enter' || e.key === ' '){
     e.preventDefault();
@@ -257,7 +875,6 @@ drop.addEventListener('keydown', (e)=>{
   }
 });
 
-/* File chosen via OS dialog */
 fileEl.addEventListener('change', ()=>{
   const file = (fileEl.files && fileEl.files[0]) ? fileEl.files[0] : null;
   log('File input change fired: ' + (file ? file.name : 'no file'));
@@ -265,7 +882,6 @@ fileEl.addEventListener('change', ()=>{
   showCacheUI();
 });
 
-/* Drag & drop support */
 drop.addEventListener('dragover', (e)=>{
   e.preventDefault();
   drop.classList.add('drag');
@@ -410,15 +1026,15 @@ function guessKey(spans){
 
 /* ========= Tabs helpers ========= */
 function padLine(arr, width, fill='-'){ while(arr.length < width) arr.push(fill); }
-function makeLines(template){ return template.split("\n").map(s => s.split("")); }
-function joinLines(lines){ return lines.map(a => a.join("")).join("\n"); }
+function makeLines(template){ return template.split("\\n").map(s => s.split("")); }
+function joinLines(lines){ return lines.map(a => a.join("")).join("\\n"); }
 function guitarTabsFromChords(spans){
   let lines = makeLines(
-    "e|----------------|----------------|\n" +
-    "B|----------------|----------------|\n" +
-    "G|----------------|----------------|\n" +
-    "D|----------------|----------------|\n" +
-    "A|----------------|----------------|\n" +
+    "e|----------------|----------------|\\n" +
+    "B|----------------|----------------|\\n" +
+    "G|----------------|----------------|\\n" +
+    "D|----------------|----------------|\\n" +
+    "A|----------------|----------------|\\n" +
     "E|----------------|----------------|"
   );
   if (!spans || !spans.length) return joinLines(lines);
@@ -434,9 +1050,9 @@ function guitarTabsFromChords(spans){
 }
 function bassTabsFromChords(spans){
   let lines = makeLines(
-    "G|----------------|----------------|\n" +
-    "D|----------------|----------------|\n" +
-    "A|----------------|----------------|\n" +
+    "G|----------------|----------------|\\n" +
+    "D|----------------|----------------|\\n" +
+    "A|----------------|----------------|\\n" +
     "E|----------------|----------------|"
   );
   if (!spans || !spans.length) return joinLines(lines);
@@ -462,14 +1078,14 @@ function drumGrid(){ const patt=(k)=>Array.from({length:16},(_,i)=>k(i)?'x':'-')
 function buildChordProText(spans, lyricsText, duration){
   if(!spans || !spans.length){ return lyricsText?.trim() ? lyricsText.trim() : "[Intro] —"; }
   if(!lyricsText) return "[Intro] " + spans.slice(0,4).map(s=>s.label).join("  ");
-  const words = lyricsText.trim().split(/\s+/); if(words.length===0) return lyricsText;
+  const words = lyricsText.trim().split(/\\s+/); if(words.length===0) return lyricsText;
   const per = (duration||words.length)/Math.max(1,words.length);
   let res="", idx=0;
   for(let w=0;w<words.length;w++){
     const t = w*per;
     while(idx+1<spans.length && spans[idx+1].start<=t) idx++;
     const add = (w===0) || (spans[idx].start<=t && (idx===0?true:spans[idx].start>(w-1)*per));
-    res += (add?`[${spans[idx].label}]`:"")+words[w]+((w%12===11)?"\n":" ");
+    res += (add?`[${spans[idx].label}]`:"")+words[w]+((w%12===11)?"\\n":" ");
   }
   return res.trim();
 }
@@ -483,7 +1099,7 @@ function toMarkdown(title, spans, g=null, b=null, p=null, d=null, chordPro=null)
   if(d?.length){ L.push('## Drums (grid)',...d.map(x=>'`'+x+'`'),''); }
   L.push('## Chord Timeline','', ...(spans||[]).map(c=>`- ${fmtTime(c.start)}–${fmtTime(c.end)}: **${c.label}**`),'');
 
-  return L.join('\n');
+  return L.join('\\n');
 }
 function toPlainTabs(g=null,b=null,p=null,d=null){
   const o=[];
@@ -491,7 +1107,7 @@ function toPlainTabs(g=null,b=null,p=null,d=null){
   if(b){o.push('BASS',b,'');}
   if(p?.length){o.push('PIANO',...p,'');}
   if(d?.length){o.push('DRUMS',...d,'');}
-  return o.join('\n');
+  return o.join('\\n');
 }
 function toJSONFile(title, spans, meta={}){ return JSON.stringify({title,chords:spans,meta},null,2); }
 function toWebVTT(spans){
@@ -506,7 +1122,7 @@ function toWebVTT(spans){
     L.push(`${to(c.start)} --> ${to(c.end)}`);
     L.push(c.label,'');
   });
-  return L.join('\n');
+  return L.join('\\n');
 }
 function downloadText(filename, text){
   const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
@@ -530,7 +1146,7 @@ function pitchToVexKey(midi){
 }
 function syllabify(text){
   if(!text) return [];
-  const words=text.trim().split(/\s+/);
+  const words=text.trim().split(/\\s+/);
   const out=[];
   for(const w of words){
     if(w.length<=6) out.push(w);
@@ -585,7 +1201,6 @@ async function renderSheet({ title, bpm=100, melody=[], chords=[], lyricsText=""
   new VFLocal.Formatter().joinVoices([voice]).format([voice], 920);
   voice.draw(context, stave);
 
-  // Chords text above
   context.save(); context.setFont('Arial', 12, 'bold');
   const yTop = stave.getYForTopText() - 6;
   for (const s of chords){
@@ -633,8 +1248,8 @@ async function showCacheUI(){
   const c = await readCache();
   const has = !!c;
   cacheBadge.style.display = has ? 'inline-flex' : 'none';
-  useCacheBtn.style.display = has ? 'inline-block' : 'none';
-  clearCacheBtn.style.display = has ? 'inline-block' : 'none';
+  useCacheBtn.style.display = has ? 'inline-flex' : 'none';
+  clearCacheBtn.style.display = has ? 'inline-flex' : 'none';
 }
 
 /* ========= Local lyrics helper ========= */
@@ -727,7 +1342,7 @@ function alignWordsToNotes(words, notes){
 }
 
 /* ========= Global state ========= */
-let analyzed = null;          // { title, duration, sr, hop, spans[], melody[], bpm, key }
+let analyzed = null;
 let controller=null, pool=null, vWorker=null;
 let sessionMono = null;
 
@@ -739,7 +1354,7 @@ chips.addEventListener('change', ()=> { if (analyzed && getMode()==='tabs') rend
 
 useCacheBtn.onclick = async ()=>{
   const c = await readCache();
-  if (!c){
+  if(!c){
     await showCacheUI();
     return;
   }
@@ -762,7 +1377,7 @@ async function analyzeOnce(){
   const file = currentFile || (fileEl.files && fileEl.files[0]);
   try{ validateFile(file); }catch(e){ alert(e.message); return; }
   controller = new AbortController();
-  analyzeBtn.disabled = true; renderBtn.disabled = true; abortBtn.disabled = true;
+  analyzeBtn.disabled = true; renderBtn.disabled = true; abortBtn.disabled = false;
   scoreWrap.style.display='none'; logEl.textContent=''; setProgress(3); statusEl.textContent='Decoding…';
 
   try{
@@ -775,7 +1390,6 @@ async function analyzeOnce(){
     sessionMono = dec.mono;
     const sr = dec.sr, duration = dec.duration;
     if(duration>600) throw new Error(`Audio too long (${duration.toFixed(0)}s). Limit 600s.`);
-    abortBtn.disabled = false;
 
     statusEl.textContent='Framing…'; setProgress(10);
     const { chunks } = frameAudioInChunks(sessionMono, sr, 4096, 2048, 192);
@@ -819,7 +1433,7 @@ async function analyzeOnce(){
 
     log(`Chord spans: ${spans.length}`);
 
-    const title = (file.name||'Song').replace(/\.[^.]+$/,'');
+    const title = (file.name||'Song').replace(/\\.[^.]+$/,'');
     const bpm   = 100;
     const key   = guessKey(spans);
 
@@ -838,7 +1452,7 @@ async function analyzeOnce(){
     setProgress(85);
     statusEl.textContent='Analysis done.';
     renderBtn.disabled = false;
-    log('Preview:\n'+spans.slice(0,8).map(s=>`[${fmtTime(s.start)}–${fmtTime(s.end)}] ${s.label}`).join('\n'));
+    log('Preview:\\n'+spans.slice(0,8).map(s=>`[${fmtTime(s.start)}–${fmtTime(s.end)}] ${s.label}`).join('\\n'));
   }catch(err){
     if(err.name==='AbortError'){ statusEl.textContent='Canceled.'; log('⚠️ Aborted by user'); }
     else { statusEl.textContent='Failed.'; log('❌ '+err.message); }
