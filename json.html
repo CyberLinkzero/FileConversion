@@ -3,6 +3,7 @@
 <head>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9800485035530027"
      crossorigin="anonymous"></script>
+
   <!-- Tawk.to Live Chat -->
   <script>
     var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
@@ -18,11 +19,12 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-W25SYMTSSR"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);} gtag('js', new Date());
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
     gtag('config', 'G-W25SYMTSSR');
   </script>
 
-  <!-- Google AdSense Auto Ads (automatic placements) -->
+  <!-- Google AdSense Auto Ads -->
   <script async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9800485035530027"
           crossorigin="anonymous"></script>
@@ -34,37 +36,9 @@
   <meta name="description" content="Convert between JSON/CSV/XLSX and export JSON to a simple .doc — privately in your browser. Paste or upload data, preview, and download. No uploads, no tracking.">
 
   <link rel="stylesheet" href="site.css" />
+  <link rel="stylesheet" href="nav.css" />
 
-  <style>
-    /* Minimal page skin to match your cyber look */
-    body{background:#0f1117;color:#fff;font-family:Arial,Helvetica,sans-serif;margin:0}
-    header{padding:18px 0;border-bottom:1px solid #1f2430}
-    .title h1{margin:0;font-size:2rem;color:#7dd3fc;text-align:center}
-    .title .sub{opacity:.9;text-align:center;margin:6px 0 0;color:#e5e7eb}
-    nav.tabs{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:10px 12px;border-top:1px solid #1f2430;border-bottom:1px solid #1f2430}
-    .tab{color:#7dd3fc;text-decoration:none;padding:8px 12px;border-radius:8px}
-    .tab.active{border-bottom:2px solid #7dd3fc;color:#fff}
-    main{max-width:1200px;margin:0 auto;padding:16px}
-    .panel{padding:18px 0}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
-    .card{background:#1a1f2c;border:1px solid #263044;border-radius:12px;padding:16px}
-    .row{display:flex;gap:10px;flex-wrap:wrap}
-    .preview{background:#0f1117;border:1px solid #263044;border-radius:8px;padding:10px;margin-top:10px;min-height:60px;color:#e5e7eb}
-    .log{margin-top:10px;min-height:24px;color:#9aa4b2;font-size:.95rem;white-space:pre-wrap}
-    textarea{width:100%;min-height:140px;background:#0f1117;color:#e5e7eb;border:1px solid #263044;border-radius:10px;padding:10px}
-    button,select,input[type=file],input[type=text]{background:#0f1117;color:#e5e7eb;border:1px solid #263044;border-radius:10px;padding:8px 10px}
-    button:hover{background:#7dd3fc;color:#0f1117;border-color:#7dd3fc}
-    footer{background:#1a1f2c;color:#7dd3fc;padding:20px;border-top:1px solid #7dd3fc;margin-top:40px;text-align:center}
-    /* Informational content (great for AdSense) */
-    .info{background:#1a1f2c;border:1px solid #263044;border-radius:12px;padding:18px;margin:18px 0;text-align:left}
-    .info h2,.info h3{color:#7dd3fc;margin:.2rem 0 .6rem}
-    .note{color:#9aa4b2;font-size:.95rem}
-    table.guide{width:100%;border-collapse:collapse}
-    table.guide th,table.guide td{border-bottom:1px solid #263044;padding:8px;text-align:left;vertical-align:top}
-    code{background:#0f1624;padding:2px 6px;border-radius:6px;border:1px solid #263044}
-  </style>
-
-  <!-- Structured data for trust/SEO -->
+  <!-- Structured data -->
   <script type="application/ld+json">
   {
     "@context":"https://schema.org",
@@ -79,41 +53,496 @@
   }
   </script>
 
-<style>
-.glow-title{
-  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
-  font-weight: 800;
-  text-align: center;
-  margin: 10px 0 4px;
-  letter-spacing: .3px;
-  background: linear-gradient(90deg,#00ffff,#7dd3fc,#a78bfa,#ff00ff,#00ffcc,#00ffff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 6px rgba(125,211,252,.45), 0 0 12px rgba(125,211,252,.25), 0 0 18px rgba(167,139,250,.2);
-  animation: cyberPulse 3s ease-in-out infinite alternate, gradientShift 6s linear infinite;
-  background-size: 400% auto;
-}
-@keyframes cyberPulse {
-  from { text-shadow: 0 0 4px rgba(125,211,252,.25), 0 0 8px rgba(125,211,252,.18), 0 0 12px rgba(167,139,250,.12); }
-  to   { text-shadow: 0 0 10px rgba(125,211,252,.6), 0 0 20px rgba(125,211,252,.4), 0 0 30px rgba(255,0,255,.28); }
-}
-@keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
-.info{max-width:900px;margin:18px auto;background:#1a1f2c;border:1px solid #273142;border-radius:12px;padding:18px;color:#e6edf3}
-.info h3{margin:0 0 8px;color:#7dd3fc}
-.info p{margin:6px 0 0}
-.info ul{margin:8px 0 0 16px}
-</style>
+  <style>
+    :root{
+      --bg:#0f1117;
+      --panel:#1a1f2c;
+      --panel-2:#121723;
+      --line:#263044;
+      --line-2:#33425d;
+      --text:#e5e7eb;
+      --muted:#9aa4b2;
+      --brand:#7dd3fc;
+      --accent:#a78bfa;
+      --glow:0 10px 30px rgba(125,211,252,.12);
+      --radius:16px;
+      --radius-sm:12px;
+    }
 
+    *{box-sizing:border-box}
+
+    body{
+      background:var(--bg);
+      color:var(--text);
+      font-family:Arial,Helvetica,sans-serif;
+      margin:0;
+    }
+
+    a{color:var(--brand)}
+
+    header{
+      border-bottom:1px solid #1f2430;
+      background:
+        radial-gradient(circle at top right, rgba(125,211,252,.12), transparent 30%),
+        radial-gradient(circle at top left, rgba(167,139,250,.10), transparent 28%),
+        var(--bg);
+    }
+
+    .page-shell{
+      max-width:1280px;
+      margin:0 auto;
+      padding:0 16px;
+    }
+
+    .title{
+      padding:22px 0 14px;
+      text-align:center;
+    }
+
+    .glow-title{
+      font-size:clamp(1.9rem,3.6vw,3rem);
+      font-weight:800;
+      text-align:center;
+      margin:8px 0 8px;
+      letter-spacing:.3px;
+      background:linear-gradient(90deg,#00ffff,#7dd3fc,#a78bfa,#ff00ff,#00ffcc,#00ffff);
+      -webkit-background-clip:text;
+      background-clip:text;
+      -webkit-text-fill-color:transparent;
+      text-shadow:0 0 6px rgba(125,211,252,.45), 0 0 12px rgba(125,211,252,.25), 0 0 18px rgba(167,139,250,.2);
+      animation:cyberPulse 3s ease-in-out infinite alternate, gradientShift 6s linear infinite;
+      background-size:400% auto;
+    }
+
+    .title .sub{
+      opacity:.95;
+      text-align:center;
+      margin:0 auto;
+      color:var(--text);
+      max-width:860px;
+      line-height:1.5;
+    }
+
+    .hero-wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:0 16px 18px;
+    }
+
+    .hero-card{
+      background:
+        radial-gradient(circle at top right, rgba(125,211,252,.16), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(167,139,250,.14), transparent 22%),
+        var(--panel);
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:22px;
+      box-shadow:var(--glow);
+    }
+
+    .hero-top{
+      display:grid;
+      grid-template-columns:1.15fr .85fr;
+      gap:18px;
+      align-items:stretch;
+    }
+
+    .hero-copy h2{
+      margin:0 0 10px;
+      font-size:clamp(1.35rem,2.4vw,2rem);
+      color:#fff;
+    }
+
+    .hero-copy p{
+      margin:0 0 14px;
+      color:#d7deea;
+      line-height:1.6;
+    }
+
+    .chip-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:14px;
+    }
+
+    .chip{
+      background:var(--panel-2);
+      border:1px solid var(--line);
+      color:#cfe3f1;
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:.92rem;
+    }
+
+    .hero-side{
+      background:linear-gradient(180deg,#121723,#151b27);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:12px;
+    }
+
+    .hero-side h3{
+      margin:0;
+      color:var(--brand);
+      font-size:1.02rem;
+    }
+
+    .hero-side ul{
+      margin:0;
+      padding-left:18px;
+      color:#dfe7f1;
+      line-height:1.55;
+    }
+
+    .hero-actions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+
+    .btn,
+    button{
+      appearance:none;
+      background:var(--panel-2);
+      color:var(--text);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 14px;
+      cursor:pointer;
+      transition:.18s ease;
+      text-decoration:none;
+      font-weight:600;
+    }
+
+    .btn:hover,
+    button:hover{
+      background:var(--brand);
+      color:var(--bg);
+      border-color:var(--brand);
+      transform:translateY(-1px);
+      box-shadow:0 8px 22px rgba(125,211,252,.18);
+    }
+
+    .btn.primary{
+      background:linear-gradient(135deg,var(--brand),var(--accent));
+      color:#071018;
+      border-color:#7cc9f0;
+    }
+
+    nav.tabs{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      justify-content:center;
+      padding:10px 12px;
+      border-top:1px solid #1f2430;
+      border-bottom:1px solid #1f2430;
+    }
+
+    .tab{
+      color:var(--brand);
+      text-decoration:none;
+      padding:8px 12px;
+      border-radius:8px;
+    }
+
+    .tab.active{
+      border-bottom:2px solid var(--brand);
+      color:#fff;
+    }
+
+    main{
+      max-width:1280px;
+      margin:0 auto;
+      padding:18px 16px 24px;
+    }
+
+    .panel{
+      padding:18px 0;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+      align-items:start;
+    }
+
+    .card{
+      background:linear-gradient(180deg,var(--panel),#171d29);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:18px;
+      box-shadow:var(--glow);
+    }
+
+    .card h3{
+      margin:0 0 12px;
+      color:var(--brand);
+      font-size:1.08rem;
+    }
+
+    .card-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:12px;
+    }
+
+    .card-head .badge{
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:.82rem;
+      color:#cfe3f1;
+      background:var(--panel-2);
+      white-space:nowrap;
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .stack{
+      display:grid;
+      gap:12px;
+    }
+
+    .preview{
+      background:var(--bg);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;
+      margin-top:10px;
+      min-height:88px;
+      color:var(--text);
+      overflow:auto;
+    }
+
+    .log{
+      margin-top:10px;
+      min-height:26px;
+      color:var(--muted);
+      font-size:.95rem;
+      white-space:pre-wrap;
+      background:rgba(15,17,23,.45);
+      border:1px dashed var(--line);
+      border-radius:12px;
+      padding:10px 12px;
+    }
+
+    textarea,
+    select,
+    input[type=file],
+    input[type=text]{
+      width:100%;
+      background:var(--bg);
+      color:var(--text);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 12px;
+      transition:border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    textarea{
+      min-height:170px;
+      resize:vertical;
+      line-height:1.45;
+    }
+
+    textarea:focus,
+    select:focus,
+    input[type=file]:focus,
+    input[type=text]:focus{
+      outline:none;
+      border-color:var(--brand);
+      box-shadow:0 0 0 3px rgba(125,211,252,.12);
+    }
+
+    label{
+      color:#dfe6f0;
+      font-size:.95rem;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    .field-col{
+      display:grid;
+      gap:8px;
+    }
+
+    .field-note{
+      color:var(--muted);
+      font-size:.9rem;
+      line-height:1.5;
+    }
+
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      padding:12px;
+      border:1px solid var(--line);
+      background:#111722;
+      border-radius:14px;
+    }
+
+    .toolbar label{
+      background:#0f1620;
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:8px 10px;
+    }
+
+    .info{
+      background:linear-gradient(180deg,var(--panel),#171d29);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:18px;
+      margin:18px 0;
+      text-align:left;
+      box-shadow:var(--glow);
+    }
+
+    .info h2,
+    .info h3{
+      color:var(--brand);
+      margin:.2rem 0 .6rem;
+    }
+
+    .note{
+      color:var(--muted);
+      font-size:.95rem;
+    }
+
+    .guide-wrap{
+      overflow:auto;
+      border:1px solid var(--line);
+      border-radius:12px;
+      margin-top:10px;
+    }
+
+    table.guide{
+      width:100%;
+      border-collapse:collapse;
+      min-width:680px;
+      background:#111722;
+    }
+
+    table.guide th,
+    table.guide td{
+      border-bottom:1px solid var(--line);
+      padding:10px 12px;
+      text-align:left;
+      vertical-align:top;
+    }
+
+    table.guide th{
+      color:#dff4ff;
+      background:#0f1624;
+    }
+
+    code{
+      background:#0f1624;
+      padding:2px 6px;
+      border-radius:6px;
+      border:1px solid var(--line);
+    }
+
+    .section-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+    }
+
+    .subtle{
+      color:#d9e3ef;
+      line-height:1.6;
+    }
+
+    footer{
+      background:var(--panel);
+      color:var(--brand);
+      padding:20px;
+      border-top:1px solid var(--brand);
+      margin-top:40px;
+      text-align:center;
+    }
+
+    .small{font-size:.9rem;color:var(--muted)}
+
+    @keyframes cyberPulse{
+      from{
+        text-shadow:0 0 4px rgba(125,211,252,.25), 0 0 8px rgba(125,211,252,.18), 0 0 12px rgba(167,139,250,.12);
+      }
+      to{
+        text-shadow:0 0 10px rgba(125,211,252,.6), 0 0 20px rgba(125,211,252,.4), 0 0 30px rgba(255,0,255,.28);
+      }
+    }
+
+    @keyframes gradientShift{
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
+
+    @media (max-width:1020px){
+      .hero-top,
+      .grid,
+      .section-grid{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width:720px){
+      .page-shell,
+      main{
+        padding-left:12px;
+        padding-right:12px;
+      }
+
+      .card,
+      .info,
+      .hero-card{
+        padding:14px;
+      }
+
+      .toolbar{
+        padding:10px;
+      }
+
+      .hero-actions{
+        flex-direction:column;
+        align-items:stretch;
+      }
+
+      .hero-actions .btn{
+        text-align:center;
+      }
+    }
+  </style>
 </head>
 <body>
 <header>
   <!-- Sponsor bar -->
   <div id="sponsored-bar" role="banner" aria-label="Sponsored and built by Knack.bz"
        style="position:sticky; top:0; z-index:9999; width:100%;
-              background:#0f1117; color:#e5e7eb; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+              background:#0f1117; color:#e5e7eb; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
               border-bottom:1px solid #1f2430;">
-    <div style="max-width:1200px; margin:0 auto; padding:10px 10px; display:flex; align-items:center; justify-content:center; gap:.5rem;">
+    <div class="page-shell" style="display:flex; align-items:center; justify-content:center; gap:.5rem; padding:10px 0;">
       <span style="opacity:.9;">Sponsored by</span>
       <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer"
          style="color:#7dd3fc; text-decoration:none; font-weight:600;">Knack.bz</a>
@@ -123,147 +552,210 @@
     </div>
   </div>
 
-  <div class="title">
+  <div class="title page-shell">
     <h1 class="glow-title">JSON · CSV · XLSX · DOC</h1>
-    <p class="sub">Convert between CSV/JSON/XLSX and export JSON to a simple .doc — privately, on your device.</p>
+    <p class="sub">Convert between CSV, JSON, and XLSX, then export JSON into a simple Word document — privately, right on your device.</p>
   </div>
 
-  <!-- Full site navigation -->
-  
+  <div class="hero-wrap">
+    <div class="hero-card">
+      <div class="hero-top">
+        <div class="hero-copy">
+          <h2>Fast data conversion with a cleaner cyber UI</h2>
+          <p>
+            Paste data, upload a file, preview the results, and download instantly.
+            Everything stays in your browser, so there are no uploads, no accounts, and no waiting on a remote server.
+          </p>
+
+          <div class="hero-actions">
+            <a class="btn primary" href="#tools">Start converting</a>
+            <a class="btn" href="#faq">Troubleshooting</a>
+          </div>
+
+          <div class="chip-row">
+            <span class="chip">⚡ In-browser conversion</span>
+            <span class="chip">🔒 No uploads</span>
+            <span class="chip">📄 JSON → DOC</span>
+            <span class="chip">📊 CSV / XLSX support</span>
+          </div>
+        </div>
+
+        <div class="hero-side">
+          <h3>Best uses for this page</h3>
+          <ul>
+            <li>Turn JSON exports into clean Word handoff docs</li>
+            <li>Move between CSV, JSON, and XLSX fast</li>
+            <li>Preview messy data before downloading</li>
+            <li>Keep sensitive files local to your device</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
 </header>
+
 <div data-nav-placeholder></div>
-    <script src="js/utils.js"></script>
+<script src="js/utils.js"></script>
 <script src="nav-loader.js" defer></script>
 
-<section id="adsense-content" class="info">
-  <h3>From JSON to Document—No More Copy/Paste</h3>
-  <ul>
+<section id="adsense-content" class="info page-shell" style="margin-top:18px;">
+  <h3>From JSON to Document — Without the messy copy and paste</h3>
+  <ul class="subtle" style="margin:0; padding-left:18px;">
     <li>Convert JSON, CSV, or XLSX back and forth instantly.</li>
-    <li>Preview data before you download to avoid surprises.</li>
-    <li>Export JSON to a simple .doc for quick handoffs.</li>
+    <li>Preview data before downloading so you catch issues early.</li>
+    <li>Export JSON to a simple .doc for quick reports and handoffs.</li>
   </ul>
 </section>
-<main class="panel">
 
-
+<main id="tools">
   <div class="grid">
-    <!-- DATA CONVERTER: CSV ⇄ JSON ⇄ XLSX -->
+    <!-- DATA CONVERTER -->
     <div class="card">
-      <h3>Data Converter (CSV ⇄ JSON ⇄ XLSX)</h3>
-      <div class="row">
-        <input type="file" id="data-file"
-               accept=".csv,.json,.xlsx,application/json,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
-        <input type="text" id="data-name" placeholder="Base file name" value="data" />
-        <button id="btn-clear">Clear</button>
+      <div class="card-head">
+        <h3>Data Converter (CSV ⇄ JSON ⇄ XLSX)</h3>
+        <span class="badge">Preview + Download</span>
       </div>
 
-      <textarea id="data-text" placeholder="Or paste CSV or JSON here"></textarea>
+      <div class="stack">
+        <div class="row">
+          <input type="file" id="data-file"
+                 accept=".csv,.json,.xlsx,application/json,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+          <input type="text" id="data-name" placeholder="Base file name" value="data" />
+          <button id="btn-clear" type="button">Clear</button>
+        </div>
 
-      <div class="row">
-        <label>To
-          <select id="data-out">
-            <option value="csv">CSV</option>
-            <option value="json">JSON</option>
-            <option value="xlsx">XLSX</option>
-          </select>
-        </label>
-        <label><input type="checkbox" id="csv-bom" checked> CSV: Add UTF-8 BOM</label>
-        <label><input type="checkbox" id="json-pretty" checked> JSON: Pretty print</label>
-        <button id="btn-parse">Parse / Preview</button>
-        <button id="btn-convert">Convert & Download</button>
-        <button id="btn-template">Download CSV Template</button>
+        <div class="field-col">
+          <div class="field-note">Paste CSV or JSON here if you do not want to upload a file.</div>
+          <textarea id="data-text" placeholder="Paste CSV or JSON here"></textarea>
+        </div>
+
+        <div class="toolbar">
+          <label>To
+            <select id="data-out">
+              <option value="csv">CSV</option>
+              <option value="json">JSON</option>
+              <option value="xlsx">XLSX</option>
+            </select>
+          </label>
+
+          <label><input type="checkbox" id="csv-bom" checked> CSV: Add UTF-8 BOM</label>
+          <label><input type="checkbox" id="json-pretty" checked> JSON: Pretty print</label>
+
+          <button id="btn-parse" type="button">Parse / Preview</button>
+          <button id="btn-convert" type="button">Convert & Download</button>
+          <button id="btn-template" type="button">Download CSV Template</button>
+        </div>
+
+        <div class="preview" id="data-preview"></div>
+        <div class="log" id="data-log"></div>
       </div>
-
-      <div class="preview" id="data-preview"></div>
-      <div class="log" id="data-log"></div>
     </div>
 
-    <!-- JSON → DOC (plain .doc via HTML) -->
+    <!-- JSON TO DOC -->
     <div class="card">
-      <h3>JSON → DOC (Plain Word Doc)</h3>
-      <div class="row">
-        <input type="file" id="json-file" accept=".json,application/json" />
-        <input type="text" id="doc-name" placeholder="File name (no extension)" value="document" />
-      </div>
-      <textarea id="json-text" placeholder='Paste JSON here or choose a .json file (you can reuse the parsed data from the left card too)'></textarea>
-      <div class="row">
-        <label>Render as
-          <select id="render-mode">
-            <option value="auto" selected>Auto (table for array-of-objects, else preformatted)</option>
-            <option value="table">Table (array of objects)</option>
-            <option value="pre">Preformatted text</option>
-            <option value="plain">Plain paragraphs (clear formatting)</option>
-          </select>
-        </label>
-        <label>Title <input type="text" id="title" placeholder="Optional document title" /></label>
-        <button id="btn-preview-doc">Preview</button>
-        <button id="btn-download-doc">Download .doc</button>
+      <div class="card-head">
+        <h3>JSON → DOC (Plain Word Doc)</h3>
+        <span class="badge">Report Export</span>
       </div>
 
-      <div class="preview" id="doc-preview"></div>
-      <div class="log" id="doc-log"></div>
+      <div class="stack">
+        <div class="row">
+          <input type="file" id="json-file" accept=".json,application/json" />
+          <input type="text" id="doc-name" placeholder="File name (no extension)" value="document" />
+        </div>
+
+        <div class="field-col">
+          <div class="field-note">Paste JSON here, upload a .json file, or reuse parsed data from the converter panel.</div>
+          <textarea id="json-text" placeholder='Paste JSON here or choose a .json file'></textarea>
+        </div>
+
+        <div class="toolbar">
+          <label>Render as
+            <select id="render-mode">
+              <option value="auto" selected>Auto (table for array-of-objects, else preformatted)</option>
+              <option value="table">Table (array of objects)</option>
+              <option value="pre">Preformatted text</option>
+              <option value="plain">Plain paragraphs (clear formatting)</option>
+            </select>
+          </label>
+
+          <label>Title
+            <input type="text" id="title" placeholder="Optional document title" />
+          </label>
+
+          <button id="btn-preview-doc" type="button">Preview</button>
+          <button id="btn-download-doc" type="button">Download .doc</button>
+        </div>
+
+        <div class="preview" id="doc-preview"></div>
+        <div class="log" id="doc-log"></div>
+      </div>
     </div>
   </div>
 
-  <!-- ===== AdSense-friendly, human helpful content ===== -->
-  <section class="info" id="story">
-    <h2>Why we built this page</h2>
-    <p>
-      A colleague was drowning in <strong>JSON customer reviews</strong> that needed to become
-      a simple Word document. Copy-pasting took hours.
-      We turned that pain into this page: paste or upload JSON, <em>preview</em>, and export a clean
-      <strong>.doc</strong> in seconds. No uploads, no logins, no tracking — everything runs locally in your browser.
-    </p>
-    <p class="note">If your JSON is an array of objects, choose “Auto” or “Table” to get a polished table inside the .doc.</p>
-  </section>
+  <div class="section-grid">
+    <section class="info" id="story">
+      <h2>Why we built this page</h2>
+      <p class="subtle">
+        A colleague was drowning in <strong>JSON customer reviews</strong> that needed to become
+        a simple Word document. Copy-pasting took hours. This page turns that pain into a fast workflow:
+        paste or upload JSON, <strong>preview it</strong>, and export a clean <strong>.doc</strong> in seconds.
+      </p>
+      <p class="note">If your JSON is an array of objects, choose <strong>Auto</strong> or <strong>Table</strong> for a polished table in the export.</p>
+    </section>
 
-  <section class="info" id="render-modes">
-    <h3>Choosing a render mode for JSON → DOC</h3>
-    <ul>
-      <li><strong>Auto</strong>: If your JSON is an <em>array of objects</em>, you’ll get a table; otherwise we show formatted text.</li>
-      <li><strong>Table</strong>: Forces table output (best for reports, reviews, inventories).</li>
-      <li><strong>Preformatted</strong>: Shows raw JSON with indentation.</li>
-      <li><strong>Plain</strong>: Flattens keys/values into readable paragraphs.</li>
-    </ul>
-    <p class="note">Add a <em>document title</em> to brand your export. Exports use a simple .doc (HTML-based) that opens in Word, Google Docs, and LibreOffice.</p>
-  </section>
+    <section class="info" id="render-modes">
+      <h3>Choosing a render mode for JSON → DOC</h3>
+      <ul class="subtle">
+        <li><strong>Auto:</strong> If your JSON is an array of objects, you’ll get a table. Otherwise you’ll get formatted text.</li>
+        <li><strong>Table:</strong> Best for reports, reviews, and inventories.</li>
+        <li><strong>Preformatted:</strong> Keeps raw JSON structure with indentation.</li>
+        <li><strong>Plain:</strong> Flattens keys and values into readable paragraphs.</li>
+      </ul>
+      <p class="note">Exports use a simple HTML-based .doc that opens in Word, Google Docs, and LibreOffice.</p>
+    </section>
+  </div>
 
   <section class="info" id="mapping">
     <h3>Common field mapping tips</h3>
-    <table class="guide">
-      <thead>
-        <tr><th>Source</th><th>Desired Field</th><th>Notes</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><code>review.title</code></td><td>Title</td><td>Use as table column or plain heading</td></tr>
-        <tr><td><code>review.body</code></td><td>Comment</td><td>Keep line breaks with Pre or Plain</td></tr>
-        <tr><td><code>review.rating</code></td><td>Rating</td><td>Normalize to 1–5 for consistency</td></tr>
-        <tr><td><code>user.name</code></td><td>Author</td><td>Fallback to <code>user.id</code> if missing</td></tr>
-        <tr><td><code>timestamp</code></td><td>Date</td><td>Format to ISO or local date string</td></tr>
-      </tbody>
-    </table>
+    <div class="guide-wrap">
+      <table class="guide">
+        <thead>
+          <tr><th>Source</th><th>Desired Field</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>review.title</code></td><td>Title</td><td>Use as a table column or a plain heading</td></tr>
+          <tr><td><code>review.body</code></td><td>Comment</td><td>Keep line breaks with Pre or Plain mode</td></tr>
+          <tr><td><code>review.rating</code></td><td>Rating</td><td>Normalize to 1–5 for cleaner reports</td></tr>
+          <tr><td><code>user.name</code></td><td>Author</td><td>Fallback to <code>user.id</code> if missing</td></tr>
+          <tr><td><code>timestamp</code></td><td>Date</td><td>Format to ISO or local date string</td></tr>
+        </tbody>
+      </table>
+    </div>
   </section>
 
-  <section class="info" id="privacy">
-    <h3>Privacy & performance</h3>
-    <ul>
-      <li><strong>No uploads:</strong> All parsing and exports happen in your browser.</li>
-      <li><strong>Large files:</strong> Close heavy tabs while converting big XLSX/JSON.</li>
-      <li><strong>CSV BOM:</strong> Enable “Add UTF-8 BOM” for Excel to show non-ASCII correctly.</li>
-    </ul>
-  </section>
+  <div class="section-grid">
+    <section class="info" id="privacy">
+      <h3>Privacy & performance</h3>
+      <ul class="subtle">
+        <li><strong>No uploads:</strong> All parsing and exports happen in your browser.</li>
+        <li><strong>Large files:</strong> Close heavy tabs while converting big XLSX or JSON files.</li>
+        <li><strong>CSV BOM:</strong> Enable “Add UTF-8 BOM” for Excel to show non-ASCII correctly.</li>
+      </ul>
+    </section>
 
-  <section class="info" id="faq">
-    <h3>FAQs & Troubleshooting</h3>
-    <p><strong>My JSON preview is empty.</strong> Click <em>Parse/Preview</em>. If it’s nested, try <em>Plain</em> or <em>Preformatted</em> to inspect shape.</p>
-    <p><strong>Table columns look uneven.</strong> Arrays with different keys create wide tables. Consider normalizing fields first.</p>
-    <p><strong>Word warns about the file type.</strong> The export is a safe HTML-based .doc. Choose “Open” and it will render normally.</p>
-    <p><strong>Can I export .docx?</strong> This page targets simple .doc for compatibility and speed. If you need .docx packaging, export CSV/XLSX here then assemble in your doc editor.</p>
-  </section>
+    <section class="info" id="faq">
+      <h3>FAQs & Troubleshooting</h3>
+      <p><strong>My JSON preview is empty.</strong> Click <em>Parse / Preview</em>. If it’s nested, try <em>Plain</em> or <em>Preformatted</em>.</p>
+      <p><strong>Table columns look uneven.</strong> Arrays with different keys can create wide tables. Normalize fields first for the cleanest result.</p>
+      <p><strong>Word warns about the file type.</strong> The export is a safe HTML-based .doc. Open it normally and Word should render it fine.</p>
+      <p><strong>Can I export .docx?</strong> This page targets simple .doc for speed and compatibility.</p>
+    </section>
+  </div>
 
   <section class="info" id="related">
     <h3>Related tools</h3>
-    <ul>
+    <ul class="subtle">
       <li><a href="/data.html" style="color:#7dd3fc">GPS & Spreadsheet Converter</a> — CSV ⇄ XLSX and GPS formats</li>
       <li><a href="/pdf.html" style="color:#7dd3fc">PDF Tools</a> — assemble reports from your exports</li>
       <li><a href="/archive.html" style="color:#7dd3fc">ZIP / Unzip</a> — bundle result files for sharing</li>
@@ -287,27 +779,47 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
-  // year
   document.getElementById('year').textContent = new Date().getFullYear();
+
   const $ = (id) => document.getElementById(id);
-  const logData = (m)=>{ const el=$('data-log'); el.textContent += m+'\\n'; el.scrollTop = el.scrollHeight; };
-  const logDoc  = (m)=>{ const el=$('doc-log');  el.textContent += m+'\\n'; el.scrollTop = el.scrollHeight; };
+  const logData = (m)=>{ const el=$('data-log'); el.textContent += m+'\n'; el.scrollTop = el.scrollHeight; };
+  const logDoc  = (m)=>{ const el=$('doc-log');  el.textContent += m+'\n'; el.scrollTop = el.scrollHeight; };
 
   // ---------- DATA CONVERTER ----------
   let parsedRows = []; // array of objects
 
+  function escapeHtml(s){
+    return String(s)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  function toCell(v){
+    return (v==null ? '' : (typeof v==='object' ? JSON.stringify(v) : String(v)));
+  }
+
   function previewTable(rows){
     if (!rows || !rows.length) return '<span class="small">No rows to preview.</span>';
-    const cols = Array.from(rows.reduce((s,r)=>{ Object.keys(r).forEach(k=>s.add(k)); return s;}, new Set()));
-    const head = '<tr>' + cols.map(c=>`<th style="text-align:left;border:1px solid var(--line)">${escapeHtml(c)}</th>`).join('') + '</tr>';
+    const cols = Array.from(rows.reduce((s,r)=>{
+      Object.keys(r).forEach(k=>s.add(k));
+      return s;
+    }, new Set()));
+
+    const head = '<tr>' + cols.map(c =>
+      `<th style="text-align:left;border:1px solid var(--line);background:#0f1624;color:#dff4ff">${escapeHtml(c)}</th>`
+    ).join('') + '</tr>';
+
     const body = rows.slice(0, 100).map(r =>
-      '<tr>' + cols.map(c=>`<td style="border:1px solid var(--line);vertical-align:top;white-space:pre-wrap">${escapeHtml(toCell(r[c]))}</td>`).join('') + '</tr>'
+      '<tr>' + cols.map(c =>
+        `<td style="border:1px solid var(--line);vertical-align:top;white-space:pre-wrap">${escapeHtml(toCell(r[c]))}</td>`
+      ).join('') + '</tr>'
     ).join('');
-    const more = rows.length > 100 ? `<div class="small">Showing first 100 of ${rows.length} rows.</div>` : '';
-    return `<div style="overflow:auto"><table style="border-collapse:collapse;width:100%">${head}${body}</table></div>${more}`;
+
+    const more = rows.length > 100 ? `<div class="small" style="margin-top:8px;">Showing first 100 of ${rows.length} rows.</div>` : '';
+    return `<div style="overflow:auto"><table style="border-collapse:collapse;width:100%;min-width:560px">${head}${body}</table></div>${more}`;
   }
-  function toCell(v){ return (v==null ? '' : (typeof v==='object' ? JSON.stringify(v) : String(v))); }
-  function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
   $('btn-clear').addEventListener('click', ()=>{
     $('data-file').value = '';
@@ -332,6 +844,7 @@
     $('data-log').textContent = '';
     const f = $('data-file').files[0] || null;
     const pasted = $('data-text').value.trim();
+
     try{
       if (f){
         if (/\.xlsx?$/i.test(f.name)){
@@ -363,48 +876,69 @@
       } else {
         throw new Error('Provide a file or paste CSV/JSON');
       }
+
       $('data-preview').innerHTML = previewTable(parsedRows);
+
+      // handy cross-fill to doc panel if the user parsed JSON text
+      if (!$('json-text').value.trim() && $('data-text').value.trim()){
+        const raw = $('data-text').value.trim();
+        try{
+          JSON.parse(raw);
+          $('json-text').value = raw;
+        }catch{}
+      }
     }catch(e){
-      logData('Error: '+ (e?.message || e));
+      logData('Error: ' + (e?.message || e));
       $('data-preview').innerHTML = '<span class="small">Parse failed.</span>';
     }
   });
 
   $('btn-convert').addEventListener('click', async ()=>{
     if (!parsedRows.length) return alert('Parse something first.');
+
     const base = ($('data-name').value || 'data').replace(/\.(csv|json|xlsx)$/i, '');
     const kind = $('data-out').value;
+
     try{
-      if (kind==='csv'){
+      if (kind === 'csv'){
         const csv = Papa.unparse(parsedRows);
-        const bom = $('csv-bom').checked ? '\\ufeff' : '';
+        const bom = $('csv-bom').checked ? '\ufeff' : '';
         download(`${base}.csv`, new Blob([bom + csv], { type: 'text/csv' }));
-      } else if (kind==='json'){
+      } else if (kind === 'json'){
         const pretty = $('json-pretty').checked ? 2 : 0;
         download(`${base}.json`, new Blob([JSON.stringify(parsedRows, null, pretty)], { type: 'application/json' }));
-      } else if (kind==='xlsx'){
+      } else if (kind === 'xlsx'){
         const ws = XLSX.utils.json_to_sheet(parsedRows);
-        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
         const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
         download(`${base}.xlsx`, new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
       }
       logData('Done.');
     }catch(e){
-      logData('Convert error: '+(e?.message||e));
+      logData('Convert error: ' + (e?.message || e));
     }
   });
 
   $('btn-template').addEventListener('click', ()=>{
-    const csv = 'id,name,value\\n1,alpha,10\\n2,beta,20\\n3,gamma,30\\n';
-    download('template.csv', new Blob(['\\ufeff'+csv], { type:'text/csv' }));
+    const csv = 'id,name,value\n1,alpha,10\n2,beta,20\n3,gamma,30\n';
+    download('template.csv', new Blob(['\ufeff' + csv], { type:'text/csv' }));
   });
 
   function normalizeJson(obj){
-    if (Array.isArray(obj)) return obj.map(row => (row && typeof row==='object' && !Array.isArray(row)) ? row : { value: row });
-    if (obj && typeof obj==='object') return [obj];
+    if (Array.isArray(obj)) {
+      return obj.map(row => (row && typeof row === 'object' && !Array.isArray(row)) ? row : { value: row });
+    }
+    if (obj && typeof obj === 'object') return [obj];
     return [{ value: obj }];
   }
-  function download(name, blob){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
+
+  function download(name, blob){
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+  }
 
   // ---------- JSON → DOC ----------
   $('json-file').addEventListener('change', async (e)=>{
@@ -414,16 +948,27 @@
     $('json-text').value = await f.text();
   });
 
-  function toPretty(value){ try { return JSON.stringify(value, null, 2); } catch { return String(value); } }
-  function isArrayOfObjects(v){ return Array.isArray(v) && v.length && v.every(x => x && typeof x === 'object' && !Array.isArray(x)); }
-  function uniqueKeys(rows){ const set = new Set(); rows.forEach(r => Object.keys(r).forEach(k => set.add(k))); return Array.from(set); }
-  function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function toPretty(value){
+    try { return JSON.stringify(value, null, 2); }
+    catch { return String(value); }
+  }
+
+  function isArrayOfObjects(v){
+    return Array.isArray(v) && v.length && v.every(x => x && typeof x === 'object' && !Array.isArray(x));
+  }
+
+  function uniqueKeys(rows){
+    const set = new Set();
+    rows.forEach(r => Object.keys(r).forEach(k => set.add(k)));
+    return Array.from(set);
+  }
 
   function renderTable(rows){
     const cols = uniqueKeys(rows);
     let html = '<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%">';
     html += '<thead><tr>' + cols.map(c=>`<th style="text-align:left;background:#0c1624;color:#e6edf3;border:1px solid #1f2a34">${escapeHtml(c)}</th>`).join('') + '</tr></thead>';
     html += '<tbody>';
+
     for (const r of rows){
       html += '<tr>' + cols.map(c=>{
         let v = r[c];
@@ -432,30 +977,47 @@
         return `<td style="border:1px solid #1f2a34;vertical-align:top;white-space:pre-wrap">${escapeHtml(v)}</td>`;
       }).join('') + '</tr>';
     }
+
     html += '</tbody></table>';
     return html;
   }
-  function renderPre(obj){ return `<pre style="white-space:pre-wrap">${escapeHtml(toPretty(obj))}</pre>`; }
+
+  function renderPre(obj){
+    return `<pre style="white-space:pre-wrap">${escapeHtml(toPretty(obj))}</pre>`;
+  }
+
   function renderPlain(obj){
     let text = '';
     (function walk(prefix, v){
-      if (Array.isArray(v)){ v.forEach((it,i)=>walk(`${prefix}[${i}]`, it)); }
-      else if (v && typeof v==='object'){ for (const k of Object.keys(v)) walk(prefix?`${prefix}.${k}`:k, v[k]); }
-      else { text += (prefix?`${prefix}: `:'') + String(v) + '\\n'; }
+      if (Array.isArray(v)){
+        v.forEach((it,i)=>walk(`${prefix}[${i}]`, it));
+      } else if (v && typeof v === 'object'){
+        for (const k of Object.keys(v)) walk(prefix ? `${prefix}.${k}` : k, v[k]);
+      } else {
+        text += (prefix ? `${prefix}: ` : '') + String(v) + '\n';
+      }
     })('', obj);
-    return text.trim().split(/\\n+/).map(line=>`<p>${escapeHtml(line)}</p>`).join('\\n') || '<p></p>';
+
+    return text.trim().split(/\n+/).map(line=>`<p>${escapeHtml(line)}</p>`).join('\n') || '<p></p>';
   }
 
   function buildBodyHTML(jsonText, renderMode){
     let data;
-    try { data = JSON.parse(jsonText); }
-    catch { return `<pre style="white-space:pre-wrap">${escapeHtml(jsonText)}</pre>`; }
+    try {
+      data = JSON.parse(jsonText);
+    } catch {
+      return `<pre style="white-space:pre-wrap">${escapeHtml(jsonText)}</pre>`;
+    }
+
     if (renderMode === 'plain') return renderPlain(data);
+
     if (renderMode === 'table'){
       if (!isArrayOfObjects(data)) return '<p><em>Table mode expects an array of objects.</em></p>' + renderPre(data);
       return renderTable(data);
     }
+
     if (renderMode === 'pre') return renderPre(data);
+
     // auto
     if (isArrayOfObjects(data)) return renderTable(data);
     return renderPre(data);
@@ -487,21 +1049,30 @@
   $('btn-preview-doc').addEventListener('click', ()=>{
     $('doc-log').textContent = '';
     const src = $('json-text').value.trim();
-    if (!src){ $('doc-preview').innerHTML = '<span class="small">No input yet.</span>'; return; }
+    if (!src){
+      $('doc-preview').innerHTML = '<span class="small">No input yet.</span>';
+      return;
+    }
     const html = wrapDocHTML($('title').value.trim(), buildBodyHTML(src, $('render-mode').value));
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
-    $('doc-preview').innerHTML = `<iframe style="width:100%;height:300px;border:1px solid var(--line);border-radius:8px;background:#fff" src="${url}"></iframe>`;
+    $('doc-preview').innerHTML = `<iframe style="width:100%;height:320px;border:1px solid var(--line);border-radius:10px;background:#fff" src="${url}"></iframe>`;
   });
 
   $('btn-download-doc').addEventListener('click', ()=>{
     $('doc-log').textContent = '';
     const src = $('json-text').value.trim();
-    if (!src){ alert('Paste JSON or choose a file first.'); return; }
+    if (!src){
+      alert('Paste JSON or choose a file first.');
+      return;
+    }
     const html = wrapDocHTML($('title').value.trim(), buildBodyHTML(src, $('render-mode').value));
     const name = ($('doc-name').value || 'document').replace(/\.(docx|doc)$/i,'');
-    const blob = new Blob(['\ufeff', html], { type: 'application/msword' }); // HTML-based .doc
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name + '.doc'; a.click();
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name + '.doc';
+    a.click();
   });
 </script>
 </body>
