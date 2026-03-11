@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9800485035530027"
+  <script async src="https://pagead2.googlesyndication.com/pagead/js?client=ca-pub-9800485035530027"
      crossorigin="anonymous"></script>
 
   <!-- Tawk.to Live Chat -->
@@ -19,12 +19,13 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-W25SYMTSSR"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);} gtag('js', new Date());
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
     gtag('config', 'G-W25SYMTSSR');
   </script>
 
-  <!-- Google AdSense Auto Ads (no manual ad boxes required) -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9800485035530027" crossorigin="anonymous"></script>
+  <!-- Google AdSense Auto Ads -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js?client=ca-pub-9800485035530027" crossorigin="anonymous"></script>
   <meta name="google-adsense-account" content="ca-pub-9800485035530027">
 
   <meta charset="utf-8"/>
@@ -33,41 +34,14 @@
   <meta name="description" content="Convert GPS files (GPX, KML, TCX, FIT) to CSV/XLSX and back — privately, in your browser. Also convert CSV ⇄ XLSX. No uploads, no tracking.">
 
   <link rel="stylesheet" href="site.css">
+  <link rel="stylesheet" href="nav.css">
 
-  <!-- Libraries for the tools (kept from your version) -->
+  <!-- Libraries for the tools -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://unpkg.com/fit-file-parser@1.11.0/dist/fit-file-parser.min.js"></script>
 
-  <style>
-    /* Light on-page styles to match your cyber theme */
-    body{background:#0f1117;color:#fff;font-family:Arial,Helvetica,sans-serif;margin:0}
-    header{padding:18px 0;border-bottom:1px solid #1f2430;text-align:center}
-    header .title h1{margin:0;font-size:2rem;color:#7dd3fc}
-    nav.tabs{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;padding:10px 12px;border-top:1px solid #1f2430;border-bottom:1px solid #1f2430}
-    .tab{color:#7dd3fc;text-decoration:none;padding:8px 12px;border-radius:8px}
-    .tab.active{border-bottom:2px solid #7dd3fc;color:#fff}
-    main{max-width:1200px;margin:0 auto;padding:16px}
-    .panel{padding:18px 0}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
-    .card{background:#1a1f2c;border:1px solid #263044;border-radius:12px;padding:16px}
-    .row{display:flex;gap:10px;flex-wrap:wrap}
-    .badge{display:inline-block;background:#0f1117;border:1px solid #7dd3fc;color:#7dd3fc;padding:2px 8px;border-radius:999px;font-size:.8rem;margin-bottom:8px}
-    .log{margin-top:10px;min-height:24px;color:#9aa4b2;font-size:.95rem}
-    footer{background:#1a1f2c;color:#7dd3fc;padding:20px;border-top:1px solid #7dd3fc;margin-top:40px;text-align:center}
-    /* Informational content blocks (great for AdSense) */
-    .info{background:#1a1f2c;border:1px solid #263044;border-radius:12px;padding:18px;margin:18px 0;text-align:left}
-    .info h2,.info h3{color:#7dd3fc;margin:.2rem 0 .6rem}
-    .note{color:#9aa4b2;font-size:.95rem}
-    table.guide{width:100%;border-collapse:collapse}
-    table.guide th,table.guide td{border-bottom:1px solid #263044;padding:8px;text-align:left;vertical-align:top}
-    ul.tight{margin:.25rem 0 .75rem}
-    .pill{display:inline-block;border:1px solid #263044;background:#101826;color:#e5e7eb;border-radius:999px;padding:4px 10px;margin:2px 6px 2px 0;font-size:.85rem}
-    button,select,input[type=file]{background:#0f1117;color:#e5e7eb;border:1px solid #263044;border-radius:10px;padding:8px 10px}
-    button:hover{background:#7dd3fc;color:#0f1117;border-color:#7dd3fc}
-  </style>
-
-  <!-- Schema.org for trust/SEO -->
+  <!-- Schema.org -->
   <script type="application/ld+json">
   {
     "@context":"https://schema.org",
@@ -82,243 +56,774 @@
   }
   </script>
 
-<style>
-.glow-title{
-  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
-  font-weight: 800;
-  text-align: center;
-  margin: 10px 0 4px;
-  letter-spacing: .3px;
-  background: linear-gradient(90deg,#00ffff,#7dd3fc,#a78bfa,#ff00ff,#00ffcc,#00ffff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 6px rgba(125,211,252,.45), 0 0 12px rgba(125,211,252,.25), 0 0 18px rgba(167,139,250,.2);
-  animation: cyberPulse 3s ease-in-out infinite alternate, gradientShift 6s linear infinite;
-  background-size: 400% auto;
-}
-@keyframes cyberPulse {
-  from { text-shadow: 0 0 4px rgba(125,211,252,.25), 0 0 8px rgba(125,211,252,.18), 0 0 12px rgba(167,139,250,.12); }
-  to   { text-shadow: 0 0 10px rgba(125,211,252,.6), 0 0 20px rgba(125,211,252,.4), 0 0 30px rgba(255,0,255,.28); }
-}
-@keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
-.info{max-width:900px;margin:18px auto;background:#1a1f2c;border:1px solid #273142;border-radius:12px;padding:18px;color:#e6edf3}
-.info h3{margin:0 0 8px;color:#7dd3fc}
-.info p{margin:6px 0 0}
-.info ul{margin:8px 0 0 16px}
-</style>
- <!-- Sponsored Header Bar (dismissible) -->
-  <div id="sponsored-bar" role="banner" aria-label="Sponsored and built by Knack.bz"
-     style="position:sticky; top:0; z-index:9999; width:100%;
-            background:#0f1117; color:#e5e7eb; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-            border-bottom:1px solid #1f2430;">
-  <div style="max-width:1200px; margin:0 auto; padding:10px 10px; display:flex; align-items:center; justify-content:center; gap:.5rem;">
-    <span style="opacity:.9;">Sponsored by</span>
-    <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer"
-       style="color:#7dd3fc; text-decoration:none; font-weight:600;">
-      Knack.bz
-    </a>
-    <button aria-label="Dismiss sponsor bar"
-            onclick="document.getElementById('sponsored-bar').style.display='none'"
-            style="margin-left:auto; background:transparent; border:none; color:#9aa4b2; cursor:pointer; font-size:16px; line-height:1;">
-      ✕
-    </button>
-  </div>
+  <style>
+    :root{
+      --bg:#0f1117;
+      --panel:#1a1f2c;
+      --panel2:#121826;
+      --panel3:#0d1422;
+      --line:#263044;
+      --line2:#33425d;
+      --brand:#7dd3fc;
+      --accent:#a78bfa;
+      --muted:#9aa4b2;
+      --text:#e5e7eb;
+      --ok:#34d399;
+      --warn:#fbbf24;
+      --danger:#fb7185;
+      --shadow:0 18px 40px rgba(0,0,0,.28);
+      --glow:0 0 24px rgba(125,211,252,.12);
+      --radius:18px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{
+      margin:0;
+      padding:0;
+      background:
+        radial-gradient(circle at top right, rgba(125,211,252,.08), transparent 28%),
+        radial-gradient(circle at top left, rgba(167,139,250,.08), transparent 24%),
+        linear-gradient(180deg,#0f1117,#0c1018);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    a{color:var(--brand)}
+
+    .page-shell{
+      max-width:1200px;
+      margin:0 auto;
+      padding:0 16px;
+    }
+
+    header{
+      padding:0 0 18px;
+      border-bottom:1px solid #1f2430;
+      background:
+        radial-gradient(circle at top right, rgba(125,211,252,.08), transparent 30%),
+        radial-gradient(circle at top left, rgba(167,139,250,.08), transparent 24%),
+        linear-gradient(180deg,#0f1117,#0d121d);
+    }
+
+    .top-title{
+      text-align:center;
+      padding:22px 0 12px;
+    }
+
+    .glow-title{
+      font-size:clamp(1.9rem,3.8vw,3rem);
+      font-weight:800;
+      margin:8px 0 6px;
+      letter-spacing:.3px;
+      background:linear-gradient(90deg,#00ffff,#7dd3fc,#a78bfa,#ff00ff,#00ffcc,#00ffff);
+      -webkit-background-clip:text;
+      background-clip:text;
+      -webkit-text-fill-color:transparent;
+      text-shadow:0 0 6px rgba(125,211,252,.45),0 0 12px rgba(125,211,252,.25),0 0 18px rgba(167,139,250,.2);
+      animation:cyberPulse 3s ease-in-out infinite alternate, gradientShift 6s linear infinite;
+      background-size:400% auto;
+    }
+
+    .sub{
+      opacity:.95;
+      margin:0 auto;
+      color:#e5e7eb;
+      max-width:860px;
+      line-height:1.6;
+    }
+
+    @keyframes cyberPulse{
+      from { text-shadow:0 0 4px rgba(125,211,252,.25),0 0 8px rgba(125,211,252,.18),0 0 12px rgba(167,139,250,.12); }
+      to   { text-shadow:0 0 10px rgba(125,211,252,.6),0 0 20px rgba(125,211,252,.4),0 0 30px rgba(255,0,255,.28); }
+    }
+    @keyframes gradientShift{
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
+
+    .hero-card{
+      margin-top:14px;
+      background:
+        radial-gradient(circle at top right, rgba(125,211,252,.14), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(167,139,250,.12), transparent 24%),
+        linear-gradient(180deg,#121826,#0b1220);
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      padding:22px;
+    }
+
+    .hero-grid{
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:18px;
+      align-items:stretch;
+    }
+
+    .hero-copy h2{
+      margin:0 0 10px;
+      font-size:clamp(1.2rem,2.4vw,2rem);
+      color:#fff;
+    }
+
+    .hero-copy p{
+      margin:0 0 12px;
+      color:#d6e4f3;
+      max-width:760px;
+      line-height:1.6;
+    }
+
+    .hero-actions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+
+    .btn{
+      appearance:none;
+      border:0;
+      padding:11px 16px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:800;
+      background:linear-gradient(90deg,var(--brand),var(--accent));
+      color:#07101a;
+      transition:.18s ease;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+    }
+
+    .btn:hover{
+      transform:translateY(-1px);
+      box-shadow:0 10px 26px rgba(125,211,252,.2);
+    }
+
+    .btn.sec{
+      background:var(--panel3);
+      color:var(--text);
+      border:1px solid var(--line);
+    }
+
+    .hero-pills{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:16px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#0d1523;
+      color:#d6e7f5;
+      font-size:.93rem;
+    }
+
+    .hero-side{
+      background:linear-gradient(180deg,#0f1625,#101828);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:12px;
+    }
+
+    .hero-side h3{
+      margin:0;
+      color:var(--brand);
+      font-size:1.05rem;
+    }
+
+    .hero-side ul{
+      margin:0;
+      padding-left:18px;
+      color:#d7e7f5;
+      line-height:1.55;
+    }
+
+    .hero-side li{margin:.2rem 0}
+
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:10px;
+      margin-top:16px;
+    }
+
+    .chip{
+      background:#101826;
+      border:1px solid var(--line);
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:.92rem;
+      color:#e5e7eb;
+    }
+
+    main{
+      max-width:1200px;
+      margin:0 auto;
+      padding:22px 16px 36px;
+    }
+
+    .panel{padding:0}
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+      align-items:start;
+    }
+
+    .card{
+      background:linear-gradient(180deg,#121826,#0b1220);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--glow);
+      padding:18px;
+      overflow:hidden;
+    }
+
+    .section-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    .section-head h3{
+      margin:0;
+      font-size:1.08rem;
+      color:var(--brand);
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:6px 10px;
+      color:#cfe6ff;
+      background:#0d1523;
+      font-size:.84rem;
+      white-space:nowrap;
+    }
+
+    .stack{display:grid;gap:12px}
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .row > *{
+      flex:1 1 180px;
+      min-width:0;
+    }
+
+    label{
+      display:grid;
+      gap:6px;
+      color:#d9e5f3;
+      font-size:.95rem;
+    }
+
+    input[type="file"],
+    input[type="text"],
+    select,
+    button{
+      width:100%;
+      padding:11px 12px;
+      border-radius:12px;
+      border:1px solid #263047;
+      background:#0e1422;
+      color:var(--text);
+      transition:.18s ease;
+      font:inherit;
+    }
+
+    input[type="file"]:focus,
+    input[type="text"]:focus,
+    select:focus{
+      outline:none;
+      border-color:var(--brand);
+      box-shadow:0 0 0 3px rgba(125,211,252,.12);
+    }
+
+    button{
+      cursor:pointer;
+      background:linear-gradient(135deg,var(--brand),var(--accent));
+      color:#0b1220;
+      font-weight:700;
+      border:none;
+      box-shadow:0 10px 22px rgba(125,211,252,.12);
+    }
+
+    button:hover{
+      transform:translateY(-1px);
+      box-shadow:0 12px 26px rgba(125,211,252,.2);
+    }
+
+    .log{
+      margin-top:10px;
+      min-height:72px;
+      color:#d8e7f4;
+      font-size:.95rem;
+      white-space:pre-wrap;
+      background:#07101a;
+      border:1px dashed var(--line);
+      border-radius:14px;
+      padding:12px;
+      overflow:auto;
+    }
+
+    .info{
+      background:linear-gradient(180deg,#1a1f2c,#171d29);
+      border:1px solid #263044;
+      border-radius:16px;
+      padding:18px;
+      margin:18px auto;
+      text-align:left;
+      color:#e6edf3;
+      box-shadow:var(--glow);
+    }
+
+    .info h2,.info h3{color:#7dd3fc;margin:.2rem 0 .6rem}
+    .info p{line-height:1.6}
+    .info ul{margin:8px 0 0 16px;line-height:1.6}
+    .note{color:var(--muted);font-size:.95rem}
+
+    table.guide{
+      width:100%;
+      border-collapse:collapse;
+      background:#0d1523;
+      border-radius:12px;
+      overflow:hidden;
+    }
+
+    table.guide th,table.guide td{
+      border-bottom:1px solid #263044;
+      padding:10px 12px;
+      text-align:left;
+      vertical-align:top;
+    }
+
+    table.guide th{
+      color:#dff4ff;
+      background:#0f1624;
+    }
+
+    .pill-inline{
+      display:inline-block;
+      border:1px solid #263044;
+      background:#101826;
+      color:#e5e7eb;
+      border-radius:999px;
+      padding:4px 10px;
+      margin:2px 6px 2px 0;
+      font-size:.85rem;
+    }
+
+    .grid-3{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .stat-card{
+      background:linear-gradient(180deg,#121826,#0b1220);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:var(--glow);
+    }
+
+    .stat-card h4{
+      margin:0 0 10px;
+      color:var(--brand);
+      font-size:1rem;
+    }
+
+    .stat-card p,.stat-card li{
+      color:#d7e7f5;
+      line-height:1.6;
+    }
+
+    .stat-card ul{
+      margin:.2rem 0 0;
+      padding-left:18px;
+    }
+
+    footer{
+      background:#1a1f2c;
+      color:#7dd3fc;
+      padding:20px;
+      border-top:1px solid #7dd3fc;
+      margin-top:40px;
+      text-align:center;
+    }
+
+    @media (max-width:1080px){
+      .hero-grid,
+      .grid,
+      .grid-3{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width:720px){
+      .page-shell,
+      main{
+        padding-left:12px;
+        padding-right:12px;
+      }
+
+      .hero-card,
+      .card,
+      .info,
+      .stat-card{
+        padding:14px;
+      }
+
+      .hero-actions{
+        flex-direction:column;
+        align-items:stretch;
+      }
+
+      .row > *{
+        flex:1 1 100%;
+      }
+    }
+  </style>
 </head>
 <body>
-<header>
-<div class="title"><h1 class="glow-title">GPS & Spreadsheet Converter</h1></div>
-     
-    
+  <!-- Sponsored Header Bar -->
+  <div id="sponsored-bar" role="banner" aria-label="Sponsored and built by Knack.bz"
+       style="position:sticky; top:0; z-index:9999; width:100%;
+              background:#0f1117; color:#e5e7eb; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+              border-bottom:1px solid #1f2430;">
+    <div style="max-width:1200px; margin:0 auto; padding:10px 10px; display:flex; align-items:center; justify-content:center; gap:.5rem;">
+      <span style="opacity:.9;">Sponsored by</span>
+      <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer"
+         style="color:#7dd3fc; text-decoration:none; font-weight:600;">
+        Knack.bz
+      </a>
+      <button aria-label="Dismiss sponsor bar"
+              onclick="document.getElementById('sponsored-bar').style.display='none'"
+              style="margin-left:auto; background:transparent; border:none; color:#9aa4b2; cursor:pointer; font-size:16px; line-height:1;">
+        ✕
+      </button>
+    </div>
+  </div>
 
-  <div data-nav-placeholder></div>
-  <script src="nav-loader.js" defer></script>
+  <header>
+    <div class="page-shell">
+      <div class="top-title">
+        <h1 class="glow-title">GPS & Spreadsheet Converter</h1>
+        <p class="sub">
+          Convert GPS files like GPX, KML, TCX, and FIT into CSV or XLSX, then convert spreadsheet data back into GPX, KML, or TCX — all privately in your browser.
+        </p>
+      </div>
+
+      <div class="hero-card">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <h2>Clean route and spreadsheet workflows in one place</h2>
+            <p>
+              Move between GPS tracks and spreadsheet formats without uploading your files.
+              Great for athletes, field crews, GIS prep, route planning, and data cleanup.
+            </p>
+
+            <div class="hero-actions">
+              <a class="btn" href="#tool-grid">Start converting</a>
+              <a class="btn sec" href="#format-guide">Format guide</a>
+            </div>
+
+            <div class="hero-pills">
+              <span class="pill">📍 GPX / KML / TCX / FIT</span>
+              <span class="pill">📊 CSV / XLSX</span>
+              <span class="pill">🔒 No uploads</span>
+              <span class="pill">⚡ In-browser only</span>
+            </div>
+          </div>
+
+          <div class="hero-side">
+            <h3>Best for</h3>
+            <ul>
+              <li>Exporting watch data into spreadsheets</li>
+              <li>Cleaning route logs before sharing</li>
+              <li>Turning tabular points back into tracks</li>
+              <li>Preparing files for GIS, coaching, and field teams</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="chips">
+        <span class="chip">GPX → CSV</span>
+        <span class="chip">FIT → XLSX</span>
+        <span class="chip">CSV → GPX</span>
+        <span class="chip">XLSX → TCX</span>
+        <span class="chip">CSV ⇄ XLSX</span>
+        <span class="chip">No tracking</span>
+      </div>
+
+      <div style="margin-top:16px;">
+        <div data-nav-placeholder></div>
+        <script src="nav-loader.js" defer></script>
+        <script src="js/utils.js"></script>
+      </div>
+    </div>
+  </header>
+
+  <section id="adsense-content" class="info page-shell">
+    <h3>GPS Data, Clean and Simple</h3>
+    <ul>
+      <li>Turn GPX, KML, TCX, and FIT into CSV or XLSX for spreadsheets and analysis.</li>
+      <li>Map columns like latitude, longitude, elevation, and time, then export back to GPX, KML, or TCX.</li>
+      <li>Great for runners, cyclists, surveyors, delivery teams, and field operations.</li>
+    </ul>
+  </section>
+
+  <main>
+    <section class="panel">
+      <div class="grid" id="tool-grid">
+        <div class="card">
+          <div class="section-head">
+            <h3>CSV → XLSX</h3>
+            <span class="badge">Spreadsheet</span>
+          </div>
+          <div class="stack">
+            <input type="file" id="csv-input" accept=".csv,text/csv">
+            <button id="csv2xlsx-btn">Convert to XLSX</button>
+            <div class="log" id="csv-log"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-head">
+            <h3>XLSX → CSV</h3>
+            <span class="badge">Spreadsheet</span>
+          </div>
+          <div class="stack">
+            <input type="file" id="xlsx-input" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+            <button id="xlsx2csv-btn">Convert to CSV</button>
+            <div class="log" id="xlsx-log"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-head">
+            <h3>GPS → CSV / XLSX</h3>
+            <span class="badge">NEW</span>
+          </div>
+          <div class="stack">
+            <input type="file" id="gps-input" accept=".gpx,.kml,.tcx,.fit,application/gpx+xml,application/vnd.google-earth.kml+xml" multiple>
+            <div class="row">
+              <button id="gps-to-csv">Export CSV</button>
+              <button id="gps-to-xlsx">Export XLSX</button>
+            </div>
+            <div class="log" id="gps-log"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-head">
+            <h3>CSV / XLSX → GPX / KML / TCX</h3>
+            <span class="badge">NEW</span>
+          </div>
+          <div class="stack">
+            <input type="file" id="tabular-input" accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv">
+            <div class="row">
+              <select id="tabular-target">
+                <option value="gpx">GPX (track)</option>
+                <option value="kml">KML (LineString + points)</option>
+                <option value="tcx">TCX (track)</option>
+              </select>
+              <button id="tabular-export">Export</button>
+            </div>
+            <div class="log" id="tabular-log"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="info" id="story">
+      <h2>Built for Field Teams, Athletes, and Analysts</h2>
+      <p>
+        This page came from the real problem of juggling messy GPS files and spreadsheets.
+        Whether you’re exporting runs from a watch, planning service routes, or cleaning survey logs,
+        you can convert everything <strong>privately in your browser</strong>.
+      </p>
+      <div>
+        <span class="pill-inline">GPX</span>
+        <span class="pill-inline">KML</span>
+        <span class="pill-inline">TCX</span>
+        <span class="pill-inline">FIT</span>
+        <span class="pill-inline">CSV</span>
+        <span class="pill-inline">XLSX</span>
+      </div>
+      <p class="note">Everything runs locally using browser APIs and open libraries.</p>
+    </section>
+
+    <section class="info" id="format-guide">
+      <h3>Which GPS Format Should I Use?</h3>
+      <div style="overflow:auto">
+        <table class="guide">
+          <thead>
+            <tr>
+              <th>Format</th>
+              <th>Best For</th>
+              <th>Pros</th>
+              <th>Watch Outs</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>GPX</strong></td>
+              <td>Universal tracks and waypoints</td>
+              <td>Simple XML and broad support</td>
+              <td>Can get large with many points</td>
+            </tr>
+            <tr>
+              <td><strong>KML</strong></td>
+              <td>Google Earth and route previews</td>
+              <td>Good for styled viewing and map sharing</td>
+              <td>Heavier XML, styling varies by app</td>
+            </tr>
+            <tr>
+              <td><strong>TCX</strong></td>
+              <td>Fitness workouts</td>
+              <td>Useful for laps and sensor-rich workouts</td>
+              <td>App support can vary compared to GPX</td>
+            </tr>
+            <tr>
+              <td><strong>FIT</strong></td>
+              <td>Garmin and modern wearables</td>
+              <td>Efficient binary format with more sensor detail</td>
+              <td>Needs decoding before manual editing</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="info" id="columns">
+      <h3>Suggested Columns (GPS → CSV / XLSX)</h3>
+      <ul>
+        <li><code>time</code> — ISO timestamp</li>
+        <li><code>lat</code>, <code>lon</code> — WGS84 coordinates</li>
+        <li><code>ele</code> — elevation in meters</li>
+        <li><code>speed</code> — meters per second or km/h</li>
+        <li><code>hr</code> — heart rate</li>
+        <li><code>cadence</code> — steps or RPM</li>
+        <li><code>dist</code> — cumulative distance</li>
+        <li><code>lap</code> or <code>segment</code> — optional grouping</li>
+      </ul>
+      <p class="note">If some fields are missing, that’s okay — the converter will include what exists.</p>
+    </section>
+
+    <section class="info" id="best-practices">
+      <h3>Best Practices</h3>
+      <ul>
+        <li><strong>Normalize timestamps:</strong> keep everything in UTC before merging datasets.</li>
+        <li><strong>Reduce noise:</strong> smooth unrealistic coordinate spikes before analysis.</li>
+        <li><strong>Downsample:</strong> for map sharing, reduce points to keep files smaller.</li>
+        <li><strong>Validate coordinates:</strong> make sure latitude and longitude stay in valid ranges.</li>
+        <li><strong>Protect privacy:</strong> trim points near home before sharing public tracks.</li>
+      </ul>
+    </section>
+
+    <section class="info" id="use-cases">
+      <h3>Use-Case Playbooks</h3>
+      <p><strong>Fitness & Coaching:</strong> merge weekly FIT or TCX files, export to CSV, then analyze pace, laps, and heart rate trends.</p>
+      <p><strong>Field Operations:</strong> convert logs to XLSX, filter by time window, then export a GPX route for handoff.</p>
+      <p><strong>Delivery & Service:</strong> build KML route previews for Google Earth and team reviews.</p>
+      <p><strong>Research & GIS:</strong> export GPX, clean it in a spreadsheet, then import into GIS software.</p>
+    </section>
+
+    <section class="info" id="faq">
+      <h3>FAQs & Troubleshooting</h3>
+      <p><strong>Do my files upload anywhere?</strong> No. Everything runs locally in your browser.</p>
+      <p><strong>My FIT file won’t parse.</strong> Some devices export different variants. Re-export from the vendor app and try again.</p>
+      <p><strong>Data looks shifted or empty.</strong> Check time zones and make sure <code>lat</code>/<code>lon</code> columns are numeric.</p>
+      <p><strong>Very large files feel slow.</strong> Close heavy tabs and consider splitting or downsampling routes.</p>
+    </section>
+
+    <section class="info" id="related">
+      <h3>Related Tools</h3>
+      <ul>
+        <li><a href="/gps.html" style="color:#7dd3fc">GPS Utilities</a> — quick viewers and helpers</li>
+        <li><a href="/json.html" style="color:#7dd3fc">JSON Tools</a> — convert API data to CSV</li>
+        <li><a href="/archive.html" style="color:#7dd3fc">ZIP / Unzip</a> — package your exports</li>
+        <li><a href="/pdf.html" style="color:#7dd3fc">PDF Tools</a> — share reports professionally</li>
+      </ul>
+    </section>
+
+    <div class="grid-3">
+      <div class="stat-card">
+        <h4>Best workflow</h4>
+        <ul>
+          <li>Choose your source file</li>
+          <li>Convert to spreadsheet or GPS format</li>
+          <li>Clean or review the result</li>
+          <li>Export the final version</li>
+        </ul>
+      </div>
+
+      <div class="stat-card">
+        <h4>Best uses</h4>
+        <ul>
+          <li>Sports and coaching data</li>
+          <li>Survey and route logs</li>
+          <li>Operations and delivery planning</li>
+          <li>GIS prep and spreadsheet cleanup</li>
+        </ul>
+      </div>
+
+      <div class="stat-card">
+        <h4>Why local is better</h4>
+        <ul>
+          <li>No uploads to outside servers</li>
+          <li>Faster for many small jobs</li>
+          <li>Better privacy for route files</li>
+          <li>Works well with sensitive field data</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <nav style="display:flex; flex-wrap:wrap; justify-content:center; gap:20px; margin-bottom:10px;">
+      <a href="about.html" style="color:#7dd3fc; text-decoration:none;">About</a>
+      <a href="faq.html" style="color:#7dd3fc; text-decoration:none;">FAQ</a>
+      <a href="privacy-policy.html" style="color:#7dd3fc; text-decoration:none;">Privacy Policy</a>
+      <a href="terms.html" style="color:#7dd3fc; text-decoration:none;">Terms of Service</a>
+      <a href="contact.html" style="color:#7dd3fc; text-decoration:none;">Contact</a>
+    </nav>
+    <p>© <span id="year"></span> File Converter — Cyber Edition</p>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
   <script src="js/utils.js"></script>
-     
- <section id="adsense-content" class="info">
-  <h3>GPS Data, Clean and Simple</h3>
-  <ul>
-    <li>Turn GPX/KML/TCX/FIT into CSV/XLSX for spreadsheets and analysis.</li>
-    <li>Map columns automatically—lat/lon/ele/time—then export back to GPX/KML/TCX.</li>
-    <li>Great for runners, cyclists, surveyors, and field teams.</li>
-  </ul>
-</section>
-
-</header>
-
-<main>
-
-
-  <!-- ===== Your Tools (unchanged behavior, cleaned structure) ===== -->
-  <section class="panel">
-    <div class="grid">
-      <div class="card">
-        <h3>CSV → XLSX</h3>
-        <input type="file" id="csv-input" accept=".csv,text/csv" />
-        <div class="row" style="margin-top:12px"><button id="csv2xlsx-btn">Convert</button></div>
-        <div class="log" id="csv-log"></div>
-      </div>
-
-      <div class="card">
-        <h3>XLSX → CSV</h3>
-        <input type="file" id="xlsx-input" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
-        <div class="row" style="margin-top:12px"><button id="xlsx2csv-btn">Convert</button></div>
-        <div class="log" id="xlsx-log"></div>
-      </div>
-
-      <div class="card">
-        <span class="badge">NEW</span>
-        <h3>GPS → CSV/XLSX</h3>
-        <input type="file" id="gps-input" accept=".gpx,.kml,.tcx,.fit,application/gpx+xml,application/vnd.google-earth.kml+xml" multiple />
-        <div class="row" style="margin-top:12px">
-          <button id="gps-to-csv">Export CSV</button>
-          <button id="gps-to-xlsx">Export XLSX</button>
-        </div>
-        <div class="log" id="gps-log"></div>
-      </div>
-
-      <div class="card">
-        <span class="badge">NEW</span>
-        <h3>CSV/XLSX → GPX/KML/TCX</h3>
-        <input type="file" id="tabular-input" accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" />
-        <div class="row" style="margin-top:12px">
-          <select id="tabular-target">
-            <option value="gpx">GPX (track)</option>
-            <option value="kml">KML (LineString + points)</option>
-            <option value="tcx">TCX (track)</option>
-          </select>
-          <button id="tabular-export">Export</button>
-        </div>
-        <div class="log" id="tabular-log"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== AdSense-friendly informational content ===== -->
-  <section class="info" id="story">
-    <h2>Built for Field Teams, Athletes, and Analysts</h2>
-    <p>
-      We made this page after juggling messy GPS files and spreadsheets. Whether you’re exporting runs from a watch, planning a delivery route,
-      or cleaning survey logs, you can convert <strong>privately in your browser</strong> — no uploads, no waiting.
-    </p>
-    <div>
-      <span class="pill">GPX</span>
-      <span class="pill">KML</span>
-      <span class="pill">TCX</span>
-      <span class="pill">FIT</span>
-      <span class="pill">CSV</span>
-      <span class="pill">XLSX</span>
-    </div>
-    <p class="note">Everything runs locally using modern web APIs and open libraries.</p>
-  </section>
-
-  <section class="info" id="format-guide">
-    <h3>Which GPS Format Should I Use?</h3>
-    <div style="overflow:auto">
-      <table class="guide">
-        <thead>
-          <tr>
-            <th>Format</th><th>Best For</th><th>Pros</th><th>Watch Outs</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>GPX</strong></td>
-            <td>Universal tracks/waypoints</td>
-            <td>Simple XML; supported by most apps/devices</td>
-            <td>File size can grow with many points</td>
-          </tr>
-          <tr>
-            <td><strong>KML</strong></td>
-            <td>Google Earth, styled routes</td>
-            <td>Rich styling; easy map viewing</td>
-            <td>Heavier XML; styling may vary across apps</td>
-          </tr>
-          <tr>
-            <td><strong>TCX</strong></td>
-            <td>Fitness workouts</td>
-            <td>Good for laps, cadence, heart rate</td>
-            <td>App support varies vs GPX</td>
-          </tr>
-          <tr>
-            <td><strong>FIT</strong></td>
-            <td>Garmin & modern wearables</td>
-            <td>Efficient binary; detailed sensor data</td>
-            <td>Binary; needs decoder to view/edit</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="info" id="columns">
-    <h3>Suggested Columns (GPS → CSV/XLSX)</h3>
-    <ul class="tight">
-      <li><code>time</code> — ISO timestamp</li>
-      <li><code>lat</code>, <code>lon</code> — WGS84 coordinates</li>
-      <li><code>ele</code> — elevation (m)</li>
-      <li><code>speed</code> — m/s or km/h</li>
-      <li><code>hr</code> — heart rate (bpm)</li>
-      <li><code>cadence</code> — steps/rpm</li>
-      <li><code>dist</code> — cumulative distance (m)</li>
-      <li><code>lap</code> / <code>segment</code> — optional grouping</li>
-    </ul>
-    <p class="note">Don’t have all fields? That’s okay — the converter will include what’s present.</p>
-  </section>
-
-  <section class="info" id="best-practices">
-    <h3>Best Practices</h3>
-    <ul class="tight">
-      <li><strong>Normalize timestamps:</strong> Keep everything in UTC for merges.</li>
-      <li><strong>Reduce noise:</strong> Smooth unrealistic spikes before analysis.</li>
-      <li><strong>Downsample:</strong> For maps, reduce points (e.g., every 5–10s) to keep files light.</li>
-      <li><strong>Validate coordinates:</strong> Ensure <code>-90 ≤ lat ≤ 90</code> and <code>-180 ≤ lon ≤ 180</code>.</li>
-      <li><strong>Privacy:</strong> Trim start/end near home before sharing public tracks.</li>
-    </ul>
-  </section>
-
-  <section class="info" id="use-cases">
-    <h3>Use-Case Playbooks</h3>
-    <p><strong>Fitness & Coaching:</strong> Merge weekly FIT/TCX files → export to CSV → pivot laps, pace, heart rate trends.</p>
-    <p><strong>Field Operations:</strong> Convert GPS logs to XLSX → filter by time window → generate GPX route for handoff.</p>
-    <p><strong>Delivery & Service:</strong> Build KML with styled LineString → share route previews with the team.</p>
-    <p><strong>Research & GIS:</strong> Export GPX → clean with spreadsheet formulas → import into QGIS/ArcGIS.</p>
-  </section>
-
-  <section class="info" id="faq">
-    <h3>FAQs & Troubleshooting</h3>
-    <p><strong>Do my files upload anywhere?</strong> No — everything runs locally in your browser.</p>
-    <p><strong>My FIT file won’t parse.</strong> Some devices write variants — try re-exporting from the vendor app, then upload again.</p>
-    <p><strong>Data looks shifted or empty.</strong> Check time zones and column headers; ensure <code>lat</code>/<code>lon</code> are numeric.</p>
-    <p><strong>Very large files feel slow.</strong> Close heavy tabs; consider splitting routes or downsampling points.</p>
-  </section>
-
-  <section class="info" id="related">
-    <h3>Related Tools</h3>
-    <ul class="tight">
-      <li><a href="/gps.html" style="color:#7dd3fc">GPS Utilities</a> — quick viewers and helpers</li>
-      <li><a href="/json.html" style="color:#7dd3fc">JSON Tools</a> — convert API data to CSV</li>
-      <li><a href="/archive.html" style="color:#7dd3fc">ZIP / Unzip</a> — package your exports</li>
-      <li><a href="/pdf.html" style="color:#7dd3fc">PDF Tools</a> — share reports professionally</li>
-    </ul>
-  </section>
-</main>
-
-<footer>
-  <nav style="display:flex; flex-wrap:wrap; justify-content:center; gap:20px; margin-bottom:10px;">
-    <a href="about.html" style="color:#7dd3fc; text-decoration:none;">About</a>
-    <a href="faq.html" style="color:#7dd3fc; text-decoration:none;">FAQ</a>
-    <a href="privacy-policy.html" style="color:#7dd3fc; text-decoration:none;">Privacy Policy</a>
-    <a href="terms.html" style="color:#7dd3fc; text-decoration:none;">Terms of Service</a>
-    <a href="contact.html" style="color:#7dd3fc; text-decoration:none;">Contact</a>
-  </nav>
-  <p>© <span id="year"></span> File Converter — Cyber Edition</p>
-</footer>
-
-<script>document.getElementById('year').textContent=new Date().getFullYear();</script>
-
-<!-- Your scripts (de-duped utils) -->
-<script src="js/utils.js"></script>
-<script src="js/data.js"></script>
+  <script src="js/data.js"></script>
 </body>
 </html>
