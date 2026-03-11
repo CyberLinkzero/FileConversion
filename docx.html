@@ -1,300 +1,862 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="site.css">
-
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-W25SYMTSSR"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);} gtag('js', new Date());
-  gtag('config', 'G-W25SYMTSSR');
-</script>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9800485035530027" crossorigin="anonymous"></script>
-<meta name="google-adsense-account" content="ca-pub-9800485035530027">
-<style>
-  .info{background:#1a1f2c;border:1px solid #263044;border-radius:12px;padding:18px;margin:18px auto;max-width:1100px}
-  .info h2,.info h3{color:#7dd3fc;margin:.2rem 0 .6rem}
-  .info .note{color:#9aa4b2;font-size:.95rem}
-  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-  @media (max-width:900px){ .grid-3{grid-template-columns:1fr} }
-  .guide{width:100%;border-collapse:collapse}
-  .guide th,.guide td{border-bottom:1px solid #263044;padding:8px;text-align:left;vertical-align:top}
-</style>
-<meta name="description" content="Convert and edit files privately in your browser — fast, secure, and no uploads.">
-
-  <!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/6906c86e40b306194f3da6e5/1j917ts2m';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Tawk.to Script-->
   <meta charset="UTF-8" />
-  <title>DOCX Tools - FileConverter.run</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Shared site theme -->
+  <title>DOCX Tools — FileConverter.run</title>
+  <meta name="description" content="Convert DOCX to clean HTML and turn HTML into DOCX privately in your browser. No uploads, no tracking.">
+
+  <link rel="stylesheet" href="site.css">
+  <link rel="stylesheet" href="nav.css">
   <link rel="stylesheet" href="css/style.css" />
 
-  <!-- Libraries (CDN) -->
-  <!-- DOCX -> HTML -->
+  <!-- Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-W25SYMTSSR"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-W25SYMTSSR');
+  </script>
+
+  <!-- AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9800485035530027" crossorigin="anonymous"></script>
+  <meta name="google-adsense-account" content="ca-pub-9800485035530027">
+
+  <!-- Tawk.to -->
+  <script type="text/javascript">
+  var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+  (function(){
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true;
+    s1.src='https://embed.tawk.to/6906c86e40b306194f3da6e5/1j917ts2m';
+    s1.charset='UTF-8';
+    s1.setAttribute('crossorigin','*');
+    s0.parentNode.insertBefore(s1,s0);
+  })();
+  </script>
+
+  <!-- Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/mammoth/mammoth.browser.min.js"></script>
-  <!-- HTML -> DOCX -->
   <script src="https://cdn.jsdelivr.net/npm/html-docx-js/dist/html-docx.js"></script>
-  <!-- Save Blob to file -->
   <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 
-<style>
-.glow-title{
-  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
-  font-weight: 800;
-  text-align: center;
-  margin: 10px 0 4px;
-  letter-spacing: .3px;
-  background: linear-gradient(90deg,#00ffff,#7dd3fc,#a78bfa,#ff00ff,#00ffcc,#00ffff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 6px rgba(125,211,252,.45), 0 0 12px rgba(125,211,252,.25), 0 0 18px rgba(167,139,250,.2);
-  animation: cyberPulse 3s ease-in-out infinite alternate, gradientShift 6s linear infinite;
-  background-size: 400% auto;
-}
-@keyframes cyberPulse {
-  from { text-shadow: 0 0 4px rgba(125,211,252,.25), 0 0 8px rgba(125,211,252,.18), 0 0 12px rgba(167,139,250,.12); }
-  to   { text-shadow: 0 0 10px rgba(125,211,252,.6), 0 0 20px rgba(125,211,252,.4), 0 0 30px rgba(255,0,255,.28); }
-}
-@keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
-.info{max-width:900px;margin:18px auto;background:#1a1f2c;border:1px solid #273142;border-radius:12px;padding:18px;color:#e6edf3}
-.info h3{margin:0 0 8px;color:#7dd3fc}
-.info p{margin:6px 0 0}
-.info ul{margin:8px 0 0 16px}
-</style>
+  <style>
+    :root{
+      --bg:#0f1117;
+      --panel:#1a1f2c;
+      --panel2:#121826;
+      --panel3:#0d1422;
+      --line:#263044;
+      --line2:#33425d;
+      --brand:#7dd3fc;
+      --accent:#a78bfa;
+      --muted:#9aa4b2;
+      --text:#e5e7eb;
+      --ok:#34d399;
+      --warn:#fbbf24;
+      --danger:#fb7185;
+      --shadow:0 18px 40px rgba(0,0,0,.28);
+      --glow:0 0 24px rgba(125,211,252,.12);
+      --radius:18px;
+    }
 
+    *{box-sizing:border-box}
+    html,body{
+      margin:0;
+      padding:0;
+      background:
+        radial-gradient(circle at top right, rgba(125,211,252,.08), transparent 28%),
+        radial-gradient(circle at top left, rgba(167,139,250,.08), transparent 24%),
+        linear-gradient(180deg,#0f1117,#0c1018);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    a{color:var(--brand)}
+
+    .page-shell{
+      max-width:1200px;
+      margin:0 auto;
+      padding:0 16px;
+    }
+
+    header{
+      padding:0 0 18px;
+      border-bottom:1px solid #1f2430;
+      background:
+        radial-gradient(circle at top right, rgba(125,211,252,.08), transparent 30%),
+        radial-gradient(circle at top left, rgba(167,139,250,.08), transparent 24%),
+        linear-gradient(180deg,#0f1117,#0d121d);
+    }
+
+    .top-title{
+      text-align:center;
+      padding:22px 0 12px;
+    }
+
+    .glow-title{
+      font-size:clamp(1.9rem,3.8vw,3rem);
+      font-weight:800;
+      margin:8px 0 6px;
+      letter-spacing:.3px;
+      background:linear-gradient(90deg,#00ffff,#7dd3fc,#a78bfa,#ff00ff,#00ffcc,#00ffff);
+      -webkit-background-clip:text;
+      background-clip:text;
+      -webkit-text-fill-color:transparent;
+      text-shadow:0 0 6px rgba(125,211,252,.45),0 0 12px rgba(125,211,252,.25),0 0 18px rgba(167,139,250,.2);
+      animation:cyberPulse 3s ease-in-out infinite alternate, gradientShift 6s linear infinite;
+      background-size:400% auto;
+    }
+
+    .sub{
+      opacity:.95;
+      margin:0 auto;
+      color:#e5e7eb;
+      max-width:860px;
+      line-height:1.55;
+    }
+
+    @keyframes cyberPulse{
+      from { text-shadow:0 0 4px rgba(125,211,252,.25),0 0 8px rgba(125,211,252,.18),0 0 12px rgba(167,139,250,.12); }
+      to   { text-shadow:0 0 10px rgba(125,211,252,.6),0 0 20px rgba(125,211,252,.4),0 0 30px rgba(255,0,255,.28); }
+    }
+
+    @keyframes gradientShift{
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
+
+    .hero-card{
+      margin-top:14px;
+      background:
+        radial-gradient(circle at top right, rgba(125,211,252,.14), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(167,139,250,.12), transparent 24%),
+        linear-gradient(180deg,#121826,#0b1220);
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      padding:22px;
+    }
+
+    .hero-grid{
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:18px;
+      align-items:stretch;
+    }
+
+    .hero-copy h2{
+      margin:0 0 10px;
+      font-size:clamp(1.2rem,2.4vw,2rem);
+      color:#fff;
+    }
+
+    .hero-copy p{
+      margin:0 0 12px;
+      color:#d6e4f3;
+      max-width:760px;
+      line-height:1.6;
+    }
+
+    .hero-actions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+
+    .btn{
+      appearance:none;
+      border:0;
+      padding:11px 16px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:800;
+      background:linear-gradient(90deg,var(--brand),var(--accent));
+      color:#07101a;
+      transition:.18s ease;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+    }
+
+    .btn:hover{
+      transform:translateY(-1px);
+      box-shadow:0 10px 26px rgba(125,211,252,.2);
+    }
+
+    .btn.sec{
+      background:var(--panel3);
+      color:var(--text);
+      border:1px solid var(--line);
+    }
+
+    .hero-pills{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:16px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#0d1523;
+      color:#d6e7f5;
+      font-size:.93rem;
+    }
+
+    .hero-side{
+      background:linear-gradient(180deg,#0f1625,#101828);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:12px;
+    }
+
+    .hero-side h3{
+      margin:0;
+      color:var(--brand);
+      font-size:1.05rem;
+    }
+
+    .hero-side ul{
+      margin:0;
+      padding-left:18px;
+      color:#d7e7f5;
+      line-height:1.55;
+    }
+
+    .hero-side li{margin:.2rem 0}
+
+    .info{
+      background:linear-gradient(180deg,#1a1f2c,#171d29);
+      border:1px solid #263044;
+      border-radius:16px;
+      padding:18px;
+      margin:18px auto;
+      max-width:1100px;
+      box-shadow:var(--glow);
+      color:#e6edf3;
+    }
+
+    .info h2,.info h3{color:#7dd3fc;margin:.2rem 0 .6rem}
+    .info p{line-height:1.6}
+    .info ul{margin:8px 0 0 16px;line-height:1.6}
+    .info .note{color:var(--muted);font-size:.95rem}
+
+    main{
+      max-width:1200px;
+      margin:0 auto;
+      padding:22px 16px 36px;
+    }
+
+    .tool-grid{
+      display:grid;
+      gap:18px;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      align-items:start;
+    }
+
+    .card{
+      background:linear-gradient(180deg,#121826,#0b1220);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--glow);
+      padding:18px;
+      overflow:hidden;
+    }
+
+    .section-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    .section-head h2,
+    .section-head h3{
+      margin:0;
+      font-size:1.08rem;
+      color:var(--brand);
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:6px 10px;
+      color:#cfe6ff;
+      background:#0d1523;
+      font-size:.84rem;
+      white-space:nowrap;
+    }
+
+    .dropzone{
+      border:2px dashed #33425d;
+      border-radius:16px;
+      padding:20px 14px;
+      text-align:center;
+      background:linear-gradient(180deg,#0f1624,#0b1220);
+      transition:.18s ease;
+      cursor:pointer;
+    }
+
+    .dropzone:hover{
+      border-color:var(--brand);
+      box-shadow:0 10px 24px rgba(125,211,252,.08);
+    }
+
+    .dropzone.drag{
+      border-color:#00ffff;
+      box-shadow:0 0 0 4px rgba(0,255,255,.08);
+      background:#122034;
+    }
+
+    .drop-big{
+      font-size:1.02rem;
+      font-weight:700;
+      color:#e8f5ff;
+    }
+
+    .drop-small{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:.95rem;
+    }
+
+    .file-pill{
+      display:none;
+      margin-top:10px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:#0d1523;
+      border:1px solid var(--line);
+      color:#d6e7f5;
+      font-size:.92rem;
+      word-break:break-word;
+    }
+
+    .stack{display:grid;gap:12px}
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .row > *{
+      flex:1 1 180px;
+      min-width:0;
+    }
+
+    label{
+      display:grid;
+      gap:6px;
+      color:#d9e5f3;
+      font-size:.95rem;
+    }
+
+    input[type="file"],
+    input[type="text"],
+    textarea,
+    button{
+      width:100%;
+      padding:11px 12px;
+      border-radius:12px;
+      border:1px solid #263047;
+      background:#0e1422;
+      color:var(--text);
+      transition:.18s ease;
+      font:inherit;
+    }
+
+    input[type="file"]:focus,
+    input[type="text"]:focus,
+    textarea:focus{
+      outline:none;
+      border-color:var(--brand);
+      box-shadow:0 0 0 3px rgba(125,211,252,.12);
+    }
+
+    textarea{
+      min-height:230px;
+      resize:vertical;
+      line-height:1.55;
+    }
+
+    button{
+      cursor:pointer;
+      background:linear-gradient(135deg,var(--brand),var(--accent));
+      color:#0b1220;
+      font-weight:700;
+      border:none;
+      box-shadow:0 10px 22px rgba(125,211,252,.12);
+    }
+
+    button:hover{
+      transform:translateY(-1px);
+      box-shadow:0 12px 26px rgba(125,211,252,.2);
+    }
+
+    button:disabled{
+      opacity:.6;
+      cursor:not-allowed;
+      transform:none;
+      box-shadow:none;
+    }
+
+    .btn-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:2px;
+    }
+
+    .btn-row > button{
+      flex:1 1 160px;
+    }
+
+    .toggle-row{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      color:#d9e5f3;
+      font-size:.95rem;
+    }
+
+    .toggle-row input[type="checkbox"]{
+      width:auto;
+      accent-color:var(--brand);
+    }
+
+    .preview{
+      min-height:190px;
+      max-height:360px;
+      overflow:auto;
+      background:#0f1117;
+      border:1px solid #3d4252;
+      border-radius:12px;
+      padding:12px;
+      line-height:1.55;
+    }
+
+    .small{
+      font-size:.9rem;
+      color:var(--muted);
+      line-height:1.55;
+    }
+
+    .grid-3{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .stat-card{
+      background:linear-gradient(180deg,#121826,#0b1220);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:var(--glow);
+    }
+
+    .stat-card h4{
+      margin:0 0 10px;
+      color:var(--brand);
+      font-size:1rem;
+    }
+
+    .stat-card p,.stat-card li{
+      color:#d7e7f5;
+      line-height:1.6;
+    }
+
+    .stat-card ul{
+      margin:.2rem 0 0;
+      padding-left:18px;
+    }
+
+    footer{
+      background:#1a1f2c;
+      color:#7dd3fc;
+      padding:20px;
+      margin-top:40px;
+      border-top:1px solid #7dd3fc;
+    }
+
+    @media (max-width:1080px){
+      .hero-grid,
+      .tool-grid,
+      .grid-3{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width:720px){
+      .page-shell,
+      main{
+        padding-left:12px;
+        padding-right:12px;
+      }
+
+      .hero-card,
+      .card,
+      .info,
+      .stat-card{
+        padding:14px;
+      }
+
+      .hero-actions{
+        flex-direction:column;
+        align-items:stretch;
+      }
+
+      .btn-row > button,
+      .row > *{
+        flex:1 1 100%;
+      }
+    }
+  </style>
 </head>
 <body>
 <header>
-      <!-- Sponsored Header Bar (dismissible) -->
-<div id="sponsored-bar" role="banner" aria-label="Sponsored by Knack.bz"
-     style="position:sticky; top:0; z-index:9999; width:100%;
-            background:#0f1117; color:#e5e7eb; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-            border-bottom:1px solid #1f2430;">
-  <div style="max-width:1200px; margin:0 auto; padding:10px 10px; display:flex; align-items:center; justify-content:center; gap:.5rem;">
-    <span style="opacity:.9;">Sponsored by</span>
-    <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer"
-       style="color:#7dd3fc; text-decoration:none; font-weight:600;">
-      Knack.bz
-    </a>
-    <button aria-label="Dismiss sponsor bar"
-            onclick="document.getElementById('sponsored-bar').style.display='none'"
-            style="margin-left:auto; background:transparent; border:none; color:#9aa4b2; cursor:pointer; font-size:16px; line-height:1;">
-      ✕
-    </button>
+  <!-- Sponsored Header Bar -->
+  <div id="sponsored-bar" role="banner" aria-label="Sponsored by Knack.bz"
+       style="position:sticky; top:0; z-index:9999; width:100%; background:#0f1117; color:#e5e7eb; border-bottom:1px solid #1f2430;">
+    <div style="max-width:1200px; margin:0 auto; padding:10px 10px; display:flex; align-items:center; justify-content:center; gap:.5rem;">
+      <span style="opacity:.9;">Sponsored by</span>
+      <a href="https://knack.bz" target="_blank" rel="sponsored noopener noreferrer"
+         style="color:#7dd3fc; text-decoration:none; font-weight:600;">
+        Knack.bz
+      </a>
+      <button aria-label="Dismiss sponsor bar"
+              onclick="document.getElementById('sponsored-bar').style.display='none'"
+              style="margin-left:auto; background:transparent; border:none; color:#9aa4b2; cursor:pointer; font-size:16px; line-height:1;">
+        ✕
+      </button>
+    </div>
   </div>
-</div>
-   <div class="container">
-    <h1 class="glow-title">DOCX Tools</h1>
-    <p>Convert <strong>DOCX → HTML</strong> (clean, semantic) or <strong>HTML → DOCX</strong> fully in your browser.</p>
 
-  <div data-nav-placeholder></div>
-    <script src="js/utils.js"></script>
-<script src="nav-loader.js" defer></script>
+  <div class="page-shell">
+    <div class="top-title">
+      <h1 class="glow-title">DOCX Tools</h1>
+      <p class="sub">Convert <strong>DOCX → HTML</strong> or <strong>HTML → DOCX</strong> fully in your browser with a cleaner cyber-style editor workflow.</p>
+    </div>
+
+    <div class="hero-card">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <h2>Fast document conversion with local privacy</h2>
+          <p>
+            Turn Word files into clean HTML for web use, or paste HTML and export a real DOCX document.
+            Everything stays on your device, so you get speed, privacy, and a smoother editing workflow.
+          </p>
+
+          <div class="hero-actions">
+            <a class="btn" href="#docx-tools">Start converting</a>
+            <a class="btn sec" href="#faq">Quick tips</a>
+          </div>
+
+          <div class="hero-pills">
+            <span class="pill">📄 DOCX → HTML</span>
+            <span class="pill">🧾 HTML → DOCX</span>
+            <span class="pill">🔒 No uploads</span>
+            <span class="pill">⚡ In-browser only</span>
+          </div>
+        </div>
+
+        <div class="hero-side">
+          <h3>Best for</h3>
+          <ul>
+            <li>Pulling clean HTML from Word docs</li>
+            <li>Building reusable document templates</li>
+            <li>Converting notes or web markup into DOCX</li>
+            <li>Keeping private files off remote servers</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <div data-nav-placeholder></div>
+      <script src="js/utils.js"></script>
+      <script src="nav-loader.js" defer></script>
+    </div>
+  </div>
+</header>
+
 <section id="adsense-content" class="info">
   <h3>Why Local File Conversion?</h3>
   <ul>
-    <li>Your files never leave your device—great for privacy and speed.</li>
-    <li>No sign-ups or uploads required; everything runs in your browser.</li>
+    <li>Your files never leave your device — great for privacy and speed.</li>
+    <li>No sign-ups or uploads required; everything runs directly in your browser.</li>
     <li>Perfect for students, small businesses, creators, and teams.</li>
   </ul>
 </section>
- 
-</header>
-  
 
-    <!-- GRID: two columns on desktop, stacks on mobile -->
-    <div id="grid" style="display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(320px,1fr));">
-      <!-- DOCX -> HTML -->
-      <section class="card" style="background:#1a1c23; padding:16px; border-radius:12px;">
-        <h2 style="margin-top:0;">DOCX → HTML</h2>
+<main id="docx-tools">
+  <div class="tool-grid">
+    <!-- DOCX -> HTML -->
+    <section class="card">
+      <div class="section-head">
+        <h2>DOCX → HTML</h2>
+        <span class="badge">Mammoth</span>
+      </div>
 
-        <div id="dropzone" style="border:1px dashed #3d4252; border-radius:10px; padding:16px; text-align:center;">
-          <p style="margin:0 0 8px;">Drop a .docx file here or choose a file</p>
-          <input type="file" id="docxFile" accept=".docx" />
+      <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Choose DOCX file">
+        <div class="drop-big">Drop a .docx file here</div>
+        <div class="drop-small">or click below to choose from your device</div>
+        <div id="docxFilePill" class="file-pill"></div>
+      </div>
+
+      <div class="stack" style="margin-top:12px;">
+        <input type="file" id="docxFile" accept=".docx" />
+
+        <div class="toggle-row">
+          <label class="toggle-row" style="display:inline-flex;">
+            <input type="checkbox" id="showStyleMap" />
+            Use custom style map
+          </label>
         </div>
 
-        <div style="margin-top:12px;">
-          <label><input type="checkbox" id="showStyleMap" /> Use custom style map</label>
-          <textarea id="styleMap" placeholder="Optional Mammoth style map (one rule per line)"
-            style="width:100%; height:100px; background:#0f1117; color:#f0f0f0; border:1px solid #3d4252; border-radius:8px; padding:8px; display:none;"></textarea>
-        </div>
+        <textarea id="styleMap" placeholder="Optional Mammoth style map (one rule per line)" style="display:none;"></textarea>
 
-        <div style="margin-top:12px;">
+        <div class="btn-row">
           <button id="convertDocxBtn">Convert to HTML</button>
           <button id="downloadHtmlBtn" disabled>Download HTML</button>
           <button id="clearDocxBtn">Clear</button>
         </div>
+      </div>
 
-        <h3 style="margin:16px 0 8px;">Preview</h3>
-        <div id="htmlPreview"
-             style="min-height:160px; max-height:360px; overflow:auto; background:#0f1117; border:1px solid #3d4252; border-radius:8px; padding:12px;">
-          <em>Converted HTML will appear here…</em>
-        </div>
-      </section>
+      <h3 style="margin:16px 0 8px; color:var(--brand);">Preview</h3>
+      <div id="htmlPreview" class="preview">
+        <em>Converted HTML will appear here…</em>
+      </div>
+    </section>
 
-      <!-- HTML -> DOCX -->
-      <section class="card" style="background:#1a1c23; padding:16px; border-radius:12px;">
-        <h2 style="margin-top:0;">HTML → DOCX</h2>
-        <p style="margin-top:0;">Paste or type HTML below, then export a real <code>.docx</code> file.</p>
+    <!-- HTML -> DOCX -->
+    <section class="card">
+      <div class="section-head">
+        <h2>HTML → DOCX</h2>
+        <span class="badge">html-docx-js</span>
+      </div>
 
-        <textarea id="htmlInput"
-          placeholder="&lt;h1&gt;Hello&lt;/h1&gt;&lt;p&gt;This will be turned into a .docx.&lt;/p&gt;"
-          style="width:100%; height:240px; background:#0f1117; color:#f0f0f0; border:1px solid #3d4252; border-radius:8px; padding:8px;"></textarea>
+      <p class="small" style="margin-top:0;">Paste or type HTML below, preview it, then export a real <code>.docx</code> file.</p>
 
-        <div style="margin-top:12px;">
-          <label>File name:
-            <input id="docxFilename" type="text" value="document.docx"
-              style="max-width:260px; background:#0f1117; color:#f0f0f0; border:1px solid #3d4252; border-radius:8px; padding:6px; margin-left:8px;">
-          </label>
-        </div>
+      <div class="stack">
+        <textarea id="htmlInput" placeholder="&lt;h1&gt;Hello&lt;/h1&gt;&lt;p&gt;This will be turned into a .docx.&lt;/p&gt;"></textarea>
 
-        <div style="margin-top:12px;">
+        <label>File name
+          <input id="docxFilename" type="text" value="document.docx">
+        </label>
+
+        <div class="btn-row">
           <button id="previewFromHtml">Preview HTML</button>
           <button id="downloadDocxBtn">Download DOCX</button>
           <button id="clearHtmlBtn">Clear</button>
         </div>
+      </div>
 
-        <h3 style="margin:16px 0 8px;">Preview</h3>
-        <div id="htmlEcho"
-             style="min-height:160px; max-height:360px; overflow:auto; background:#0f1117; border:1px solid #3d4252; border-radius:8px; padding:12px;">
-          <em>HTML preview will appear here…</em>
-        </div>
-      </section>
-    </div>
+      <h3 style="margin:16px 0 8px; color:var(--brand);">Preview</h3>
+      <div id="htmlEcho" class="preview">
+        <em>HTML preview will appear here…</em>
+      </div>
+    </section>
   </div>
 
-  <script>
-    // ---- Active tab highlight (optional visual cue) ----
-    document.querySelectorAll('.tabs .tab').forEach(a => {
-      if (a.getAttribute('href') && location.pathname.endsWith(a.getAttribute('href'))) {
-        a.classList.add('active');
-      }
-    });
+  <section class="info">
+    <h3>How this page works</h3>
+    <p>
+      DOCX → HTML uses <strong>Mammoth</strong> to produce cleaner, more semantic markup from Word files.
+      HTML → DOCX uses <strong>html-docx-js</strong> to package your HTML into a downloadable Word document.
+    </p>
+    <p class="note">
+      For pixel-perfect layout fidelity, browser-side conversion has limits. This page is best for content-focused workflows rather than exact Word layout duplication.
+    </p>
+  </section>
 
-    // ---- DOCX -> HTML ----
-    const docxInput   = document.getElementById('docxFile');
-    const convertBtn  = document.getElementById('convertDocxBtn');
-    const downloadHTML= document.getElementById('downloadHtmlBtn');
-    const clearDocx   = document.getElementById('clearDocxBtn');
-    const htmlPreview = document.getElementById('htmlPreview');
+  <div class="grid-3" id="faq">
+    <div class="stat-card">
+      <h4>Best workflow</h4>
+      <ul>
+        <li>Upload a DOCX or paste HTML</li>
+        <li>Preview before download</li>
+        <li>Use a style map for cleaner HTML structure</li>
+        <li>Export your final file locally</li>
+      </ul>
+    </div>
 
-    const dropzone = document.getElementById('dropzone');
-    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.style.borderColor = '#7dd3fc'; });
-    dropzone.addEventListener('dragleave', () => { dropzone.style.borderColor = '#3d4252'; });
-    dropzone.addEventListener('drop', e => {
+    <div class="stat-card">
+      <h4>Good use cases</h4>
+      <ul>
+        <li>Resume and proposal cleanup</li>
+        <li>Turning Word notes into web-ready HTML</li>
+        <li>Building templates from HTML snippets</li>
+        <li>Quick content handoff between tools</li>
+      </ul>
+    </div>
+
+    <div class="stat-card">
+      <h4>Notes</h4>
+      <ul>
+        <li>Complex Word layouts may be simplified</li>
+        <li>Style map rules help remap Word styles</li>
+        <li>Invalid HTML may not preview as expected</li>
+        <li>Everything runs locally in your browser</li>
+      </ul>
+    </div>
+  </div>
+</main>
+
+<script>
+  // ---- Active tab highlight (optional visual cue) ----
+  document.querySelectorAll('.tabs .tab').forEach(a => {
+    if (a.getAttribute('href') && location.pathname.endsWith(a.getAttribute('href'))) {
+      a.classList.add('active');
+    }
+  });
+
+  // ---- DOCX -> HTML ----
+  const docxInput   = document.getElementById('docxFile');
+  const convertBtn  = document.getElementById('convertDocxBtn');
+  const downloadHTML= document.getElementById('downloadHtmlBtn');
+  const clearDocx   = document.getElementById('clearDocxBtn');
+  const htmlPreview = document.getElementById('htmlPreview');
+  const docxFilePill= document.getElementById('docxFilePill');
+
+  const dropzone = document.getElementById('dropzone');
+  dropzone.addEventListener('click', () => docxInput.click());
+  dropzone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      dropzone.style.borderColor = '#3d4252';
-      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-        docxInput.files = e.dataTransfer.files;
+      docxInput.click();
+    }
+  });
+  dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+  dropzone.addEventListener('dragleave', () => { dropzone.classList.remove('drag'); });
+  dropzone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropzone.classList.remove('drag');
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      docxInput.files = e.dataTransfer.files;
+      refreshDocxPill();
+    }
+  });
+
+  function refreshDocxPill(){
+    const file = docxInput.files && docxInput.files[0];
+    if (!file){
+      docxFilePill.style.display = 'none';
+      docxFilePill.textContent = '';
+      return;
+    }
+    docxFilePill.style.display = 'inline-flex';
+    docxFilePill.textContent = `${file.name} • ${(file.size/1e6).toFixed(2)} MB`;
+  }
+  docxInput.addEventListener('change', refreshDocxPill);
+
+  const showStyleMap = document.getElementById('showStyleMap');
+  const styleMapTextarea = document.getElementById('styleMap');
+  showStyleMap.addEventListener('change', () => {
+    styleMapTextarea.style.display = showStyleMap.checked ? 'block' : 'none';
+  });
+
+  let lastHtml = "";
+
+  convertBtn.addEventListener('click', async () => {
+    const file = docxInput.files && docxInput.files[0];
+    if (!file) {
+      alert('Choose a .docx file first.');
+      return;
+    }
+    htmlPreview.innerHTML = '<em>Converting…</em>';
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+
+      const options = {};
+      if (showStyleMap.checked && styleMapTextarea.value.trim()) {
+        options.styleMap = styleMapTextarea.value.split('\n').map(l => l.trim()).filter(Boolean);
       }
-    });
 
-    const showStyleMap = document.getElementById('showStyleMap');
-    const styleMapTextarea = document.getElementById('styleMap');
-    showStyleMap.addEventListener('change', () => {
-      styleMapTextarea.style.display = showStyleMap.checked ? 'block' : 'none';
-    });
+      const result = await window.mammoth.convertToHtml({ arrayBuffer }, options);
+      lastHtml = result.value;
+      htmlPreview.innerHTML = lastHtml || '<em>(Empty document or no content recognized)</em>';
+      downloadHTML.disabled = false;
+    } catch (err) {
+      console.error(err);
+      htmlPreview.innerHTML = '<span style="color:#ff6b6b;">Conversion failed. See console.</span>';
+    }
+  });
 
-    let lastHtml = "";
+  downloadHTML.addEventListener('click', () => {
+    if (!lastHtml) return;
+    const blob = new Blob([lastHtml], { type: 'text/html;charset=utf-8' });
+    saveAs(blob, 'document.html');
+  });
 
-    convertBtn.addEventListener('click', async () => {
-      const file = docxInput.files && docxInput.files[0];
-      if (!file) {
-        alert('Choose a .docx file first.');
-        return;
-      }
-      htmlPreview.innerHTML = '<em>Converting…</em>';
-      try {
-        const arrayBuffer = await file.arrayBuffer();
+  clearDocx.addEventListener('click', () => {
+    docxInput.value = '';
+    refreshDocxPill();
+    lastHtml = '';
+    htmlPreview.innerHTML = '<em>Converted HTML will appear here…</em>';
+    downloadHTML.disabled = true;
+    styleMapTextarea.value = '';
+  });
 
-        const options = {};
-        if (showStyleMap.checked && styleMapTextarea.value.trim()) {
-          options.styleMap = styleMapTextarea.value.split('\n').map(l => l.trim()).filter(Boolean);
-        }
+  // ---- HTML -> DOCX ----
+  const htmlInput   = document.getElementById('htmlInput');
+  const previewEcho = document.getElementById('htmlEcho');
+  const filenameInp = document.getElementById('docxFilename');
+  const previewBtn  = document.getElementById('previewFromHtml');
+  const downloadDocx= document.getElementById('downloadDocxBtn');
+  const clearHtml   = document.getElementById('clearHtmlBtn');
 
-        const result = await window.mammoth.convertToHtml({ arrayBuffer }, options);
-        lastHtml = result.value; // HTML string
-        htmlPreview.innerHTML = lastHtml || '<em>(Empty document or no content recognized)</em>';
+  previewBtn.addEventListener('click', () => {
+    previewEcho.innerHTML = htmlInput.value || '<em>(Nothing to preview)</em>';
+  });
 
-        // enable download
-        downloadHTML.disabled = false;
-      } catch (err) {
-        console.error(err);
-        htmlPreview.innerHTML = '<span style="color:#ff6b6b;">Conversion failed. See console.</span>';
-      }
-    });
+  downloadDocx.addEventListener('click', () => {
+    const html = htmlInput.value.trim();
+    if (!html) {
+      alert('Enter some HTML first.');
+      return;
+    }
+    const fileName = (filenameInp.value || 'document.docx').replace(/[/\\?%*:|"<>]/g, '_');
 
-    downloadHTML.addEventListener('click', () => {
-      if (!lastHtml) return;
-      const blob = new Blob([lastHtml], { type: 'text/html;charset=utf-8' });
-      saveAs(blob, 'document.html');
-    });
+    const fullHtml =
+      '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>' +
+      html +
+      '</body></html>';
 
-    clearDocx.addEventListener('click', () => {
-      docxInput.value = '';
-      lastHtml = '';
-      htmlPreview.innerHTML = '<em>Converted HTML will appear here…</em>';
-      downloadHTML.disabled = true;
-      styleMapTextarea.value = '';
-    });
+    const blob = window.htmlDocx.asBlob(fullHtml);
+    saveAs(blob, fileName);
+  });
 
-    // ---- HTML -> DOCX ----
-    const htmlInput   = document.getElementById('htmlInput');
-    const previewEcho = document.getElementById('htmlEcho');
-    const filenameInp = document.getElementById('docxFilename');
-    const previewBtn  = document.getElementById('previewFromHtml');
-    const downloadDocx= document.getElementById('downloadDocxBtn');
-    const clearHtml   = document.getElementById('clearHtmlBtn');
+  clearHtml.addEventListener('click', () => {
+    htmlInput.value = '';
+    previewEcho.innerHTML = '<em>HTML preview will appear here…</em>';
+    filenameInp.value = 'document.docx';
+  });
+</script>
 
-    previewBtn.addEventListener('click', () => {
-      previewEcho.innerHTML = htmlInput.value || '<em>(Nothing to preview)</em>';
-    });
-
-    downloadDocx.addEventListener('click', () => {
-      const html = htmlInput.value.trim();
-      if (!html) {
-        alert('Enter some HTML first.');
-        return;
-      }
-      const fileName = (filenameInp.value || 'document.docx').replace(/[/\\?%*:|"<>]/g, '_');
-
-      // html-docx-js expects a full HTML string with head/body
-      const fullHtml =
-        '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>' +
-        html +
-        '</body></html>';
-
-      const blob = window.htmlDocx.asBlob(fullHtml);
-      saveAs(blob, fileName);
-    });
-
-    clearHtml.addEventListener('click', () => {
-      htmlInput.value = '';
-      previewEcho.innerHTML = '<em>HTML preview will appear here…</em>';
-      filenameInp.value = 'document.docx';
-    });
-  </script>
-
-  <!-- Notes:
-       - Mammoth focuses on clean structure; complex Word layouts (text boxes, shapes) may be simplified. 
-       - For pixel-perfect fidelity, DOCX→exact-PDF isn’t guaranteed client-side. 
-       - Style map lets you remap Word styles (e.g., 'p.Heading1 => h1').
-  -->
-  <!-- Footer -->
-<footer style="background:#1a1f2c; color:#7dd3fc; padding:20px; margin-top:40px; border-top:1px solid #7dd3fc;">
+<footer>
   <nav style="display:flex; flex-wrap:wrap; justify-content:center; gap:20px; margin-bottom:10px;">
     <a href="about.html" style="color:#7dd3fc; text-decoration:none;">About</a>
     <a href="faq.html" style="color:#7dd3fc; text-decoration:none;">FAQ</a>
@@ -302,10 +864,8 @@ s0.parentNode.insertBefore(s1,s0);
     <a href="terms.html" style="color:#7dd3fc; text-decoration:none;">Terms of Service</a>
     <a href="contact.html" style="color:#7dd3fc; text-decoration:none;">Contact</a>
   </nav>
-  <p style="font-size:14px; text-align:center; color:#aaa;">
-  </p>
-  
-  <p>© <span id="year"></span> File Converter — Cyber Edition</p></footer>
+  <p>© <span id="year"></span> File Converter — Cyber Edition</p>
+</footer>
 <script>document.querySelectorAll("#year").forEach(el=>el.textContent=new Date().getFullYear());</script>
 </body>
 </html>
