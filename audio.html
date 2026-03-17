@@ -6,8 +6,8 @@
 
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Audio Converter — MP3, WAV, OGG | FileConverter.run</title>
-  <meta name="description" content="Convert audio and extract audio from video privately in your browser. Export MP3, WAV, or OGG with FFmpeg.wasm. No uploads, no tracking.">
+  <title>Audio Converter — MP3, WAV, OGG, AAC, M4A, FLAC, Opus | FileConverter.run</title>
+  <meta name="description" content="Convert audio and extract audio from video privately in your browser. Export MP3, WAV, OGG, AAC, M4A, FLAC, or Opus with FFmpeg.wasm. No uploads, no tracking.">
 
   <!-- Tawk.to -->
   <script type="text/javascript">
@@ -717,7 +717,7 @@
   </header>
 
   <section id="adsense-content" class="info">
-    <h3>Why Local File Conversion?</h3>
+    <h3>Why Local Audio Conversion?</h3>
     <ul>
       <li>Your files never leave your device, which helps with privacy and often feels faster.</li>
       <li>No sign-ups or uploads required. Everything runs inside your browser.</li>
@@ -742,7 +742,7 @@
               <div class="drop-small">or click to browse from your device</div>
               <div id="filePill" class="file-pill"></div>
             </div>
-            <p class="muted" style="margin-top:10px;">Video files are supported too — the page can extract the audio track for you.</p>
+            <p class="muted" style="margin-top:10px;">Video files are supported too — the page can extract the audio track for you. Input support includes MP3, WAV, OGG, AAC, FLAC, M4A, AIFF, Opus, MP4, MOV, MKV, AVI, and WebM.</p>
           </fieldset>
 
           <fieldset>
@@ -752,6 +752,10 @@
               <option value="mp3" selected>MP3 (good quality)</option>
               <option value="wav">WAV (PCM 44.1kHz)</option>
               <option value="ogg">OGG (Vorbis)</option>
+              <option value="aac">AAC</option>
+              <option value="m4a">M4A (AAC)</option>
+              <option value="flac">FLAC</option>
+              <option value="opus">Opus</option>
             </select>
 
             <div class="progress"><div id="progressBar"></div></div>

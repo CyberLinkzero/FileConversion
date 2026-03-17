@@ -601,7 +601,7 @@
 <section id="adsense-content" class="info page-shell" style="margin-top:18px;">
   <h3>From JSON to Document — Without the messy copy and paste</h3>
   <ul class="subtle" style="margin:0; padding-left:18px;">
-    <li>Convert JSON, CSV, or XLSX back and forth instantly.</li>
+    <li>Convert JSON, CSV, TSV, XML, or XLSX back and forth instantly.</li>
     <li>Preview data before downloading so you catch issues early.</li>
     <li>Export JSON to a simple .doc for quick reports and handoffs.</li>
   </ul>
@@ -619,13 +619,13 @@
       <div class="stack">
         <div class="row">
           <input type="file" id="data-file"
-                 accept=".csv,.json,.xlsx,application/json,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+                 accept=".csv,.tsv,.json,.xml,.xlsx,application/json,text/csv,text/tab-separated-values,application/xml,text/xml,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
           <input type="text" id="data-name" placeholder="Base file name" value="data" />
           <button id="btn-clear" type="button">Clear</button>
         </div>
 
         <div class="field-col">
-          <div class="field-note">Paste CSV or JSON here if you do not want to upload a file.</div>
+          <div class="field-note">Paste CSV, TSV, JSON, or XML here if you do not want to upload a file.</div>
           <textarea id="data-text" placeholder="Paste CSV or JSON here"></textarea>
         </div>
 
@@ -635,6 +635,8 @@
               <option value="csv">CSV</option>
               <option value="json">JSON</option>
               <option value="xlsx">XLSX</option>
+              <option value="tsv">TSV</option>
+              <option value="xml">XML</option>
             </select>
           </label>
 
@@ -860,6 +862,13 @@
         } else if (/\.json$/i.test(f.name)){
           parsedRows = normalizeJson(JSON.parse(await f.text()));
           logData(`Parsed JSON: ${parsedRows.length} rows`);
+        } else if (/\.tsv$/i.test(f.name)){
+          const res = Papa.parse(await f.text(), { header:true, skipEmptyLines:true, delimiter:'\t' });
+          parsedRows = res.data;
+          logData(`Parsed TSV: ${parsedRows.length} rows`);
+        } else if (/\.xml$/i.test(f.name)){
+          parsedRows = xmlToRows(await f.text());
+          logData(`Parsed XML: ${parsedRows.length} rows`);
         } else {
           throw new Error('Unsupported file');
         }
@@ -869,9 +878,15 @@
           parsedRows = normalizeJson(obj);
           logData(`Parsed JSON: ${parsedRows.length} rows`);
         }catch{
-          const res = Papa.parse(pasted, { header:true, skipEmptyLines:true });
-          parsedRows = res.data;
-          logData(`Parsed CSV: ${parsedRows.length} rows`);
+          if (/^\s*</.test(pasted)){
+            parsedRows = xmlToRows(pasted);
+            logData(`Parsed XML: ${parsedRows.length} rows`);
+          } else {
+            const delimiter = pasted.includes('\t') ? '\t' : ',';
+            const res = Papa.parse(pasted, { header:true, skipEmptyLines:true, delimiter });
+            parsedRows = res.data;
+            logData(`Parsed ${delimiter === '\t' ? 'TSV' : 'CSV'}: ${parsedRows.length} rows`);
+          }
         }
       } else {
         throw new Error('Provide a file or paste CSV/JSON');
@@ -913,6 +928,10 @@
         XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
         const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
         download(`${base}.xlsx`, new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+      } else if (kind === 'tsv'){
+        download(`${base}.tsv`, new Blob([rowsToTsv(parsedRows)], { type: 'text/tab-separated-values' }));
+      } else if (kind === 'xml'){
+        download(`${base}.xml`, new Blob([rowsToXml(parsedRows)], { type: 'application/xml' }));
       }
       logData('Done.');
     }catch(e){

@@ -24,7 +24,7 @@
 
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Image Converter & Resizer — PNG, JPEG, WebP, AVIF | FileConverter.run</title>
+  <title>Image Converter & Resizer — PNG, JPG, WebP, AVIF, HEIC, SVG | FileConverter.run</title>
   <meta name="description" content="Convert and resize images privately in your browser. PNG/JPEG/WebP/AVIF, batch processing, transparency preserved, icon sizes like 16x16 and 32x32, and no uploads.">
   <link rel="stylesheet" href="site.css"/>
   <link rel="stylesheet" href="nav.css"/>
@@ -656,7 +656,7 @@
       <div class="hero-card">
         <div class="hero-grid">
           <div class="hero-copy">
-            <h2>Fast image conversion tools</h2>
+            <h2>Fast image tools with a cleaner cyber UI</h2>
             <p>
               Convert PNG, JPEG, WebP, and AVIF, resize images for faster pages, preserve transparency where needed,
               and generate icon sizes like 16×16, 32×32, and 64×64 from the same source file.
@@ -709,10 +709,10 @@
   <section class="info container" style="margin-top:16px">
     <h3>Image Tools: Why It Matters</h3>
     <ul>
-      <li>Convert PNG ↔ JPG ↔ WebP without uploads — perfect for e-commerce, resumes, and social posts.</li>
+      <li>Convert PNG, JPG, WebP, HEIC, HEIF, AVIF, GIF, BMP, and SVG images without uploads — perfect for e-commerce, resumes, and social posts.</li>
       <li>Batch compress large photos while keeping them crisp for the web.</li>
-      <li>Keep transparency for product cutouts (PNG/WebP) and export AVIF for ultra-small pages.</li>
-      <li>Generate square PNG icons (16×16, 32×32, 64×64 or custom) for favicons and app shortcuts.</li>
+      <li>Keep transparency for product cutouts (PNG/WebP), import HEIC/HEIF from phones, and export AVIF for ultra-small pages.</li>
+      <li>Generate square PNG icons (16×16, 32×32, 64×64 or custom) for favicons and app shortcuts, and normalize screenshots or design assets from SVG, BMP, GIF, and HEIC sources.</li>
     </ul>
     <p style="color:var(--muted)">Everything runs locally in your browser for privacy and speed.</p>
   </section>
@@ -726,11 +726,12 @@
 
           <div id="fc-drop" class="dropzone" tabindex="0" role="button" aria-label="Choose image files">
             <div class="drop-big">Drag & drop image files here</div>
+            <div class="drop-small">Supports PNG, JPG, WebP, HEIC, HEIF, AVIF, BMP, GIF, SVG, TIFF and more</div>
             <div class="drop-small">or click to browse from your device</div>
             <div id="fc-file-pill" class="file-pill"></div>
           </div>
 
-          <input type="file" id="fc-files" accept="image/*" multiple hidden>
+          <input type="file" id="fc-files" accept="image/*,.heic,.heif,.avif,.bmp,.gif,.svg,.tif,.tiff,.webp,.png,.jpg,.jpeg" multiple hidden>
 
           <div class="controls-grid">
             <div class="field">
@@ -814,7 +815,7 @@
       <div class="stat-card">
         <h4>Best workflow</h4>
         <ul>
-          <li>Drop or select your images</li>
+          <li>Drop or select PNG, JPG, WebP, HEIC, HEIF, AVIF, GIF, BMP, SVG, or TIFF images</li>
           <li>Choose format and quality</li>
           <li>Set max width and height if needed</li>
           <li>Enable icon mode for favicon sizes</li>
@@ -997,7 +998,11 @@
     async function loadImageFromFile(file){
       const url = URL.createObjectURL(file);
       try{
-        const bmp = await createImageBitmap(file);
+        let decodeFile = file;
+        if (/\.(heic|heif)$/i.test(file.name) && window.heic2any){
+          decodeFile = await window.heic2any({ blob:file, toType:'image/png' });
+        }
+        const bmp = await createImageBitmap(decodeFile);
         return {
           w:bmp.width,
           h:bmp.height,
