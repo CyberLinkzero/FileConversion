@@ -894,6 +894,12 @@
     }
   };
 
+  function requireLib(condition, name){
+    if(!condition){
+      throw new Error(name + ' did not load');
+    }
+  }
+
   function loadScript(url){
     return new Promise((res,rej)=>{
       const s=document.createElement('script');
@@ -904,27 +910,62 @@
     });
   }
 
-  function loadAll() {
-    const tries = [
-      () => loadScript('libs/jspdf/jspdf.umd.min.js'),
-      () => loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js'),
-      () => loadScript('libs/html2pdf/html2pdf.bundle.min.js'),
-      () => loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'),
-      () => loadScript('libs/pdf-lib/pdf-lib.min.js'),
-      () => loadScript('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js'),
-      () => loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.js'),
-      () => loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.js'),
-      () => loadScript('libs/mammoth/mammoth.browser.min.js'),
-      () => loadScript('https://unpkg.com/mammoth@1.6.0/mammoth.browser.min.js'),
-      () => loadScript('libs/papaparse/papaparse.min.js'),
-      () => loadScript('https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js'),
-      () => loadScript('libs/xlsx/xlsx.full.min.js'),
-      () => loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js')
-    ];
-    return tries.reduce((p,fn)=>p.catch(fn), Promise.reject());
+  function loadWithFallback(urls){
+    let lastErr = null;
+    return urls.reduce((p, url) => {
+      return p.catch(async () => {
+        try{
+          await loadScript(url);
+          return true;
+        }catch(err){
+          lastErr = err;
+          throw err;
+        }
+      });
+    }, Promise.reject()).catch(() => { throw lastErr || new Error('Failed to load dependency'); });
   }
 
-  loadAll().finally(()=>{
+  async function loadAll() {
+    await loadWithFallback([
+      'libs/jspdf/jspdf.umd.min.js',
+      'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js'
+    ]);
+
+    await loadWithFallback([
+      'libs/html2pdf/html2pdf.bundle.min.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
+    ]);
+
+    await loadWithFallback([
+      'libs/pdf-lib/pdf-lib.min.js',
+      'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js'
+    ]);
+
+    await loadWithFallback([
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.js'
+    ]);
+
+    await loadWithFallback([
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.js'
+    ]);
+
+    await loadWithFallback([
+      'libs/mammoth/mammoth.browser.min.js',
+      'https://unpkg.com/mammoth@1.6.0/mammoth.browser.min.js'
+    ]);
+
+    await loadWithFallback([
+      'libs/papaparse/papaparse.min.js',
+      'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js'
+    ]);
+
+    await loadWithFallback([
+      'libs/xlsx/xlsx.full.min.js',
+      'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'
+    ]);
+  }
+
+  loadAll().then(()=>{
 
     // 1) PDF -> Images
     (function(){
@@ -949,6 +990,7 @@
           pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.js';
         }
 
+        requireLib(window.pdfjsLib && window.pdfjsLib.getDocument, 'pdf.js');
         const pdf = await pdfjsLib.getDocument({ data }).promise;
         const pages = (function(spec,max){
           if(!spec) return Array.from({length:max},(_,i)=>i+1);
@@ -1021,6 +1063,7 @@
         prev.innerHTML='';
         logEl.textContent='';
 
+        requireLib(window.jspdf && window.jspdf.jsPDF, 'jsPDF');
         const { jsPDF } = window.jspdf;
         let pdf;
 
@@ -1060,7 +1103,8 @@
           const x = (pageW - w)/2;
           const y = (pageH - h)/2;
 
-          pdf.addImage(img, 'PNG', x, y, w, h, undefined, 'FAST');
+          const imgFormat = (/jpe?g/i.test(f.type) ? 'JPEG' : 'PNG');
+          pdf.addImage(img, imgFormat, x, y, w, h, undefined, 'FAST');
         }
 
         const out = pdf.output('blob');
@@ -1096,6 +1140,7 @@
         container.innerHTML = html;
 
         Progress.show('Rendering PDF…');
+        requireLib(window.html2pdf, 'html2pdf');
         html2pdf().set({
           margin: 10,
           filename: name + '.pdf',
@@ -1129,6 +1174,7 @@
 
         Progress.show('Converting DOCX → HTML…');
         const arrayBuffer = await f.arrayBuffer();
+        requireLib(window.mammoth && window.mammoth.convertToHtml, 'Mammoth');
         const result = await window.mammoth.convertToHtml({ arrayBuffer });
         const html = result.value;
 
@@ -1138,6 +1184,7 @@
         prev.appendChild(container.cloneNode(true));
 
         Progress.update(50,'Rendering HTML → PDF…');
+        requireLib(window.html2pdf, 'html2pdf');
         html2pdf().set({
           margin: 10,
           filename: name + '.pdf',
@@ -1178,10 +1225,12 @@
         try{
           if (f){
             if (/\.xlsx?$/i.test(f.name)){
+              requireLib(window.XLSX && window.XLSX.read, 'SheetJS/XLSX');
               const wb = XLSX.read(await f.arrayBuffer());
               const ws = wb.Sheets[wb.SheetNames[0]];
               rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
             } else if (/\.csv$/i.test(f.name)){
+              requireLib(window.Papa && window.Papa.parse, 'Papa Parse');
               const res = Papa.parse(await f.text(), { header:true, skipEmptyLines:true });
               rows = res.data;
             } else if (/\.json$/i.test(f.name)){
@@ -1193,6 +1242,7 @@
               const obj = JSON.parse(pasted);
               rows = Array.isArray(obj)?obj:(obj&&typeof obj==='object'?[obj]:[{value:obj}]);
             } catch {
+              requireLib(window.Papa && window.Papa.parse, 'Papa Parse');
               const res = Papa.parse(pasted, { header:true, skipEmptyLines:true });
               rows = res.data;
             }
@@ -1215,6 +1265,7 @@
         container.innerHTML = `<h1 style="margin:0 0 10px">Table</h1>`+html;
 
         Progress.show('Rendering PDF…');
+        requireLib(window.html2pdf, 'html2pdf');
         html2pdf().set({
           margin: 10,
           filename: name+'.pdf',
@@ -1267,6 +1318,7 @@
 
         try{
           Progress.show('Merging PDFs…');
+          requireLib(window.pdfLib && window.pdfLib.PDFDocument, 'pdf-lib');
           const { PDFDocument } = window.pdfLib;
           const outDoc = await PDFDocument.create();
 
@@ -1303,6 +1355,7 @@
 
         try{
           Progress.show('Extracting pages…');
+          requireLib(window.pdfLib && window.pdfLib.PDFDocument, 'pdf-lib');
           const { PDFDocument } = window.pdfLib;
           const src = await PDFDocument.load(bytes);
           const max = src.getPageCount();
@@ -1356,6 +1409,7 @@
           pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.js';
         }
 
+        requireLib(window.pdfjsLib && window.pdfjsLib.getDocument, 'pdf.js');
         const pdf = await pdfjsLib.getDocument({ data }).promise;
         let text = '';
 
@@ -1381,6 +1435,10 @@
       a.download=name;
       a.click();
     }
+  }).catch((e)=>{
+    Progress.hide();
+    console.error(e);
+    alert('Some converter libraries failed to load. Check your internet connection or local /libs files. Error: ' + (e && e.message ? e.message : e));
   });
 </script>
 
