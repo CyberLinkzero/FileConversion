@@ -1,6 +1,11 @@
 :root{
-  --bg:#0b0f14; --card:#101722; --line:#1f2a34; --text:#e6edf3; --muted:#9fb4c7;
-  --brand:#7dd3fc; --accent:#a78bfa;
+  --bg:#eef4ff;
+  --card:#ffffff;
+  --line:#d8e4fb;
+  --text:#10213f;
+  --muted:#52627f;
+  --brand:#1a73e8;
+  --accent:#4ea1ff;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -51,3 +56,54 @@ footer{border-top:1px solid var(--line);padding:18px 20px;color:var(--muted)}
 .tab-group:hover .dropdown { display:block; }
 .dropdown .tab { display:block; padding:8px 10px; border-radius:8px; margin-bottom:4px; color:#e5e7eb; white-space:nowrap; }
 .dropdown .tab:hover { background:#263044; }
+
+
+body{
+  background:linear-gradient(180deg,#eef4ff 0%,#e7f0ff 45%,#f8fbff 100%);
+  color:var(--text);
+}
+header{
+  background:linear-gradient(180deg,#f5f9ff 0%,#edf4ff 100%);
+  border-bottom:1px solid var(--line);
+}
+.card,.panel-card,.tool-card,.hero-card,.stat,.mini-stats > div,.drop,.preview,.log,.quick-link{
+  background:var(--card);
+  border-color:var(--line);
+  color:var(--text);
+  box-shadow:0 10px 30px rgba(20,52,107,.08);
+}
+footer{
+  background:#f5f9ff;
+  color:var(--muted);
+  border-top:1px solid var(--line);
+}
+.tab{color:var(--text)}
+button,.hero-btn.primary,.cta-primary,.btn-primary{
+  background:linear-gradient(135deg,var(--brand),var(--accent));
+  color:#fff;
+}
+button:hover,.hero-btn.primary:hover,.cta-primary:hover,.btn-primary:hover{
+  background:linear-gradient(135deg,#1558b0,var(--brand));
+}
+button.secondary,.hero-btn,.btn-secondary{
+  background:#f5f9ff;
+  color:var(--text);
+  border:1px solid var(--line);
+}
+input[type="file"],input[type="text"],input[type="number"],select,textarea{
+  background:#f8fbff;
+  color:var(--text);
+  border:1px solid var(--line);
+}
+a{color:#1558b0}
+a:hover{color:#1a73e8}
+.section-title,.group-label,.chip,.small,.note,.sub,.tool-tag{color:var(--muted)}
+.title .logo{
+  background:linear-gradient(135deg,var(--brand),var(--accent));
+  color:#fff;
+}
+.hero-pill,.badge,.chip{
+  background:#edf4ff;
+  border-color:var(--line);
+  color:#2456a6;
+}
