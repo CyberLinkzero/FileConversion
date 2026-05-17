@@ -55,6 +55,60 @@
     @media (max-width:860px){.site-nav__inner{flex-wrap:wrap}.site-nav__toggle{display:block}.site-nav__menu{display:none;flex-basis:100%;width:100%;align-items:stretch;justify-content:stretch;flex-direction:column;padding-top:8px}.site-nav__menu.is-open{display:flex}.tab-group{width:100%}.tab,.site-nav__cta,.group-button{width:100%;justify-content:space-between}.dropdown{position:static;min-width:0;margin:4px 0 8px 0;box-shadow:none;background:rgba(255,255,255,.04)}}
   </style>
 
+
+  <style>
+    /* Force CyberPets content to sit BELOW the shared nav, not beside it */
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+    }
+
+    body {
+      display: block !important;
+      overflow-x: hidden;
+    }
+
+    [data-nav-placeholder] {
+      display: block;
+      width: 100%;
+      clear: both;
+    }
+
+    [data-nav-placeholder] .site-nav {
+      width: 100%;
+    }
+
+    .app {
+      display: block !important;
+      width: min(1180px, calc(100% - 24px));
+      max-width: 1180px;
+      margin: 24px auto 40px auto !important;
+      clear: both;
+      position: relative;
+      z-index: 1;
+    }
+
+    .app-inner {
+      width: 100%;
+    }
+
+    @media (max-width: 860px) {
+      .app {
+        width: min(100% - 16px, 1180px);
+        margin-top: 16px !important;
+      }
+
+      #shareGameBtn {
+        top: auto !important;
+        right: 12px !important;
+        bottom: 76px !important;
+        font-size: 13px !important;
+        padding: 8px 12px !important;
+      }
+    }
+  </style>
+
 </head>
 <body>
   <div data-nav-placeholder></div>
