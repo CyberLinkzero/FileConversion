@@ -8,7 +8,10 @@
     :root{--bg:#07111f;--panel:#0d1b2f;--line:#1e88ff;--line2:#00e5ff;--text:#e9f4ff;--muted:#9cb6d6;--danger:#ff5c7a;--good:#33ffb1;--warn:#ffd166;--shadow:0 0 22px rgba(0,229,255,.15)}
     *{box-sizing:border-box}
     html,body{margin:0;width:100%;min-height:100%;background:radial-gradient(circle at top,#102b4d,var(--bg) 55%);color:var(--text);font-family:Arial,Helvetica,sans-serif}
-    body{overflow:hidden}
+    body{
+      overflow:hidden;
+      padding-top:78px;
+    }
     header{min-height:62px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px;background:rgba(5,13,25,.92);border-bottom:1px solid rgba(0,229,255,.35);box-shadow:var(--shadow)}
     header h1{margin:0;font-size:clamp(17px,2vw,22px);letter-spacing:.5px}
     header span{color:var(--line2)}
@@ -60,6 +63,28 @@
     .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);align-items:center;justify-content:center;z-index:50;padding:16px}
     .modal.open{display:flex}
     .modal-card{width:min(560px,100%);max-height:92vh;overflow:auto;background:#0d1b2f;border:1px solid rgba(0,229,255,.35);border-radius:18px;padding:18px;box-shadow:0 0 35px rgba(0,229,255,.22)}
+    
+    .site-nav{
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      z-index:9999;
+    }
+
+    .site-nav__menu.open{
+      display:flex !important;
+    }
+
+    .tab-group.open .dropdown{
+      display:flex !important;
+      flex-direction:column;
+    }
+
+    .dropdown{
+      display:none;
+    }
+
     @media(max-width:1180px){body{overflow:auto}.app{height:auto;min-height:calc(100vh - 62px);grid-template-columns:minmax(260px,340px) minmax(0,1fr);grid-template-areas:"left stage" "right stage"}aside{grid-area:left;max-height:48vh}.right-panel{grid-area:right;max-height:48vh}.stage-wrap{grid-area:stage;min-height:calc(100vh - 86px)}}
     @media(max-width:850px){header{align-items:flex-start;flex-direction:column}body{overflow:auto}.app{height:auto;grid-template-columns:1fr;grid-template-areas:"stage" "left" "right"}aside,.right-panel{max-height:none}.stage-wrap{min-height:68vh}#viewport{min-height:55vh}.row{grid-template-columns:1fr}}
     @media(max-width:520px){.app{padding:8px;gap:8px}aside,.right-panel,.stage-wrap{border-radius:14px;padding:10px}.stage-tools{align-items:stretch}.stage-tools .group,.stage-tools button{width:100%}.stage-tools .group button{flex:1}#scaleLayer{padding:18px}}
@@ -67,6 +92,7 @@
   </style>
 </head>
 <body>
+<div id="nav-container"></div>
 <header><h1><span>Cyber</span> Party Planner Pro</h1><div class="small">Tables • Seats • RSVP • Meals • Budget • Timeline • Venue layout</div></header>
 <main class="app">
   <aside>
@@ -109,6 +135,32 @@
   </section>
 </main>
 <div id="seatModal" class="modal"><div class="modal-card"><h2>Assign Seat</h2><div class="small" id="seatInfo"></div><label>Choose Guest</label><select id="seatGuestSelect"></select><button type="button" onclick="assignSeatFromModal()">Assign Name</button><button type="button" class="secondary" onclick="unassignSeatFromModal()">Clear This Seat</button><button type="button" class="danger" onclick="closeSeatModal()">Close</button></div></div>
+
+<script>
+fetch('nav.html')
+  .then(r => r.text())
+  .then(html => {
+    document.getElementById('nav-container').innerHTML = html;
+
+    const toggle = document.querySelector('.site-nav__toggle');
+    const menu = document.querySelector('.site-nav__menu');
+
+    if (toggle && menu) {
+      toggle.addEventListener('click', () => {
+        const expanded = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.setAttribute('aria-expanded', !expanded);
+        menu.classList.toggle('open');
+      });
+    }
+
+    document.querySelectorAll('.group-button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.parentElement.classList.toggle('open');
+      });
+    });
+  });
+</script>
+
 <script>
 'use strict';
 const el=id=>document.getElementById(id);
