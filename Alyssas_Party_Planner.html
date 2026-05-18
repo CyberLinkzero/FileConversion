@@ -492,6 +492,16 @@ function importFoodItemsCSV(event){
 }
 
 
+
+function guestSeatLabel(name){
+  for(const obj of getObjects()){
+    for(const [seatIndex,guestName] of Object.entries(obj.assignments||{})){
+      if(guestName===name)return `${obj.name} Seat ${Number(seatIndex)+1}`;
+    }
+  }
+  return '';
+}
+
 function buildPrettyReportHTML(){
   const data=getData();
   const eventTitle=esc(data.eventName||'Party Planner');
