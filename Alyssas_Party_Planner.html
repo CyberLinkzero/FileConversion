@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyber Party Planner Pro</title>
+  <style>
+    :root{--bg:#07111f;--panel:#0d1b2f;--line:#1e88ff;--line2:#00e5ff;--text:#e9f4ff;--muted:#9cb6d6;--danger:#ff5c7a;--good:#33ffb1;--warn:#ffd166;--shadow:0 0 22px rgba(0,229,255,.15)}
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;min-height:100%;background:radial-gradient(circle at top,#102b4d,var(--bg) 55%);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+    body{overflow:hidden}
+    header{min-height:62px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px;background:rgba(5,13,25,.92);border-bottom:1px solid rgba(0,229,255,.35);box-shadow:var(--shadow)}
+    header h1{margin:0;font-size:clamp(17px,2vw,22px);letter-spacing:.5px}
+    header span{color:var(--line2)}
+    .app{height:calc(100vh - 62px);display:grid;grid-template-columns:minmax(270px,335px) minmax(0,1fr) minmax(270px,330px);gap:12px;padding:12px;min-width:0}
+    aside,.right-panel{background:rgba(13,27,47,.94);border:1px solid rgba(0,229,255,.25);border-radius:18px;padding:14px;overflow:auto;min-height:0;box-shadow:var(--shadow)}
+    .stage-wrap{background:rgba(4,10,20,.72);border:1px solid rgba(0,229,255,.25);border-radius:18px;padding:12px;overflow:hidden;box-shadow:var(--shadow);position:relative;min-width:0;min-height:0;display:flex;flex-direction:column}
+    .stage-tools{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-bottom:10px}
+    .stage-tools .group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .stage-tools button{width:auto;margin:0;padding:8px 11px;font-size:12px}
+    .zoom-label{color:var(--muted);font-size:12px;white-space:nowrap}
+    #viewport{position:relative;flex:1;min-height:360px;overflow:auto;border-radius:14px;border:1px solid rgba(0,229,255,.28);background:rgba(0,0,0,.25);cursor:grab;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+    #viewport.panning{cursor:grabbing}
+    #scaleLayer{transform-origin:top left;width:max-content;height:max-content;padding:30px}
+    #floor{position:relative;width:1100px;height:700px;min-width:500px;min-height:400px;background:linear-gradient(rgba(0,229,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.08) 1px,transparent 1px),radial-gradient(circle at center,rgba(30,136,255,.12),rgba(2,8,18,.96));background-size:32px 32px,32px 32px,auto;border:2px solid rgba(0,229,255,.42);border-radius:14px;box-shadow:inset 0 0 40px rgba(0,229,255,.12)}
+    h2{margin:6px 0 12px;font-size:16px;color:var(--line2)}
+    h3{font-size:14px;margin:16px 0 8px;color:var(--warn)}
+    label{display:block;font-size:12px;color:var(--muted);margin:10px 0 5px}
+    input,select,textarea,button{width:100%;border:1px solid rgba(0,229,255,.25);border-radius:10px;padding:9px 10px;background:#071426;color:var(--text);outline:none;max-width:100%}
+    textarea{min-height:78px;resize:vertical}
+    button{cursor:pointer;background:linear-gradient(135deg,#0b63ce,#00a7c7);font-weight:700;margin-top:9px;border:0;transition:transform .1s ease,filter .1s ease}
+    button:hover{filter:brightness(1.12)}
+    button:active{transform:scale(.98)}
+    .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .secondary{background:linear-gradient(135deg,#20344f,#143047)}
+    .danger{background:linear-gradient(135deg,#9b1740,#d13b5a)}
+    .good{background:linear-gradient(135deg,#0b774f,#12b886)}
+    .warn{background:linear-gradient(135deg,#9b6a00,#d99a10)}
+    .layout-object{position:absolute;user-select:none;touch-action:none;cursor:grab;display:flex;align-items:center;justify-content:center;border:2px solid rgba(0,229,255,.7);background:rgba(9,36,66,.96);color:var(--text);box-shadow:0 0 20px rgba(0,229,255,.24);z-index:3;text-align:center}
+    .layout-object.dragging{cursor:grabbing;opacity:.9}
+    .layout-object.selected{outline:3px solid var(--warn)}
+    .round{border-radius:999px}.rect{border-radius:14px}.square{border-radius:12px}
+    .dance{border-style:dashed;background:rgba(51,255,177,.12)}.stage{background:rgba(255,209,102,.18)}.buffet{background:rgba(255,92,122,.18)}.bar{background:rgba(132,94,247,.18)}.dj{background:rgba(0,229,255,.18)}.gift{background:rgba(255,180,0,.15)}.restroom{background:rgba(160,180,200,.18)}.custom{background:rgba(30,136,255,.16)}
+    .object-label{pointer-events:none;font-weight:800;font-size:13px;text-shadow:0 0 8px #000;padding:6px;line-height:1.25}
+    .object-label small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+    .seat{position:absolute;width:58px;min-height:34px;border-radius:999px;background:rgba(3,14,28,.96);border:1px solid rgba(255,255,255,.2);color:var(--text);display:flex;align-items:center;justify-content:center;text-align:center;font-size:10px;padding:3px;cursor:pointer;box-shadow:0 0 10px rgba(0,229,255,.15);overflow:hidden;z-index:4;touch-action:manipulation}
+    .seat.assigned{border-color:var(--good);box-shadow:0 0 12px rgba(51,255,177,.25)}
+    .seat.rsvp-pending{border-color:var(--danger);box-shadow:0 0 14px rgba(255,92,122,.55)}
+    .seat.rsvp-maybe{border-color:var(--warn);box-shadow:0 0 14px rgba(255,209,102,.45)}
+    .seat.rsvp-declined{border-color:#777;background:rgba(60,60,70,.95);box-shadow:0 0 10px rgba(255,255,255,.12);text-decoration:line-through}
+    .seat:hover{border-color:var(--line2)}
+    .guest-list,.assignment-list,.timeline-list,.budget-list,.conflict-list,.test-list{display:flex;flex-direction:column;gap:7px}
+    .guest-pill,.assign-card,.mini-card{padding:8px;border-radius:10px;background:rgba(7,20,38,.95);border:1px solid rgba(0,229,255,.18);font-size:13px}
+    .guest-pill.unassigned{border-color:rgba(255,209,102,.6)}
+    .guest-pill.assigned{border-color:rgba(51,255,177,.5);opacity:.88}
+    .small{font-size:12px;color:var(--muted);line-height:1.4}
+    .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
+    .stat{background:rgba(7,20,38,.95);border:1px solid rgba(0,229,255,.18);border-radius:12px;padding:10px}
+    .stat b{color:var(--line2);font-size:20px}
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);align-items:center;justify-content:center;z-index:50;padding:16px}
+    .modal.open{display:flex}
+    .modal-card{width:min(560px,100%);max-height:92vh;overflow:auto;background:#0d1b2f;border:1px solid rgba(0,229,255,.35);border-radius:18px;padding:18px;box-shadow:0 0 35px rgba(0,229,255,.22)}
+    @media(max-width:1180px){body{overflow:auto}.app{height:auto;min-height:calc(100vh - 62px);grid-template-columns:minmax(260px,340px) minmax(0,1fr);grid-template-areas:"left stage" "right stage"}aside{grid-area:left;max-height:48vh}.right-panel{grid-area:right;max-height:48vh}.stage-wrap{grid-area:stage;min-height:calc(100vh - 86px)}}
+    @media(max-width:850px){header{align-items:flex-start;flex-direction:column}body{overflow:auto}.app{height:auto;grid-template-columns:1fr;grid-template-areas:"stage" "left" "right"}aside,.right-panel{max-height:none}.stage-wrap{min-height:68vh}#viewport{min-height:55vh}.row{grid-template-columns:1fr}}
+    @media(max-width:520px){.app{padding:8px;gap:8px}aside,.right-panel,.stage-wrap{border-radius:14px;padding:10px}.stage-tools{align-items:stretch}.stage-tools .group,.stage-tools button{width:100%}.stage-tools .group button{flex:1}#scaleLayer{padding:18px}}
+    @media print{header,aside,.right-panel,.stage-tools{display:none}body{overflow:visible;background:white}.app{display:block;padding:0;height:auto}.stage-wrap{border:0;box-shadow:none;overflow:visible;background:white}#viewport{overflow:visible;border:0}#scaleLayer{transform:scale(.78)!important;transform-origin:top left;padding:0}}
+  </style>
+</head>
+<body>
+<header><h1><span>Cyber</span> Party Planner Pro</h1><div class="small">Tables • Seats • RSVP • Meals • Budget • Timeline • Venue layout</div></header>
+<main class="app">
+  <aside>
+    <h2>Floor Size</h2>
+    <div class="row"><div><label>Width px</label><input id="floorW" type="number" value="1100" min="500"></div><div><label>Height px</label><input id="floorH" type="number" value="700" min="400"></div></div>
+    <button type="button" onclick="applyFloorSize()">Apply Canvas Size</button>
+    <h2>Add / Edit Item</h2>
+    <label>Selected Item</label><select id="selectedObjectSelect" onchange="selectObject(this.value)"><option value="">None</option></select>
+    <label>Name</label><input id="objectName" value="Table 1">
+    <div class="row"><div><label>Type</label><select id="objectType" onchange="applyTypeDefaults()"><option value="table-round">Round Table</option><option value="table-rect">Rectangle Table</option><option value="table-square">Square Table</option><option value="buffet">Food Buffet</option><option value="stage">Stage</option><option value="dance">Dance Area</option><option value="dj">DJ Booth</option><option value="bar">Bar / Drinks</option><option value="gift">Gift Table</option><option value="restroom">Restroom Sign</option><option value="custom">Custom Item</option></select></div><div><label>Seats</label><input id="objectSeats" type="number" value="8" min="0" max="40"></div></div>
+    <div class="row"><div><label>Width</label><input id="objectW" type="number" value="150" min="40"></div><div><label>Height</label><input id="objectH" type="number" value="150" min="40"></div></div>
+    <label>Notes</label><textarea id="objectNotes" placeholder="Example: keep clear for servers, place near outlet, VIP table..."></textarea>
+    <button type="button" onclick="addObject()">Add Item</button><button type="button" class="good" onclick="updateSelectedObject()">Update Selected</button><button type="button" class="secondary" onclick="duplicateSelected()">Duplicate Selected</button><button type="button" class="danger" onclick="deleteSelected()">Delete Selected</button>
+    <h2>Guests</h2><label>Add one name per line</label><textarea id="guestInput" placeholder="John Smith&#10;Mary Jones&#10;Aunt Linda"></textarea><button type="button" onclick="addGuests()">Add Guests</button>
+    <h3>Edit Guest Details</h3><label>Guest</label><select id="guestEditSelect" onchange="loadGuestEditor()"><option value="">Select guest</option></select>
+    <div class="row"><div><label>RSVP</label><select id="guestRsvp"><option>invited</option><option>coming</option><option>maybe</option><option>declined</option></select></div><div><label>Meal</label><select id="guestMeal"><option></option><option>beef</option><option>chicken</option><option>vegan</option><option>kids meal</option></select></div></div>
+    <label>Group Tag</label><select id="guestGroup"><option></option><option>family</option><option>friends</option><option>work</option><option>VIP</option><option>kids</option></select>
+    <label>Accessibility Notes</label><input id="guestAccess" placeholder="wheelchair, high chair, aisle seat">
+    <label>Conflict / Keep Apart Notes</label><input id="guestConflict" placeholder="Keep away from Bob">
+    <button type="button" class="good" onclick="saveGuestDetails()">Save Guest Details</button><button type="button" class="warn" onclick="autoAssignGuests()">Auto Assign Open Seats</button><button type="button" class="secondary" onclick="clearAssignments()">Clear Seat Assignments</button>
+    <h2>Budget Tracker</h2><div class="row"><div><label>Category</label><select id="budgetCat"><option>decorations</option><option>food</option><option>venue</option><option>rentals</option><option>music/DJ</option><option>other</option></select></div><div><label>Cost</label><input id="budgetCost" type="number" value="0" min="0" step="0.01"></div></div><label>Budget Note</label><input id="budgetNote" placeholder="Deposit, balloons, table rental..."><button type="button" onclick="addBudget()">Add Budget Item</button>
+    <h2>Timeline</h2><div class="row"><div><label>Time</label><input id="timeWhen" placeholder="4:00 PM"></div><div><label>Event</label><select id="timeEvent"><option>setup</option><option>food served</option><option>speeches</option><option>cake</option><option>cleanup</option><option>custom</option></select></div></div><label>Details</label><input id="timeNote" placeholder="Who is responsible?"><button type="button" onclick="addTimeline()">Add Timeline Item</button>
+    <h2>RSVP Share Tools</h2>
+    <label>Party / Event Name</label><input id="eventName" value="My Party">
+    <label>RSVP Link or Contact Info</label><input id="rsvpLink" placeholder="https://your-rsvp-link.com or text/call number">
+    <label>RSVP Message</label><textarea id="rsvpMessage">You are invited! Please RSVP with coming, maybe, or declined. Also send your meal choice: beef, chicken, vegan, or kids meal.</textarea>
+    <button type="button" class="good" onclick="openEmailInvite()">Share RSVP by Email</button><button type="button" class="secondary" onclick="openTextInvite()">Share RSVP by Text</button><button type="button" class="secondary" onclick="copyRsvpMessage()">Copy RSVP Message</button><button type="button" class="secondary" onclick="downloadRsvpCSV()">Download RSVP CSV</button>
+    <h2>Save / Load</h2><button type="button" class="good" onclick="saveLayout()">Save Layout to Browser</button><button type="button" class="secondary" onclick="loadLayout()">Load Saved Layout</button><button type="button" class="secondary" onclick="downloadProjectFile()">Download Planner File</button><label>Load Planner File</label><input id="projectFileInput" type="file" accept=".json,application/json" onchange="loadProjectFile(event)"><button type="button" class="secondary" onclick="exportJSON()">Export JSON</button><label>Import JSON</label><textarea id="importBox" placeholder="Paste exported JSON here"></textarea><button type="button" onclick="importJSON()">Import JSON</button><button type="button" class="secondary" onclick="window.print()">Print Seating Chart</button>
+  </aside>
+  <section class="stage-wrap"><div class="stage-tools"><div class="group"><button type="button" class="secondary" onclick="zoomOut()">− Zoom</button><button type="button" class="secondary" onclick="zoomIn()">+ Zoom</button><button type="button" class="secondary" onclick="fitToScreen()">Fit</button><button type="button" class="secondary" onclick="resetView()">Reset View</button></div><div class="group"><span id="zoomLabel" class="zoom-label">Zoom: 100%</span><span class="zoom-label">Drag empty floor to pan</span></div></div><div id="viewport"><div id="scaleLayer"><div id="floor"></div></div></div></section>
+  <section class="right-panel">
+    <h2>Planner Stats</h2><div class="stats"><div class="stat"><b id="guestCount">0</b><br><span class="small">Guests</span></div><div class="stat"><b id="seatCount">0</b><br><span class="small">Seats</span></div><div class="stat"><b id="assignedCount">0</b><br><span class="small">Assigned</span></div><div class="stat"><b id="openCount">0</b><br><span class="small">Open Seats</span></div></div>
+    <h2>RSVP List</h2><div id="rsvpSummary" class="stats"></div><div id="rsvpList" class="guest-list"></div>
+    <h2>Guests / RSVP / Meals</h2><div id="guestList" class="guest-list"></div>
+    <h2>Who Sits Where</h2><div id="assignmentList" class="assignment-list"></div>
+    <h2>Conflicts + Accessibility</h2><div id="conflictList" class="conflict-list"></div>
+    <h2>Budget</h2><div class="mini-card"><b>Total: $<span id="budgetTotal">0.00</span></b></div><div id="budgetList" class="budget-list"></div>
+    <h2>Timeline</h2><div id="timelineList" class="timeline-list"></div>
+    <h2>Self Tests</h2><div id="testList" class="test-list small"></div>
+  </section>
+</main>
+<div id="seatModal" class="modal"><div class="modal-card"><h2>Assign Seat</h2><div class="small" id="seatInfo"></div><label>Choose Guest</label><select id="seatGuestSelect"></select><button type="button" onclick="assignSeatFromModal()">Assign Name</button><button type="button" class="secondary" onclick="unassignSeatFromModal()">Clear This Seat</button><button type="button" class="danger" onclick="closeSeatModal()">Close</button></div></div>
+<script>
+'use strict';
+const el=id=>document.getElementById(id);
+const viewport=el('viewport');
+const scaleLayer=el('scaleLayer');
+const floor=el('floor');
+const state={objects:[],guests:[],budgets:[],schedule:[],selectedObjectId:null,activeSeat:null,zoom:1};
+function uid(prefix){return prefix+'_'+Math.random().toString(36).slice(2,10)}
+function asArray(v){return Array.isArray(v)?v:[]}
+function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function getObjects(){state.objects=asArray(state.objects);return state.objects}
+function getGuests(){state.guests=asArray(state.guests);return state.guests}
+function getBudgets(){state.budgets=asArray(state.budgets);return state.budgets}
+function getSchedule(){state.schedule=asArray(state.schedule);return state.schedule}
+function cloneValue(v){return JSON.parse(JSON.stringify(v))}
+function typeInfo(type){const map={'table-round':['round','Table'],'table-rect':['rect','Table'],'table-square':['square','Table'],buffet:['rect buffet','Food Buffet'],stage:['rect stage','Stage'],dance:['rect dance','Dance Area'],dj:['square dj','DJ Booth'],bar:['rect bar','Bar / Drinks'],gift:['rect gift','Gift Table'],restroom:['square restroom','Restroom'],custom:['rect custom','Custom']};return map[type]||map.custom}
+function applyTypeDefaults(){const type=el('objectType').value;const presets={buffet:['Food Buffet',0,260,80],stage:['Stage',0,260,120],dance:['Dance Floor',0,300,220],dj:['DJ Booth',0,110,90],bar:['Bar / Drinks',0,220,75],gift:['Gift Table',0,180,75],restroom:['Restroom Sign',0,100,70]};if(type.startsWith('table')){el('objectName').value='Table '+(getObjects().filter(o=>String(o.type||'').startsWith('table')).length+1);el('objectSeats').value=8;el('objectW').value=150;el('objectH').value=150;return}const p=presets[type]||['Custom Item',0,180,90];el('objectName').value=p[0];el('objectSeats').value=p[1];el('objectW').value=p[2];el('objectH').value=p[3]}
+function applyZoom(){state.zoom=Number.isFinite(Number(state.zoom))?Math.max(.25,Math.min(2.25,Number(state.zoom))):1;scaleLayer.style.transform=`scale(${state.zoom})`;scaleLayer.style.width=`${floor.offsetWidth*state.zoom+60}px`;scaleLayer.style.height=`${floor.offsetHeight*state.zoom+60}px`;el('zoomLabel').textContent=`Zoom: ${Math.round(state.zoom*100)}%`}
+function zoomIn(){state.zoom=Math.min(2.25,+(state.zoom+.1).toFixed(2));applyZoom()}
+function zoomOut(){state.zoom=Math.max(.25,+(state.zoom-.1).toFixed(2));applyZoom()}
+function fitToScreen(){const pad=90,zx=(viewport.clientWidth-pad)/floor.offsetWidth,zy=(viewport.clientHeight-pad)/floor.offsetHeight;state.zoom=+Math.max(.25,Math.min(1.25,zx,zy)).toFixed(2);applyZoom();viewport.scrollLeft=0;viewport.scrollTop=0}
+function resetView(){state.zoom=1;applyZoom();viewport.scrollLeft=0;viewport.scrollTop=0}
+function applyFloorSize(){floor.style.width=Math.max(500,Number(el('floorW').value||1100))+'px';floor.style.height=Math.max(400,Number(el('floorH').value||700))+'px';applyZoom()}
+function normalizeObject(o={},i=0){const assignments=o.assignments&&typeof o.assignments==='object'&&!Array.isArray(o.assignments)?o.assignments:{};return{id:o.id||uid('obj'),name:o.name||`Item ${i+1}`,type:o.type||(o.shape?`table-${o.shape}`:'custom'),seats:Math.max(0,Number(o.seats||0)),w:Math.max(40,Number(o.w||150)),h:Math.max(40,Number(o.h||150)),x:Math.max(0,Number(o.x??90+i*24)),y:Math.max(0,Number(o.y??80+i*20)),notes:o.notes||'',assignments}}
+function normalizeGuest(g){return typeof g==='string'?{name:g,rsvp:'invited',meal:'',group:'',access:'',conflict:''}:{name:g?.name||'Unnamed Guest',rsvp:g?.rsvp||'invited',meal:g?.meal||'',group:g?.group||'',access:g?.access||'',conflict:g?.conflict||''}}
+function normalizeBudget(b={}){return{cat:b.cat||'other',cost:Number(b.cost||0),note:b.note||''}}
+function normalizeScheduleItem(t={}){return{when:t.when||'',event:t.event||'custom',note:t.note||''}}
+function addObject(data=null){const count=getObjects().length+1;const obj=normalizeObject(data||{id:uid('obj'),name:el('objectName').value||`Item ${count}`,type:el('objectType').value,seats:Number(el('objectSeats').value||0),w:Number(el('objectW').value||150),h:Number(el('objectH').value||150),x:90+count*24,y:80+count*20,notes:el('objectNotes').value||'',assignments:{}},count-1);getObjects().push(obj);state.selectedObjectId=obj.id;render();el('objectName').value='Table '+(getObjects().length+1)}
+function updateSelectedObject(){const obj=getObjects().find(x=>x.id===state.selectedObjectId);if(!obj)return alert('Select an item first.');obj.name=el('objectName').value;obj.type=el('objectType').value;obj.seats=Math.max(0,Number(el('objectSeats').value||0));obj.w=Math.max(40,Number(el('objectW').value||80));obj.h=Math.max(40,Number(el('objectH').value||80));obj.notes=el('objectNotes').value;for(const k of Object.keys(obj.assignments||{}))if(Number(k)>=obj.seats)delete obj.assignments[k];render()}
+function selectObject(id){state.selectedObjectId=id||null;const obj=getObjects().find(x=>x.id===state.selectedObjectId);if(obj){el('objectName').value=obj.name;el('objectType').value=obj.type;el('objectSeats').value=obj.seats;el('objectW').value=obj.w;el('objectH').value=obj.h;el('objectNotes').value=obj.notes||''}render()}
+function duplicateSelected(){const obj=getObjects().find(x=>x.id===state.selectedObjectId);if(!obj)return alert('Select an item first.');addObject({...cloneValue(obj),id:uid('obj'),name:obj.name+' Copy',x:obj.x+35,y:obj.y+35,assignments:{}})}
+function deleteSelected(){if(!state.selectedObjectId)return alert('Select an item first.');state.objects=getObjects().filter(o=>o.id!==state.selectedObjectId);state.selectedObjectId=null;render()}
+function getGuestByName(name){return getGuests().find(g=>g.name===name)||null}
+function seatRsvpClass(name){const g=getGuestByName(name);if(!g)return'';if(g.rsvp==='coming')return'';if(g.rsvp==='maybe')return'rsvp-maybe';if(g.rsvp==='declined')return'rsvp-declined';return'rsvp-pending'}
+function seatRsvpLabel(name){const g=getGuestByName(name);if(!g)return'';if(g.rsvp==='coming')return'Coming';if(g.rsvp==='maybe')return'Maybe';if(g.rsvp==='declined')return'Declined';return'Needs RSVP'}
+function render(){floor.innerHTML='';getObjects().forEach(renderObject);renderObjectSelect();renderGuestEditorSelect();renderGuests();renderRsvpList();renderAssignments();renderConflicts();renderBudget();renderTimeline();updateStats();applyZoom()}
+function renderObject(obj){const[cls,labelType]=typeInfo(obj.type);const box=document.createElement('div');box.className=`layout-object ${cls} ${state.selectedObjectId===obj.id?'selected':''}`;box.style.left=obj.x+'px';box.style.top=obj.y+'px';box.style.width=obj.w+'px';box.style.height=obj.h+'px';box.dataset.id=obj.id;box.innerHTML=`<div class="object-label">${esc(obj.name)}<small>${labelType}${obj.seats?` • ${obj.seats} seats`:''}</small></div>`;floor.appendChild(box);box.addEventListener('pointerdown',startObjectDrag);box.addEventListener('click',()=>selectObject(obj.id));for(let i=0;i<obj.seats;i++){const seat=document.createElement('div');const assigned=obj.assignments?.[i]||'';const rsvpClass=assigned?seatRsvpClass(assigned):'';const rsvpText=assigned?seatRsvpLabel(assigned):'';seat.className=`seat ${assigned?'assigned':''} ${rsvpClass}`;seat.textContent=assigned||`Seat ${i+1}`;seat.title=assigned?`${assigned} — ${rsvpText}`:`${obj.name} Seat ${i+1}`;const pos=seatPosition(obj,i);seat.style.left=pos.x+'px';seat.style.top=pos.y+'px';seat.onclick=e=>{e.stopPropagation();openSeatModal(obj.id,i)};floor.appendChild(seat)}}
+function seatPosition(obj,i){const cx=obj.x+obj.w/2,cy=obj.y+obj.h/2,angle=Math.PI*2*i/Math.max(1,obj.seats)-Math.PI/2;return{x:cx+Math.cos(angle)*(obj.w/2+42)-29,y:cy+Math.sin(angle)*(obj.h/2+34)-17}}
+function startObjectDrag(e){e.stopPropagation();const obj=getObjects().find(x=>x.id===e.currentTarget.dataset.id);if(!obj)return;state.selectedObjectId=obj.id;const sx=e.clientX,sy=e.clientY,ox=obj.x,oy=obj.y;e.currentTarget.setPointerCapture(e.pointerId);function move(ev){obj.x=Math.max(0,ox+(ev.clientX-sx)/state.zoom);obj.y=Math.max(0,oy+(ev.clientY-sy)/state.zoom);render()}function up(){window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);render()}window.addEventListener('pointermove',move);window.addEventListener('pointerup',up)}
+function setupViewportPan(){let panning=false,sx=0,sy=0,sl=0,st=0;viewport.addEventListener('pointerdown',e=>{if(e.target.closest('.layout-object')||e.target.closest('.seat'))return;panning=true;sx=e.clientX;sy=e.clientY;sl=viewport.scrollLeft;st=viewport.scrollTop;viewport.classList.add('panning');viewport.setPointerCapture(e.pointerId)});viewport.addEventListener('pointermove',e=>{if(!panning)return;viewport.scrollLeft=sl-(e.clientX-sx);viewport.scrollTop=st-(e.clientY-sy)});['pointerup','pointercancel','mouseleave'].forEach(name=>viewport.addEventListener(name,()=>{panning=false;viewport.classList.remove('panning')}))}
+function renderObjectSelect(){const select=el('selectedObjectSelect');select.innerHTML='<option value="">None</option>';getObjects().forEach(obj=>{const opt=document.createElement('option');opt.value=obj.id;opt.textContent=obj.name+' — '+typeInfo(obj.type)[1];if(obj.id===state.selectedObjectId)opt.selected=true;select.appendChild(opt)})}
+function addGuests(){const raw=el('guestInput').value.trim();if(!raw)return;raw.split('\n').map(n=>n.trim()).filter(Boolean).forEach(name=>{if(!getGuests().some(g=>g.name===name))getGuests().push({name,rsvp:'invited',meal:'',group:'',access:'',conflict:''})});el('guestInput').value='';render()}
+function renderGuestEditorSelect(){const select=el('guestEditSelect');const current=select.value;select.innerHTML='<option value="">Select guest</option>';getGuests().forEach(g=>{const opt=document.createElement('option');opt.value=g.name;opt.textContent=g.name;if(g.name===current)opt.selected=true;select.appendChild(opt)})}
+function loadGuestEditor(){const g=getGuests().find(x=>x.name===el('guestEditSelect').value);if(!g)return;el('guestRsvp').value=g.rsvp||'invited';el('guestMeal').value=g.meal||'';el('guestGroup').value=g.group||'';el('guestAccess').value=g.access||'';el('guestConflict').value=g.conflict||''}
+function saveGuestDetails(){const g=getGuests().find(x=>x.name===el('guestEditSelect').value);if(!g)return alert('Select a guest first.');g.rsvp=el('guestRsvp').value;g.meal=el('guestMeal').value;g.group=el('guestGroup').value;g.access=el('guestAccess').value;g.conflict=el('guestConflict').value;render()}
+function getAssignedNames(){const names=new Set();getObjects().forEach(o=>Object.values(o.assignments||{}).forEach(name=>name&&names.add(name)));return names}
+function renderGuests(){const list=el('guestList');list.innerHTML='';const assigned=getAssignedNames();getGuests().forEach(g=>{const div=document.createElement('div');div.className=`guest-pill ${assigned.has(g.name)?'assigned':'unassigned'}`;div.innerHTML=`<b>${esc(g.name)}</b> — ${assigned.has(g.name)?'seated':'not seated'}<br><span class="small">RSVP: ${esc(g.rsvp||'invited')} • Meal: ${esc(g.meal||'none')} • Group: ${esc(g.group||'none')}</span>`;list.appendChild(div)})}
+function rsvpCounts(){const c={invited:0,coming:0,maybe:0,declined:0,needs:0};getGuests().forEach(g=>{const s=g.rsvp||'invited';c[s]=(c[s]||0)+1;if(s==='invited'||s==='maybe')c.needs++});return c}
+function renderRsvpList(){const summary=el('rsvpSummary'),list=el('rsvpList'),c=rsvpCounts();summary.innerHTML=`<div class="stat"><b>${c.coming}</b><br><span class="small">Coming</span></div><div class="stat"><b>${c.needs}</b><br><span class="small">Needs RSVP</span></div><div class="stat"><b>${c.maybe}</b><br><span class="small">Maybe</span></div><div class="stat"><b>${c.declined}</b><br><span class="small">Declined</span></div>`;list.innerHTML='';const order={invited:0,maybe:1,coming:2,declined:3};[...getGuests()].sort((a,b)=>(order[a.rsvp||'invited']??9)-(order[b.rsvp||'invited']??9)||a.name.localeCompare(b.name)).forEach(g=>{const div=document.createElement('div');const needs=(g.rsvp||'invited')==='invited'||(g.rsvp||'invited')==='maybe';div.className=`mini-card ${needs?'guest-pill unassigned':''}`;div.innerHTML=`<b>${esc(g.name)}</b><br><span class="small">RSVP: ${esc(g.rsvp||'invited')} • Meal: ${esc(g.meal||'none')} • Group: ${esc(g.group||'none')}</span>`;list.appendChild(div)});if(!getGuests().length)list.innerHTML='<div class="small">No guests yet.</div>'}
+function renderAssignments(){const list=el('assignmentList');list.innerHTML='';getObjects().forEach(obj=>{for(let i=0;i<obj.seats;i++){const name=obj.assignments?.[i];if(!name)continue;const g=getGuestByName(name)||{};const card=document.createElement('div');card.className='assign-card';card.innerHTML=`<b>${esc(name)}</b><br><span class="small">${esc(obj.name)} — Seat ${i+1} • RSVP: ${esc(g.rsvp||'unknown')} • ${esc(g.meal||'no meal')} • ${esc(g.group||'no group')}</span>`;list.appendChild(card)}});if(!list.children.length)list.innerHTML='<div class="small">No seats assigned yet.</div>'}
+function renderConflicts(){const list=el('conflictList');list.innerHTML='';getGuests().filter(g=>g.access||g.conflict).forEach(g=>{const div=document.createElement('div');div.className='mini-card';div.innerHTML=`<b>${esc(g.name)}</b><br><span class="small">Access: ${esc(g.access||'none')}<br>Conflict: ${esc(g.conflict||'none')}</span>`;list.appendChild(div)});if(!list.children.length)list.innerHTML='<div class="small">No conflict or accessibility notes yet.</div>'}
+function updateStats(){const seats=getObjects().reduce((s,o)=>s+Number(o.seats||0),0),assigned=getObjects().reduce((s,o)=>s+Object.values(o.assignments||{}).filter(Boolean).length,0);el('guestCount').textContent=getGuests().length;el('seatCount').textContent=seats;el('assignedCount').textContent=assigned;el('openCount').textContent=Math.max(0,seats-assigned)}
+function openSeatModal(id,seatIndex){const obj=getObjects().find(x=>x.id===id);if(!obj)return;state.activeSeat={id,seatIndex};el('seatInfo').textContent=`${obj.name} — Seat ${seatIndex+1}`;const select=el('seatGuestSelect');select.innerHTML='<option value="">-- Empty Seat --</option>';const assigned=getAssignedNames(),current=obj.assignments?.[seatIndex]||'';getGuests().forEach(g=>{if(!assigned.has(g.name)||g.name===current){const opt=document.createElement('option');opt.value=g.name;opt.textContent=`${g.name} (${g.rsvp||'invited'} / ${g.meal||'no meal'})`;if(g.name===current)opt.selected=true;select.appendChild(opt)}});el('seatModal').classList.add('open')}
+function assignSeatFromModal(){if(!state.activeSeat)return;const obj=getObjects().find(x=>x.id===state.activeSeat.id);if(!obj)return;const name=el('seatGuestSelect').value;if(name)obj.assignments[state.activeSeat.seatIndex]=name;else delete obj.assignments[state.activeSeat.seatIndex];closeSeatModal();render()}
+function unassignSeatFromModal(){if(!state.activeSeat)return;const obj=getObjects().find(x=>x.id===state.activeSeat.id);if(obj)delete obj.assignments[state.activeSeat.seatIndex];closeSeatModal();render()}
+function closeSeatModal(){el('seatModal').classList.remove('open');state.activeSeat=null}
+function autoAssignGuests(){const assigned=getAssignedNames(),openGuests=getGuests().filter(g=>!assigned.has(g.name)&&g.rsvp!=='declined').map(g=>g.name);let gi=0;for(const obj of getObjects())for(let i=0;i<obj.seats;i++)if(!obj.assignments[i]&&openGuests[gi])obj.assignments[i]=openGuests[gi++];render()}
+function clearAssignments(){getObjects().forEach(o=>o.assignments={});render()}
+function addBudget(){getBudgets().push(normalizeBudget({cat:el('budgetCat').value,cost:el('budgetCost').value,note:el('budgetNote').value}));el('budgetNote').value='';el('budgetCost').value=0;render()}
+function removeBudget(i){getBudgets().splice(i,1);render()}
+function renderBudget(){const list=el('budgetList');list.innerHTML='';let total=0;getBudgets().forEach((b,i)=>{total+=Number(b.cost||0);const div=document.createElement('div');div.className='mini-card';div.innerHTML=`<b>${esc(b.cat)} — $${Number(b.cost||0).toFixed(2)}</b><br><span class="small">${esc(b.note||'')}</span>`;const btn=document.createElement('button');btn.className='danger';btn.type='button';btn.textContent='Remove';btn.addEventListener('click',()=>removeBudget(i));div.appendChild(btn);list.appendChild(div)});el('budgetTotal').textContent=total.toFixed(2);if(!getBudgets().length)list.innerHTML='<div class="small">No budget items yet.</div>'}
+function addTimeline(){getSchedule().push(normalizeScheduleItem({when:el('timeWhen').value,event:el('timeEvent').value,note:el('timeNote').value}));el('timeWhen').value='';el('timeNote').value='';render()}
+function removeTimeline(i){getSchedule().splice(i,1);render()}
+function renderTimeline(){const list=el('timelineList');list.innerHTML='';getSchedule().forEach((item,i)=>{const div=document.createElement('div');div.className='mini-card';div.innerHTML=`<b>${esc(item.when||'Time TBD')} — ${esc(item.event)}</b><br><span class="small">${esc(item.note||'')}</span>`;const btn=document.createElement('button');btn.className='danger';btn.type='button';btn.textContent='Remove';btn.addEventListener('click',()=>removeTimeline(i));div.appendChild(btn);list.appendChild(div)});if(!getSchedule().length)list.innerHTML='<div class="small">No timeline items yet.</div>'}
+function getData(){return{floorW:parseInt(floor.style.width||floor.offsetWidth,10),floorH:parseInt(floor.style.height||floor.offsetHeight,10),zoom:state.zoom,objects:getObjects(),guests:getGuests(),budgets:getBudgets(),schedule:getSchedule(),eventName:el('eventName')?.value||'',rsvpLink:el('rsvpLink')?.value||'',rsvpMessage:el('rsvpMessage')?.value||''}}
+function setData(data){const d=data&&typeof data==='object'?data:{};state.objects=asArray(d.objects||d.tables).map(normalizeObject);state.guests=asArray(d.guests).map(normalizeGuest);state.budgets=asArray(d.budgets).map(normalizeBudget);state.schedule=asArray(d.schedule||d.timeline).map(normalizeScheduleItem);state.zoom=Number(d.zoom||1);el('floorW').value=d.floorW||1100;el('floorH').value=d.floorH||700;applyFloorSize();el('eventName').value=d.eventName||'My Party';el('rsvpLink').value=d.rsvpLink||'';el('rsvpMessage').value=d.rsvpMessage||'You are invited! Please RSVP with coming, maybe, or declined. Also send your meal choice: beef, chicken, vegan, or kids meal.';state.selectedObjectId=state.objects[0]?.id||null;render()}
+function saveLayout(){localStorage.setItem('cyberPartyPlannerPro',JSON.stringify(getData()));alert('Layout saved in this browser.')}
+function loadLayout(){const raw=localStorage.getItem('cyberPartyPlannerPro');if(!raw)return alert('No saved layout found.');try{setData(JSON.parse(raw))}catch(e){alert('Saved layout could not be loaded.');console.error(e)}}
+function exportJSON(){el('importBox').value=JSON.stringify(getData(),null,2)}
+function importJSON(){try{setData(JSON.parse(el('importBox').value))}catch(e){alert('Could not import JSON. Check the format.');console.error(e)}}
+function downloadTextFile(filename,content,mime='text/plain'){const blob=new Blob([content],{type:mime});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),500)}
+function safeFileName(name){return String(name||'party-planner').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'party-planner'}
+function downloadProjectFile(){const data=getData();downloadTextFile(`${safeFileName(data.eventName||'party-planner')}.json`,JSON.stringify(data,null,2),'application/json')}
+function loadProjectFile(event){const file=event.target.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{setData(JSON.parse(String(reader.result||'{}')));alert('Planner file loaded.')}catch(e){alert('Could not load planner file. Make sure it is a JSON file exported from this app.');console.error(e)}};reader.readAsText(file);event.target.value=''}
+function buildRsvpMessage(){const eventName=el('eventName')?.value||'My Party',link=el('rsvpLink')?.value||'',msg=el('rsvpMessage')?.value||'';return `${eventName}\n\n${msg}${link?'\n\nRSVP here/contact: '+link:''}`}
+function openEmailInvite(){const subject=encodeURIComponent(`RSVP for ${el('eventName')?.value||'My Party'}`),body=encodeURIComponent(buildRsvpMessage());window.location.href=`mailto:?subject=${subject}&body=${body}`}
+function openTextInvite(){const body=encodeURIComponent(buildRsvpMessage());window.location.href=`sms:?&body=${body}`}
+async function copyRsvpMessage(){const msg=buildRsvpMessage();try{await navigator.clipboard.writeText(msg);alert('RSVP message copied.')}catch{el('importBox').value=msg;alert('Copy blocked by browser. I placed the message in the export box so you can copy it.')}}
+function csvCell(value){return '"'+String(value??'').replace(/"/g,'""')+'"'}
+function downloadRsvpCSV(){const rows=[['Name','RSVP','Meal','Group','Accessibility','Conflict Notes','Seated']];const assigned=getAssignedNames();getGuests().forEach(g=>rows.push([g.name,g.rsvp||'invited',g.meal||'',g.group||'',g.access||'',g.conflict||'',assigned.has(g.name)?'yes':'no']));const csv=rows.map(row=>row.map(csvCell).join(',')).join('\n');downloadTextFile(`${safeFileName(el('eventName')?.value||'rsvp-list')}-rsvp.csv`,csv,'text/csv')}
+function runSelfTests(){const results=[];function test(name,fn){try{fn();results.push({name,pass:true})}catch(e){results.push({name,pass:false,message:e.message});console.error('Self test failed:',name,e)}}test('schedule remove uses app state array',()=>{const old=cloneValue(getSchedule());state.schedule=[{when:'1:00 PM',event:'setup',note:'test'}];removeTimeline(0);if(!Array.isArray(state.schedule))throw new Error('schedule is not an array');if(state.schedule.length!==0)throw new Error('removeTimeline did not remove item');state.schedule=old});test('budget remove uses app state array',()=>{const old=cloneValue(getBudgets());state.budgets=[{cat:'food',cost:10,note:'test'}];removeBudget(0);if(!Array.isArray(state.budgets))throw new Error('budgets is not an array');if(state.budgets.length!==0)throw new Error('removeBudget did not remove item');state.budgets=old});test('legacy import normalizes arrays',()=>{const old=cloneValue(getData());setData({timeline:{bad:true},budgets:{bad:true},guests:['Test Guest'],objects:[]});if(!Array.isArray(state.schedule))throw new Error('schedule was not normalized');if(!Array.isArray(state.budgets))throw new Error('budgets was not normalized');if(!Array.isArray(state.guests))throw new Error('guests was not normalized');setData(old)});test('RSVP seat classes are correct',()=>{const old=cloneValue(getGuests());state.guests=[normalizeGuest({name:'Pending Person',rsvp:'invited'}),normalizeGuest({name:'Maybe Person',rsvp:'maybe'}),normalizeGuest({name:'Yes Person',rsvp:'coming'}),normalizeGuest({name:'No Person',rsvp:'declined'})];if(seatRsvpClass('Pending Person')!=='rsvp-pending')throw new Error('invited should be pending');if(seatRsvpClass('Maybe Person')!=='rsvp-maybe')throw new Error('maybe should be warning');if(seatRsvpClass('Yes Person')!=='')throw new Error('coming should be normal');if(seatRsvpClass('No Person')!=='rsvp-declined')throw new Error('declined should be declined');state.guests=old});test('CSV export uses escaped newline text',()=>{const csv=[['A'],['B']].map(row=>row.map(csvCell).join(',')).join('\n');if(csv!=='"A"\n"B"')throw new Error('CSV newline failed')});renderTestResults(results)}
+function renderTestResults(results){
+  const list=el('testList');
+  if(!list)return;
+  list.innerHTML='';
+  results.forEach(r=>{
+    const div=document.createElement('div');
+    div.className='mini-card';
+    div.innerHTML=`${r.pass?'✅':'❌'} ${esc(r.name)}${r.message?'<br>'+esc(r.message):''}`;
+    list.appendChild(div);
+  });
+}
+
+function setupStarterData(){
+  state.objects=[
+    normalizeObject({id:uid('obj'),name:'Family Table',type:'table-round',seats:8,w:155,h:155,x:170,y:150,assignments:{}},0),
+    normalizeObject({id:uid('obj'),name:'Friends Table',type:'table-round',seats:8,w:155,h:155,x:520,y:150,assignments:{}},1),
+    normalizeObject({id:uid('obj'),name:'Food Buffet',type:'buffet',seats:0,w:260,h:80,x:390,y:460,notes:'Keep serving line clear',assignments:{}},2),
+    normalizeObject({id:uid('obj'),name:'Dance Floor',type:'dance',seats:0,w:280,h:190,x:760,y:370,notes:'Open area',assignments:{}},3),
+    normalizeObject({id:uid('obj'),name:'Stage',type:'stage',seats:0,w:250,h:100,x:760,y:90,notes:'Speeches / music',assignments:{}},4)
+  ];
+
+  state.guests=[
+    normalizeGuest({name:'John Smith',rsvp:'coming',meal:'beef',group:'family'}),
+    normalizeGuest({name:'Mary Jones',rsvp:'coming',meal:'chicken',group:'friends',access:'aisle seat'}),
+    normalizeGuest({name:'Aunt Linda',rsvp:'maybe',meal:'vegan',group:'family',conflict:'Keep away from Uncle Bob'}),
+    normalizeGuest({name:'Uncle Bob',rsvp:'invited',meal:'',group:'family'})
+  ];
+
+  state.budgets=[
+    normalizeBudget({cat:'food',cost:500,note:'Buffet estimate'}),
+    normalizeBudget({cat:'rentals',cost:240,note:'Tables and chairs'})
+  ];
+
+  state.schedule=[
+    normalizeScheduleItem({when:'2:00 PM',event:'setup',note:'Tables, signs, buffet area'}),
+    normalizeScheduleItem({when:'5:00 PM',event:'food served',note:'Open buffet'}),
+    normalizeScheduleItem({when:'7:00 PM',event:'speeches',note:'Stage area'}),
+    normalizeScheduleItem({when:'9:00 PM',event:'cleanup',note:'Trash, rentals, leftover food'})
+  ];
+
+  state.selectedObjectId=state.objects[0]?.id||null;
+}
+
+window.addEventListener('resize',applyZoom);
+setupViewportPan();
+setupStarterData();
+render();
+runSelfTests();
+setTimeout(fitToScreen,100);
+</script>
+</body>
+</html>
