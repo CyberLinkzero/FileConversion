@@ -337,11 +337,14 @@ async function copyRsvpMessage(){const msg=buildRsvpMessage();try{await navigato
 function csvCell(value){return '"'+String(value??'').replace(/"/g,'""')+'"'}
 function downloadRsvpCSV(){const rows=[['Name','RSVP','Meal','Group','Accessibility','Conflict Notes','Seated']];const assigned=getAssignedNames();getGuests().forEach(g=>rows.push([g.name,g.rsvp||'invited',g.meal||'',g.group||'',g.access||'',g.conflict||'',assigned.has(g.name)?'yes':'no']));const csv=rows.map(row=>row.map(csvCell).join(',')).join('\n');downloadTextFile(`${safeFileName(el('eventName')?.value||'rsvp-list')}-rsvp.csv`,csv,'text/csv')}
 
+
 function csvParse(text){
+  let clean=String(text||'').replace(/^\ufeff/,'').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  const lines=clean.split('\n');
+  if(lines[0]&&/^sep\s*=/.test(lines[0].trim().toLowerCase()))clean=lines.slice(1).join('\n');
   const rows=[];let row=[],cell='',q=false;
-  text=String(text||'').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
-  for(let i=0;i<text.length;i++){
-    const ch=text[i],next=text[i+1];
+  for(let i=0;i<clean.length;i++){
+    const ch=clean[i],next=clean[i+1];
     if(q){
       if(ch==='"'&&next==='"'){cell+='"';i++;}
       else if(ch==='"'){q=false;}
@@ -354,42 +357,42 @@ function csvParse(text){
     }
   }
   if(cell!==''||row.length){row.push(cell);rows.push(row);}
-  return rows.filter(r=>r.some(c=>String(c).trim()!==''));
+  return rows.map(r=>r.map(c=>String(c??'').trim())).filter(r=>r.some(c=>c!==''));
 }
-function normalizeHeaderName(v){return String(v||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'');}
+function normalizeHeaderName(v){return String(v||'').replace(/^\ufeff/,'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'');}
 function rowToObject(headers,row){
   const obj={};
   headers.forEach((h,i)=>obj[normalizeHeaderName(h)]=String(row[i]??'').trim());
   return obj;
 }
-function guestSeatLabel(name){
-  for(const obj of getObjects()){
-    for(const [seatIndex,guestName] of Object.entries(obj.assignments||{})){
-      if(guestName===name)return `${obj.name} Seat ${Number(seatIndex)+1}`;
-    }
+function findField(o,names){
+  for(const name of names){
+    const key=normalizeHeaderName(name);
+    if(o[key]!==undefined&&o[key]!=='')return o[key];
   }
   return '';
 }
-function downloadPartyListCSV(){
-  const rows=[['Name','RSVP','Meal','Group','Accessibility','Conflict Notes','Seated','Seat']];
-  const assigned=getAssignedNames();
-  getGuests().forEach(g=>rows.push([
-    g.name,g.rsvp||'invited',g.meal||'',g.group||'',g.access||'',g.conflict||'',assigned.has(g.name)?'yes':'no',guestSeatLabel(g.name)
-  ]));
-  const csv=rows.map(row=>row.map(csvCell).join(',')).join('\n');
-  downloadTextFile(`${safeFileName(el('eventName')?.value||'party')}-party-list.csv`,csv,'text/csv');
+function looksLikePartyHeader(row){
+  const keys=row.map(normalizeHeaderName);
+  return keys.some(k=>['name','guest','guestname','fullname','firstname','lastname','rsvp','meal','food','fooditem','group','grouptag'].includes(k));
 }
-function downloadFoodItemsCSV(){
-  const counts={};
-  getMealChoices().forEach(m=>counts[m]=0);
-  getGuests().forEach(g=>{if(g.meal){ensureMealChoice(g.meal);counts[g.meal]=(counts[g.meal]||0)+1;}});
-  const rows=[['Food Item','Guest Count','Guests']];
-  getMealChoices().forEach(meal=>{
-    const names=getGuests().filter(g=>g.meal===meal).map(g=>g.name).join('; ');
-    rows.push([meal,counts[meal]||0,names]);
-  });
-  const csv=rows.map(row=>row.map(csvCell).join(',')).join('\n');
-  downloadTextFile(`${safeFileName(el('eventName')?.value||'party')}-food-items.csv`,csv,'text/csv');
+function buildGuestNameFromRow(o,row){
+  let name=findField(o,['Name','Guest','Guest Name','Full Name','Person','Invitee']);
+  if(!name){
+    const first=findField(o,['First','First Name','Firstname']);
+    const last=findField(o,['Last','Last Name','Lastname']);
+    name=[first,last].filter(Boolean).join(' ').trim();
+  }
+  if(!name && row && row[0]) name=String(row[0]).trim();
+  return name;
+}
+function normalizeRsvpValue(v){
+  const s=String(v||'').trim().toLowerCase();
+  if(['coming','yes','y','attending','accepted','accept'].includes(s))return 'coming';
+  if(['maybe','tentative','m'].includes(s))return 'maybe';
+  if(['declined','decline','no','n','notcoming','not attending'].includes(s.replace(/\s+/g,'')))return 'declined';
+  if(['invited','pending','needsrsvp','needs rsvp',''].includes(s))return 'invited';
+  return s || 'invited';
 }
 function importPartyListCSV(event){
   const file=event.target.files?.[0];
@@ -399,26 +402,53 @@ function importPartyListCSV(event){
     try{
       const rows=csvParse(String(reader.result||''));
       if(!rows.length)return alert('CSV is empty.');
-      const headers=rows[0];
-      let added=0,updated=0;
-      rows.slice(1).forEach(row=>{
+
+      const hasHeader=looksLikePartyHeader(rows[0]);
+      const headers=hasHeader?rows[0]:['Name','RSVP','Meal','Group','Accessibility','Conflict Notes'];
+      const dataRows=hasHeader?rows.slice(1):rows;
+
+      let added=0,updated=0,skipped=0;
+      const skippedExamples=[];
+
+      dataRows.forEach(row=>{
         const o=rowToObject(headers,row);
-        const name=o.name||o.guest||o.guestname||o.fullname;
-        if(!name)return;
-        let g=getGuests().find(x=>x.name.toLowerCase()===name.toLowerCase());
+        const name=buildGuestNameFromRow(o,row);
+        if(!name){
+          skipped++;
+          if(skippedExamples.length<3)skippedExamples.push(row.join(', '));
+          return;
+        }
+
+        let g=getGuests().find(x=>x.name.trim().toLowerCase()===name.trim().toLowerCase());
         if(!g){
           g={name,rsvp:'invited',meal:'',group:'',access:'',conflict:''};
           getGuests().push(g);
           added++;
-        }else updated++;
-        if(o.rsvp)g.rsvp=o.rsvp.toLowerCase();
-        if(o.meal||o.food||o.fooditem){g.meal=o.meal||o.food||o.fooditem;ensureMealChoice(g.meal);}
-        if(o.group||o.grouptag)g.group=o.group||o.grouptag;
-        if(o.accessibility||o.accessibilitynotes||o.access)g.access=o.accessibility||o.accessibilitynotes||o.access;
-        if(o.conflict||o.conflictnotes||o.keepapart)g.conflict=o.conflict||o.conflictnotes||o.keepapart;
+        }else{
+          updated++;
+        }
+
+        const rsvp=findField(o,['RSVP','Rsvp Status','RSVP Status','Status','Invited']);
+        const meal=findField(o,['Meal','Meal Choice','Food','Food Item','Food Choice','Dinner','Entree','Entrée']);
+        const group=findField(o,['Group','Group Tag','Tag','Tags','Category']);
+        const access=findField(o,['Accessibility','Accessibility Notes','Access','Special Needs','Needs']);
+        const conflict=findField(o,['Conflict','Conflict Notes','Keep Apart','Notes','Conflict / Keep Apart Notes']);
+
+        if(rsvp)g.rsvp=normalizeRsvpValue(rsvp);
+        if(meal){g.meal=meal;ensureMealChoice(g.meal);}
+        if(group)g.group=group;
+        if(access)g.access=access;
+        if(conflict)g.conflict=conflict;
       });
+
       render();
-      alert(`Party list imported. Added ${added}, updated ${updated}.`);
+
+      let msg=`Party list imported.\nAdded: ${added}\nUpdated: ${updated}\nSkipped: ${skipped}`;
+      if(!added&&!updated){
+        msg+='\n\nNo guests were imported. Make sure your CSV has a Name column, or put guest names in the first column.';
+      }
+      if(skippedExamples.length)msg+=`\n\nSkipped examples:\n${skippedExamples.join('\n')}`;
+      alert(msg);
     }catch(e){
       console.error(e);
       alert('Could not import party list CSV. Check the file format.');
@@ -435,19 +465,22 @@ function importFoodItemsCSV(event){
     try{
       const rows=csvParse(String(reader.result||''));
       if(!rows.length)return alert('CSV is empty.');
-      const headers=rows[0];
-      let added=0;
-      rows.slice(1).forEach(row=>{
+      const hasHeader=rows[0].map(normalizeHeaderName).some(k=>['fooditem','meal','item','name','food','mealchoice'].includes(k));
+      const headers=hasHeader?rows[0]:['Food Item'];
+      const dataRows=hasHeader?rows.slice(1):rows;
+      let added=0,skipped=0;
+      dataRows.forEach(row=>{
         const o=rowToObject(headers,row);
-        const meal=o.fooditem||o.meal||o.item||o.name||row[0];
-        if(!meal)return;
-        if(!getMealChoices().some(m=>m.toLowerCase()===String(meal).trim().toLowerCase())){
-          getMealChoices().push(String(meal).trim());
+        const meal=findField(o,['Food Item','Food','Meal','Meal Choice','Item','Name']) || row[0];
+        const cleanMeal=String(meal||'').trim();
+        if(!cleanMeal){skipped++;return;}
+        if(!getMealChoices().some(m=>m.toLowerCase()===cleanMeal.toLowerCase())){
+          getMealChoices().push(cleanMeal);
           added++;
         }
       });
       render();
-      alert(`Food items imported. Added ${added} item(s).`);
+      alert(`Food items imported.\nAdded: ${added}\nSkipped: ${skipped}`);
     }catch(e){
       console.error(e);
       alert('Could not import food items CSV. Check the file format.');
@@ -456,6 +489,7 @@ function importFoodItemsCSV(event){
   reader.readAsText(file);
   event.target.value='';
 }
+
 function exportPrettyPDF(){
   const data=getData();
   const eventTitle=esc(data.eventName||'Party Planner');
