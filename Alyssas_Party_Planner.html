@@ -139,6 +139,7 @@
     <h2>PDF / CSV Export</h2>
     <div class="export-grid">
       <button type="button" class="good" onclick="exportPrettyPDF()">Export Pretty PDF</button>
+      <button type="button" class="secondary" onclick="downloadPrettyReportHTML()">Download Pretty Report HTML</button>
       <button type="button" class="secondary" onclick="window.print()">Print Seating Chart</button>
       <button type="button" class="secondary" onclick="downloadPartyListCSV()">Export Party List CSV</button>
       <button type="button" class="secondary" onclick="downloadFoodItemsCSV()">Export Food Items CSV</button>
@@ -579,41 +580,48 @@ function buildPrettyReportHTML(){
 </html>`;
 }
 
-function exportPrettyPDF(){
+
+function downloadPrettyReportHTML(){
   try{
     const reportHTML=buildPrettyReportHTML();
-    const oldFrame=document.getElementById('prettyPdfFrame');
-    if(oldFrame)oldFrame.remove();
-
-    const frame=document.createElement('iframe');
-    frame.id='prettyPdfFrame';
-    frame.style.position='fixed';
-    frame.style.right='0';
-    frame.style.bottom='0';
-    frame.style.width='1px';
-    frame.style.height='1px';
-    frame.style.border='0';
-    frame.style.opacity='0';
-    document.body.appendChild(frame);
-
-    const doc=frame.contentWindow.document;
-    doc.open();
-    doc.write(reportHTML);
-    doc.close();
-
-    setTimeout(()=>{
-      try{
-        frame.contentWindow.focus();
-        frame.contentWindow.print();
-      }catch(printErr){
-        console.error(printErr);
-        downloadTextFile(`${safeFileName(el('eventName')?.value||'party')}-pretty-report.html`,reportHTML,'text/html');
-        alert('Print was blocked by the browser. I downloaded the pretty report as an HTML file. Open it and press Ctrl+P, then choose Save as PDF.');
-      }
-    },650);
+    downloadTextFile(`${safeFileName(el('eventName')?.value||'party')}-pretty-report.html`,reportHTML,'text/html');
   }catch(e){
     console.error(e);
-    alert('PDF export failed. Check the browser console for details.');
+    alert('Could not build the pretty report: '+(e&&e.message?e.message:e));
+  }
+}
+
+function exportPrettyPDF(){
+  let reportHTML='';
+  try{
+    reportHTML=buildPrettyReportHTML();
+    reportHTML=reportHTML.replace('</body>','<script>window.addEventListener("load",function(){setTimeout(function(){try{window.focus();window.print();}catch(e){console.error(e);}},500);});<\/script></body>');
+
+    const blob=new Blob([reportHTML],{type:'text/html'});
+    const url=URL.createObjectURL(blob);
+    const w=window.open(url,'_blank');
+
+    if(!w){
+      downloadTextFile(`${safeFileName(el('eventName')?.value||'party')}-pretty-report.html`,reportHTML,'text/html');
+      alert('Popup/print was blocked. I downloaded the pretty report as an HTML file. Open it and press Ctrl+P, then choose Save as PDF.');
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+      return;
+    }
+
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+  }catch(e){
+    console.error('PDF export failed:',e);
+    try{
+      if(reportHTML){
+        downloadTextFile(`${safeFileName(el('eventName')?.value||'party')}-pretty-report.html`,reportHTML,'text/html');
+        alert('PDF print failed, so I downloaded the pretty report as an HTML file. Open it and press Ctrl+P, then choose Save as PDF.');
+      }else{
+        alert('PDF export failed: '+(e&&e.message?e.message:e));
+      }
+    }catch(downloadErr){
+      console.error('Fallback download failed:',downloadErr);
+      alert('PDF export failed: '+(e&&e.message?e.message:e));
+    }
   }
 }
 
