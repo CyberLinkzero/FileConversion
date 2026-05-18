@@ -60,6 +60,12 @@
     .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
     .stat{background:rgba(7,20,38,.95);border:1px solid rgba(0,229,255,.18);border-radius:12px;padding:10px}
     .stat b{color:var(--line2);font-size:20px}
+
+    .inline-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .inline-actions button{width:auto;min-width:90px;margin-top:0;padding:8px 10px}
+    .meal-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;margin-bottom:7px}
+    .meal-row button{width:auto;margin-top:0;padding:7px 10px}
+
     .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);align-items:center;justify-content:center;z-index:50;padding:16px}
     .modal.open{display:flex}
     .modal-card{width:min(560px,100%);max-height:92vh;overflow:auto;background:#0d1b2f;border:1px solid rgba(0,229,255,.35);border-radius:18px;padding:18px;box-shadow:0 0 35px rgba(0,229,255,.22)}
@@ -108,7 +114,11 @@
     <button type="button" onclick="addObject()">Add Item</button><button type="button" class="good" onclick="updateSelectedObject()">Update Selected</button><button type="button" class="secondary" onclick="duplicateSelected()">Duplicate Selected</button><button type="button" class="danger" onclick="deleteSelected()">Delete Selected</button>
     <h2>Guests</h2><label>Add one name per line</label><textarea id="guestInput" placeholder="John Smith&#10;Mary Jones&#10;Aunt Linda"></textarea><button type="button" onclick="addGuests()">Add Guests</button>
     <h3>Edit Guest Details</h3><label>Guest</label><select id="guestEditSelect" onchange="loadGuestEditor()"><option value="">Select guest</option></select>
-    <div class="row"><div><label>RSVP</label><select id="guestRsvp"><option>invited</option><option>coming</option><option>maybe</option><option>declined</option></select></div><div><label>Meal</label><select id="guestMeal"><option></option><option>beef</option><option>chicken</option><option>vegan</option><option>kids meal</option></select></div></div>
+    <div class="inline-actions"><button type="button" class="danger" onclick="deleteSelectedGuest()">Delete Selected Guest</button></div>
+    <div class="row"><div><label>RSVP</label><select id="guestRsvp"><option>invited</option><option>coming</option><option>maybe</option><option>declined</option></select></div><div><label>Meal</label><select id="guestMeal"></select></div></div>
+    <h3>Meal Choices</h3>
+    <div class="row"><div><label>New Meal Choice</label><input id="newMealChoice" placeholder="Example: salmon, gluten free, no meal"></div><div><label>&nbsp;</label><button type="button" class="good" onclick="addMealChoice()">Add Meal</button></div></div>
+    <div id="mealChoiceList" class="guest-list"></div>
     <label>Group Tag</label><select id="guestGroup"><option></option><option>family</option><option>friends</option><option>work</option><option>VIP</option><option>kids</option></select>
     <label>Accessibility Notes</label><input id="guestAccess" placeholder="wheelchair, high chair, aisle seat">
     <label>Conflict / Keep Apart Notes</label><input id="guestConflict" placeholder="Keep away from Bob">
@@ -167,7 +177,7 @@ const el=id=>document.getElementById(id);
 const viewport=el('viewport');
 const scaleLayer=el('scaleLayer');
 const floor=el('floor');
-const state={objects:[],guests:[],budgets:[],schedule:[],selectedObjectId:null,activeSeat:null,zoom:1};
+const state={objects:[],guests:[],budgets:[],schedule:[],mealChoices:['beef','chicken','vegan','kids meal'],selectedObjectId:null,activeSeat:null,zoom:1};
 function uid(prefix){return prefix+'_'+Math.random().toString(36).slice(2,10)}
 function asArray(v){return Array.isArray(v)?v:[]}
 function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
@@ -175,6 +185,8 @@ function getObjects(){state.objects=asArray(state.objects);return state.objects}
 function getGuests(){state.guests=asArray(state.guests);return state.guests}
 function getBudgets(){state.budgets=asArray(state.budgets);return state.budgets}
 function getSchedule(){state.schedule=asArray(state.schedule);return state.schedule}
+function getMealChoices(){state.mealChoices=asArray(state.mealChoices).filter(Boolean);if(!state.mealChoices.length)state.mealChoices=['beef','chicken','vegan','kids meal'];return state.mealChoices}
+function ensureMealChoice(value){const meal=String(value||'').trim();if(meal&&!getMealChoices().some(m=>m.toLowerCase()===meal.toLowerCase()))getMealChoices().push(meal)}
 function cloneValue(v){return JSON.parse(JSON.stringify(v))}
 function typeInfo(type){const map={'table-round':['round','Table'],'table-rect':['rect','Table'],'table-square':['square','Table'],buffet:['rect buffet','Food Buffet'],stage:['rect stage','Stage'],dance:['rect dance','Dance Area'],dj:['square dj','DJ Booth'],bar:['rect bar','Bar / Drinks'],gift:['rect gift','Gift Table'],restroom:['square restroom','Restroom'],custom:['rect custom','Custom']};return map[type]||map.custom}
 function applyTypeDefaults(){const type=el('objectType').value;const presets={buffet:['Food Buffet',0,260,80],stage:['Stage',0,260,120],dance:['Dance Floor',0,300,220],dj:['DJ Booth',0,110,90],bar:['Bar / Drinks',0,220,75],gift:['Gift Table',0,180,75],restroom:['Restroom Sign',0,100,70]};if(type.startsWith('table')){el('objectName').value='Table '+(getObjects().filter(o=>String(o.type||'').startsWith('table')).length+1);el('objectSeats').value=8;el('objectW').value=150;el('objectH').value=150;return}const p=presets[type]||['Custom Item',0,180,90];el('objectName').value=p[0];el('objectSeats').value=p[1];el('objectW').value=p[2];el('objectH').value=p[3]}
@@ -196,16 +208,85 @@ function deleteSelected(){if(!state.selectedObjectId)return alert('Select an ite
 function getGuestByName(name){return getGuests().find(g=>g.name===name)||null}
 function seatRsvpClass(name){const g=getGuestByName(name);if(!g)return'';if(g.rsvp==='coming')return'';if(g.rsvp==='maybe')return'rsvp-maybe';if(g.rsvp==='declined')return'rsvp-declined';return'rsvp-pending'}
 function seatRsvpLabel(name){const g=getGuestByName(name);if(!g)return'';if(g.rsvp==='coming')return'Coming';if(g.rsvp==='maybe')return'Maybe';if(g.rsvp==='declined')return'Declined';return'Needs RSVP'}
-function render(){floor.innerHTML='';getObjects().forEach(renderObject);renderObjectSelect();renderGuestEditorSelect();renderGuests();renderRsvpList();renderAssignments();renderConflicts();renderBudget();renderTimeline();updateStats();applyZoom()}
+function render(){floor.innerHTML='';getObjects().forEach(renderObject);renderObjectSelect();renderMealChoices();renderGuestEditorSelect();renderGuests();renderRsvpList();renderAssignments();renderConflicts();renderBudget();renderTimeline();updateStats();applyZoom()}
 function renderObject(obj){const[cls,labelType]=typeInfo(obj.type);const box=document.createElement('div');box.className=`layout-object ${cls} ${state.selectedObjectId===obj.id?'selected':''}`;box.style.left=obj.x+'px';box.style.top=obj.y+'px';box.style.width=obj.w+'px';box.style.height=obj.h+'px';box.dataset.id=obj.id;box.innerHTML=`<div class="object-label">${esc(obj.name)}<small>${labelType}${obj.seats?` • ${obj.seats} seats`:''}</small></div>`;floor.appendChild(box);box.addEventListener('pointerdown',startObjectDrag);box.addEventListener('click',()=>selectObject(obj.id));for(let i=0;i<obj.seats;i++){const seat=document.createElement('div');const assigned=obj.assignments?.[i]||'';const rsvpClass=assigned?seatRsvpClass(assigned):'';const rsvpText=assigned?seatRsvpLabel(assigned):'';seat.className=`seat ${assigned?'assigned':''} ${rsvpClass}`;seat.textContent=assigned||`Seat ${i+1}`;seat.title=assigned?`${assigned} — ${rsvpText}`:`${obj.name} Seat ${i+1}`;const pos=seatPosition(obj,i);seat.style.left=pos.x+'px';seat.style.top=pos.y+'px';seat.onclick=e=>{e.stopPropagation();openSeatModal(obj.id,i)};floor.appendChild(seat)}}
 function seatPosition(obj,i){const cx=obj.x+obj.w/2,cy=obj.y+obj.h/2,angle=Math.PI*2*i/Math.max(1,obj.seats)-Math.PI/2;return{x:cx+Math.cos(angle)*(obj.w/2+42)-29,y:cy+Math.sin(angle)*(obj.h/2+34)-17}}
 function startObjectDrag(e){e.stopPropagation();const obj=getObjects().find(x=>x.id===e.currentTarget.dataset.id);if(!obj)return;state.selectedObjectId=obj.id;const sx=e.clientX,sy=e.clientY,ox=obj.x,oy=obj.y;e.currentTarget.setPointerCapture(e.pointerId);function move(ev){obj.x=Math.max(0,ox+(ev.clientX-sx)/state.zoom);obj.y=Math.max(0,oy+(ev.clientY-sy)/state.zoom);render()}function up(){window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);render()}window.addEventListener('pointermove',move);window.addEventListener('pointerup',up)}
 function setupViewportPan(){let panning=false,sx=0,sy=0,sl=0,st=0;viewport.addEventListener('pointerdown',e=>{if(e.target.closest('.layout-object')||e.target.closest('.seat'))return;panning=true;sx=e.clientX;sy=e.clientY;sl=viewport.scrollLeft;st=viewport.scrollTop;viewport.classList.add('panning');viewport.setPointerCapture(e.pointerId)});viewport.addEventListener('pointermove',e=>{if(!panning)return;viewport.scrollLeft=sl-(e.clientX-sx);viewport.scrollTop=st-(e.clientY-sy)});['pointerup','pointercancel','mouseleave'].forEach(name=>viewport.addEventListener(name,()=>{panning=false;viewport.classList.remove('panning')}))}
 function renderObjectSelect(){const select=el('selectedObjectSelect');select.innerHTML='<option value="">None</option>';getObjects().forEach(obj=>{const opt=document.createElement('option');opt.value=obj.id;opt.textContent=obj.name+' — '+typeInfo(obj.type)[1];if(obj.id===state.selectedObjectId)opt.selected=true;select.appendChild(opt)})}
 function addGuests(){const raw=el('guestInput').value.trim();if(!raw)return;raw.split('\n').map(n=>n.trim()).filter(Boolean).forEach(name=>{if(!getGuests().some(g=>g.name===name))getGuests().push({name,rsvp:'invited',meal:'',group:'',access:'',conflict:''})});el('guestInput').value='';render()}
+
+function renderMealChoices(){
+  const mealSelect=el('guestMeal');
+  if(mealSelect){
+    const current=mealSelect.value;
+    mealSelect.innerHTML='<option value="">No meal selected</option>';
+    getMealChoices().forEach(meal=>{
+      const opt=document.createElement('option');
+      opt.value=meal;
+      opt.textContent=meal;
+      if(meal===current)opt.selected=true;
+      mealSelect.appendChild(opt);
+    });
+  }
+  const list=el('mealChoiceList');
+  if(list){
+    list.innerHTML='';
+    getMealChoices().forEach(meal=>{
+      const row=document.createElement('div');
+      row.className='meal-row';
+      const label=document.createElement('div');
+      label.className='mini-card';
+      label.textContent=meal;
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.className='danger';
+      btn.textContent='Delete';
+      btn.addEventListener('click',()=>deleteMealChoice(meal));
+      row.appendChild(label);
+      row.appendChild(btn);
+      list.appendChild(row);
+    });
+    if(!getMealChoices().length)list.innerHTML='<div class="small">No meal choices yet.</div>';
+  }
+}
+function addMealChoice(){
+  const input=el('newMealChoice');
+  const meal=String(input?.value||'').trim();
+  if(!meal)return alert('Enter a meal choice first.');
+  if(getMealChoices().some(m=>m.toLowerCase()===meal.toLowerCase()))return alert('That meal choice already exists.');
+  getMealChoices().push(meal);
+  if(input)input.value='';
+  render();
+}
+function deleteMealChoice(meal){
+  const usedBy=getGuests().filter(g=>(g.meal||'')===meal).map(g=>g.name);
+  const msg=usedBy.length?`Delete "${meal}" and clear it from ${usedBy.length} guest(s)?`:`Delete "${meal}"?`;
+  if(!confirm(msg))return;
+  state.mealChoices=getMealChoices().filter(m=>m!==meal);
+  getGuests().forEach(g=>{if(g.meal===meal)g.meal='';});
+  render();
+}
+function deleteSelectedGuest(){
+  const name=el('guestEditSelect')?.value||'';
+  if(!name)return alert('Select a guest first.');
+  if(!confirm(`Delete guest "${name}" and clear them from any seat assignments?`))return;
+  state.guests=getGuests().filter(g=>g.name!==name);
+  getObjects().forEach(obj=>{
+    Object.keys(obj.assignments||{}).forEach(k=>{
+      if(obj.assignments[k]===name)delete obj.assignments[k];
+    });
+  });
+  ['guestEditSelect','guestRsvp','guestMeal','guestGroup','guestAccess','guestConflict'].forEach(id=>{
+    const node=el(id);
+    if(node)node.value='';
+  });
+  render();
+}
+
 function renderGuestEditorSelect(){const select=el('guestEditSelect');const current=select.value;select.innerHTML='<option value="">Select guest</option>';getGuests().forEach(g=>{const opt=document.createElement('option');opt.value=g.name;opt.textContent=g.name;if(g.name===current)opt.selected=true;select.appendChild(opt)})}
-function loadGuestEditor(){const g=getGuests().find(x=>x.name===el('guestEditSelect').value);if(!g)return;el('guestRsvp').value=g.rsvp||'invited';el('guestMeal').value=g.meal||'';el('guestGroup').value=g.group||'';el('guestAccess').value=g.access||'';el('guestConflict').value=g.conflict||''}
-function saveGuestDetails(){const g=getGuests().find(x=>x.name===el('guestEditSelect').value);if(!g)return alert('Select a guest first.');g.rsvp=el('guestRsvp').value;g.meal=el('guestMeal').value;g.group=el('guestGroup').value;g.access=el('guestAccess').value;g.conflict=el('guestConflict').value;render()}
+function loadGuestEditor(){const g=getGuests().find(x=>x.name===el('guestEditSelect').value);if(!g)return;el('guestRsvp').value=g.rsvp||'invited';ensureMealChoice(g.meal);renderMealChoices();el('guestMeal').value=g.meal||'';el('guestGroup').value=g.group||'';el('guestAccess').value=g.access||'';el('guestConflict').value=g.conflict||''}
+function saveGuestDetails(){const g=getGuests().find(x=>x.name===el('guestEditSelect').value);if(!g)return alert('Select a guest first.');g.rsvp=el('guestRsvp').value;g.meal=el('guestMeal').value;ensureMealChoice(g.meal);g.group=el('guestGroup').value;g.access=el('guestAccess').value;g.conflict=el('guestConflict').value;render()}
 function getAssignedNames(){const names=new Set();getObjects().forEach(o=>Object.values(o.assignments||{}).forEach(name=>name&&names.add(name)));return names}
 function renderGuests(){const list=el('guestList');list.innerHTML='';const assigned=getAssignedNames();getGuests().forEach(g=>{const div=document.createElement('div');div.className=`guest-pill ${assigned.has(g.name)?'assigned':'unassigned'}`;div.innerHTML=`<b>${esc(g.name)}</b> — ${assigned.has(g.name)?'seated':'not seated'}<br><span class="small">RSVP: ${esc(g.rsvp||'invited')} • Meal: ${esc(g.meal||'none')} • Group: ${esc(g.group||'none')}</span>`;list.appendChild(div)})}
 function rsvpCounts(){const c={invited:0,coming:0,maybe:0,declined:0,needs:0};getGuests().forEach(g=>{const s=g.rsvp||'invited';c[s]=(c[s]||0)+1;if(s==='invited'||s==='maybe')c.needs++});return c}
@@ -225,8 +306,8 @@ function renderBudget(){const list=el('budgetList');list.innerHTML='';let total=
 function addTimeline(){getSchedule().push(normalizeScheduleItem({when:el('timeWhen').value,event:el('timeEvent').value,note:el('timeNote').value}));el('timeWhen').value='';el('timeNote').value='';render()}
 function removeTimeline(i){getSchedule().splice(i,1);render()}
 function renderTimeline(){const list=el('timelineList');list.innerHTML='';getSchedule().forEach((item,i)=>{const div=document.createElement('div');div.className='mini-card';div.innerHTML=`<b>${esc(item.when||'Time TBD')} — ${esc(item.event)}</b><br><span class="small">${esc(item.note||'')}</span>`;const btn=document.createElement('button');btn.className='danger';btn.type='button';btn.textContent='Remove';btn.addEventListener('click',()=>removeTimeline(i));div.appendChild(btn);list.appendChild(div)});if(!getSchedule().length)list.innerHTML='<div class="small">No timeline items yet.</div>'}
-function getData(){return{floorW:parseInt(floor.style.width||floor.offsetWidth,10),floorH:parseInt(floor.style.height||floor.offsetHeight,10),zoom:state.zoom,objects:getObjects(),guests:getGuests(),budgets:getBudgets(),schedule:getSchedule(),eventName:el('eventName')?.value||'',rsvpLink:el('rsvpLink')?.value||'',rsvpMessage:el('rsvpMessage')?.value||''}}
-function setData(data){const d=data&&typeof data==='object'?data:{};state.objects=asArray(d.objects||d.tables).map(normalizeObject);state.guests=asArray(d.guests).map(normalizeGuest);state.budgets=asArray(d.budgets).map(normalizeBudget);state.schedule=asArray(d.schedule||d.timeline).map(normalizeScheduleItem);state.zoom=Number(d.zoom||1);el('floorW').value=d.floorW||1100;el('floorH').value=d.floorH||700;applyFloorSize();el('eventName').value=d.eventName||'My Party';el('rsvpLink').value=d.rsvpLink||'';el('rsvpMessage').value=d.rsvpMessage||'You are invited! Please RSVP with coming, maybe, or declined. Also send your meal choice: beef, chicken, vegan, or kids meal.';state.selectedObjectId=state.objects[0]?.id||null;render()}
+function getData(){return{floorW:parseInt(floor.style.width||floor.offsetWidth,10),floorH:parseInt(floor.style.height||floor.offsetHeight,10),zoom:state.zoom,objects:getObjects(),guests:getGuests(),budgets:getBudgets(),schedule:getSchedule(),mealChoices:getMealChoices(),eventName:el('eventName')?.value||'',rsvpLink:el('rsvpLink')?.value||'',rsvpMessage:el('rsvpMessage')?.value||''}}
+function setData(data){const d=data&&typeof data==='object'?data:{};state.objects=asArray(d.objects||d.tables).map(normalizeObject);state.guests=asArray(d.guests).map(normalizeGuest);state.budgets=asArray(d.budgets).map(normalizeBudget);state.schedule=asArray(d.schedule||d.timeline).map(normalizeScheduleItem);state.mealChoices=asArray(d.mealChoices).length?asArray(d.mealChoices):['beef','chicken','vegan','kids meal'];state.guests.forEach(g=>ensureMealChoice(g.meal));state.zoom=Number(d.zoom||1);el('floorW').value=d.floorW||1100;el('floorH').value=d.floorH||700;applyFloorSize();el('eventName').value=d.eventName||'My Party';el('rsvpLink').value=d.rsvpLink||'';el('rsvpMessage').value=d.rsvpMessage||'You are invited! Please RSVP with coming, maybe, or declined. Also send your meal choice: beef, chicken, vegan, or kids meal.';state.selectedObjectId=state.objects[0]?.id||null;render()}
 function saveLayout(){localStorage.setItem('cyberPartyPlannerPro',JSON.stringify(getData()));alert('Layout saved in this browser.')}
 function loadLayout(){const raw=localStorage.getItem('cyberPartyPlannerPro');if(!raw)return alert('No saved layout found.');try{setData(JSON.parse(raw))}catch(e){alert('Saved layout could not be loaded.');console.error(e)}}
 function exportJSON(){el('importBox').value=JSON.stringify(getData(),null,2)}
@@ -241,7 +322,7 @@ function openTextInvite(){const body=encodeURIComponent(buildRsvpMessage());wind
 async function copyRsvpMessage(){const msg=buildRsvpMessage();try{await navigator.clipboard.writeText(msg);alert('RSVP message copied.')}catch{el('importBox').value=msg;alert('Copy blocked by browser. I placed the message in the export box so you can copy it.')}}
 function csvCell(value){return '"'+String(value??'').replace(/"/g,'""')+'"'}
 function downloadRsvpCSV(){const rows=[['Name','RSVP','Meal','Group','Accessibility','Conflict Notes','Seated']];const assigned=getAssignedNames();getGuests().forEach(g=>rows.push([g.name,g.rsvp||'invited',g.meal||'',g.group||'',g.access||'',g.conflict||'',assigned.has(g.name)?'yes':'no']));const csv=rows.map(row=>row.map(csvCell).join(',')).join('\n');downloadTextFile(`${safeFileName(el('eventName')?.value||'rsvp-list')}-rsvp.csv`,csv,'text/csv')}
-function runSelfTests(){const results=[];function test(name,fn){try{fn();results.push({name,pass:true})}catch(e){results.push({name,pass:false,message:e.message});console.error('Self test failed:',name,e)}}test('schedule remove uses app state array',()=>{const old=cloneValue(getSchedule());state.schedule=[{when:'1:00 PM',event:'setup',note:'test'}];removeTimeline(0);if(!Array.isArray(state.schedule))throw new Error('schedule is not an array');if(state.schedule.length!==0)throw new Error('removeTimeline did not remove item');state.schedule=old});test('budget remove uses app state array',()=>{const old=cloneValue(getBudgets());state.budgets=[{cat:'food',cost:10,note:'test'}];removeBudget(0);if(!Array.isArray(state.budgets))throw new Error('budgets is not an array');if(state.budgets.length!==0)throw new Error('removeBudget did not remove item');state.budgets=old});test('legacy import normalizes arrays',()=>{const old=cloneValue(getData());setData({timeline:{bad:true},budgets:{bad:true},guests:['Test Guest'],objects:[]});if(!Array.isArray(state.schedule))throw new Error('schedule was not normalized');if(!Array.isArray(state.budgets))throw new Error('budgets was not normalized');if(!Array.isArray(state.guests))throw new Error('guests was not normalized');setData(old)});test('RSVP seat classes are correct',()=>{const old=cloneValue(getGuests());state.guests=[normalizeGuest({name:'Pending Person',rsvp:'invited'}),normalizeGuest({name:'Maybe Person',rsvp:'maybe'}),normalizeGuest({name:'Yes Person',rsvp:'coming'}),normalizeGuest({name:'No Person',rsvp:'declined'})];if(seatRsvpClass('Pending Person')!=='rsvp-pending')throw new Error('invited should be pending');if(seatRsvpClass('Maybe Person')!=='rsvp-maybe')throw new Error('maybe should be warning');if(seatRsvpClass('Yes Person')!=='')throw new Error('coming should be normal');if(seatRsvpClass('No Person')!=='rsvp-declined')throw new Error('declined should be declined');state.guests=old});test('CSV export uses escaped newline text',()=>{const csv=[['A'],['B']].map(row=>row.map(csvCell).join(',')).join('\n');if(csv!=='"A"\n"B"')throw new Error('CSV newline failed')});renderTestResults(results)}
+function runSelfTests(){const results=[];function test(name,fn){try{fn();results.push({name,pass:true})}catch(e){results.push({name,pass:false,message:e.message});console.error('Self test failed:',name,e)}}test('schedule remove uses app state array',()=>{const old=cloneValue(getSchedule());state.schedule=[{when:'1:00 PM',event:'setup',note:'test'}];removeTimeline(0);if(!Array.isArray(state.schedule))throw new Error('schedule is not an array');if(state.schedule.length!==0)throw new Error('removeTimeline did not remove item');state.schedule=old});test('budget remove uses app state array',()=>{const old=cloneValue(getBudgets());state.budgets=[{cat:'food',cost:10,note:'test'}];removeBudget(0);if(!Array.isArray(state.budgets))throw new Error('budgets is not an array');if(state.budgets.length!==0)throw new Error('removeBudget did not remove item');state.budgets=old});test('legacy import normalizes arrays',()=>{const old=cloneValue(getData());setData({timeline:{bad:true},budgets:{bad:true},guests:['Test Guest'],objects:[]});if(!Array.isArray(state.schedule))throw new Error('schedule was not normalized');if(!Array.isArray(state.budgets))throw new Error('budgets was not normalized');if(!Array.isArray(state.guests))throw new Error('guests was not normalized');setData(old)});test('RSVP seat classes are correct',()=>{const old=cloneValue(getGuests());state.guests=[normalizeGuest({name:'Pending Person',rsvp:'invited'}),normalizeGuest({name:'Maybe Person',rsvp:'maybe'}),normalizeGuest({name:'Yes Person',rsvp:'coming'}),normalizeGuest({name:'No Person',rsvp:'declined'})];if(seatRsvpClass('Pending Person')!=='rsvp-pending')throw new Error('invited should be pending');if(seatRsvpClass('Maybe Person')!=='rsvp-maybe')throw new Error('maybe should be warning');if(seatRsvpClass('Yes Person')!=='')throw new Error('coming should be normal');if(seatRsvpClass('No Person')!=='rsvp-declined')throw new Error('declined should be declined');state.guests=old});test('CSV export uses escaped newline text',()=>{const csv=[['A'],['B']].map(row=>row.map(csvCell).join(',')).join('\n');if(csv!=='"A"\n"B"')throw new Error('CSV newline failed')});test('meal choices save and delete safely',()=>{const old=cloneValue(getMealChoices());state.mealChoices=['beef'];ensureMealChoice('salmon');if(!state.mealChoices.includes('salmon'))throw new Error('meal was not added');state.mealChoices=old});renderTestResults(results)}
 function renderTestResults(results){
   const list=el('testList');
   if(!list)return;
