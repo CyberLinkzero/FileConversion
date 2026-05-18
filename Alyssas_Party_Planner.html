@@ -490,21 +490,25 @@ function importFoodItemsCSV(event){
   event.target.value='';
 }
 
-function exportPrettyPDF(){
+
+function buildPrettyReportHTML(){
   const data=getData();
   const eventTitle=esc(data.eventName||'Party Planner');
   const rsvp=rsvpCounts();
   const seats=getObjects().reduce((s,o)=>s+Number(o.seats||0),0);
   const assigned=getObjects().reduce((s,o)=>s+Object.values(o.assignments||{}).filter(Boolean).length,0);
   const budgetTotal=getBudgets().reduce((s,b)=>s+Number(b.cost||0),0).toFixed(2);
+
   const mealRows=getMealChoices().map(meal=>{
     const names=getGuests().filter(g=>g.meal===meal).map(g=>g.name);
     return `<tr><td>${esc(meal)}</td><td>${names.length}</td><td>${esc(names.join(', ')||'—')}</td></tr>`;
   }).join('');
+
   const guestRows=getGuests().map(g=>`<tr><td>${esc(g.name)}</td><td>${esc(g.rsvp||'invited')}</td><td>${esc(g.meal||'')}</td><td>${esc(g.group||'')}</td><td>${esc(guestSeatLabel(g.name)||'')}</td><td>${esc(g.access||'')}</td><td>${esc(g.conflict||'')}</td></tr>`).join('');
   const objectRows=getObjects().map(o=>`<tr><td>${esc(o.name)}</td><td>${esc(typeInfo(o.type)[1])}</td><td>${Number(o.seats||0)}</td><td>${esc(o.notes||'')}</td></tr>`).join('');
   const timelineRows=getSchedule().map(t=>`<tr><td>${esc(t.when||'TBD')}</td><td>${esc(t.event||'')}</td><td>${esc(t.note||'')}</td></tr>`).join('');
   const budgetRows=getBudgets().map(b=>`<tr><td>${esc(b.cat)}</td><td>$${Number(b.cost||0).toFixed(2)}</td><td>${esc(b.note||'')}</td></tr>`).join('');
+
   const assignmentRows=[];
   getObjects().forEach(o=>{
     for(let i=0;i<o.seats;i++){
@@ -512,25 +516,56 @@ function exportPrettyPDF(){
       assignmentRows.push(`<tr><td>${esc(o.name)}</td><td>${i+1}</td><td>${esc(name||'Open')}</td><td>${esc(getGuestByName(name)?.rsvp||'')}</td><td>${esc(getGuestByName(name)?.meal||'')}</td></tr>`);
     }
   });
-  const html=`<!doctype html><html><head><meta charset="utf-8"><title>${eventTitle} PDF Report</title>
-  <style>
-    *{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f4f8ff;color:#0b1728}
-    .cover{background:linear-gradient(135deg,#07111f,#0b63ce 70%,#00a7c7);color:white;padding:34px 40px}
-    .cover h1{margin:0;font-size:34px}.cover p{margin:8px 0 0;color:#d7efff}
-    .wrap{padding:26px 40px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-    .card{background:white;border:1px solid #dbe8fb;border-radius:14px;padding:14px;box-shadow:0 8px 20px rgba(11,23,40,.08)}
-    .card b{font-size:24px;color:#0b63ce}.section{background:white;border:1px solid #dbe8fb;border-radius:16px;margin:18px 0;padding:18px;box-shadow:0 8px 20px rgba(11,23,40,.06);break-inside:avoid}
-    h2{margin:0 0 12px;color:#0b63ce;font-size:20px;border-bottom:2px solid #e6f2ff;padding-bottom:8px}
-    table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;border-bottom:1px solid #e8eef8;padding:8px;vertical-align:top}
-    th{background:#edf6ff;color:#07111f}.note{color:#53647c;font-size:12px}.footer{padding:20px 40px;color:#53647c;font-size:11px}
-    @media print{body{background:white}.wrap{padding:20px}.cover{padding:28px}.section{box-shadow:none}.no-print{display:none}}
-  </style></head><body>
-  <div class="cover"><h1>${eventTitle}</h1><p>Pretty Party Planner Report • Generated ${new Date().toLocaleString()}</p></div>
+
+  return `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>${eventTitle} PDF Report</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f4f8ff;color:#0b1728}
+  .cover{background:linear-gradient(135deg,#07111f,#0b63ce 70%,#00a7c7);color:white;padding:34px 40px}
+  .cover h1{margin:0;font-size:34px}
+  .cover p{margin:8px 0 0;color:#d7efff}
+  .wrap{padding:26px 40px}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+  .card{background:white;border:1px solid #dbe8fb;border-radius:14px;padding:14px;box-shadow:0 8px 20px rgba(11,23,40,.08)}
+  .card b{font-size:24px;color:#0b63ce}
+  .section{background:white;border:1px solid #dbe8fb;border-radius:16px;margin:18px 0;padding:18px;box-shadow:0 8px 20px rgba(11,23,40,.06);break-inside:avoid;page-break-inside:avoid}
+  h2{margin:0 0 12px;color:#0b63ce;font-size:20px;border-bottom:2px solid #e6f2ff;padding-bottom:8px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{text-align:left;border-bottom:1px solid #e8eef8;padding:8px;vertical-align:top}
+  th{background:#edf6ff;color:#07111f}
+  .footer{padding:20px 40px;color:#53647c;font-size:11px}
+  .no-print{padding:10px 16px;border:0;border-radius:10px;background:#0b63ce;color:#fff;font-weight:bold;cursor:pointer;margin-bottom:12px}
+  @page{size:letter;margin:.45in}
+  @media print{
+    body{background:white;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .wrap{padding:0}
+    .cover{padding:22px 26px;margin-bottom:12px}
+    .section{box-shadow:none}
+    .no-print{display:none}
+    .cards{grid-template-columns:repeat(4,1fr)}
+  }
+</style>
+</head>
+<body>
+  <div class="cover">
+    <h1>${eventTitle}</h1>
+    <p>Pretty Party Planner Report • Generated ${new Date().toLocaleString()}</p>
+  </div>
   <div class="wrap">
-    <button class="no-print" onclick="window.print()" style="padding:10px 16px;border:0;border-radius:10px;background:#0b63ce;color:#fff;font-weight:bold;cursor:pointer">Save / Print PDF</button>
+    <button class="no-print" onclick="window.print()">Save / Print PDF</button>
     <div class="cards">
-      <div class="card"><b>${getGuests().length}</b><br>Guests</div><div class="card"><b>${seats}</b><br>Total Seats</div><div class="card"><b>${assigned}</b><br>Assigned Seats</div><div class="card"><b>$${budgetTotal}</b><br>Budget Total</div>
-      <div class="card"><b>${rsvp.coming}</b><br>Coming</div><div class="card"><b>${rsvp.needs}</b><br>Needs RSVP</div><div class="card"><b>${rsvp.maybe}</b><br>Maybe</div><div class="card"><b>${rsvp.declined}</b><br>Declined</div>
+      <div class="card"><b>${getGuests().length}</b><br>Guests</div>
+      <div class="card"><b>${seats}</b><br>Total Seats</div>
+      <div class="card"><b>${assigned}</b><br>Assigned Seats</div>
+      <div class="card"><b>$${budgetTotal}</b><br>Budget Total</div>
+      <div class="card"><b>${rsvp.coming}</b><br>Coming</div>
+      <div class="card"><b>${rsvp.needs}</b><br>Needs RSVP</div>
+      <div class="card"><b>${rsvp.maybe}</b><br>Maybe</div>
+      <div class="card"><b>${rsvp.declined}</b><br>Declined</div>
     </div>
     <div class="section"><h2>Party List</h2><table><thead><tr><th>Name</th><th>RSVP</th><th>Meal</th><th>Group</th><th>Seat</th><th>Accessibility</th><th>Conflict Notes</th></tr></thead><tbody>${guestRows||'<tr><td colspan="7">No guests yet.</td></tr>'}</tbody></table></div>
     <div class="section"><h2>Food Items</h2><table><thead><tr><th>Food Item</th><th>Guest Count</th><th>Guests</th></tr></thead><tbody>${mealRows||'<tr><td colspan="3">No food items yet.</td></tr>'}</tbody></table></div>
@@ -538,13 +573,48 @@ function exportPrettyPDF(){
     <div class="section"><h2>Venue Items</h2><table><thead><tr><th>Name</th><th>Type</th><th>Seats</th><th>Notes</th></tr></thead><tbody>${objectRows||'<tr><td colspan="4">No items yet.</td></tr>'}</tbody></table></div>
     <div class="section"><h2>Timeline</h2><table><thead><tr><th>Time</th><th>Event</th><th>Details</th></tr></thead><tbody>${timelineRows||'<tr><td colspan="3">No timeline items yet.</td></tr>'}</tbody></table></div>
     <div class="section"><h2>Budget</h2><table><thead><tr><th>Category</th><th>Cost</th><th>Note</th></tr></thead><tbody>${budgetRows||'<tr><td colspan="3">No budget items yet.</td></tr>'}</tbody></table></div>
-  </div><div class="footer">Created with Alyssa's Par DD Planner Pro.</div>
-  <script>setTimeout(()=>window.print(),350)<\/script></body></html>`;
-  const w=window.open('','_blank');
-  if(!w)return alert('Popup blocked. Allow popups for this page, then try Export Pretty PDF again.');
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
+  </div>
+  <div class="footer">Created with Alyssa's Par DD Planner Pro.</div>
+</body>
+</html>`;
+}
+
+function exportPrettyPDF(){
+  try{
+    const reportHTML=buildPrettyReportHTML();
+    const oldFrame=document.getElementById('prettyPdfFrame');
+    if(oldFrame)oldFrame.remove();
+
+    const frame=document.createElement('iframe');
+    frame.id='prettyPdfFrame';
+    frame.style.position='fixed';
+    frame.style.right='0';
+    frame.style.bottom='0';
+    frame.style.width='1px';
+    frame.style.height='1px';
+    frame.style.border='0';
+    frame.style.opacity='0';
+    document.body.appendChild(frame);
+
+    const doc=frame.contentWindow.document;
+    doc.open();
+    doc.write(reportHTML);
+    doc.close();
+
+    setTimeout(()=>{
+      try{
+        frame.contentWindow.focus();
+        frame.contentWindow.print();
+      }catch(printErr){
+        console.error(printErr);
+        downloadTextFile(`${safeFileName(el('eventName')?.value||'party')}-pretty-report.html`,reportHTML,'text/html');
+        alert('Print was blocked by the browser. I downloaded the pretty report as an HTML file. Open it and press Ctrl+P, then choose Save as PDF.');
+      }
+    },650);
+  }catch(e){
+    console.error(e);
+    alert('PDF export failed. Check the browser console for details.');
+  }
 }
 
 function runSelfTests(){const results=[];function test(name,fn){try{fn();results.push({name,pass:true})}catch(e){results.push({name,pass:false,message:e.message});console.error('Self test failed:',name,e)}}test('schedule remove uses app state array',()=>{const old=cloneValue(getSchedule());state.schedule=[{when:'1:00 PM',event:'setup',note:'test'}];removeTimeline(0);if(!Array.isArray(state.schedule))throw new Error('schedule is not an array');if(state.schedule.length!==0)throw new Error('removeTimeline did not remove item');state.schedule=old});test('budget remove uses app state array',()=>{const old=cloneValue(getBudgets());state.budgets=[{cat:'food',cost:10,note:'test'}];removeBudget(0);if(!Array.isArray(state.budgets))throw new Error('budgets is not an array');if(state.budgets.length!==0)throw new Error('removeBudget did not remove item');state.budgets=old});test('legacy import normalizes arrays',()=>{const old=cloneValue(getData());setData({timeline:{bad:true},budgets:{bad:true},guests:['Test Guest'],objects:[]});if(!Array.isArray(state.schedule))throw new Error('schedule was not normalized');if(!Array.isArray(state.budgets))throw new Error('budgets was not normalized');if(!Array.isArray(state.guests))throw new Error('guests was not normalized');setData(old)});test('RSVP seat classes are correct',()=>{const old=cloneValue(getGuests());state.guests=[normalizeGuest({name:'Pending Person',rsvp:'invited'}),normalizeGuest({name:'Maybe Person',rsvp:'maybe'}),normalizeGuest({name:'Yes Person',rsvp:'coming'}),normalizeGuest({name:'No Person',rsvp:'declined'})];if(seatRsvpClass('Pending Person')!=='rsvp-pending')throw new Error('invited should be pending');if(seatRsvpClass('Maybe Person')!=='rsvp-maybe')throw new Error('maybe should be warning');if(seatRsvpClass('Yes Person')!=='')throw new Error('coming should be normal');if(seatRsvpClass('No Person')!=='rsvp-declined')throw new Error('declined should be declined');state.guests=old});test('CSV export uses escaped newline text',()=>{const csv=[['A'],['B']].map(row=>row.map(csvCell).join(',')).join('\n');if(csv!=='"A"\n"B"')throw new Error('CSV newline failed')});test('meal choices save and delete safely',()=>{const old=cloneValue(getMealChoices());state.mealChoices=['beef'];ensureMealChoice('salmon');if(!state.mealChoices.includes('salmon'))throw new Error('meal was not added');state.mealChoices=old});test('CSV parser handles quoted commas',()=>{const rows=csvParse('Name,Meal\n"Smith, John",beef');if(rows[1][0]!=='Smith, John')throw new Error('quoted comma failed')});renderTestResults(results)}
