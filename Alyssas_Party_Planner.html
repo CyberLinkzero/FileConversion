@@ -165,31 +165,6 @@
 <div id="seatModal" class="modal"><div class="modal-card"><h2>Assign Seat</h2><div class="small" id="seatInfo"></div><label>Choose Guest</label><select id="seatGuestSelect"></select><button type="button" onclick="assignSeatFromModal()">Assign Name</button><button type="button" class="secondary" onclick="unassignSeatFromModal()">Clear This Seat</button><button type="button" class="danger" onclick="closeSeatModal()">Close</button></div></div>
 
 <script>
-fetch('nav.html')
-  .then(r => r.text())
-  .then(html => {
-    document.getElementById('nav-container').innerHTML = html;
-
-    const toggle = document.querySelector('.site-nav__toggle');
-    const menu = document.querySelector('.site-nav__menu');
-
-    if (toggle && menu) {
-      toggle.addEventListener('click', () => {
-        const expanded = toggle.getAttribute('aria-expanded') === 'true';
-        toggle.setAttribute('aria-expanded', !expanded);
-        menu.classList.toggle('open');
-      });
-    }
-
-    document.querySelectorAll('.group-button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        btn.parentElement.classList.toggle('open');
-      });
-    });
-  });
-</script>
-
-<script>
 'use strict';
 const el=id=>document.getElementById(id);
 const viewport=el('viewport');
