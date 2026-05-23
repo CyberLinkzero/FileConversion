@@ -101,13 +101,11 @@
     @media(max-width:520px){.app{padding:8px;gap:8px}aside,.right-panel,.stage-wrap{border-radius:14px;padding:10px}.stage-tools{align-items:stretch}.stage-tools .group,.stage-tools button{width:100%}.stage-tools .group button{flex:1}#scaleLayer{padding:18px}}
     @media print{header,aside,.right-panel,.stage-tools{display:none}body{overflow:visible;background:white}.app{display:block;padding:0;height:auto}.stage-wrap{border:0;box-shadow:none;overflow:visible;background:white}#viewport{overflow:visible;border:0}#scaleLayer{transform:scale(.78)!important;transform-origin:top left;padding:0}}
   </style>
-  <link rel="stylesheet" href="nav.css">
-
+<link rel="stylesheet" href="nav.css">
+</head>
 <body>
 <div id="nav-container"></div>
-<header>
-  <div data-nav-placeholder></div>
-  <script src="nav-loader.js" defer></script><h1><span>Alyssa's</span> Party Planner Pro</h1><div class="small">Tables • Seats • RSVP • Meals • Budget • Timeline • Venue layout</div></header>
+<header><h1><span>Alyssa's</span> Par DD Planner Pro</h1><div class="small">Tables • Seats • RSVP • Meals • Budget • Timeline • Venue layout</div></header>
 <main class="app">
   <aside>
     <h2>Floor Size</h2>
@@ -163,6 +161,31 @@
   </section>
 </main>
 <div id="seatModal" class="modal"><div class="modal-card"><h2>Assign Seat</h2><div class="small" id="seatInfo"></div><label>Choose Guest</label><select id="seatGuestSelect"></select><button type="button" onclick="assignSeatFromModal()">Assign Name</button><button type="button" class="secondary" onclick="unassignSeatFromModal()">Clear This Seat</button><button type="button" class="danger" onclick="closeSeatModal()">Close</button></div></div>
+
+<script>
+fetch('nav.html')
+  .then(r => r.text())
+  .then(html => {
+    document.getElementById('nav-container').innerHTML = html;
+
+    const toggle = document.querySelector('.site-nav__toggle');
+    const menu = document.querySelector('.site-nav__menu');
+
+    if (toggle && menu) {
+      toggle.addEventListener('click', () => {
+        const expanded = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.setAttribute('aria-expanded', !expanded);
+        menu.classList.toggle('open');
+      });
+    }
+
+    document.querySelectorAll('.group-button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.parentElement.classList.toggle('open');
+      });
+    });
+  });
+</script>
 
 <script>
 'use strict';
@@ -538,6 +561,7 @@ function buildPrettyReportHTML(){
     .cards{grid-template-columns:repeat(4,1fr)}
   }
 </style>
+<link rel="stylesheet" href="nav.css">
 </head>
 <body>
   <div class="cover">

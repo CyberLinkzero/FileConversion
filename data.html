@@ -34,7 +34,7 @@
   <meta name="description" content="Convert GPS files (GPX, KML, TCX, FIT) to CSV/XLSX and back — privately, in your browser. Also convert CSV ⇄ XLSX. No uploads, no tracking.">
 
   <link rel="stylesheet" href="site.css">
-  
+  <link rel="stylesheet" href="nav.css">
 
   <!-- Libraries for the tools -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -510,8 +510,7 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="nav.css">
-
+</head>
 <body>
   <!-- Sponsored Header Bar -->
   <div id="sponsored-bar" role="banner" aria-label="Sponsored and built by Knack.bz"
@@ -533,8 +532,6 @@
   </div>
 
   <header>
-  <div data-nav-placeholder></div>
-  <script src="nav-loader.js" defer></script>
     <div class="page-shell">
       <div class="top-title">
         <h1 class="glow-title">GPS & Spreadsheet Converter</h1>
@@ -587,6 +584,8 @@
       </div>
 
       <div style="margin-top:16px;">
+        <div data-nav-placeholder></div>
+        <script src="nav-loader.js" defer></script>
         <script src="js/utils.js"></script>
       </div>
     </div>

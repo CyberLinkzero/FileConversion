@@ -145,12 +145,10 @@
       background:rgba(15,23,42,.9);
     }
   </style>
-  <link rel="stylesheet" href="nav.css">
-
+<link rel="stylesheet" href="nav.css">
+</head>
 <body>
   <header>
-  <div data-nav-placeholder></div>
-  <script src="nav-loader.js" defer></script>
     <!-- Sponsored Header Bar -->
     <div id="sponsored-bar" role="banner" aria-label="Sponsored by Knack.bz"
         style="position:sticky; top:0; z-index:9999; width:100%;
@@ -176,6 +174,7 @@
     </div>
 
     <!-- Global nav from nav.html -->
+    <div data-nav-placeholder></div>
   </header>
 
   <main class="shell">
@@ -208,6 +207,8 @@
       © <span id="year"></span> File Converter — Cyber Edition · Programming Lab
     </p>
   </footer>
+
+  <script src="nav-loader.js" defer></script>
   <script>
     document.querySelectorAll("#year").forEach(el => el.textContent = new Date().getFullYear());
 

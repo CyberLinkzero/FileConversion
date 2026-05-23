@@ -36,7 +36,7 @@
   <meta name="description" content="Convert between JSON/CSV/XLSX and export JSON to a simple .doc — privately in your browser. Paste or upload data, preview, and download. No uploads, no tracking.">
 
   <link rel="stylesheet" href="site.css" />
-  
+  <link rel="stylesheet" href="nav.css" />
 
   <!-- Structured data -->
   <script type="application/ld+json">
@@ -534,12 +534,9 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="nav.css">
-
+</head>
 <body>
 <header>
-  <div data-nav-placeholder></div>
-  <script src="nav-loader.js" defer></script>
   <!-- Sponsor bar -->
   <div id="sponsored-bar" role="banner" aria-label="Sponsored and built by Knack.bz"
        style="position:sticky; top:0; z-index:9999; width:100%;
@@ -596,7 +593,10 @@
     </div>
   </div>
 </header>
+
+<div data-nav-placeholder></div>
 <script src="js/utils.js"></script>
+<script src="nav-loader.js" defer></script>
 
 <section id="adsense-content" class="info page-shell" style="margin-top:18px;">
   <h3>From JSON to Document — Without the messy copy and paste</h3>
