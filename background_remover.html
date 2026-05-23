@@ -102,6 +102,260 @@
     .prose p{margin:.4rem 0}
     .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid var(--brand);color:var(--brand);background:#0f1a2a}
   </style>
+
+  <!-- Fixed FileConverter navigation styles -->
+  <style>
+:root {
+  --fc-nav-bg: rgba(10, 20, 39, 0.94);
+  --fc-nav-card: #12213d;
+  --fc-nav-card-2: #0f1b31;
+  --fc-nav-border: rgba(111, 168, 255, 0.28);
+  --fc-nav-text: #e8f1ff;
+  --fc-nav-muted: #b9cbec;
+  --fc-nav-brand: #1a73e8;
+  --fc-nav-brand-strong: #1558b0;
+  --fc-nav-highlight: #60a5fa;
+}
+
+/* Force nav to stay as one clean row on desktop, even if page CSS has old .tab rules */
+nav.site-nav,
+.site-nav,
+#fc-site-nav {
+  box-sizing: border-box !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 99998 !important;
+  width: 100% !important;
+  padding: 10px 12px !important;
+  background: transparent !important;
+  font-family: inherit !important;
+}
+
+.site-nav *,
+.site-nav *::before,
+.site-nav *::after {
+  box-sizing: border-box !important;
+}
+
+.site-nav .site-nav__inner {
+  width: min(1200px, calc(100% - 8px)) !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  flex-wrap: nowrap !important;
+  padding: 10px 14px !important;
+  background: var(--fc-nav-bg) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid var(--fc-nav-border) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.24) !important;
+}
+
+.site-nav .site-nav__brand {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex: 0 0 auto !important;
+  text-decoration: none !important;
+  color: var(--fc-nav-text) !important;
+  min-width: 0 !important;
+  white-space: nowrap !important;
+}
+
+.site-nav .site-nav__brand strong {
+  display: block !important;
+  color: #fff !important;
+  font-size: 1rem !important;
+  line-height: 1.1 !important;
+}
+
+.site-nav .site-nav__brand small {
+  display: block !important;
+  color: var(--fc-nav-muted) !important;
+  font-size: 0.78rem !important;
+  margin-top: 2px !important;
+}
+
+.site-nav .site-nav__logo {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  border-radius: 12px !important;
+  display: grid !important;
+  place-items: center !important;
+  font-weight: 800 !important;
+  color: #fff !important;
+  background: linear-gradient(135deg, var(--fc-nav-brand), #4ea1ff) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.24), 0 10px 24px rgba(26,115,232,.35) !important;
+}
+
+.site-nav .site-nav__menu {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  width: auto !important;
+  flex-direction: row !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.site-nav .tab-group {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.site-nav .tab,
+.site-nav .group-button,
+.site-nav .site-nav__cta {
+  appearance: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: auto !important;
+  min-height: 40px !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  color: var(--fc-nav-text) !important;
+  text-decoration: none !important;
+  border-radius: 12px !important;
+  padding: 9px 12px !important;
+  font-weight: 700 !important;
+  font-size: 0.94rem !important;
+  line-height: 1.1 !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  margin: 0 !important;
+}
+
+.site-nav .tab:hover,
+.site-nav .group-button:hover,
+.site-nav .site-nav__cta:hover,
+.site-nav .tab.active,
+.site-nav .group-button[aria-expanded="true"] {
+  background: rgba(96, 165, 250, 0.14) !important;
+  border-color: rgba(96, 165, 250, 0.28) !important;
+  color: #ffffff !important;
+}
+
+.site-nav .dropdown {
+  display: none !important;
+  position: absolute !important;
+  top: calc(100% + 10px) !important;
+  left: 0 !important;
+  z-index: 99999 !important;
+  min-width: 260px !important;
+  padding: 10px !important;
+  border-radius: 16px !important;
+  background: linear-gradient(180deg, var(--fc-nav-card), var(--fc-nav-card-2)) !important;
+  border: 1px solid var(--fc-nav-border) !important;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35) !important;
+}
+
+.site-nav .dropdown .tab {
+  display: flex !important;
+  width: 100% !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+  color: var(--fc-nav-text) !important;
+  padding: 10px 12px !important;
+  margin: 0 0 4px 0 !important;
+}
+
+.site-nav .dropdown .tab:last-child { margin-bottom: 0 !important; }
+
+.site-nav .tab-group:hover > .dropdown,
+.site-nav .tab-group:focus-within > .dropdown,
+.site-nav .tab-group.open > .dropdown {
+  display: block !important;
+}
+
+.site-nav .site-nav__cta {
+  background: linear-gradient(135deg, var(--fc-nav-brand), #4ea1ff) !important;
+  color: #fff !important;
+  border-color: rgba(255,255,255,.12) !important;
+  box-shadow: 0 10px 24px rgba(26,115,232,.26) !important;
+}
+
+.site-nav .site-nav__toggle {
+  display: none !important;
+  align-items: center !important;
+  gap: 7px !important;
+  border: 1px solid var(--fc-nav-border) !important;
+  background: rgba(96, 165, 250, 0.10) !important;
+  color: var(--fc-nav-text) !important;
+  padding: 10px 12px !important;
+  border-radius: 12px !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+}
+
+.site-nav .site-nav__toggle span:not(.site-nav__toggle-text) {
+  display: block !important;
+  width: 16px !important;
+  height: 2px !important;
+  background: currentColor !important;
+  border-radius: 999px !important;
+}
+
+.site-nav .site-nav__toggle-text {
+  font-weight: 800 !important;
+  font-size: .92rem !important;
+}
+
+@media (max-width: 980px) {
+  .site-nav .site-nav__inner {
+    flex-wrap: wrap !important;
+  }
+
+  .site-nav .site-nav__toggle {
+    display: inline-flex !important;
+    margin-left: auto !important;
+  }
+
+  .site-nav .site-nav__menu {
+    display: none !important;
+    width: 100% !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    padding-top: 10px !important;
+  }
+
+  .site-nav .site-nav__menu.is-open {
+    display: flex !important;
+  }
+
+  .site-nav .tab-group,
+  .site-nav .site-nav__cta {
+    width: 100% !important;
+    display: block !important;
+  }
+
+  .site-nav .tab,
+  .site-nav .group-button,
+  .site-nav .site-nav__cta {
+    width: 100% !important;
+    justify-content: space-between !important;
+    text-align: left !important;
+  }
+
+  .site-nav .dropdown {
+    position: static !important;
+    min-width: 100% !important;
+    margin-top: 8px !important;
+  }
+}
+
+  </style>
 </head>
 <body>
 
@@ -128,9 +382,147 @@
   <h1>Image Editor — Cyber Edition</h1>
   <p class="sub">Erase, recolor with paint roller (tolerance), crop, adjust, rotate/flip — all local, no uploads.</p>
 
-  <div data-nav-placeholder></div>
-  <script src="nav-loader.js" defer></script>
+  <!-- Fixed navigation: embedded so this page does not depend on nav-loader timing -->
+<nav class="site-nav" id="fc-site-nav" aria-label="Primary Navigation">
+  <div class="site-nav__inner">
+    <a class="site-nav__brand" href="index.html" aria-label="FileConverter home">
+      <span class="site-nav__logo">FC</span>
+      <span>
+        <strong>FileConverter.run</strong>
+        <small>Private browser tools</small>
+      </span>
+    </a>
+
+    <button class="site-nav__toggle" type="button" aria-expanded="false" aria-controls="site-nav-menu">
+      <span></span><span></span><span></span>
+      <span class="site-nav__toggle-text">Menu</span>
+    </button>
+
+    <div class="site-nav__menu" id="site-nav-menu">
+      <div class="tab-group">
+        <a class="tab group-label" href="index.html">Home</a>
+      </div>
+
+      <div class="tab-group">
+        <button class="tab group-label group-button" type="button" aria-expanded="false">File Tools ▾</button>
+        <div class="dropdown">
+          <a class="tab" href="images.html">Images</a>
+          <a class="tab" href="audio.html">Audio</a>
+          <a class="tab" href="video.html">Video</a>
+          <a class="tab" href="pdf.html">PDF</a>
+          <a class="tab" href="docx.html">DOCX</a>
+          <a class="tab" href="json.html">JSON</a>
+          <a class="tab" href="data.html">CSV / XLSX / GPS Data</a>
+          <a class="tab" href="archive.html">ZIP Tools</a>
+          <a class="tab" href="background_remover.html">Background Remover</a>
+          <a class="tab" href="gps.html">GPS Tools</a>
+        </div>
+      </div>
+
+      <div class="tab-group">
+        <button class="tab group-label group-button" type="button" aria-expanded="false">Guides ▾</button>
+        <div class="dropdown">
+          <a class="tab" href="gps-file-guide.html">GPS Guide</a>
+          <a class="tab" href="choosing-the-right-file-type.html">File Type Guide</a>
+          <a class="tab" href="image-file-guide.html">Image Guide</a>
+          <a class="tab" href="audio-file-guide.html">Audio Guide</a>
+          <a class="tab" href="video-file-guide.html">Video Guide</a>
+          <a class="tab" href="how-to-convert-csv-to-json.html">CSV to JSON Guide</a>
+          <a class="tab" href="how-to-convert-json-to-csv.html">JSON to CSV Guide</a>
+          <a class="tab" href="how-to-convert-pdf-to-word.html">PDF to Word Guide</a>
+          <a class="tab" href="how-to-convert-word-to-pdf.html">Word to PDF Guide</a>
+        </div>
+      </div>
+
+      <div class="tab-group">
+        <button class="tab group-label group-button" type="button" aria-expanded="false">Software ▾</button>
+        <div class="dropdown">
+          <a class="tab" href="graze-inventory-console.html">GrazeCart Inventory Console</a>
+          <a class="tab" href="cyberchat.html">Cyber Chat</a>
+          <a class="tab" href="Music.html">Music Tools</a>
+          <a class="tab" href="programming.html">Programming Lab</a>
+          <a class="tab" href="cyber-clean.html">Cyber Clean</a>
+          <a class="tab" href="Alyssas_Party_Planner.html">Alyssa's Party Planner</a>
+        </div>
+      </div>
+
+      <div class="tab-group">
+        <button class="tab group-label group-button" type="button" aria-expanded="false">Games ▾</button>
+        <div class="dropdown">
+          <a class="tab" href="Cyberpets.html">Cyber Pets</a>
+          <a class="tab" href="cyber-chess.html">Cyber Chess</a>
+          <a class="tab" href="compression-puzzle.html">Compression Puzzle</a>
+          <a class="tab" href="bsnes-emulator.html">Cyber SNES Emulator</a>
+        </div>
+      </div>
+
+      <a class="site-nav__cta" href="index.html#launcher">Convert Now</a>
+    </div>
+  </div>
+</nav>
+
+<script>
+(function () {
+  const nav = document.getElementById('fc-site-nav');
+  if (!nav) return;
+
+  const toggle = nav.querySelector('.site-nav__toggle');
+  const menu = nav.querySelector('#site-nav-menu');
+  const buttons = nav.querySelectorAll('.group-button');
+
+  if (toggle && menu) {
+    toggle.addEventListener('click', function () {
+      const open = menu.classList.toggle('is-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+
+  buttons.forEach(function (button) {
+    button.addEventListener('click', function (event) {
+      event.preventDefault();
+      const group = button.closest('.tab-group');
+      const isOpen = group.classList.toggle('open');
+      button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+
+      buttons.forEach(function (other) {
+        if (other !== button) {
+          other.setAttribute('aria-expanded', 'false');
+          const otherGroup = other.closest('.tab-group');
+          if (otherGroup) otherGroup.classList.remove('open');
+        }
+      });
+    });
+  });
+
+  document.addEventListener('click', function (event) {
+    if (nav.contains(event.target)) return;
+    buttons.forEach(function (button) {
+      button.setAttribute('aria-expanded', 'false');
+      const group = button.closest('.tab-group');
+      if (group) group.classList.remove('open');
+    });
+  });
+})();
+</script>
+
   <script src="js/utils.js"></script>
+  <script>
+    document.addEventListener('click', function (e) {
+      const toggle = e.target.closest('.site-nav__toggle');
+      if (toggle) {
+        const menu = document.getElementById('site-nav-menu');
+        const isOpen = menu.classList.toggle('is-open');
+        toggle.setAttribute('aria-expanded', String(isOpen));
+      }
+
+      const groupButton = e.target.closest('.site-nav .group-button');
+      if (groupButton) {
+        const group = groupButton.closest('.tab-group');
+        const isOpen = group.classList.toggle('open');
+        groupButton.setAttribute('aria-expanded', String(isOpen));
+      }
+    });
+  </script>
 
   <div class="chips">
     <span class="chip">Paint Roller (Color Change)</span>
