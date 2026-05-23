@@ -263,12 +263,15 @@
   <!-- Monaco loader -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
   <link rel="stylesheet" href="nav.css">
-</head>
+
 <body>
-<div data-nav-placeholder></div>
-<script src="nav-loader.js" defer></script>
+<nav>
+    <script src="js/utils.js"></script>
+  </nav>
 <div class="lab-root">
   <header class="lab-header">
+  <div data-nav-placeholder></div>
+  <script src="nav-loader.js" defer></script>
     <div>
       <div class="lab-title">JavaScript Lab — Cyber Edition</div>
       <div class="lab-sub">Run JavaScript directly in your browser. Mini-lessons from easy to advanced, no uploads.</div>

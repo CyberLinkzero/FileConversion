@@ -357,7 +357,7 @@ nav.site-nav,
 
   </style>
   <link rel="stylesheet" href="nav.css">
-</head>
+
 <body>
 
 <!-- Sponsored Header Bar -->
@@ -380,55 +380,12 @@ nav.site-nav,
 </div>
 
 <header>
+  <div data-nav-placeholder></div>
+  <script src="nav-loader.js" defer></script>
   <h1>Image Editor — Cyber Edition</h1>
   <p class="sub">Erase, recolor with paint roller (tolerance), crop, adjust, rotate/flip — all local, no uploads.</p>
-<div data-nav-placeholder></div>
-<script src="nav-loader.js" defer></script>
-<script>
-(function () {
-  const nav = document.getElementById('fc-site-nav');
-  if (!nav) return;
 
-  const toggle = nav.querySelector('.site-nav__toggle');
-  const menu = nav.querySelector('#site-nav-menu');
-  const buttons = nav.querySelectorAll('.group-button');
-
-  if (toggle && menu) {
-    toggle.addEventListener('click', function () {
-      const open = menu.classList.toggle('is-open');
-      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    });
-  }
-
-  buttons.forEach(function (button) {
-    button.addEventListener('click', function (event) {
-      event.preventDefault();
-      const group = button.closest('.tab-group');
-      const isOpen = group.classList.toggle('open');
-      button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-
-      buttons.forEach(function (other) {
-        if (other !== button) {
-          other.setAttribute('aria-expanded', 'false');
-          const otherGroup = other.closest('.tab-group');
-          if (otherGroup) otherGroup.classList.remove('open');
-        }
-      });
-    });
-  });
-
-  document.addEventListener('click', function (event) {
-    if (nav.contains(event.target)) return;
-    buttons.forEach(function (button) {
-      button.setAttribute('aria-expanded', 'false');
-      const group = button.closest('.tab-group');
-      if (group) group.classList.remove('open');
-    });
-  });
-})();
-</script>
-
-  <script src="js/utils.js"></script>
+  <!-- Fixed navigation: embedded so this page does not depend on nav-loader timing --><script src="js/utils.js"></script>
   <script>
     document.addEventListener('click', function (e) {
       const toggle = e.target.closest('.site-nav__toggle');
