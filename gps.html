@@ -31,7 +31,7 @@
   <meta name="description" content="Load, map, and convert GPX/TCX/KML/CSV/XLSX privately in your browser. Preview tracks, compute splits, export to GPX/KML/TCX/CSV/XLSX. No uploads, no tracking.">
 
   <link rel="stylesheet" href="site.css">
-  <link rel="stylesheet" href="nav.css">
+  
 
   <!-- Structured data -->
   <script type="application/ld+json">
@@ -579,9 +579,12 @@
       }
     }
   </style>
-</head>
+  <link rel="stylesheet" href="nav.css">
+
 <body>
 <header>
+  <div data-nav-placeholder></div>
+  <script src="nav-loader.js" defer></script>
   <!-- Sponsored Header Bar -->
   <div id="sponsored-bar" role="banner" aria-label="Sponsored by Knack.bz"
        style="position:sticky; top:0; z-index:9999; width:100%; background:#0f1117; color:#e5e7eb; border-bottom:1px solid #1f2430;">
@@ -644,8 +647,6 @@
     </div>
 
     <div style="margin-top:16px;">
-      <div data-nav-placeholder></div>
-      <script src="nav-loader.js" defer></script>
       <script src="js/utils.js"></script>
     </div>
   </div>

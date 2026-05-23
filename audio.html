@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <link rel="stylesheet" href="site.css">
-  <link rel="stylesheet" href="nav.css">
+  
 
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -649,7 +649,8 @@
     window.__FF__              = window.__FF__              || window.FFmpeg;
   })();
   </script>
-</head>
+  <link rel="stylesheet" href="nav.css">
+
 
 <body>
   <!-- Sponsored Header -->
@@ -668,6 +669,8 @@
   </div>
 
   <header>
+  <div data-nav-placeholder></div>
+  <script src="nav-loader.js" defer></script>
     <div class="page-shell">
       <div class="top-title">
         <h1 class="glow-title">Audio Converter</h1>
@@ -709,8 +712,6 @@
       </div>
 
       <div style="margin-top:16px;">
-        <div data-nav-placeholder></div>
-        <script src="nav-loader.js" defer></script>
         <script src="js/utils.js"></script>
       </div>
     </div>

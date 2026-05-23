@@ -27,7 +27,7 @@
   <title>Image Converter & Resizer — PNG, JPG, WebP, AVIF, HEIC, SVG | FileConverter.run</title>
   <meta name="description" content="Convert and resize images privately in your browser. PNG/JPEG/WebP/AVIF, batch processing, transparency preserved, icon sizes like 16x16 and 32x32, and no uploads.">
   <link rel="stylesheet" href="site.css"/>
-  <link rel="stylesheet" href="nav.css"/>
+  
 
   <style>
     :root{
@@ -631,7 +631,8 @@
       }
     }
   </style>
-</head>
+  <link rel="stylesheet" href="nav.css">
+
 
 <body>
   <!-- Sponsored Header Bar (dismissible) -->
@@ -647,6 +648,8 @@
   </div>
 
   <header>
+  <div data-nav-placeholder></div>
+  <script src="nav-loader.js" defer></script>
     <div class="page-shell">
       <div class="top-title">
         <h1 class="glow-title">Image Converter & Resizer</h1>
@@ -698,9 +701,7 @@
       </div>
 
       <div style="margin-top:16px;">
-        <div data-nav-placeholder></div>
         <script src="js/utils.js"></script>
-        <script src="nav-loader.js" defer></script>
       </div>
     </div>
   </header>

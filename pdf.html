@@ -31,7 +31,7 @@
   <meta name="description" content="Convert to/from PDF, merge, split, and extract text — all privately in your browser. Batch Images→PDF, PDF→Images, DOCX→PDF, HTML→PDF, and CSV/JSON/XLSX→PDF tables. No uploads.">
 
   <link rel="stylesheet" href="site.css"/>
-  <link rel="stylesheet" href="nav.css"/>
+  
 
   <!-- Structured data -->
   <script type="application/ld+json">
@@ -562,9 +562,12 @@
       }
     }
   </style>
-</head>
+  <link rel="stylesheet" href="nav.css">
+
 <body>
 <header>
+  <div data-nav-placeholder></div>
+  <script src="nav-loader.js" defer></script>
   <!-- Sponsored Header Bar -->
   <div id="sponsored-bar" role="banner" aria-label="Sponsored by Knack.bz"
        style="position:sticky; top:0; z-index:9999; width:100%; background:#0f1117; color:#e5e7eb; border-bottom:1px solid #1f2430;">
@@ -633,9 +636,7 @@
 </header>
 
 <div class="page-shell" style="margin-top:16px;">
-  <div data-nav-placeholder></div>
   <script src="js/utils.js"></script>
-  <script src="nav-loader.js" defer></script>
 </div>
 
 <section id="adsense-content" class="info">

@@ -101,11 +101,13 @@
     @media(max-width:520px){.app{padding:8px;gap:8px}aside,.right-panel,.stage-wrap{border-radius:14px;padding:10px}.stage-tools{align-items:stretch}.stage-tools .group,.stage-tools button{width:100%}.stage-tools .group button{flex:1}#scaleLayer{padding:18px}}
     @media print{header,aside,.right-panel,.stage-tools{display:none}body{overflow:visible;background:white}.app{display:block;padding:0;height:auto}.stage-wrap{border:0;box-shadow:none;overflow:visible;background:white}#viewport{overflow:visible;border:0}#scaleLayer{transform:scale(.78)!important;transform-origin:top left;padding:0}}
   </style>
-<link rel="stylesheet" href="nav.css">
-</head>
+  <link rel="stylesheet" href="nav.css">
+
 <body>
 <div id="nav-container"></div>
-<header><h1><span>Alyssa's</span> Par DD Planner Pro</h1><div class="small">Tables • Seats • RSVP • Meals • Budget • Timeline • Venue layout</div></header>
+<header>
+  <div data-nav-placeholder></div>
+  <script src="nav-loader.js" defer></script><h1><span>Alyssa's</span> Par DD Planner Pro</h1><div class="small">Tables • Seats • RSVP • Meals • Budget • Timeline • Venue layout</div></header>
 <main class="app">
   <aside>
     <h2>Floor Size</h2>
@@ -561,7 +563,6 @@ function buildPrettyReportHTML(){
     .cards{grid-template-columns:repeat(4,1fr)}
   }
 </style>
-<link rel="stylesheet" href="nav.css">
 </head>
 <body>
   <div class="cover">

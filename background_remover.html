@@ -39,7 +39,7 @@
       text-align:center; font-weight:800; font-size:2.4rem; margin:8px 0 2px;
       background:linear-gradient(90deg,#00ffff,#7dd3fc,#a78bfa,#ff00ff,#00ffcc,#00ffff);
       -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-      
+      text-shadow:0 0 6px rgba(125,211,252,.5),0 0 12px rgba(125,211,252,.3),0 0 18px rgba(167,139,250,.2);
       background-size:400% auto; animation:cyberPulse 3s ease-in-out infinite alternate, gradientShift 4s linear infinite;
     }
     .sub{text-align:center; color:#cfe9ff; opacity:.9}
@@ -356,8 +356,8 @@ nav.site-nav,
 }
 
   </style>
-<link rel="stylesheet" href="nav.css">
-</head>
+  <link rel="stylesheet" href="nav.css">
+
 <body>
 
 <!-- Sponsored Header Bar -->
@@ -380,133 +380,12 @@ nav.site-nav,
 </div>
 
 <header>
+  <div data-nav-placeholder></div>
+  <script src="nav-loader.js" defer></script>
   <h1>Image Editor — Cyber Edition</h1>
   <p class="sub">Erase, recolor with paint roller (tolerance), crop, adjust, rotate/flip — all local, no uploads.</p>
 
-  <!-- Fixed navigation: embedded so this page does not depend on nav-loader timing -->
-<nav class="site-nav" id="fc-site-nav" aria-label="Primary Navigation">
-  <div class="site-nav__inner">
-    <a class="site-nav__brand" href="index.html" aria-label="FileConverter home">
-      <span class="site-nav__logo">FC</span>
-      <span>
-        <strong>FileConverter.run</strong>
-        <small>Private browser tools</small>
-      </span>
-    </a>
-
-    <button class="site-nav__toggle" type="button" aria-expanded="false" aria-controls="site-nav-menu">
-      <span></span><span></span><span></span>
-      <span class="site-nav__toggle-text">Menu</span>
-    </button>
-
-    <div class="site-nav__menu" id="site-nav-menu">
-      <div class="tab-group">
-        <a class="tab group-label" href="index.html">Home</a>
-      </div>
-
-      <div class="tab-group">
-        <button class="tab group-label group-button" type="button" aria-expanded="false">File Tools ▾</button>
-        <div class="dropdown">
-          <a class="tab" href="images.html">Images</a>
-          <a class="tab" href="audio.html">Audio</a>
-          <a class="tab" href="video.html">Video</a>
-          <a class="tab" href="pdf.html">PDF</a>
-          <a class="tab" href="docx.html">DOCX</a>
-          <a class="tab" href="json.html">JSON</a>
-          <a class="tab" href="data.html">CSV / XLSX / GPS Data</a>
-          <a class="tab" href="archive.html">ZIP Tools</a>
-          <a class="tab" href="background_remover.html">Background Remover</a>
-          <a class="tab" href="gps.html">GPS Tools</a>
-        </div>
-      </div>
-
-      <div class="tab-group">
-        <button class="tab group-label group-button" type="button" aria-expanded="false">Guides ▾</button>
-        <div class="dropdown">
-          <a class="tab" href="gps-file-guide.html">GPS Guide</a>
-          <a class="tab" href="choosing-the-right-file-type.html">File Type Guide</a>
-          <a class="tab" href="image-file-guide.html">Image Guide</a>
-          <a class="tab" href="audio-file-guide.html">Audio Guide</a>
-          <a class="tab" href="video-file-guide.html">Video Guide</a>
-          <a class="tab" href="how-to-convert-csv-to-json.html">CSV to JSON Guide</a>
-          <a class="tab" href="how-to-convert-json-to-csv.html">JSON to CSV Guide</a>
-          <a class="tab" href="how-to-convert-pdf-to-word.html">PDF to Word Guide</a>
-          <a class="tab" href="how-to-convert-word-to-pdf.html">Word to PDF Guide</a>
-        </div>
-      </div>
-
-      <div class="tab-group">
-        <button class="tab group-label group-button" type="button" aria-expanded="false">Software ▾</button>
-        <div class="dropdown">
-          <a class="tab" href="graze-inventory-console.html">GrazeCart Inventory Console</a>
-          <a class="tab" href="cyberchat.html">Cyber Chat</a>
-          <a class="tab" href="Music.html">Music Tools</a>
-          <a class="tab" href="programming.html">Programming Lab</a>
-          <a class="tab" href="cyber-clean.html">Cyber Clean</a>
-          <a class="tab" href="Alyssas_Party_Planner.html">Alyssa's Party Planner</a>
-        </div>
-      </div>
-
-      <div class="tab-group">
-        <button class="tab group-label group-button" type="button" aria-expanded="false">Games ▾</button>
-        <div class="dropdown">
-          <a class="tab" href="Cyberpets.html">Cyber Pets</a>
-          <a class="tab" href="cyber-chess.html">Cyber Chess</a>
-          <a class="tab" href="compression-puzzle.html">Compression Puzzle</a>
-          <a class="tab" href="bsnes-emulator.html">Cyber SNES Emulator</a>
-        </div>
-      </div>
-
-      <a class="site-nav__cta" href="index.html#launcher">Convert Now</a>
-    </div>
-  </div>
-</nav>
-
-<script>
-(function () {
-  const nav = document.getElementById('fc-site-nav');
-  if (!nav) return;
-
-  const toggle = nav.querySelector('.site-nav__toggle');
-  const menu = nav.querySelector('#site-nav-menu');
-  const buttons = nav.querySelectorAll('.group-button');
-
-  if (toggle && menu) {
-    toggle.addEventListener('click', function () {
-      const open = menu.classList.toggle('is-open');
-      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    });
-  }
-
-  buttons.forEach(function (button) {
-    button.addEventListener('click', function (event) {
-      event.preventDefault();
-      const group = button.closest('.tab-group');
-      const isOpen = group.classList.toggle('open');
-      button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-
-      buttons.forEach(function (other) {
-        if (other !== button) {
-          other.setAttribute('aria-expanded', 'false');
-          const otherGroup = other.closest('.tab-group');
-          if (otherGroup) otherGroup.classList.remove('open');
-        }
-      });
-    });
-  });
-
-  document.addEventListener('click', function (event) {
-    if (nav.contains(event.target)) return;
-    buttons.forEach(function (button) {
-      button.setAttribute('aria-expanded', 'false');
-      const group = button.closest('.tab-group');
-      if (group) group.classList.remove('open');
-    });
-  });
-})();
-</script>
-
-  <script src="js/utils.js"></script>
+  <!-- Fixed navigation: embedded so this page does not depend on nav-loader timing --><script src="js/utils.js"></script>
   <script>
     document.addEventListener('click', function (e) {
       const toggle = e.target.closest('.site-nav__toggle');
