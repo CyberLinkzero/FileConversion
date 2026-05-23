@@ -461,6 +461,27 @@
       }
     }
 
+
+    /* Readability repair: keep content text bright even when nav styles load */
+    main, main p, main li, main ol, main ul{
+      color:#e5e7eb;
+    }
+
+    main .card p,
+    main .card li{
+      color:#d7deea;
+    }
+
+    main a:not(.tool-card):not(.quick-link):not(.hero-btn){
+      color:#7dd3fc;
+    }
+
+    .tool-card,
+    .quick-link,
+    .hero-btn{
+      color:#fff;
+    }
+
     /* Consent banner theme */
     :root{
       --fc-bg:#0f1117;
@@ -578,45 +599,7 @@
         justify-content:flex-start;
       }
     }
-
-    /* Category Dropdown Navigation (kept compatible with nav.css) */
-    .tab-group{
-      position:relative;
-    }
-
-    .group-label{
-      cursor:pointer;
-      font-weight:600;
-      color:#7dd3fc;
-    }
-
-    .dropdown{
-      display:none;
-      position:absolute;
-      background:#1a1f2c;
-      border:1px solid #263044;
-      border-radius:10px;
-      min-width:220px;
-      padding:10px;
-      z-index:9999;
-    }
-
-    .tab-group:hover .dropdown{
-      display:block;
-    }
-
-    .dropdown .tab{
-      display:block;
-      padding:8px 10px;
-      border-radius:8px;
-      margin-bottom:4px;
-      color:#e5e7eb;
-    }
-
-    .dropdown .tab:hover{
-      background:#263044;
-    }
-  </style>
+</style>
 
   <!-- Structured Data: WebApplication + FAQ -->
   <script type="application/ld+json">
