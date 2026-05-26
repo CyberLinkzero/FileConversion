@@ -1,383 +1,59 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Cyber Chess – FileConverter.run</title>
-  <meta name="description" content="Play browser chess against a simple AI. Includes legal move hints, last move display, undo, difficulty, and PGN export." />
+from pathlib import Path
+import re
 
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-W25SYMTSSR"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-W25SYMTSSR');
-  </script>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9800485035530027" crossorigin="anonymous"></script>
+src = Path('/mnt/data/cyber-chess_rebuilt_working.html')
+text = src.read_text(encoding='utf-8')
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-  <link rel="stylesheet" href="nav.css">
+# Improve board colors and piece contrast
+replacements = {
+    r'background:#cbd5e1;': 'background:#dbe7f5;',
+    r'background:#475569;': 'background:#64748b;',
+    r'color:#fff;': 'color:#f8fafc;',
+}
 
-  <style>
-    :root{
-      --bg:#020617;
-      --panel:#0f172a;
-      --panel2:#111c33;
-      --line:rgba(96,165,250,.28);
-      --blue:#38bdf8;
-      --blue2:#0ea5e9;
-      --purple:#a855f7;
-      --text:#e5e7eb;
-      --muted:#9ca3af;
-      --good:#22c55e;
-      --warn:#facc15;
-      --danger:#fb7185;
-      --radius:20px;
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%;background:radial-gradient(circle at top,#0f172a 0,#020617 48%,#000 100%);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
-    body{padding:0;}
-    .site-shell{width:min(1220px,calc(100% - 24px));margin:0 auto;padding:14px 0 26px;}
-    .top-link{display:inline-flex;align-items:center;gap:8px;color:#7dd3fc;text-decoration:none;border:1px solid var(--line);background:rgba(15,23,42,.85);border-radius:999px;padding:8px 12px;margin:12px 0;}
-    .game-card{background:radial-gradient(circle at top left,rgba(56,189,248,.10),transparent 42%),radial-gradient(circle at bottom right,rgba(168,85,247,.12),transparent 46%),rgba(15,23,42,.96);border:1px solid var(--line);border-radius:28px;box-shadow:0 24px 70px rgba(0,0,0,.45);padding:20px;overflow:hidden;}
-    .header-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px;}
-    h1{margin:0;font-size:clamp(1.55rem,3vw,2.25rem);letter-spacing:.02em;color:#fff;text-shadow:0 2px 12px rgba(96,165,250,.18);}
-    .subline{color:var(--muted);margin-top:6px;line-height:1.45;}
-    .badge-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;}
-    .badge{border:1px solid var(--line);background:rgba(2,6,23,.55);border-radius:999px;padding:7px 10px;color:#cfe9ff;font-size:.78rem;white-space:nowrap;}
-    .layout{display:grid;grid-template-columns:minmax(320px,1.05fr) minmax(300px,.95fr);gap:18px;align-items:start;}
-    .panel{background:linear-gradient(135deg,rgba(15,23,42,.97),rgba(17,28,51,.95));border:1px solid rgba(96,165,250,.18);border-radius:var(--radius);padding:16px;box-shadow:0 18px 48px rgba(0,0,0,.25);}
-    .board-panel{display:flex;flex-direction:column;gap:12px;align-items:center;}
-    .board-wrap{width:min(100%,560px);aspect-ratio:1/1;border:1px solid rgba(125,211,252,.45);border-radius:16px;overflow:hidden;background:#111827;box-shadow:0 0 0 6px rgba(2,6,23,.45),0 20px 50px rgba(0,0,0,.35);}
-    .board{width:100%;height:100%;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);touch-action:manipulation;}
-    .square{position:relative;display:flex;align-items:center;justify-content:center;font-size:clamp(1.72rem,5.5vw,3.15rem);line-height:1;cursor:pointer;user-select:none;transition:filter .12s ease,box-shadow .12s ease,outline .12s ease;}
-    .square.light{background:#cfe8ff;color:#111827;}
-    .square.dark{background:#2456a6;color:#f8fafc;}
-    .square:hover{filter:brightness(1.08)}
-    .square.selected{outline:4px solid #facc15;outline-offset:-4px;box-shadow:inset 0 0 0 999px rgba(250,204,21,.14);}
-    .square.legal::after{content:"";position:absolute;width:24%;height:24%;border-radius:999px;background:rgba(34,197,94,.72);box-shadow:0 0 14px rgba(34,197,94,.55);}
-    .square.capture::after{content:"";position:absolute;inset:8%;border:4px solid rgba(251,113,133,.78);border-radius:14px;box-shadow:0 0 18px rgba(251,113,133,.42);}
-    .square.last{box-shadow:inset 0 0 0 999px rgba(56,189,248,.28);}
-    .coord{position:absolute;left:5px;bottom:4px;font-size:.62rem;color:rgba(15,23,42,.65);font-weight:700;pointer-events:none;}
-    .dark .coord{color:rgba(255,255,255,.58)}
-    .board-footer{width:min(100%,560px);display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-    .last-move-box,.turn-box{border:1px solid var(--line);border-radius:14px;background:rgba(2,6,23,.5);padding:10px;min-height:58px;}
-    .box-label{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.11em;margin-bottom:4px;}
-    .box-value{font-weight:800;color:#fff;}
-    .side-panel{display:flex;flex-direction:column;gap:14px;min-width:0;}
-    .panel-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
-    .panel-header h2{margin:0;color:#7dd3fc;font-size:.98rem;text-transform:uppercase;letter-spacing:.12em;}
-    .small{font-size:.78rem;color:var(--muted)}
-    .pills{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
-    button{font:inherit}
-    .difficulty-pill,.cyber-btn{border:1px solid rgba(125,211,252,.35);background:rgba(2,6,23,.62);color:#e0f2fe;border-radius:999px;padding:9px 11px;cursor:pointer;font-weight:700;transition:transform .1s ease,box-shadow .12s ease,border-color .12s ease,background .12s ease;}
-    .difficulty-pill{font-size:.78rem;min-height:40px;}
-    .difficulty-pill.active{background:linear-gradient(135deg,rgba(56,189,248,.30),rgba(14,165,233,.18));border-color:#7dd3fc;color:#fff;box-shadow:0 0 18px rgba(56,189,248,.28);}
-    .cyber-btn:hover,.difficulty-pill:hover{transform:translateY(-1px);border-color:#7dd3fc;box-shadow:0 12px 26px rgba(56,189,248,.16);}
-    .cyber-btn.secondary{background:rgba(15,23,42,.82);color:#dbeafe;border-color:rgba(148,163,184,.4);}
-    .button-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
-    .button-row.three{grid-template-columns:1fr 1fr 1fr;}
-    .status-chip{display:flex;align-items:center;gap:8px;border:1px solid rgba(148,163,184,.35);background:rgba(2,6,23,.48);border-radius:14px;padding:10px;margin-top:12px;color:#fff;}
-    .status-dot{width:10px;height:10px;border-radius:999px;background:var(--good);box-shadow:0 0 12px rgba(34,197,94,.8);flex:0 0 auto;}
-    .status-dot.warn{background:var(--warn);box-shadow:0 0 12px rgba(250,204,21,.8)}
-    .status-dot.danger{background:var(--danger);box-shadow:0 0 12px rgba(251,113,133,.8)}
-    .moves-container{height:230px;overflow:auto;border:1px solid rgba(148,163,184,.22);background:#020617;border-radius:14px;padding:10px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.82rem;white-space:pre-wrap;color:#dbeafe;}
-    .help-list{margin:8px 0 0 18px;padding:0;color:var(--muted);font-size:.88rem;line-height:1.45;}
-    .thinking{position:fixed;inset:0;background:rgba(2,6,23,.55);display:none;align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(2px);}
-    .thinking-card{background:#0f172a;border:1px solid #7dd3fc;border-radius:18px;padding:18px 22px;color:#fff;box-shadow:0 24px 80px rgba(0,0,0,.55);}
-    @media(max-width:960px){
-      .layout{grid-template-columns:1fr;}
-      .side-panel{order:2}.board-panel{order:1}
-      body{padding:0}.site-shell{width:min(100% - 16px,1220px)}.game-card{padding:14px;border-radius:22px}
-    }
-    @media(max-width:640px){
-      .header-row{flex-direction:column}.badge-row{justify-content:flex-start}.pills{grid-template-columns:1fr 1fr}.button-row,.button-row.three{grid-template-columns:1fr}.board-footer{grid-template-columns:1fr}.panel{padding:12px}.square{font-size:clamp(1.55rem,9.5vw,2.45rem)}
-    }
-  </style>
-</head>
-<body>
-  <div data-nav-placeholder></div>
-  <script src="nav-loader.js" defer></script>
+for old, new in replacements.items():
+    text = re.sub(old, new, text)
 
-  <div class="site-shell">
-    <a href="/" class="top-link">← Back to FileConverter.run</a>
+# Add stronger piece styles if not present
+inject_css = """
+.white-piece{
+  color:#f8fafc !important;
+  text-shadow:
+    0 0 6px rgba(125,211,252,.45),
+    0 0 2px rgba(255,255,255,.9);
+  filter:brightness(1.08);
+}
 
-    <main class="game-card">
-      <div class="header-row">
-        <div>
-          <h1>Cyber Chess</h1>
-          <div class="subline">Practice against a browser AI with legal move hints, last-move tracking, undo, and PGN export.</div>
-        </div>
-        <div class="badge-row">
-          <span class="badge">Browser Only</span>
-          <span class="badge">No Install</span>
-          <span class="badge">PGN Export</span>
-        </div>
-      </div>
+.black-piece{
+  color:#111827 !important;
+  text-shadow:
+    0 0 3px rgba(226,232,240,.45);
+  filter:contrast(1.25) brightness(.92);
+}
 
-      <div class="layout">
-        <section class="panel board-panel">
-          <div class="board-wrap"><div id="board" class="board" aria-label="Chess board"></div></div>
-          <div class="board-footer">
-            <div class="turn-box"><span class="box-label">Turn</span><span id="turnText" class="box-value">White to move</span></div>
-            <div class="last-move-box"><span class="box-label">Last Move</span><span id="lastMoveText" class="box-value">None yet</span></div>
-          </div>
-        </section>
+.square.last-move{
+  box-shadow: inset 0 0 0 4px rgba(56,189,248,.8);
+}
 
-        <aside class="side-panel">
-          <section class="panel">
-            <div class="panel-header"><h2>Difficulty</h2><span class="small">Stable AI levels</span></div>
-            <div class="pills" id="difficultyPills">
-              <button class="difficulty-pill active" data-level="easy">Easy</button>
-              <button class="difficulty-pill" data-level="medium">Medium</button>
-              <button class="difficulty-pill" data-level="hard">Hard</button>
-              <button class="difficulty-pill" data-level="expert">Expert</button>
-            </div>
-            <div class="button-row three">
-              <button class="cyber-btn" id="newGameBtn">⟳ New</button>
-              <button class="cyber-btn secondary" id="undoBtn">↶ Undo</button>
-              <button class="cyber-btn secondary" id="flipBtn">⇄ Flip</button>
-            </div>
-            <div class="button-row">
-              <button class="cyber-btn secondary" id="hintBtn">◎ Hint</button>
-              <button class="cyber-btn secondary" id="downloadPgnBtn">⬇ PGN</button>
-            </div>
-            <div class="status-chip"><span id="statusDot" class="status-dot"></span><span id="statusMessage">Game ready. You are White.</span></div>
-          </section>
+.square.selected{
+  box-shadow: inset 0 0 0 4px rgba(250,204,21,.9);
+}
+"""
 
-          <section class="panel">
-            <div class="panel-header"><h2>Move Log</h2><span class="small">PGN notation</span></div>
-            <div id="moves" class="moves-container">No moves yet.</div>
-          </section>
+if "</style>" in text:
+    text = text.replace("</style>", inject_css + "\n</style>", 1)
 
-          <section class="panel">
-            <div class="panel-header"><h2>How to Move</h2></div>
-            <ul class="help-list">
-              <li>Click one of your white pieces.</li>
-              <li>Green dots show legal moves.</li>
-              <li>Red rings show legal captures.</li>
-              <li>Blue squares show the last move.</li>
-              <li>If the AI is thinking, wait for the overlay to clear.</li>
-            </ul>
-          </section>
-        </aside>
-      </div>
-    </main>
-  </div>
+# Attempt to add classes to unicode pieces
+piece_map = {
+    '♔':'white-piece','♕':'white-piece','♖':'white-piece','♗':'white-piece','♘':'white-piece','♙':'white-piece',
+    '♚':'black-piece','♛':'black-piece','♜':'black-piece','♝':'black-piece','♞':'black-piece','♟':'black-piece',
+}
 
-  <div id="thinking" class="thinking"><div class="thinking-card">AI thinking…</div></div>
+# wrap standalone unicode chars in spans
+for piece, cls in piece_map.items():
+    text = text.replace(f">{piece}<", f'><span class="{cls}">{piece}</span><')
 
-<script>
-(function(){
-  if (typeof Chess === 'undefined') {
-    alert('Chess engine failed to load. Check internet/CDN access.');
-    return;
-  }
+out = Path('/mnt/data/cyber-chess_highcontrast.html')
+out.write_text(text, encoding='utf-8')
 
-  const game = new Chess();
-  let selected = null;
-  let legalTargets = [];
-  let isAIMoving = false;
-  let boardFlipped = false;
-  let lastMove = null;
-  let currentDifficulty = 'easy';
-
-  const depths = { easy:1, medium:1, hard:2, expert:2 };
-  const pieceUnicode = {
-    wp:'♙', wn:'♘', wb:'♗', wr:'♖', wq:'♕', wk:'♔',
-    bp:'♟', bn:'♞', bb:'♝', br:'♜', bq:'♛', bk:'♚'
-  };
-  const vals = {p:100,n:320,b:330,r:500,q:900,k:20000};
-
-  const boardEl = document.getElementById('board');
-  const movesEl = document.getElementById('moves');
-  const statusEl = document.getElementById('statusMessage');
-  const statusDot = document.getElementById('statusDot');
-  const lastMoveEl = document.getElementById('lastMoveText');
-  const turnEl = document.getElementById('turnText');
-  const thinkingEl = document.getElementById('thinking');
-
-  function squaresOrder(){
-    const files = boardFlipped ? ['h','g','f','e','d','c','b','a'] : ['a','b','c','d','e','f','g','h'];
-    const ranks = boardFlipped ? ['1','2','3','4','5','6','7','8'] : ['8','7','6','5','4','3','2','1'];
-    const out=[]; ranks.forEach(r=>files.forEach(f=>out.push(f+r))); return out;
-  }
-
-  function render(){
-    boardEl.innerHTML = '';
-    const order = squaresOrder();
-    for (const sq of order) {
-      const file = sq.charCodeAt(0)-97;
-      const rank = parseInt(sq[1],10)-1;
-      const div = document.createElement('button');
-      div.type = 'button';
-      div.className = 'square ' + (((file+rank)%2===0)?'dark':'light');
-      div.dataset.square = sq;
-      const piece = game.get(sq);
-      if (piece) div.textContent = pieceUnicode[piece.color + piece.type] || '';
-      if (selected === sq) div.classList.add('selected');
-      if (lastMove && (lastMove.from === sq || lastMove.to === sq)) div.classList.add('last');
-      const legal = legalTargets.find(m => m.to === sq);
-      if (legal) div.classList.add(game.get(sq) ? 'capture' : 'legal');
-      if ((sq[0] === 'a' && !boardFlipped) || (sq[0] === 'h' && boardFlipped)) {
-        const coord = document.createElement('span'); coord.className='coord'; coord.textContent=sq; div.appendChild(coord);
-      }
-      div.addEventListener('click', onSquareClick);
-      boardEl.appendChild(div);
-    }
-    updateStatus();
-  }
-
-  function setStatus(type,msg){
-    statusEl.textContent = msg;
-    statusDot.classList.remove('warn','danger');
-    if(type==='warn') statusDot.classList.add('warn');
-    if(type==='danger') statusDot.classList.add('danger');
-  }
-
-  function updateStatus(){
-    const pgn = game.pgn({max_width:80,newline_char:'\n'});
-    movesEl.textContent = pgn || 'No moves yet.';
-    movesEl.scrollTop = movesEl.scrollHeight;
-    lastMoveEl.textContent = lastMove ? `${lastMove.color === 'w' ? 'White' : 'Black'}: ${lastMove.san} (${lastMove.from} → ${lastMove.to})` : 'None yet';
-    turnEl.textContent = game.turn()==='w' ? 'White to move' : 'Black to move';
-    if(game.in_checkmate()) setStatus('danger', game.turn()==='w' ? 'Checkmate. Black wins.' : 'Checkmate. White wins.');
-    else if(game.in_draw()) setStatus('warn','Drawn position.');
-    else if(game.in_check()) setStatus('warn', game.turn()==='w' ? 'White is in check.' : 'Black is in check.');
-    else setStatus('ok', game.turn()==='w' ? 'Your move. Select a white piece.' : 'AI thinking…');
-  }
-
-  function onSquareClick(e){
-    if(isAIMoving || game.game_over() || game.turn() !== 'w') return;
-    const sq = e.currentTarget.dataset.square;
-    const piece = game.get(sq);
-
-    if(!selected){
-      if(piece && piece.color === 'w') selectSquare(sq);
-      return;
-    }
-
-    if(selected === sq){ clearSelection(); render(); return; }
-
-    const legal = legalTargets.find(m => m.to === sq);
-    if(legal){
-      const move = game.move({from:selected,to:sq,promotion:'q'});
-      lastMove = move;
-      clearSelection();
-      render();
-      if(!game.game_over()) scheduleAIMove();
-      return;
-    }
-
-    if(piece && piece.color === 'w') selectSquare(sq);
-    else { clearSelection(); render(); }
-  }
-
-  function selectSquare(sq){
-    selected = sq;
-    legalTargets = game.moves({square:sq, verbose:true});
-    render();
-  }
-  function clearSelection(){ selected=null; legalTargets=[]; }
-
-  function evalBoard(){
-    if(game.in_checkmate()) return game.turn()==='w' ? -100000 : 100000;
-    if(game.in_draw()) return 0;
-    let score=0;
-    const b=game.board();
-    for(let r=0;r<8;r++) for(let c=0;c<8;c++){
-      const p=b[r][c]; if(!p) continue;
-      let v=vals[p.type]||0;
-      // tiny positional bonus to make moves less random
-      if(p.type==='p') v += p.color==='w' ? (6-r)*4 : (r-1)*4;
-      score += p.color==='w' ? v : -v;
-    }
-    return score;
-  }
-
-  function minimax(depth, alpha, beta, maximizing){
-    if(depth===0 || game.game_over()) return evalBoard();
-    let moves=game.moves({verbose:false});
-    // shuffle slightly so games vary
-    for(let i=moves.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[moves[i],moves[j]]=[moves[j],moves[i]];}
-    if(maximizing){
-      let best=-Infinity;
-      for(const m of moves){game.move(m); best=Math.max(best,minimax(depth-1,alpha,beta,false)); game.undo(); alpha=Math.max(alpha,best); if(beta<=alpha) break;}
-      return best;
-    } else {
-      let best=Infinity;
-      for(const m of moves){game.move(m); best=Math.min(best,minimax(depth-1,alpha,beta,true)); game.undo(); beta=Math.min(beta,best); if(beta<=alpha) break;}
-      return best;
-    }
-  }
-
-  function findBestMove(){
-    const depth = depths[currentDifficulty] || 1;
-    const moves = game.moves({verbose:false});
-    if(!moves.length) return null;
-    let best = null;
-    let bestScore = Infinity; // black wants lower white score
-    for(const m of moves){
-      game.move(m);
-      const score = minimax(depth-1, -Infinity, Infinity, true);
-      game.undo();
-      if(score < bestScore || best === null){ bestScore=score; best=m; }
-    }
-    return best;
-  }
-
-  function scheduleAIMove(){
-    isAIMoving = true;
-    thinkingEl.style.display = 'flex';
-    updateStatus();
-    // let UI repaint before thinking
-    setTimeout(()=>{
-      const best = findBestMove();
-      if(best){ lastMove = game.move(best); }
-      isAIMoving = false;
-      thinkingEl.style.display = 'none';
-      render();
-    }, 60);
-  }
-
-  document.getElementById('newGameBtn').addEventListener('click', ()=>{
-    game.reset(); selected=null; legalTargets=[]; lastMove=null; isAIMoving=false; thinkingEl.style.display='none'; render();
-  });
-  document.getElementById('undoBtn').addEventListener('click', ()=>{
-    if(isAIMoving) return;
-    game.undo(); game.undo();
-    selected=null; legalTargets=[];
-    const hist = game.history({verbose:true});
-    lastMove = hist.length ? hist[hist.length-1] : null;
-    render();
-  });
-  document.getElementById('flipBtn').addEventListener('click', ()=>{ boardFlipped = !boardFlipped; render(); });
-  document.getElementById('hintBtn').addEventListener('click', ()=>{
-    if(game.turn() !== 'w' || isAIMoving) return;
-    let best=null, bestScore=-Infinity;
-    const moves=game.moves({verbose:true});
-    for(const m of moves){ game.move(m.san); const score=evalBoard(); game.undo(); if(score>bestScore){bestScore=score; best=m;} }
-    if(best){ selected=best.from; legalTargets=[best]; render(); setStatus('ok', `Hint: ${best.from} → ${best.to} (${best.san})`); }
-  });
-  document.getElementById('downloadPgnBtn').addEventListener('click', ()=>{
-    const pgn = game.pgn();
-    if(!pgn){ alert('No moves to export yet.'); return; }
-    const blob = new Blob([pgn], {type:'application/x-chess-pgn;charset=utf-8'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href=url; a.download='fileconverter-chess-' + new Date().toISOString().replace(/[:.]/g,'-') + '.pgn';
-    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-  });
-  document.querySelectorAll('.difficulty-pill').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      currentDifficulty = btn.dataset.level;
-      document.querySelectorAll('.difficulty-pill').forEach(b=>b.classList.toggle('active', b===btn));
-      setStatus('ok', `Difficulty set to ${currentDifficulty}.`);
-    });
-  });
-
-  render();
-})();
-</script>
-</body>
-</html>
+print(f"Saved updated file to {out}")
