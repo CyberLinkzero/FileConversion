@@ -63,14 +63,15 @@
       font-family: "Orbitron", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       background: radial-gradient(circle at top, #0f172a 0, #020617 45%, #000 100%);
       color: var(--text-main);
-      padding: 16px;
-      overflow-x: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
     }
 
     .cyber-wrapper {
-      width: min(100%, 1200px);
+      width: 100%;
       max-width: 1200px;
-      margin: 0 auto;
       background:
         radial-gradient(circle at top left, rgba(56, 189, 248, 0.1), transparent 60%),
         radial-gradient(circle at bottom right, rgba(147, 51, 234, 0.14), transparent 60%),
@@ -192,7 +193,7 @@
 
     .layout {
       display: grid;
-      grid-template-columns: minmax(320px, 1.05fr) minmax(280px, 0.95fr);
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
       gap: 20px;
       position: relative;
       z-index: 1;
@@ -437,73 +438,101 @@
       background: #4b5563;
     }
 
+    .small-note {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      #board {
+        max-width: 480px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .cyber-wrapper {
+        padding: 14px;
+      }
+      .header-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      h1 {
+        font-size: 1.3rem;
+      }
+      #board {
+        max-width: 360px;
+      }
+    }
+
+    /* === Responsive stacking and move UX fixes === */
+    body {
+      align-items: stretch;
+      justify-content: flex-start;
+      padding: clamp(10px, 2vw, 20px);
+      overflow-x: hidden;
+    }
+
+    .cyber-wrapper {
+      margin: 0 auto;
+    }
+
+    .layout {
+      align-items: start;
+    }
+
+    .board-panel {
+      min-width: 0;
+    }
+
+    #board {
+      width: min(100%, 560px);
+      aspect-ratio: 1 / 1;
+    }
+
     .last-move-card {
-      margin-top: 10px;
-      border-radius: var(--radius-md);
+      margin: 0 0 14px;
       border: 1px solid rgba(56, 189, 248, 0.45);
-      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), rgba(15, 23, 42, 0.96));
-      padding: 10px 12px;
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.14), rgba(15, 23, 42, 0.95));
+      border-radius: var(--radius-lg);
+      padding: 13px 14px;
+      box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.08);
     }
 
     .last-move-label {
+      color: var(--accent);
       font-size: 0.68rem;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: var(--text-muted);
-      margin-bottom: 4px;
+      margin-bottom: 5px;
     }
 
     .last-move-value {
-      font-family: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, monospace;
       font-size: 1rem;
-      color: #e0f2fe;
+      color: #ffffff;
       font-weight: 700;
-      min-height: 1.35rem;
-    }
-
-    .square-55d63.highlight-last-from {
-      box-shadow: inset 0 0 0 4px rgba(250, 204, 21, 0.82) !important;
-    }
-
-    .square-55d63.highlight-last-to {
-      box-shadow: inset 0 0 0 4px rgba(34, 197, 94, 0.88) !important;
-    }
-
-    .square-55d63.highlight-selected {
-      box-shadow: inset 0 0 0 4px rgba(56, 189, 248, 0.9) !important;
-    }
-
-    .square-55d63.highlight-legal {
-      position: relative;
-      box-shadow: inset 0 0 0 3px rgba(56, 189, 248, 0.45) !important;
-    }
-
-    .square-55d63.highlight-legal::after {
-      content: "";
-      width: 28%;
-      height: 28%;
-      border-radius: 999px;
-      background: rgba(56, 189, 248, 0.75);
-      position: absolute;
-      left: 36%;
-      top: 36%;
-      pointer-events: none;
     }
 
     .thinking-overlay {
       position: absolute;
       inset: 18px;
+      z-index: 5;
       border-radius: var(--radius-lg);
-      background: rgba(2, 6, 23, 0.72);
       display: none;
       align-items: center;
       justify-content: center;
+      text-align: center;
+      background: rgba(2, 6, 23, 0.72);
+      border: 1px solid rgba(56, 189, 248, 0.35);
       color: #e0f2fe;
-      font-size: 0.9rem;
-      letter-spacing: 0.08em;
+      font-weight: 800;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
-      z-index: 5;
-      border: 1px solid rgba(56, 189, 248, 0.38);
       backdrop-filter: blur(3px);
     }
 
@@ -511,72 +540,71 @@
       display: flex;
     }
 
+    .square-55d63.highlight-selected {
+      box-shadow: inset 0 0 0 4px rgba(56, 189, 248, 0.95) !important;
+    }
 
-    .small-note {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      margin-top: 6px;
+    .square-55d63.highlight-legal {
+      position: relative;
+      box-shadow: inset 0 0 0 4px rgba(74, 222, 128, 0.75) !important;
+    }
+
+    .square-55d63.highlight-last-from {
+      box-shadow: inset 0 0 0 4px rgba(250, 204, 21, 0.75) !important;
+    }
+
+    .square-55d63.highlight-last-to {
+      box-shadow: inset 0 0 0 4px rgba(168, 85, 247, 0.85) !important;
     }
 
     @media (max-width: 980px) {
-      body { padding: 10px; }
+      body {
+        display: block;
+      }
+      .cyber-wrapper {
+        border-radius: 18px;
+        padding: 16px;
+      }
       .layout {
         grid-template-columns: 1fr;
       }
       .side-panel {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        align-items: start;
+        order: 2;
       }
-      .side-panel .panel:last-child {
-        grid-column: 1 / -1;
+      .board-panel {
+        order: 1;
       }
-      #board {
-        width: min(100%, 520px) !important;
-        max-width: 520px;
+      .badge-group {
+        flex-wrap: wrap;
       }
     }
 
-    @media (max-width: 720px) {
+    @media (max-width: 560px) {
+      body {
+        padding: 8px;
+      }
       .cyber-wrapper {
         padding: 12px;
-        border-radius: 18px;
+        border-radius: 16px;
       }
-      .header-row {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
-      }
-      .title-row,
-      .badge-group,
-      .button-row,
-      .pill-row {
-        align-items: stretch;
-        flex-direction: column;
-      }
-      .badge,
-      .difficulty-pill,
-      button.cyber-btn {
-        width: 100%;
-      }
-      .side-panel {
-        display: flex;
-        flex-direction: column;
-      }
-      .board-panel,
-      .panel {
+      .board-panel, .panel {
         padding: 12px;
       }
+      .pill-row, .button-row {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+      .difficulty-pill, button.cyber-btn {
+        width: 100%;
+        min-width: 0;
+      }
       h1 {
-        font-size: 1.15rem;
         flex-direction: column;
         align-items: flex-start;
-      }
-      #board {
-        width: min(100%, 92vw) !important;
-        max-width: 92vw;
+        gap: 3px;
       }
     }
+
   </style>
   <link rel="stylesheet" href="nav.css">
 
@@ -618,12 +646,12 @@
 
   <div class="layout">
     <div class="board-panel">
-      <div class="thinking-overlay" id="thinking-overlay">AI thinking…</div>
-      <div id="board"></div>
       <div class="last-move-card">
         <div class="last-move-label">Last Move</div>
         <div class="last-move-value" id="last-move">No moves yet.</div>
       </div>
+      <div id="board"></div>
+      <div class="thinking-overlay" id="thinking-overlay">AI thinking…</div>
     </div>
 
     <div class="side-panel">
@@ -650,7 +678,7 @@
             </button>
           </div>
           <div class="small-note">
-            Easy looks only 1 ply ahead. Expert searches deeper. AI thinking now runs in a background worker so the board should not freeze.
+            Easy looks only 1 ply ahead. Expert searches deeper and will punish blunders.
           </div>
         </div>
 
@@ -688,13 +716,16 @@
   let board = null;
   let game = new Chess();
   let isAIMoving = false;
-  let selectedSquare = null;   // for click-to-move
+  let selectedSquare = null;
+  let lastMoveSquares = null;
 
+  // Keep depths modest so the browser does not lock up.
+  // Expert still plays stronger, but stays usable on phones/tablets.
   const DIFFICULTY_DEPTH = {
     easy: 1,
     medium: 2,
-    hard: 3,
-    expert: 4
+    hard: 2,
+    expert: 3
   };
 
   let currentDifficulty = "easy";
@@ -702,86 +733,64 @@
   const statusMessageEl = document.getElementById("status-message");
   const statusDotEl = document.getElementById("status-dot");
   const movesEl = document.getElementById("moves");
+  const lastMoveEl = document.getElementById("last-move");
+  const thinkingOverlayEl = document.getElementById("thinking-overlay");
   const difficultyPills = document.querySelectorAll(".difficulty-pill");
   const newGameBtn = document.getElementById("new-game-btn");
   const undoBtn = document.getElementById("undo-btn");
   const downloadPgnBtn = document.getElementById("download-pgn-btn");
-  const lastMoveEl = document.getElementById("last-move");
-  const thinkingOverlayEl = document.getElementById("thinking-overlay");
-  let aiWorker = null;
-  let lastMoveSquares = null;
 
   function setStatus(type, message) {
     statusMessageEl.textContent = message;
     statusDotEl.classList.remove("danger", "warn");
-    if (type === "warn") {
-      statusDotEl.classList.add("warn");
-    } else if (type === "danger") {
-      statusDotEl.classList.add("danger");
-    }
+    if (type === "warn") statusDotEl.classList.add("warn");
+    if (type === "danger") statusDotEl.classList.add("danger");
   }
 
-  // --- Simple eval for AI ---
-  const PIECE_VALUES = {
-    p: 100,
-    n: 320,
-    b: 330,
-    r: 500,
-    q: 900,
-    k: 20000
-  };
+  const PIECE_VALUES = { p:100, n:320, b:330, r:500, q:900, k:20000 };
 
-  function evaluateBoard(game) {
+  function evaluateBoard() {
     const b = game.board();
     let score = 0;
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
         const piece = b[row][col];
-        if (piece) {
-          const value = PIECE_VALUES[piece.type] || 0;
-          score += (piece.color === "w" ? value : -value);
-        }
+        if (!piece) continue;
+        const value = PIECE_VALUES[piece.type] || 0;
+        score += piece.color === "w" ? value : -value;
       }
     }
     if (game.in_checkmate()) {
-      const turn = game.turn();
-      if (turn === "w") score -= 100000;
-      else score += 100000;
+      score += game.turn() === "w" ? -100000 : 100000;
     }
     return score;
   }
 
   function minimax(depth, alpha, beta, isMaximizingPlayer) {
-    if (depth === 0 || game.game_over()) {
-      return evaluateBoard(game);
-    }
-
+    if (depth === 0 || game.game_over()) return evaluateBoard();
     const moves = game.moves();
     if (isMaximizingPlayer) {
       let maxEval = -Infinity;
-      for (let i = 0; i < moves.length; i++) {
-        const move = moves[i];
+      for (const move of moves) {
         game.move(move);
         const evalScore = minimax(depth - 1, alpha, beta, false);
         game.undo();
-        if (evalScore > maxEval) maxEval = evalScore;
-        if (maxEval > alpha) alpha = maxEval;
+        maxEval = Math.max(maxEval, evalScore);
+        alpha = Math.max(alpha, evalScore);
         if (beta <= alpha) break;
       }
       return maxEval;
-    } else {
-      let minEval = Infinity;
-      for (let i = 0; i < moves.length; i++) {
-        const move = moves[i];
-        game.move(move);
-        const evalScore = minimax(depth - 1, alpha, beta, true);
-        game.undo();
-        if (evalScore < minEval) minEval = evalScore;
-        if (minEval < beta) beta = minEval;
-        if (beta <= alpha) break;
-      }
-      return minEval;
     }
+    let minEval = Infinity;
+    for (const move of moves) {
+      game.move(move);
+      const evalScore = minimax(depth - 1, alpha, beta, true);
+      game.undo();
+      minEval = Math.min(minEval, evalScore);
+      beta = Math.min(beta, evalScore);
+      if (beta <= alpha) break;
+    }
+    return minEval;
   }
 
   function shuffledMoves(moves) {
@@ -796,13 +805,12 @@
   function getBestMove(depth) {
     const moves = shuffledMoves(game.moves());
     let bestMove = null;
-    let bestEval = -Infinity;
-    for (let i = 0; i < moves.length; i++) {
-      const move = moves[i];
+    let bestEval = Infinity; // Black tries to minimize white's score.
+    for (const move of moves) {
       game.move(move);
-      const evalScore = minimax(depth - 1, -Infinity, Infinity, false);
+      const evalScore = minimax(depth - 1, -Infinity, Infinity, true);
       game.undo();
-      if (evalScore > bestEval || bestMove === null) {
+      if (evalScore < bestEval || bestMove === null) {
         bestEval = evalScore;
         bestMove = move;
       }
@@ -810,17 +818,18 @@
     return bestMove;
   }
 
-  // --- Highlight helpers ---
+  function squareFromElement(el) {
+    const cls = String(el.className || "");
+    const match = cls.match(/square-([a-h][1-8])/);
+    return match ? match[1] : null;
+  }
+
   function removeSelectionHighlights() {
-    $('#board .square-55d63')
-      .removeClass('highlight-selected')
-      .removeClass('highlight-legal');
+    $('#board .square-55d63').removeClass('highlight-selected highlight-legal');
   }
 
   function removeLastMoveHighlights() {
-    $('#board .square-55d63')
-      .removeClass('highlight-last-from')
-      .removeClass('highlight-last-to');
+    $('#board .square-55d63').removeClass('highlight-last-from highlight-last-to');
   }
 
   function applyLastMoveHighlights() {
@@ -839,117 +848,16 @@
     removeSelectionHighlights();
     applyLastMoveHighlights();
     $('#board .square-' + square).addClass('highlight-selected');
-
     const moves = game.moves({ square, verbose: true });
-    for (let i = 0; i < moves.length; i++) {
-      const dest = moves[i].to;
-      $('#board .square-' + dest).addClass('highlight-legal');
+    for (const move of moves) {
+      $('#board .square-' + move.to).addClass('highlight-legal');
     }
   }
 
-  // --- AI move: background worker so the page does not freeze ---
-  function getAIWorker() {
-    if (aiWorker) return aiWorker;
-
-    const workerCode = `
-      importScripts("https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js");
-
-      const PIECE_VALUES = { p:100, n:320, b:330, r:500, q:900, k:20000 };
-
-      function evaluateBoard(game) {
-        const b = game.board();
-        let score = 0;
-        for (let row = 0; row < 8; row++) {
-          for (let col = 0; col < 8; col++) {
-            const piece = b[row][col];
-            if (piece) {
-              const value = PIECE_VALUES[piece.type] || 0;
-              score += (piece.color === "w" ? value : -value);
-            }
-          }
-        }
-        if (game.in_checkmate()) {
-          const turn = game.turn();
-          if (turn === "w") score -= 100000;
-          else score += 100000;
-        }
-        return score;
-      }
-
-      function shuffledMoves(moves) {
-        const arr = moves.slice();
-        for (let i = arr.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr;
-      }
-
-      function minimax(game, depth, alpha, beta, isMaximizingPlayer, deadline) {
-        if (Date.now() > deadline) return evaluateBoard(game);
-        if (depth === 0 || game.game_over()) return evaluateBoard(game);
-
-        const moves = game.moves();
-        if (isMaximizingPlayer) {
-          let maxEval = -Infinity;
-          for (let i = 0; i < moves.length; i++) {
-            game.move(moves[i]);
-            const evalScore = minimax(game, depth - 1, alpha, beta, false, deadline);
-            game.undo();
-            if (evalScore > maxEval) maxEval = evalScore;
-            if (maxEval > alpha) alpha = maxEval;
-            if (beta <= alpha) break;
-          }
-          return maxEval;
-        } else {
-          let minEval = Infinity;
-          for (let i = 0; i < moves.length; i++) {
-            game.move(moves[i]);
-            const evalScore = minimax(game, depth - 1, alpha, beta, true, deadline);
-            game.undo();
-            if (evalScore < minEval) minEval = evalScore;
-            if (minEval < beta) beta = minEval;
-            if (beta <= alpha) break;
-          }
-          return minEval;
-        }
-      }
-
-      function getBestMove(fen, depth, timeLimitMs) {
-        const game = new Chess(fen);
-        const deadline = Date.now() + timeLimitMs;
-        const moves = shuffledMoves(game.moves());
-        let bestMove = null;
-        let bestEval = -Infinity;
-
-        for (let i = 0; i < moves.length; i++) {
-          if (Date.now() > deadline && bestMove) break;
-          const move = moves[i];
-          game.move(move);
-          const evalScore = minimax(game, depth - 1, -Infinity, Infinity, false, deadline);
-          game.undo();
-          if (evalScore > bestEval || bestMove === null) {
-            bestEval = evalScore;
-            bestMove = move;
-          }
-        }
-        return bestMove;
-      }
-
-      self.onmessage = function(e) {
-        const { fen, depth, timeLimitMs } = e.data;
-        try {
-          const move = getBestMove(fen, depth, timeLimitMs);
-          self.postMessage({ ok: true, move });
-        } catch (err) {
-          self.postMessage({ ok: false, error: err.message || String(err) });
-        }
-      };
-    `;
-
-    const blob = new Blob([workerCode], { type: "application/javascript" });
-    aiWorker = new Worker(URL.createObjectURL(blob));
-    return aiWorker;
+  function setThinking(on) {
+    isAIMoving = on;
+    if (thinkingOverlayEl) thinkingOverlayEl.classList.toggle("show", on);
+    if (on) setStatus("warn", "AI thinking (Black)...");
   }
 
   function makeAIMove() {
@@ -957,48 +865,29 @@
       updateStatusAndMoves();
       return;
     }
+    setThinking(true);
+    const depth = DIFFICULTY_DEPTH[currentDifficulty] || 1;
 
-    isAIMoving = true;
-    selectedSquare = null;
-    removeSelectionHighlights();
-    applyLastMoveHighlights();
-    setStatus("warn", "AI thinking (Black)…");
-    if (thinkingOverlayEl) thinkingOverlayEl.classList.add("show");
-
-    const depth = DIFFICULTY_DEPTH[currentDifficulty] || 2;
-    const timeLimitMs = currentDifficulty === "expert" ? 1800 : currentDifficulty === "hard" ? 1100 : currentDifficulty === "medium" ? 700 : 350;
-    const worker = getAIWorker();
-
-    worker.onmessage = function(e) {
-      const data = e.data || {};
-      if (!data.ok || !data.move) {
-        isAIMoving = false;
-        if (thinkingOverlayEl) thinkingOverlayEl.classList.remove("show");
-        setStatus("danger", data.error ? "AI error: " + data.error : "AI could not find a move.");
+    // Let the UI paint first so the page does not feel frozen.
+    window.setTimeout(() => {
+      try {
+        const bestMove = getBestMove(depth);
+        if (bestMove) {
+          const moveObj = game.move(bestMove);
+          if (moveObj) {
+            lastMoveSquares = { from: moveObj.from, to: moveObj.to, san: moveObj.san };
+            board.position(game.fen(), false);
+            applyLastMoveHighlights();
+          }
+        }
+      } catch (err) {
+        console.error("AI move failed", err);
+        setStatus("danger", "AI move failed. Try New Game or lower difficulty.");
+      } finally {
+        setThinking(false);
         updateStatusAndMoves();
-        return;
       }
-
-      const moveObj = game.move(data.move);
-      if (moveObj) {
-        lastMoveSquares = { from: moveObj.from, to: moveObj.to, san: moveObj.san };
-        board.position(game.fen());
-        applyLastMoveHighlights();
-      }
-
-      isAIMoving = false;
-      if (thinkingOverlayEl) thinkingOverlayEl.classList.remove("show");
-      updateStatusAndMoves();
-    };
-
-    worker.onerror = function(err) {
-      isAIMoving = false;
-      if (thinkingOverlayEl) thinkingOverlayEl.classList.remove("show");
-      setStatus("danger", "AI worker failed. Try New Game or lower difficulty.");
-      console.error(err);
-    };
-
-    worker.postMessage({ fen: game.fen(), depth, timeLimitMs });
+    }, 80);
   }
 
   function updateStatusAndMoves() {
@@ -1009,59 +898,48 @@
     const last = historyVerbose.length ? historyVerbose[historyVerbose.length - 1] : null;
     if (last) {
       lastMoveEl.textContent = `${last.color === "w" ? "White" : "Black"}: ${last.san} (${last.from} → ${last.to})`;
+      lastMoveSquares = { from: last.from, to: last.to, san: last.san };
     } else {
       lastMoveEl.textContent = "No moves yet.";
+      lastMoveSquares = null;
     }
     applyLastMoveHighlights();
 
     if (game.in_checkmate()) {
-      if (game.turn() === "w") {
-        setStatus("danger", "Checkmate! Black (AI) wins.");
-      } else {
-        setStatus("danger", "Checkmate! White (You) win.");
-      }
+      setStatus("danger", game.turn() === "w" ? "Checkmate! Black (AI) wins." : "Checkmate! White (You) win.");
     } else if (game.in_draw()) {
       setStatus("warn", "Drawn position (stalemate or repetition).");
     } else if (game.in_check()) {
-      if (game.turn() === "w") {
-        setStatus("warn", "White to move and in check!");
-      } else {
-        setStatus("warn", "Black to move and in check!");
-      }
+      setStatus("warn", game.turn() === "w" ? "White to move and in check!" : "Black to move and in check!");
     } else {
-      const turnText = game.turn() === "w" ? "Your move (White)." : "AI thinking (Black)...";
-      setStatus("ok", turnText);
+      setStatus("ok", game.turn() === "w" ? "Your move (White)." : "AI thinking (Black)...");
     }
-
     movesEl.scrollTop = movesEl.scrollHeight;
   }
 
   function resetGame() {
     game.reset();
-    board.start();
     selectedSquare = null;
     lastMoveSquares = null;
+    setThinking(false);
+    board.start(false);
     removeHighlights();
     updateStatusAndMoves();
   }
 
   function undoLastPair() {
+    if (isAIMoving) return;
     if (game.history().length === 0) return;
     game.undo();
-    if (game.history().length > 0) {
-      game.undo();
-    }
-    board.position(game.fen());
+    if (game.history().length > 0) game.undo();
     selectedSquare = null;
-    const hist = game.history({ verbose: true });
-    const last = hist.length ? hist[hist.length - 1] : null;
-    lastMoveSquares = last ? { from: last.from, to: last.to, san: last.san } : null;
+    board.position(game.fen(), false);
     removeSelectionHighlights();
-    applyLastMoveHighlights();
     updateStatusAndMoves();
   }
 
   function setDifficulty(level) {
+    if (!DIFFICULTY_DEPTH[level]) return;
     currentDifficulty = level;
     difficultyPills.forEach(p => p.classList.toggle("active", p.dataset.level === level));
     setStatus("ok", `Difficulty set to ${level.toUpperCase()}. Your move (White).`);
@@ -1085,98 +963,97 @@
     URL.revokeObjectURL(url);
   }
 
-  // --- Init board (click-only, no drag) ---
+  function makePlayerMove(from, to) {
+    if (game.game_over() || isAIMoving) return false;
+    const move = game.move({ from, to, promotion: 'q' });
+    if (!move) return false;
+    selectedSquare = null;
+    lastMoveSquares = { from: move.from, to: move.to, san: move.san };
+    board.position(game.fen(), false);
+    removeSelectionHighlights();
+    applyLastMoveHighlights();
+    updateStatusAndMoves();
+    window.setTimeout(makeAIMove, 180);
+    return true;
+  }
+
+  function onDragStart(source, piece) {
+    if (game.game_over() || isAIMoving) return false;
+    if (game.turn() !== 'w') return false;
+    if (!piece || piece.search(/^b/) !== -1) return false;
+    selectedSquare = source;
+    highlightMovesFrom(source);
+    return true;
+  }
+
+  function onDrop(source, target) {
+    removeSelectionHighlights();
+    const ok = makePlayerMove(source, target);
+    return ok ? undefined : 'snapback';
+  }
+
+  function onSnapEnd() {
+    board.position(game.fen(), false);
+    applyLastMoveHighlights();
+  }
+
   const config = {
-    draggable: false,                     // ✅ disable drag to avoid conflicts
+    draggable: true,
     position: "start",
-    pieceTheme: "img/chess/{piece}.png"   // local pieces
+    pieceTheme: "img/chess/{piece}.png",
+    onDragStart,
+    onDrop,
+    onSnapEnd
   };
+
   board = Chessboard("board", config);
 
-  updateStatusAndMoves();
-
-  // --- Click-to-move handler ---
+  // Click-to-move also works, for phones/tablets and people who don't like dragging.
   $('#board').on('click', '.square-55d63', function () {
-    if (game.game_over() || isAIMoving) {
-      selectedSquare = null;
-      removeHighlights();
-      return;
-    }
-
-    const square = $(this).data('square'); // set by chessboard.js
-    if (!square) {
-      selectedSquare = null;
-      removeHighlights();
-      return;
-    }
-
+    if (game.game_over() || isAIMoving) return;
+    const square = squareFromElement(this);
+    if (!square) return;
     const piece = game.get(square);
 
-    // If nothing selected yet
     if (!selectedSquare) {
-      // Start selection only on white piece
-      if (!piece || piece.color !== 'w') {
-        selectedSquare = null;
-        removeHighlights();
-        return;
-      }
+      if (!piece || piece.color !== 'w') return;
       selectedSquare = square;
       highlightMovesFrom(square);
       return;
     }
 
-    // Clicked the same square again -> unselect
     if (selectedSquare === square) {
-      selectedSquare = null;
-      removeHighlights();
-      return;
-    }
-
-    // Attempt to move from selectedSquare to this clicked square
-    const legalMoves = game.moves({ square: selectedSquare, verbose: true });
-    const isLegalDest = legalMoves.some(m => m.to === square);
-
-    if (isLegalDest) {
-      const move = game.move({
-        from: selectedSquare,
-        to: square,
-        promotion: 'q'
-      });
-      if (move) {
-        lastMoveSquares = { from: move.from, to: move.to, san: move.san };
-      }
-      board.position(game.fen());
       selectedSquare = null;
       removeSelectionHighlights();
       applyLastMoveHighlights();
-      updateStatusAndMoves();
-      window.setTimeout(makeAIMove, 180);
       return;
     }
 
-    // Not a legal destination: if clicked another white piece, switch selection
+    if (makePlayerMove(selectedSquare, square)) return;
+
     if (piece && piece.color === 'w') {
       selectedSquare = square;
       highlightMovesFrom(square);
     } else {
-      // clicked empty or enemy not reachable -> keep or clear selection
-      // we'll just clear for simplicity
       selectedSquare = null;
-      removeHighlights();
+      removeSelectionHighlights();
+      applyLastMoveHighlights();
     }
   });
 
-  // --- Wire UI events ---
   difficultyPills.forEach(pill => {
-    pill.addEventListener("click", () => {
-      const level = pill.dataset.level;
-      setDifficulty(level);
-    });
+    pill.addEventListener("click", () => setDifficulty(pill.dataset.level));
   });
-
   newGameBtn.addEventListener("click", resetGame);
   undoBtn.addEventListener("click", undoLastPair);
   downloadPgnBtn.addEventListener("click", downloadPGN);
+
+  window.addEventListener('resize', () => {
+    if (board && board.resize) board.resize();
+    applyLastMoveHighlights();
+  });
+
+  updateStatusAndMoves();
 </script>
 
 
