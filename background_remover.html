@@ -101,6 +101,62 @@
     .prose h3{margin:.2rem 0 .4rem}
     .prose p{margin:.4rem 0}
     .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid var(--brand);color:var(--brand);background:#0f1a2a}
+
+    /* Paint Roller visibility upgrade */
+    .paint-roller-chip{
+      background:linear-gradient(135deg,#7dd3fc,#a78bfa) !important;
+      color:#07111f !important;
+      border-color:#b7e7ff !important;
+      font-weight:800;
+      box-shadow:0 0 18px rgba(125,211,252,.32);
+    }
+    .tabbtn.paint-roller-tab{
+      background:linear-gradient(135deg,#7dd3fc,#a78bfa) !important;
+      color:#07111f !important;
+      border-color:#b7e7ff !important;
+      font-weight:900;
+      box-shadow:0 8px 22px rgba(125,211,252,.20);
+    }
+    .tabbtn.paint-roller-tab.active,
+    .tabbtn.paint-roller-tab:hover{
+      filter:brightness(1.08);
+      box-shadow:0 0 0 2px rgba(255,255,255,.28) inset,0 0 24px rgba(125,211,252,.35);
+    }
+    #panel-recolor{
+      border:1px solid rgba(125,211,252,.45);
+      background:linear-gradient(180deg,rgba(125,211,252,.10),rgba(167,139,250,.08));
+      border-radius:12px;
+      padding:12px;
+      margin:8px 0;
+    }
+    #panel-recolor .row{
+      background:rgba(15,26,42,.72);
+      border:1px solid rgba(125,211,252,.20);
+      border-radius:12px;
+      padding:10px;
+    }
+    #source-chip{
+      width:34px !important;
+      height:34px !important;
+      border:3px solid #fff !important;
+      outline:2px solid #7dd3fc;
+      box-shadow:0 0 16px rgba(125,211,252,.45);
+    }
+    #pick-source, #recolor-start{
+      background:linear-gradient(135deg,#7dd3fc,#a78bfa) !important;
+      color:#07111f !important;
+      border-color:#b7e7ff !important;
+      font-weight:900 !important;
+    }
+    .paint-roller-help{
+      background:radial-gradient(circle at top left,rgba(125,211,252,.18),transparent 35%),#121b2b !important;
+      border:1px solid rgba(125,211,252,.45) !important;
+      box-shadow:0 14px 34px rgba(0,0,0,.28),0 0 22px rgba(125,211,252,.10);
+    }
+    .paint-roller-help h3{
+      color:#7dd3fc;
+      font-size:1.18rem;
+    }
   </style>
 
   <!-- Fixed FileConverter navigation styles -->
@@ -483,7 +539,7 @@ nav.site-nav,
   </script>
 
   <div class="chips">
-    <span class="chip">Paint Roller (Color Change)</span>
+    <span class="chip paint-roller-chip">🎨 Paint Roller Color Change</span>
     <span class="chip">Erase Background</span>
     <span class="chip">Crop & Resize</span>
     <span class="chip">Brightness / Contrast / Saturation</span>
@@ -509,7 +565,7 @@ nav.site-nav,
         <button class="tabbtn" data-panel="crop">Crop</button>
         <button class="tabbtn" data-panel="bgremove">Background</button>
         <button class="tabbtn" data-panel="erase">Erase</button>
-        <button class="tabbtn" data-panel="recolor">Recolor</button>
+        <button class="tabbtn paint-roller-tab" data-panel="recolor">🎨 Paint Roller</button>
         <button class="tabbtn" data-panel="effects">Effects</button>
         <button class="tabbtn" data-panel="rotate">Rotate/Flip</button>
       </div>
@@ -583,6 +639,7 @@ nav.site-nav,
 
       <!-- Recolor (Paint Roller) -->
       <div id="panel-recolor" class="panel section" style="display:none">
+        <p class="small" style="margin:0 0 8px;color:#eaf6ff;"><strong style="color:#7dd3fc;">Paint Roller:</strong> pick a source color, choose a new color, then brush over the image. Use tolerance if the color blends into shadows or highlights.</p>
         <div class="row">
           <button id="pick-source" title="Click, then click on the image to choose the source color">Pick Source</button>
           <div id="source-chip" class="swatch" title="Current source color" style="background:#808080"></div>
@@ -651,8 +708,8 @@ nav.site-nav,
     </div>
 
     <!-- Right: Helpful content -->
-    <div class="card prose">
-      <h3>Why the paint roller?</h3>
+    <div class="card prose paint-roller-help">
+      <h3>🎨 Why the Paint Roller?</h3>
       <p>
         A couple at a pop-up market needed to swap T-shirt colors for mockups fast. They didn’t want Photoshop—just “paint this blue to red with the highlights intact.”
         That sparked this <em>Paint Roller</em> tool: click to pick the source color, set tolerance, and brush on the new shade.
