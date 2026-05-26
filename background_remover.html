@@ -358,6 +358,84 @@ nav.site-nav,
   </style>
   <link rel="stylesheet" href="nav.css">
 
+  <!-- Page theme repair: keeps header/nav dark and consistent with FileConverter.run -->
+  <style>
+    html, body {
+      background: #0f1117 !important;
+      color: #e5e7eb !important;
+    }
+
+    #sponsored-bar {
+      background: #0f1117 !important;
+      color: #e5e7eb !important;
+      border-bottom: 1px solid #263044 !important;
+      box-shadow: 0 8px 22px rgba(0,0,0,.18) !important;
+    }
+
+    header {
+      background:
+        radial-gradient(circle at top right, rgba(125,211,252,.10), transparent 34%),
+        radial-gradient(circle at bottom left, rgba(167,139,250,.10), transparent 30%),
+        #0f1117 !important;
+      color: #e5e7eb !important;
+      border-bottom: 1px solid #263044 !important;
+      padding: 12px 12px 18px !important;
+      margin: 0 !important;
+    }
+
+    header h1 {
+      color: #ffffff !important;
+      margin-top: 16px !important;
+    }
+
+    header .sub {
+      color: #d7deea !important;
+      max-width: 900px !important;
+      margin: 8px auto 12px !important;
+      text-align: center !important;
+    }
+
+    [data-nav-placeholder] {
+      width: 100% !important;
+      display: block !important;
+    }
+
+    .site-nav,
+    nav.site-nav,
+    #fc-site-nav {
+      background: transparent !important;
+      color: #e8f1ff !important;
+    }
+
+    .site-nav .site-nav__inner {
+      background: rgba(10, 20, 39, 0.94) !important;
+      border: 1px solid rgba(111,168,255,.28) !important;
+      border-radius: 18px !important;
+    }
+
+    .site-nav .site-nav__brand strong,
+    .site-nav .tab,
+    .site-nav .group-button,
+    .site-nav .site-nav__cta {
+      color: #ffffff !important;
+    }
+
+    .chips {
+      margin-top: 12px !important;
+    }
+
+    main.panel {
+      background: #0f1117 !important;
+    }
+
+    footer {
+      background: #1a1f2c !important;
+      color: #7dd3fc !important;
+      border-top: 1px solid #263044 !important;
+    }
+  </style>
+
+</head>
 <body>
 
 <!-- Sponsored Header Bar -->
@@ -382,7 +460,7 @@ nav.site-nav,
 <header>
   <div data-nav-placeholder></div>
   <script src="nav-loader.js" defer></script>
-  <h1>Image Editor — Cyber Edition</h1>
+  <h1>Private Browser-Based Image Editor</h1>
   <p class="sub">Erase, recolor with paint roller (tolerance), crop, adjust, rotate/flip — all local, no uploads.</p>
 
   <!-- Fixed navigation: embedded so this page does not depend on nav-loader timing --><script src="js/utils.js"></script>
@@ -600,7 +678,7 @@ nav.site-nav,
     <a href="terms.html" style="color:#7dd3fc; text-decoration:none;">Terms of Service</a>
     <a href="contact.html" style="color:#7dd3fc; text-decoration:none;">Contact</a>
   </nav>
-  <p>© <span id="year"></span> File Converter — Cyber Edition</p>
+  <p>© <span id="year"></span> FileConverter.run</p>
   <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
 </footer>
 
