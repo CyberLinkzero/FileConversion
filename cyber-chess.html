@@ -63,15 +63,14 @@
       font-family: "Orbitron", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       background: radial-gradient(circle at top, #0f172a 0, #020617 45%, #000 100%);
       color: var(--text-main);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
+      padding: 16px;
+      overflow-x: hidden;
     }
 
     .cyber-wrapper {
-      width: 100%;
+      width: min(100%, 1200px);
       max-width: 1200px;
+      margin: 0 auto;
       background:
         radial-gradient(circle at top left, rgba(56, 189, 248, 0.1), transparent 60%),
         radial-gradient(circle at bottom right, rgba(147, 51, 234, 0.14), transparent 60%),
@@ -193,7 +192,7 @@
 
     .layout {
       display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      grid-template-columns: minmax(320px, 1.05fr) minmax(280px, 0.95fr);
       gap: 20px;
       position: relative;
       z-index: 1;
@@ -438,40 +437,150 @@
       background: #4b5563;
     }
 
+    .last-move-card {
+      margin-top: 10px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), rgba(15, 23, 42, 0.96));
+      padding: 10px 12px;
+    }
+
+    .last-move-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .last-move-value {
+      font-family: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, monospace;
+      font-size: 1rem;
+      color: #e0f2fe;
+      font-weight: 700;
+      min-height: 1.35rem;
+    }
+
+    .square-55d63.highlight-last-from {
+      box-shadow: inset 0 0 0 4px rgba(250, 204, 21, 0.82) !important;
+    }
+
+    .square-55d63.highlight-last-to {
+      box-shadow: inset 0 0 0 4px rgba(34, 197, 94, 0.88) !important;
+    }
+
+    .square-55d63.highlight-selected {
+      box-shadow: inset 0 0 0 4px rgba(56, 189, 248, 0.9) !important;
+    }
+
+    .square-55d63.highlight-legal {
+      position: relative;
+      box-shadow: inset 0 0 0 3px rgba(56, 189, 248, 0.45) !important;
+    }
+
+    .square-55d63.highlight-legal::after {
+      content: "";
+      width: 28%;
+      height: 28%;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.75);
+      position: absolute;
+      left: 36%;
+      top: 36%;
+      pointer-events: none;
+    }
+
+    .thinking-overlay {
+      position: absolute;
+      inset: 18px;
+      border-radius: var(--radius-lg);
+      background: rgba(2, 6, 23, 0.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      color: #e0f2fe;
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      z-index: 5;
+      border: 1px solid rgba(56, 189, 248, 0.38);
+      backdrop-filter: blur(3px);
+    }
+
+    .thinking-overlay.show {
+      display: flex;
+    }
+
+
     .small-note {
       font-size: 0.7rem;
       color: var(--text-muted);
       margin-top: 6px;
     }
 
-    @media (max-width: 900px) {
+    @media (max-width: 980px) {
+      body { padding: 10px; }
       .layout {
-        grid-template-columns: minmax(0, 1fr);
+        grid-template-columns: 1fr;
+      }
+      .side-panel {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+      }
+      .side-panel .panel:last-child {
+        grid-column: 1 / -1;
       }
       #board {
-        max-width: 480px;
+        width: min(100%, 520px) !important;
+        max-width: 520px;
       }
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 720px) {
       .cyber-wrapper {
-        padding: 14px;
+        padding: 12px;
+        border-radius: 18px;
       }
       .header-row {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
+        align-items: stretch;
+        gap: 12px;
+      }
+      .title-row,
+      .badge-group,
+      .button-row,
+      .pill-row {
+        align-items: stretch;
+        flex-direction: column;
+      }
+      .badge,
+      .difficulty-pill,
+      button.cyber-btn {
+        width: 100%;
+      }
+      .side-panel {
+        display: flex;
+        flex-direction: column;
+      }
+      .board-panel,
+      .panel {
+        padding: 12px;
       }
       h1 {
-        font-size: 1.3rem;
+        font-size: 1.15rem;
+        flex-direction: column;
+        align-items: flex-start;
       }
       #board {
-        max-width: 360px;
+        width: min(100%, 92vw) !important;
+        max-width: 92vw;
       }
     }
   </style>
   <link rel="stylesheet" href="nav.css">
 
+</head>
 <body>
   <div data-nav-placeholder></div>
   <script src="nav-loader.js" defer></script>
@@ -509,7 +618,12 @@
 
   <div class="layout">
     <div class="board-panel">
+      <div class="thinking-overlay" id="thinking-overlay">AI thinking…</div>
       <div id="board"></div>
+      <div class="last-move-card">
+        <div class="last-move-label">Last Move</div>
+        <div class="last-move-value" id="last-move">No moves yet.</div>
+      </div>
     </div>
 
     <div class="side-panel">
@@ -536,7 +650,7 @@
             </button>
           </div>
           <div class="small-note">
-            Easy looks only 1 ply ahead. Expert searches deeper and will punish blunders.
+            Easy looks only 1 ply ahead. Expert searches deeper. AI thinking now runs in a background worker so the board should not freeze.
           </div>
         </div>
 
@@ -592,6 +706,10 @@
   const newGameBtn = document.getElementById("new-game-btn");
   const undoBtn = document.getElementById("undo-btn");
   const downloadPgnBtn = document.getElementById("download-pgn-btn");
+  const lastMoveEl = document.getElementById("last-move");
+  const thinkingOverlayEl = document.getElementById("thinking-overlay");
+  let aiWorker = null;
+  let lastMoveSquares = null;
 
   function setStatus(type, message) {
     statusMessageEl.textContent = message;
@@ -693,46 +811,208 @@
   }
 
   // --- Highlight helpers ---
-  function removeHighlights() {
+  function removeSelectionHighlights() {
     $('#board .square-55d63')
-      .removeClass('highlight-source')
-      .removeClass('highlight-move');
+      .removeClass('highlight-selected')
+      .removeClass('highlight-legal');
+  }
+
+  function removeLastMoveHighlights() {
+    $('#board .square-55d63')
+      .removeClass('highlight-last-from')
+      .removeClass('highlight-last-to');
+  }
+
+  function applyLastMoveHighlights() {
+    removeLastMoveHighlights();
+    if (!lastMoveSquares) return;
+    $('#board .square-' + lastMoveSquares.from).addClass('highlight-last-from');
+    $('#board .square-' + lastMoveSquares.to).addClass('highlight-last-to');
+  }
+
+  function removeHighlights() {
+    removeSelectionHighlights();
+    removeLastMoveHighlights();
   }
 
   function highlightMovesFrom(square) {
-    removeHighlights();
-    $('#board .square-' + square).addClass('highlight-source');
+    removeSelectionHighlights();
+    applyLastMoveHighlights();
+    $('#board .square-' + square).addClass('highlight-selected');
 
     const moves = game.moves({ square, verbose: true });
     for (let i = 0; i < moves.length; i++) {
       const dest = moves[i].to;
-      $('#board .square-' + dest).addClass('highlight-move');
+      $('#board .square-' + dest).addClass('highlight-legal');
     }
   }
 
-  // --- AI move ---
+  // --- AI move: background worker so the page does not freeze ---
+  function getAIWorker() {
+    if (aiWorker) return aiWorker;
+
+    const workerCode = `
+      importScripts("https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js");
+
+      const PIECE_VALUES = { p:100, n:320, b:330, r:500, q:900, k:20000 };
+
+      function evaluateBoard(game) {
+        const b = game.board();
+        let score = 0;
+        for (let row = 0; row < 8; row++) {
+          for (let col = 0; col < 8; col++) {
+            const piece = b[row][col];
+            if (piece) {
+              const value = PIECE_VALUES[piece.type] || 0;
+              score += (piece.color === "w" ? value : -value);
+            }
+          }
+        }
+        if (game.in_checkmate()) {
+          const turn = game.turn();
+          if (turn === "w") score -= 100000;
+          else score += 100000;
+        }
+        return score;
+      }
+
+      function shuffledMoves(moves) {
+        const arr = moves.slice();
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      }
+
+      function minimax(game, depth, alpha, beta, isMaximizingPlayer, deadline) {
+        if (Date.now() > deadline) return evaluateBoard(game);
+        if (depth === 0 || game.game_over()) return evaluateBoard(game);
+
+        const moves = game.moves();
+        if (isMaximizingPlayer) {
+          let maxEval = -Infinity;
+          for (let i = 0; i < moves.length; i++) {
+            game.move(moves[i]);
+            const evalScore = minimax(game, depth - 1, alpha, beta, false, deadline);
+            game.undo();
+            if (evalScore > maxEval) maxEval = evalScore;
+            if (maxEval > alpha) alpha = maxEval;
+            if (beta <= alpha) break;
+          }
+          return maxEval;
+        } else {
+          let minEval = Infinity;
+          for (let i = 0; i < moves.length; i++) {
+            game.move(moves[i]);
+            const evalScore = minimax(game, depth - 1, alpha, beta, true, deadline);
+            game.undo();
+            if (evalScore < minEval) minEval = evalScore;
+            if (minEval < beta) beta = minEval;
+            if (beta <= alpha) break;
+          }
+          return minEval;
+        }
+      }
+
+      function getBestMove(fen, depth, timeLimitMs) {
+        const game = new Chess(fen);
+        const deadline = Date.now() + timeLimitMs;
+        const moves = shuffledMoves(game.moves());
+        let bestMove = null;
+        let bestEval = -Infinity;
+
+        for (let i = 0; i < moves.length; i++) {
+          if (Date.now() > deadline && bestMove) break;
+          const move = moves[i];
+          game.move(move);
+          const evalScore = minimax(game, depth - 1, -Infinity, Infinity, false, deadline);
+          game.undo();
+          if (evalScore > bestEval || bestMove === null) {
+            bestEval = evalScore;
+            bestMove = move;
+          }
+        }
+        return bestMove;
+      }
+
+      self.onmessage = function(e) {
+        const { fen, depth, timeLimitMs } = e.data;
+        try {
+          const move = getBestMove(fen, depth, timeLimitMs);
+          self.postMessage({ ok: true, move });
+        } catch (err) {
+          self.postMessage({ ok: false, error: err.message || String(err) });
+        }
+      };
+    `;
+
+    const blob = new Blob([workerCode], { type: "application/javascript" });
+    aiWorker = new Worker(URL.createObjectURL(blob));
+    return aiWorker;
+  }
+
   function makeAIMove() {
     if (game.game_over()) {
       updateStatusAndMoves();
       return;
     }
+
     isAIMoving = true;
+    selectedSquare = null;
+    removeSelectionHighlights();
+    applyLastMoveHighlights();
+    setStatus("warn", "AI thinking (Black)…");
+    if (thinkingOverlayEl) thinkingOverlayEl.classList.add("show");
+
     const depth = DIFFICULTY_DEPTH[currentDifficulty] || 2;
-    const bestMove = getBestMove(depth);
-    if (!bestMove) {
+    const timeLimitMs = currentDifficulty === "expert" ? 1800 : currentDifficulty === "hard" ? 1100 : currentDifficulty === "medium" ? 700 : 350;
+    const worker = getAIWorker();
+
+    worker.onmessage = function(e) {
+      const data = e.data || {};
+      if (!data.ok || !data.move) {
+        isAIMoving = false;
+        if (thinkingOverlayEl) thinkingOverlayEl.classList.remove("show");
+        setStatus("danger", data.error ? "AI error: " + data.error : "AI could not find a move.");
+        updateStatusAndMoves();
+        return;
+      }
+
+      const moveObj = game.move(data.move);
+      if (moveObj) {
+        lastMoveSquares = { from: moveObj.from, to: moveObj.to, san: moveObj.san };
+        board.position(game.fen());
+        applyLastMoveHighlights();
+      }
+
       isAIMoving = false;
+      if (thinkingOverlayEl) thinkingOverlayEl.classList.remove("show");
       updateStatusAndMoves();
-      return;
-    }
-    game.move(bestMove);
-    board.position(game.fen());
-    isAIMoving = false;
-    updateStatusAndMoves();
+    };
+
+    worker.onerror = function(err) {
+      isAIMoving = false;
+      if (thinkingOverlayEl) thinkingOverlayEl.classList.remove("show");
+      setStatus("danger", "AI worker failed. Try New Game or lower difficulty.");
+      console.error(err);
+    };
+
+    worker.postMessage({ fen: game.fen(), depth, timeLimitMs });
   }
 
   function updateStatusAndMoves() {
     const pgn = game.pgn({ max_width: 80, newline_char: "\n" });
     movesEl.textContent = pgn || "No moves yet.";
+
+    const historyVerbose = game.history({ verbose: true });
+    const last = historyVerbose.length ? historyVerbose[historyVerbose.length - 1] : null;
+    if (last) {
+      lastMoveEl.textContent = `${last.color === "w" ? "White" : "Black"}: ${last.san} (${last.from} → ${last.to})`;
+    } else {
+      lastMoveEl.textContent = "No moves yet.";
+    }
+    applyLastMoveHighlights();
 
     if (game.in_checkmate()) {
       if (game.turn() === "w") {
@@ -760,6 +1040,7 @@
     game.reset();
     board.start();
     selectedSquare = null;
+    lastMoveSquares = null;
     removeHighlights();
     updateStatusAndMoves();
   }
@@ -772,7 +1053,11 @@
     }
     board.position(game.fen());
     selectedSquare = null;
-    removeHighlights();
+    const hist = game.history({ verbose: true });
+    const last = hist.length ? hist[hist.length - 1] : null;
+    lastMoveSquares = last ? { from: last.from, to: last.to, san: last.san } : null;
+    removeSelectionHighlights();
+    applyLastMoveHighlights();
     updateStatusAndMoves();
   }
 
@@ -857,11 +1142,15 @@
         to: square,
         promotion: 'q'
       });
+      if (move) {
+        lastMoveSquares = { from: move.from, to: move.to, san: move.san };
+      }
       board.position(game.fen());
       selectedSquare = null;
-      removeHighlights();
+      removeSelectionHighlights();
+      applyLastMoveHighlights();
       updateStatusAndMoves();
-      window.setTimeout(makeAIMove, 150);
+      window.setTimeout(makeAIMove, 180);
       return;
     }
 
