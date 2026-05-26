@@ -107,3 +107,156 @@ a:hover{color:#1a73e8}
   border-color:var(--line);
   color:#2456a6;
 }
+
+
+/* =========================================================
+   FileConverter.run global readability + calm header patch
+   Purpose:
+   - Stop rainbow/glowing animated headers site-wide
+   - Keep headings professional and stable
+   - Prevent white/light header overrides on dark tool pages
+   - Preserve the trusted blue brand style
+   ========================================================= */
+
+/* Stop distracting animated title effects everywhere */
+header h1,
+h1.hero-title,
+.hero-title,
+.title h1 {
+  animation: none !important;
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+  -webkit-text-fill-color: #ffffff !important;
+  color: #ffffff !important;
+  text-shadow: 0 2px 14px rgba(96,165,250,.22) !important;
+}
+
+/* Clean standard page heading */
+header h1 {
+  text-align: center;
+  font-weight: 800;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.1;
+  margin: 10px 0 6px;
+}
+
+/* Stop old keyframe effects even when embedded page CSS still references them */
+@keyframes cyberPulse {
+  from { text-shadow: 0 2px 14px rgba(96,165,250,.22); }
+  to { text-shadow: 0 2px 14px rgba(96,165,250,.22); }
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0 0; }
+  50% { background-position: 0 0; }
+  100% { background-position: 0 0; }
+}
+
+/* Dark page compatibility:
+   Pages that define --bg as a dark color should not be forced into the white theme. */
+body:has(header) {
+  min-height: 100%;
+}
+
+/* Default professional dark header for pages using dark variables */
+body[style*="#0f1117"] header,
+body.dark header,
+body.dark-theme header,
+body.fc-dark header {
+  background: #0f1117 !important;
+  border-bottom: 1px solid #263044 !important;
+}
+
+/* Strong override for FileConverter dark pages */
+@media (prefers-color-scheme: dark) {
+  body {
+    background: var(--bg);
+  }
+}
+
+/* If a page already uses dark backgrounds in its inline CSS, do not let site.css make cards white */
+body.fc-dark,
+body.dark,
+body.dark-theme {
+  --bg: #0f1117;
+  --card: #1a1f2c;
+  --line: #263044;
+  --text: #e5e7eb;
+  --muted: #9aa4b2;
+  --brand: #7dd3fc;
+  --accent: #4ea1ff;
+  background: #0f1117 !important;
+  color: #e5e7eb !important;
+}
+
+body.fc-dark header,
+body.dark header,
+body.dark-theme header {
+  background: #0f1117 !important;
+  color: #ffffff !important;
+}
+
+body.fc-dark .card,
+body.fc-dark .panel-card,
+body.fc-dark .tool-card,
+body.fc-dark .hero-card,
+body.fc-dark .stat,
+body.fc-dark .mini-stats > div,
+body.fc-dark .drop,
+body.fc-dark .preview,
+body.fc-dark .log,
+body.fc-dark .quick-link,
+body.dark .card,
+body.dark .panel-card,
+body.dark .tool-card,
+body.dark .hero-card,
+body.dark .stat,
+body.dark .mini-stats > div,
+body.dark .drop,
+body.dark .preview,
+body.dark .log,
+body.dark .quick-link,
+body.dark-theme .card,
+body.dark-theme .panel-card,
+body.dark-theme .tool-card,
+body.dark-theme .hero-card,
+body.dark-theme .stat,
+body.dark-theme .mini-stats > div,
+body.dark-theme .drop,
+body.dark-theme .preview,
+body.dark-theme .log,
+body.dark-theme .quick-link {
+  background: #1a1f2c !important;
+  border-color: #263044 !important;
+  color: #e5e7eb !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,.18) !important;
+}
+
+body.fc-dark footer,
+body.dark footer,
+body.dark-theme footer {
+  background: #1a1f2c !important;
+  color: #7dd3fc !important;
+  border-top: 1px solid #263044 !important;
+}
+
+/* Better stable section heading */
+.section-title,
+main h2,
+main h3 {
+  animation: none !important;
+  text-shadow: none !important;
+}
+
+/* Accessibility: never animate for users requesting reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
