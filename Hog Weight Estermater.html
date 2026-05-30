@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Pig Weight Camera App</title>
+  <style>
+    :root {
+      --bg: #071018;
+      --card: #101b26;
+      --card2: #0c1620;
+      --text: #f3f7fb;
+      --muted: #9fb0c0;
+      --line: rgba(255,255,255,.12);
+      --accent: #36d399;
+      --accent2: #38bdf8;
+      --danger: #fb7185;
+      --warn: #facc15;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: radial-gradient(circle at top, #12324a 0%, var(--bg) 45%, #03070b 100%);
+      color: var(--text);
+    }
+
+    header {
+      padding: 14px 14px 8px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(7,16,24,.88);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 { margin: 0; font-size: 21px; letter-spacing: .3px; }
+
+    .sub { margin-top: 4px; color: var(--muted); font-size: 13px; }
+
+    main { max-width: 720px; margin: 0 auto; padding: 12px; }
+
+    .card {
+      background: linear-gradient(180deg, rgba(16,27,38,.96), rgba(8,16,24,.96));
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 16px 40px rgba(0,0,0,.25);
+    }
+
+    .camera-wrap {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      border-radius: 16px;
+      background: #000;
+      border: 1px solid var(--line);
+      touch-action: none;
+      user-select: none;
+    }
+
+    video, canvas { display: block; width: 100%; height: auto; }
+
+    #overlay {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .status { margin-top: 10px; color: var(--muted); font-size: 13px; line-height: 1.35; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+    label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 5px; }
+
+    input, select {
+      width: 100%;
+      padding: 11px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: #07111b;
+      color: var(--text);
+      outline: none;
+      font-size: 15px;
+    }
+
+    input:focus, select:focus { border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(56,189,248,.15); }
+
+    button {
+      border: 0;
+      border-radius: 13px;
+      padding: 12px 10px;
+      color: #02120b;
+      font-weight: 800;
+      background: var(--accent);
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button.secondary { color: var(--text); background: #172636; border: 1px solid var(--line); }
+    button.blue { color: #03111a; background: var(--accent2); }
+    button.yellow { color: #171200; background: var(--warn); }
+    button.danger { color: #fff; background: #9f1239; }
+
+    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+
+    .result { font-size: 34px; font-weight: 900; color: var(--accent); margin: 4px 0; }
+    .small { font-size: 12px; color: var(--muted); line-height: 1.45; }
+
+    .pill {
+      display: inline-flex;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: rgba(56,189,248,.12);
+      color: #bae6fd;
+      border: 1px solid rgba(56,189,248,.22);
+      font-size: 12px;
+      margin: 3px 3px 3px 0;
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: left; }
+    th { color: var(--muted); font-weight: 700; }
+    .hidden { display: none; }
+
+    @media (max-width: 520px) {
+      main { padding: 10px; }
+      .grid, .grid-3, .btn-row { grid-template-columns: 1fr; }
+      .result { font-size: 30px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Pig Weight Camera App</h1>
+    <div class="sub">Mobile camera estimate using body length + outline + heart girth + ear tag record</div>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="camera-wrap" id="cameraWrap">
+        <video id="video" playsinline autoplay muted></video>
+        <canvas id="overlay"></canvas>
+      </div>
+      <div class="status" id="status">
+        Tap <b>Start Camera</b>. Use marker points for scale, then use pig length, manual outline, or auto outline.
+      </div>
+      <div class="btn-row">
+        <button id="startBtn">Start Camera</button>
+        <button class="secondary" id="switchBtn">Switch Camera</button>
+      </div>
+      <div class="btn-row">
+        <button class="blue" id="markerModeBtn">Set Marker Points</button>
+        <button class="blue" id="lengthModeBtn">Set Pig Length Points</button>
+      </div>
+      <div class="btn-row">
+        <button class="blue" id="earTagModeBtn">Ear Tag Mode</button>
+        <button class="yellow" id="manualOutlineBtn">Manual Outline Mode</button>
+      </div>
+      <div class="btn-row">
+        <button class="yellow" id="autoOutlineBtn">Auto Draw Outline</button>
+        <button class="secondary" id="finishOutlineBtn">Finish Manual Outline</button>
+      </div>
+      <div class="btn-row">
+        <button class="secondary" id="clearPointsBtn">Clear Points</button>
+        <button class="secondary" id="snapshotBtn">Snapshot</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="grid">
+        <div>
+          <label>Pig ID / Name</label>
+          <input id="pigId" placeholder="Pig #12" />
+        </div>
+        <div>
+          <label>Ear tag number</label>
+          <input id="earTag" placeholder="Tag #A142" />
+        </div>
+        <div>
+          <label>Known marker length</label>
+          <input id="markerInches" type="number" inputmode="decimal" value="12" />
+        </div>
+        <div>
+          <label>Outline body depth, inches</label>
+          <input id="bodyDepth" type="number" inputmode="decimal" placeholder="auto from outline" />
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:10px;">
+        <div>
+          <label>Detected body length, inches</label>
+          <input id="bodyLength" type="number" inputmode="decimal" placeholder="auto from camera/outline" />
+        </div>
+        <div>
+          <label>Heart girth, inches</label>
+          <input id="heartGirth" type="number" inputmode="decimal" placeholder="measure around chest" />
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:10px;">
+        <div>
+          <label>Formula divisor</label>
+          <select id="formulaDivisor">
+            <option value="400" selected>400 - common livestock estimate</option>
+            <option value="425">425 - slightly lighter estimate</option>
+            <option value="375">375 - slightly heavier estimate</option>
+          </select>
+        </div>
+        <div>
+          <label>Manual weight correction %</label>
+          <input id="correction" type="number" inputmode="decimal" value="0" />
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button id="calcBtn">Calculate Weight</button>
+        <button class="secondary" id="saveBtn">Save Record</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="small">Estimated Weight</div>
+      <div class="result"><span id="weightOut">0</span> lb</div>
+      <div id="measureInfo" class="small">
+        Marker pixels: 0 · Pig length pixels: 0 · Scale: not set · Outline: none
+      </div>
+      <div style="margin-top:8px;">
+        <span class="pill">Best accuracy: side view</span>
+        <span class="pill">Manual outline is most reliable</span>
+        <span class="pill">Auto outline needs clean background</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="grid">
+        <button class="blue" id="exportBtn">Export CSV</button>
+        <button class="danger" id="clearRecordsBtn">Clear Records</button>
+      </div>
+      <div style="overflow:auto; margin-top:10px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Pig</th>
+              <th>Ear Tag</th>
+              <th>Length</th>
+              <th>Girth</th>
+              <th>Weight</th>
+            </tr>
+          </thead>
+          <tbody id="recordsBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <canvas id="photoCanvas" class="hidden"></canvas>
+
+  <script>
+    const video = document.getElementById('video');
+    const overlay = document.getElementById('overlay');
+    const ctx = overlay.getContext('2d');
+    const cameraWrap = document.getElementById('cameraWrap');
+    const statusEl = document.getElementById('status');
+    const markerInchesEl = document.getElementById('markerInches');
+    const bodyLengthEl = document.getElementById('bodyLength');
+    const bodyDepthEl = document.getElementById('bodyDepth');
+    const heartGirthEl = document.getElementById('heartGirth');
+    const weightOut = document.getElementById('weightOut');
+    const measureInfo = document.getElementById('measureInfo');
+    const recordsBody = document.getElementById('recordsBody');
+
+    let stream = null;
+    let facingMode = 'environment';
+    let mode = 'marker';
+    let markerPoints = [];
+    let lengthPoints = [];
+    let earTagPoints = [];
+    let outlinePoints = [];
+    let isDrawingOutline = false;
+    let lastPhotoData = '';
+    let lastEarTagData = '';
+    let lastOutlineData = '';
+
+    function setStatus(msg) { statusEl.innerHTML = msg; }
+
+    async function startCamera() {
+      try {
+        if (stream) stream.getTracks().forEach(t => t.stop());
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+        video.srcObject = stream;
+        await video.play();
+        resizeOverlay();
+        drawOverlay();
+        setStatus('Camera running. Choose marker, length, ear tag, manual outline, or auto outline.');
+      } catch (err) {
+        setStatus('<b>Camera failed:</b> ' + err.message + '<br><br>On mobile, camera usually requires HTTPS or localhost.');
+      }
+    }
+
+    function resizeOverlay() {
+      const rect = cameraWrap.getBoundingClientRect();
+      overlay.width = Math.round(rect.width * devicePixelRatio);
+      overlay.height = Math.round(rect.height * devicePixelRatio);
+      overlay.style.width = rect.width + 'px';
+      overlay.style.height = rect.height + 'px';
+      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    }
+
+    function distance(a, b) {
+      if (!a || !b) return 0;
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    }
+
+    function getScale() {
+      const markerPx = distance(markerPoints[0], markerPoints[1]);
+      const markerInches = parseFloat(markerInchesEl.value) || 0;
+      if (markerPx <= 0 || markerInches <= 0) return 0;
+      return markerInches / markerPx;
+    }
+
+    function getOutlineBounds() {
+      if (!outlinePoints.length) return null;
+      const xs = outlinePoints.map(p => p.x);
+      const ys = outlinePoints.map(p => p.y);
+      return {
+        minX: Math.min(...xs),
+        maxX: Math.max(...xs),
+        minY: Math.min(...ys),
+        maxY: Math.max(...ys),
+        width: Math.max(...xs) - Math.min(...xs),
+        height: Math.max(...ys) - Math.min(...ys)
+      };
+    }
+
+    function updateMeasurements() {
+      const markerPx = distance(markerPoints[0], markerPoints[1]);
+      const lengthPx = distance(lengthPoints[0], lengthPoints[1]);
+      const scale = getScale();
+      const bounds = getOutlineBounds();
+      let outlineText = 'none';
+
+      if (scale > 0 && lengthPx > 0) {
+        const inches = lengthPx * scale;
+        bodyLengthEl.value = inches.toFixed(1);
+      }
+
+      if (scale > 0 && bounds) {
+        if (bounds.width > 0) bodyLengthEl.value = (bounds.width * scale).toFixed(1);
+        if (bounds.height > 0) bodyDepthEl.value = (bounds.height * scale).toFixed(1);
+        outlineText = `${bounds.width.toFixed(1)}px wide × ${bounds.height.toFixed(1)}px tall`;
+      }
+
+      measureInfo.textContent = `Marker pixels: ${markerPx.toFixed(1)} · Pig length pixels: ${lengthPx.toFixed(1)} · Scale: ${scale ? scale.toFixed(4) + ' in/px' : 'not set'} · Outline: ${outlineText}`;
+    }
+
+    function drawPoint(p, color) {
+      if (!p) return;
+      ctx.beginPath();
+      ctx.fillStyle = color;
+      ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+    }
+
+    function drawLine(points, color, label) {
+      if (points.length > 0) drawPoint(points[0], color);
+      if (points.length > 1) {
+        drawPoint(points[1], color);
+        ctx.beginPath();
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = color;
+        ctx.moveTo(points[0].x, points[0].y);
+        ctx.lineTo(points[1].x, points[1].y);
+        ctx.stroke();
+        const midX = (points[0].x + points[1].x) / 2;
+        const midY = (points[0].y + points[1].y) / 2;
+        ctx.fillStyle = 'rgba(0,0,0,.65)';
+        ctx.fillRect(midX - 48, midY - 24, 96, 22);
+        ctx.fillStyle = '#fff';
+        ctx.font = '13px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(label, midX, midY - 8);
+      }
+    }
+
+    function drawOutline() {
+      if (!outlinePoints.length) return;
+      ctx.beginPath();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#facc15';
+      ctx.fillStyle = 'rgba(250,204,21,.13)';
+      ctx.moveTo(outlinePoints[0].x, outlinePoints[0].y);
+      for (let i = 1; i < outlinePoints.length; i++) ctx.lineTo(outlinePoints[i].x, outlinePoints[i].y);
+      if (!isDrawingOutline && outlinePoints.length > 2) ctx.closePath();
+      ctx.stroke();
+      if (!isDrawingOutline && outlinePoints.length > 2) ctx.fill();
+
+      const bounds = getOutlineBounds();
+      if (bounds) {
+        ctx.strokeStyle = 'rgba(250,204,21,.85)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([7, 5]);
+        ctx.strokeRect(bounds.minX, bounds.minY, bounds.width, bounds.height);
+        ctx.setLineDash([]);
+      }
+    }
+
+    function drawOverlay() {
+      const rect = cameraWrap.getBoundingClientRect();
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      drawLine(markerPoints, '#38bdf8', 'marker');
+      drawLine(lengthPoints, '#36d399', 'pig length');
+      drawLine(earTagPoints, '#facc15', 'ear tag');
+      drawOutline();
+      updateMeasurements();
+    }
+
+    function getTapPoint(e) {
+      const rect = overlay.getBoundingClientRect();
+      const touch = e.touches ? e.touches[0] : e;
+      return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+    }
+
+    function handleTap(e) {
+      if (mode === 'outline') return;
+      e.preventDefault();
+      const p = getTapPoint(e);
+      if (mode === 'marker') {
+        if (markerPoints.length >= 2) markerPoints = [];
+        markerPoints.push(p);
+        setStatus(`Marker mode: ${markerPoints.length}/2 point(s). Tap both ends of your known marker.`);
+      } else if (mode === 'length') {
+        if (lengthPoints.length >= 2) lengthPoints = [];
+        lengthPoints.push(p);
+        setStatus(`Pig length mode: ${lengthPoints.length}/2 point(s). Tap shoulder/front to tail/rear on side view.`);
+      } else if (mode === 'earTag') {
+        if (earTagPoints.length >= 2) earTagPoints = [];
+        earTagPoints.push(p);
+        if (earTagPoints.length === 2) cropEarTag();
+        setStatus(`Ear tag mode: ${earTagPoints.length}/2 point(s). Tap two opposite corners around the ear tag.`);
+      }
+      drawOverlay();
+    }
+
+    function startManualOutline() {
+      mode = 'outline';
+      outlinePoints = [];
+      isDrawingOutline = false;
+      setStatus('Manual outline mode: press and drag around the outside edge of the pig, then tap Finish Manual Outline.');
+      drawOverlay();
+    }
+
+    function outlinePointerDown(e) {
+      if (mode !== 'outline') return;
+      e.preventDefault();
+      outlinePoints = [];
+      isDrawingOutline = true;
+      outlinePoints.push(getTapPoint(e));
+      drawOverlay();
+    }
+
+    function outlinePointerMove(e) {
+      if (mode !== 'outline' || !isDrawingOutline) return;
+      e.preventDefault();
+      const p = getTapPoint(e);
+      const last = outlinePoints[outlinePoints.length - 1];
+      if (!last || distance(last, p) > 4) {
+        outlinePoints.push(p);
+        drawOverlay();
+      }
+    }
+
+    function outlinePointerUp(e) {
+      if (mode !== 'outline' || !isDrawingOutline) return;
+      e.preventDefault();
+      isDrawingOutline = false;
+      finishOutline(false);
+    }
+
+    function finishOutline(showMessage = true) {
+      if (outlinePoints.length < 5) {
+        if (showMessage) setStatus('Outline is too short. Draw around the full pig body.');
+        return;
+      }
+      isDrawingOutline = false;
+      saveOutlineImage();
+      drawOverlay();
+      const scale = getScale();
+      const bounds = getOutlineBounds();
+      if (scale && bounds) {
+        setStatus(`Outline saved. Body length auto-filled at ${(bounds.width * scale).toFixed(1)} inches. Body depth auto-filled at ${(bounds.height * scale).toFixed(1)} inches.`);
+      } else {
+        setStatus('Outline saved. Set marker points first if you want the outline to calculate inches.');
+      }
+    }
+
+    function saveOutlineImage() {
+      if (!video.videoWidth || outlinePoints.length < 3) return;
+      const rect = cameraWrap.getBoundingClientRect();
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const c = canvas.getContext('2d');
+      c.drawImage(video, 0, 0, canvas.width, canvas.height);
+      c.save();
+      c.scale(canvas.width / rect.width, canvas.height / rect.height);
+      c.beginPath();
+      c.moveTo(outlinePoints[0].x, outlinePoints[0].y);
+      for (let i = 1; i < outlinePoints.length; i++) c.lineTo(outlinePoints[i].x, outlinePoints[i].y);
+      c.closePath();
+      c.lineWidth = 6;
+      c.strokeStyle = '#facc15';
+      c.stroke();
+      c.restore();
+      lastOutlineData = canvas.toDataURL('image/jpeg', 0.88);
+    }
+
+    function autoOutline() {
+      if (!video.videoWidth) {
+        setStatus('Start the camera before using auto outline.');
+        return;
+      }
+
+      const rect = cameraWrap.getBoundingClientRect();
+      const work = document.createElement('canvas');
+      const maxW = 240;
+      const ratio = video.videoHeight / video.videoWidth;
+      work.width = maxW;
+      work.height = Math.round(maxW * ratio);
+      const wctx = work.getContext('2d', { willReadFrequently: true });
+      wctx.drawImage(video, 0, 0, work.width, work.height);
+      const img = wctx.getImageData(0, 0, work.width, work.height);
+      const data = img.data;
+
+      let sum = 0;
+      const gray = new Uint8Array(work.width * work.height);
+      for (let i = 0, j = 0; i < data.length; i += 4, j++) {
+        const g = Math.round((data[i] * 0.299) + (data[i+1] * 0.587) + (data[i+2] * 0.114));
+        gray[j] = g;
+        sum += g;
+      }
+      const avg = sum / gray.length;
+
+      const pts = [];
+      const marginX = Math.round(work.width * 0.05);
+      const marginY = Math.round(work.height * 0.08);
+      for (let y = marginY + 1; y < work.height - marginY - 1; y++) {
+        for (let x = marginX + 1; x < work.width - marginX - 1; x++) {
+          const idx = y * work.width + x;
+          const gx = Math.abs(gray[idx - 1] - gray[idx + 1]);
+          const gy = Math.abs(gray[idx - work.width] - gray[idx + work.width]);
+          const contrast = gx + gy;
+          const darkBody = gray[idx] < avg - 18;
+          if (contrast > 38 || darkBody) pts.push({ x, y });
+        }
+      }
+
+      if (pts.length < 50) {
+        setStatus('Auto outline could not find enough contrast. Try better lighting or use Manual Outline Mode.');
+        return;
+      }
+
+      const xs = pts.map(p => p.x);
+      const ys = pts.map(p => p.y);
+      let minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+
+      const padX = Math.round((maxX - minX) * 0.05);
+      const padY = Math.round((maxY - minY) * 0.08);
+      minX = Math.max(0, minX - padX);
+      maxX = Math.min(work.width, maxX + padX);
+      minY = Math.max(0, minY - padY);
+      maxY = Math.min(work.height, maxY + padY);
+
+      const sx = rect.width / work.width;
+      const sy = rect.height / work.height;
+
+      outlinePoints = [
+        { x: minX * sx, y: (minY + (maxY-minY)*0.25) * sy },
+        { x: (minX + (maxX-minX)*0.18) * sx, y: minY * sy },
+        { x: (minX + (maxX-minX)*0.82) * sx, y: minY * sy },
+        { x: maxX * sx, y: (minY + (maxY-minY)*0.30) * sy },
+        { x: maxX * sx, y: (minY + (maxY-minY)*0.78) * sy },
+        { x: (minX + (maxX-minX)*0.80) * sx, y: maxY * sy },
+        { x: (minX + (maxX-minX)*0.20) * sx, y: maxY * sy },
+        { x: minX * sx, y: (minY + (maxY-minY)*0.75) * sy }
+      ];
+
+      mode = 'autoOutline';
+      saveOutlineImage();
+      drawOverlay();
+      setStatus('Auto outline created. If it is off, use Manual Outline Mode and trace the pig yourself.');
+    }
+
+    function calculateWeight() {
+      const length = parseFloat(bodyLengthEl.value) || 0;
+      const girth = parseFloat(heartGirthEl.value) || 0;
+      const divisor = parseFloat(document.getElementById('formulaDivisor').value) || 400;
+      const correction = parseFloat(document.getElementById('correction').value) || 0;
+
+      if (length <= 0 || girth <= 0) {
+        setStatus('Enter body length and heart girth first. Length can come from camera taps or outline.');
+        return 0;
+      }
+
+      let weight = (girth * girth * length) / divisor;
+      weight = weight * (1 + correction / 100);
+      weightOut.textContent = Math.round(weight);
+      setStatus(`Estimated weight calculated: <b>${Math.round(weight)} lb</b>.`);
+      return weight;
+    }
+
+    function cropEarTag() {
+      if (!video.videoWidth || earTagPoints.length < 2) return;
+      const rect = cameraWrap.getBoundingClientRect();
+      const p1 = earTagPoints[0];
+      const p2 = earTagPoints[1];
+      const x = Math.min(p1.x, p2.x);
+      const y = Math.min(p1.y, p2.y);
+      const w = Math.abs(p1.x - p2.x);
+      const h = Math.abs(p1.y - p2.y);
+      if (w < 10 || h < 10) {
+        setStatus('Ear tag crop is too small. Tap two wider corners around the tag.');
+        return;
+      }
+
+      const scaleX = video.videoWidth / rect.width;
+      const scaleY = video.videoHeight / rect.height;
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(w * scaleX);
+      canvas.height = Math.round(h * scaleY);
+      const c = canvas.getContext('2d');
+      c.drawImage(video, Math.round(x * scaleX), Math.round(y * scaleY), Math.round(w * scaleX), Math.round(h * scaleY), 0, 0, canvas.width, canvas.height);
+      lastEarTagData = canvas.toDataURL('image/jpeg', 0.9);
+      setStatus('Ear tag image saved for this animal record. Type the tag number if readable.');
+    }
+
+    function takeSnapshot() {
+      const canvas = document.getElementById('photoCanvas');
+      const w = video.videoWidth || 1280;
+      const h = video.videoHeight || 720;
+      canvas.width = w;
+      canvas.height = h;
+      const c = canvas.getContext('2d');
+      c.drawImage(video, 0, 0, w, h);
+      lastPhotoData = canvas.toDataURL('image/jpeg', 0.85);
+      setStatus('Snapshot saved in this record session.');
+    }
+
+    function getRecords() {
+      try { return JSON.parse(localStorage.getItem('pigWeightRecords') || '[]'); }
+      catch { return []; }
+    }
+
+    function setRecords(records) {
+      localStorage.setItem('pigWeightRecords', JSON.stringify(records));
+      renderRecords();
+    }
+
+    function saveRecord() {
+      const weight = calculateWeight();
+      if (!weight) return;
+      if (!lastPhotoData && video.srcObject) takeSnapshot();
+      if (!lastOutlineData && outlinePoints.length > 2) saveOutlineImage();
+
+      const record = {
+        date: new Date().toLocaleString(),
+        pigId: document.getElementById('pigId').value.trim() || 'Unknown',
+        earTag: document.getElementById('earTag').value.trim() || '',
+        length: parseFloat(bodyLengthEl.value) || 0,
+        depth: parseFloat(bodyDepthEl.value) || 0,
+        girth: parseFloat(heartGirthEl.value) || 0,
+        weight: Math.round(weight),
+        markerInches: parseFloat(markerInchesEl.value) || 0,
+        correction: parseFloat(document.getElementById('correction').value) || 0,
+        outlinePoints: outlinePoints,
+        photo: lastPhotoData || '',
+        outlinePhoto: lastOutlineData || '',
+        earTagPhoto: lastEarTagData || ''
+      };
+      const records = getRecords();
+      records.unshift(record);
+      setRecords(records);
+      setStatus('Record saved on this phone/browser.');
+    }
+
+    function renderRecords() {
+      const records = getRecords();
+      recordsBody.innerHTML = '';
+      for (const r of records) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${r.date}</td><td>${escapeHtml(r.pigId)}</td><td>${escapeHtml(r.earTag || '')}</td><td>${Number(r.length || 0).toFixed(1)}</td><td>${Number(r.girth || 0).toFixed(1)}</td><td>${r.weight}</td>`;
+        recordsBody.appendChild(tr);
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>'"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[s]));
+    }
+
+    function exportCSV() {
+      const records = getRecords();
+      if (!records.length) {
+        setStatus('No records to export yet.');
+        return;
+      }
+      const headers = ['date','pigId','earTag','length_inches','body_depth_inches','heart_girth_inches','estimated_weight_lb','marker_inches','correction_percent','has_photo','has_outline_photo','has_ear_tag_photo'];
+      const rows = [headers.join(',')];
+      for (const r of records) {
+        rows.push([
+          r.date,
+          r.pigId,
+          r.earTag || '',
+          r.length,
+          r.depth || '',
+          r.girth,
+          r.weight,
+          r.markerInches,
+          r.correction,
+          r.photo ? 'yes' : 'no',
+          r.outlinePhoto ? 'yes' : 'no',
+          r.earTagPhoto ? 'yes' : 'no'
+        ].map(csvCell).join(','));
+      }
+      const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'pig_weight_records.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function csvCell(v) {
+      const s = String(v ?? '');
+      if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+      return s;
+    }
+
+    document.getElementById('startBtn').addEventListener('click', startCamera);
+    document.getElementById('switchBtn').addEventListener('click', () => {
+      facingMode = facingMode === 'environment' ? 'user' : 'environment';
+      startCamera();
+    });
+    document.getElementById('markerModeBtn').addEventListener('click', () => {
+      mode = 'marker';
+      setStatus('Marker mode: tap both ends of a known object, like a 12 inch board.');
+    });
+    document.getElementById('lengthModeBtn').addEventListener('click', () => {
+      mode = 'length';
+      setStatus('Pig length mode: tap shoulder/front and tail/rear from a side view.');
+    });
+    document.getElementById('earTagModeBtn').addEventListener('click', () => {
+      mode = 'earTag';
+      setStatus('Ear tag mode: tap two opposite corners around the ear tag. The app will crop and save that tag image with the animal.');
+    });
+    document.getElementById('manualOutlineBtn').addEventListener('click', startManualOutline);
+    document.getElementById('autoOutlineBtn').addEventListener('click', autoOutline);
+    document.getElementById('finishOutlineBtn').addEventListener('click', () => finishOutline(true));
+    document.getElementById('clearPointsBtn').addEventListener('click', () => {
+      markerPoints = [];
+      lengthPoints = [];
+      earTagPoints = [];
+      outlinePoints = [];
+      lastEarTagData = '';
+      lastOutlineData = '';
+      bodyLengthEl.value = '';
+      bodyDepthEl.value = '';
+      drawOverlay();
+      setStatus('Points and outlines cleared.');
+    });
+    document.getElementById('snapshotBtn').addEventListener('click', takeSnapshot);
+    document.getElementById('calcBtn').addEventListener('click', calculateWeight);
+    document.getElementById('saveBtn').addEventListener('click', saveRecord);
+    document.getElementById('exportBtn').addEventListener('click', exportCSV);
+    document.getElementById('clearRecordsBtn').addEventListener('click', () => {
+      if (confirm('Clear all saved pig records on this browser?')) setRecords([]);
+    });
+
+    overlay.addEventListener('click', handleTap);
+    overlay.addEventListener('touchstart', handleTap, { passive: false });
+    overlay.addEventListener('pointerdown', outlinePointerDown);
+    overlay.addEventListener('pointermove', outlinePointerMove);
+    overlay.addEventListener('pointerup', outlinePointerUp);
+    overlay.addEventListener('pointercancel', outlinePointerUp);
+    window.addEventListener('resize', () => { resizeOverlay(); drawOverlay(); });
+    video.addEventListener('loadedmetadata', () => { resizeOverlay(); drawOverlay(); });
+
+    renderRecords();
+  </script>
+</body>
+</html>
