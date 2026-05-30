@@ -15,6 +15,7 @@
       --accent2: #38bdf8;
       --danger: #fb7185;
       --warn: #facc15;
+      --pink: #f472b6;
     }
 
     * { box-sizing: border-box; }
@@ -75,7 +76,7 @@
 
     label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 5px; }
 
-    input, select {
+    input {
       width: 100%;
       padding: 11px 10px;
       border-radius: 12px;
@@ -133,7 +134,7 @@
 <body>
   <header>
     <h1>Pig Weight Camera App</h1>
-    <div class="sub">Live camera auto-detect + ear tag + weight capture</div>
+    <div class="sub">Elevated front-quarter view + orange rod scale + live weight capture</div>
   </header>
 
   <main>
@@ -143,7 +144,7 @@
         <canvas id="overlay"></canvas>
       </div>
       <div class="status" id="status">
-        Tap <b>Start Camera</b>. Hold a red/orange 12-inch marker near the pig. The app will auto-detect the marker and animal. Tap the camera screen when the lines look right to capture the record.
+        Tap <b>Start Camera</b>. Hold a red/orange 12-inch rod near the pig body center. Use a slightly elevated front-quarter view with the full body and back visible. Tap the camera screen when the lines look right.
       </div>
 
       <div class="btn-row">
@@ -152,7 +153,7 @@
       </div>
       <div class="btn-row">
         <button class="yellow" id="earTagModeBtn">Ear Tag Mode</button>
-        <button class="blue" id="autoLiveBtn">Pause Live Detect</button>
+        <button class="blue" id="autoLiveBtn">Start Live Detect</button>
       </div>
       <div class="btn-row">
         <button class="secondary" id="clearBtn">Clear</button>
@@ -163,34 +164,35 @@
       <div class="grid">
         <div>
           <label>Animal ID / Name</label>
-          <input id="pigId" placeholder="Pig #12" />
+          <input id="pigId" placeholder="Pig #12" autocomplete="off" />
         </div>
         <div>
           <label>Ear tag number</label>
-          <input id="earTag" placeholder="Tag #A142" />
+          <input id="earTag" placeholder="Tag #A142" autocomplete="off" />
         </div>
         <div>
           <label>Red/orange marker length, inches</label>
-          <input id="markerInches" type="number" inputmode="decimal" value="12" />
+          <input id="markerInches" type="number" inputmode="decimal" value="12" min="1" step="0.1" />
         </div>
         <div>
           <label>Manual girth override, inches</label>
-          <input id="heartGirth" type="number" inputmode="decimal" placeholder="optional" />
+          <input id="heartGirth" type="number" inputmode="decimal" placeholder="optional" min="1" step="0.1" />
         </div>
       </div>
       <div class="small" style="margin-top:8px;">
-        For best accuracy, hold a bright red/orange 12-inch marker beside the pig, at the same distance from the camera as the pig body. The app auto-detects the marker, length/depth, and estimates girth if this field is blank.
+        Best view: 20–40° above the pig, slightly toward the front shoulder, full pig visible, back visible, orange rod held near the pig body center and not closer to the camera than the pig.
       </div>
     </section>
 
     <section class="card">
       <div class="small">Live Estimated Weight</div>
       <div class="result"><span id="weightOut">0</span> lb</div>
-      <div id="measureInfo" class="small">Length: 0 in · Depth: 0 in · Girth: 0 in · Confidence: waiting</div>
+      <div id="measureInfo" class="small">Length: 0 in · Depth: 0 in · Back width: 0 in · Girth: 0 in · Confidence: waiting · Marker: searching</div>
       <div style="margin-top:8px;">
-        <span class="pill">Side view</span>
-        <span class="pill">Clean background</span>
-        <span class="pill">Red/orange 12-inch marker</span>
+        <span class="pill">Slightly elevated</span>
+        <span class="pill">Slight front angle</span>
+        <span class="pill">Back visible</span>
+        <span class="pill">Orange 12-inch rod</span>
       </div>
     </section>
 
@@ -228,74 +230,69 @@
     const weightOut = document.getElementById('weightOut');
     const measureInfo = document.getElementById('measureInfo');
     const recordsBody = document.getElementById('recordsBody');
+    const autoLiveBtn = document.getElementById('autoLiveBtn');
 
     let stream = null;
     let facingMode = 'environment';
-    let mode = 'none';
+    let mode = 'capture';
     let captureReady = false;
     let autoLive = false;
     let autoTimer = null;
+    let isDetecting = false;
+    let overlayCssWidth = 0;
+    let overlayCssHeight = 0;
 
-    let markerPoints = [];
     let autoMarkerBox = null;
     let autoScale = 0;
     let earTagPoints = [];
     let outlinePoints = [];
     let autoLengthLine = [];
     let autoDepthLine = [];
+    let autoBackWidthLine = [];
 
     let lastPhotoData = '';
     let lastEarTagData = '';
     let lastOutlineData = '';
-    let lastMeasure = { length: 0, depth: 0, girth: 0, weight: 0, confidence: 'waiting' };
+    let lastMeasure = { length: 0, depth: 0, backWidth: 0, girth: 0, weight: 0, confidence: 'waiting', marker: false };
 
-    function setStatus(msg) { statusEl.innerHTML = msg; }
+    function setStatus(msg) {
+      statusEl.innerHTML = msg;
+    }
 
     async function startCamera() {
       try {
-        if (stream) stream.getTracks().forEach(t => t.stop());
+        stopAutoLive(false);
+        if (stream) stream.getTracks().forEach(track => track.stop());
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
           audio: false
         });
         video.srcObject = stream;
         await video.play();
+        mode = 'capture';
         resizeOverlay();
-        drawOverlay();
-        mode = 'marker';
-        if (!autoLive) startAutoLive();
-        setStatus('Camera running and live detect is ON. Hold a red/orange 12-inch marker beside the pig. Tap the camera screen to capture when the lines look right.');
+        clearVisualsOnly();
+        startAutoLive();
+        setStatus('Camera running and live detect is ON. Use a slightly elevated front-quarter view. Keep the orange 12-inch rod beside the pig body center, same distance from camera.');
       } catch (err) {
-        setStatus('<b>Camera failed:</b> ' + err.message + '<br><br>On mobile, camera usually requires HTTPS or localhost.');
+        setStatus('<b>Camera failed:</b> ' + escapeHtml(err.message) + '<br><br>On mobile, camera usually requires HTTPS or localhost.');
       }
     }
 
     function resizeOverlay() {
       const rect = cameraWrap.getBoundingClientRect();
-      overlay.width = Math.round(rect.width * devicePixelRatio);
-      overlay.height = Math.round(rect.height * devicePixelRatio);
+      overlayCssWidth = rect.width;
+      overlayCssHeight = rect.height;
+      overlay.width = Math.max(1, Math.round(rect.width * window.devicePixelRatio));
+      overlay.height = Math.max(1, Math.round(rect.height * window.devicePixelRatio));
       overlay.style.width = rect.width + 'px';
       overlay.style.height = rect.height + 'px';
-      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
-    }
-
-    function distance(a, b) {
-      if (!a || !b) return 0;
-      return Math.hypot(a.x - b.x, a.y - b.y);
-    }
-
-    function getScale() {
-      if (autoScale > 0) return autoScale;
-      const markerPx = distance(markerPoints[0], markerPoints[1]);
-      const markerInches = parseFloat(markerInchesEl.value) || 0;
-      if (markerPx <= 0 || markerInches <= 0) return 0;
-      return markerInches / markerPx;
+      ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
     }
 
     function getTapPoint(e) {
       const rect = overlay.getBoundingClientRect();
-      const touch = e.touches ? e.touches[0] : e;
-      return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
     }
 
     function drawPoint(p, color) {
@@ -310,24 +307,24 @@
     }
 
     function drawLine(points, color, label) {
-      if (points.length > 0) drawPoint(points[0], color);
-      if (points.length > 1) {
-        drawPoint(points[1], color);
-        ctx.beginPath();
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = color;
-        ctx.moveTo(points[0].x, points[0].y);
-        ctx.lineTo(points[1].x, points[1].y);
-        ctx.stroke();
-        const midX = (points[0].x + points[1].x) / 2;
-        const midY = (points[0].y + points[1].y) / 2;
-        ctx.fillStyle = 'rgba(0,0,0,.68)';
-        ctx.fillRect(midX - 55, midY - 24, 110, 22);
-        ctx.fillStyle = '#fff';
-        ctx.font = '13px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(label, midX, midY - 8);
-      }
+      if (!points || !points.length) return;
+      drawPoint(points[0], color);
+      if (points.length < 2) return;
+      drawPoint(points[1], color);
+      ctx.beginPath();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = color;
+      ctx.moveTo(points[0].x, points[0].y);
+      ctx.lineTo(points[1].x, points[1].y);
+      ctx.stroke();
+      const midX = (points[0].x + points[1].x) / 2;
+      const midY = (points[0].y + points[1].y) / 2;
+      ctx.fillStyle = 'rgba(0,0,0,.68)';
+      ctx.fillRect(midX - 64, midY - 24, 128, 22);
+      ctx.fillStyle = '#fff';
+      ctx.font = '13px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, midX, midY - 8);
     }
 
     function drawOutline() {
@@ -343,37 +340,6 @@
       ctx.fill();
     }
 
-    function drawOverlay() {
-      const rect = cameraWrap.getBoundingClientRect();
-      ctx.clearRect(0, 0, rect.width, rect.height);
-      drawLine(markerPoints, '#38bdf8', 'manual marker');
-      drawMarkerBox();
-      drawOutline();
-      drawLine(autoLengthLine, '#36d399', 'length');
-      drawLine(autoDepthLine, '#fb7185', 'depth');
-      drawLine(earTagPoints, '#facc15', 'ear tag');
-    }
-
-    function handleTap(e) {
-      e.preventDefault();
-      const p = getTapPoint(e);
-
-      if (captureReady && autoLive && mode !== 'earTag') {
-        captureRecord();
-        return;
-      }
-
-      if (mode === 'earTag') {
-        if (earTagPoints.length >= 2) earTagPoints = [];
-        earTagPoints.push(p);
-        if (earTagPoints.length === 2) cropEarTag();
-        setStatus(`Ear Tag Mode: ${earTagPoints.length}/2 points. Tap two opposite corners around the ear tag.`);
-      } else {
-        captureRecord();
-      }
-      drawOverlay();
-    }
-
     function drawMarkerBox() {
       if (!autoMarkerBox) return;
       ctx.save();
@@ -382,176 +348,216 @@
       ctx.setLineDash([8, 5]);
       ctx.strokeRect(autoMarkerBox.x, autoMarkerBox.y, autoMarkerBox.w, autoMarkerBox.h);
       ctx.setLineDash([]);
+      const labelY = Math.max(0, autoMarkerBox.y - 25);
       ctx.fillStyle = 'rgba(0,0,0,.68)';
-      ctx.fillRect(autoMarkerBox.x, Math.max(0, autoMarkerBox.y - 25), 122, 22);
+      ctx.fillRect(autoMarkerBox.x, labelY, 122, 22);
       ctx.fillStyle = '#fff';
       ctx.font = '13px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText('12 in marker', autoMarkerBox.x + 61, Math.max(14, autoMarkerBox.y - 9));
+      ctx.fillText('12 in marker', autoMarkerBox.x + 61, labelY + 16);
       ctx.restore();
     }
 
+    function drawOverlay() {
+      ctx.clearRect(0, 0, overlayCssWidth, overlayCssHeight);
+      drawMarkerBox();
+      drawOutline();
+      drawLine(autoLengthLine, '#36d399', 'body length');
+      drawLine(autoDepthLine, '#fb7185', 'body depth');
+      drawLine(autoBackWidthLine, '#f472b6', 'back width');
+      drawLine(earTagPoints, '#facc15', 'ear tag');
+    }
+
+    function handlePointerDown(e) {
+      e.preventDefault();
+      const p = getTapPoint(e);
+      if (mode === 'earTag') {
+        if (earTagPoints.length >= 2) earTagPoints = [];
+        earTagPoints.push(p);
+        if (earTagPoints.length === 2) cropEarTag();
+        setStatus(`Ear Tag Mode: ${earTagPoints.length}/2 points. Tap two opposite corners around the ear tag.`);
+        drawOverlay();
+        return;
+      }
+      captureRecord();
+    }
+
     function startAutoLive() {
+      if (!stream) {
+        setStatus('Start the camera first.');
+        return;
+      }
       autoLive = true;
-      const btn = document.getElementById('autoLiveBtn');
-      btn.textContent = 'Pause Live Detect';
-      btn.className = 'danger';
+      autoLiveBtn.textContent = 'Pause Live Detect';
+      autoLiveBtn.className = 'danger';
       clearInterval(autoTimer);
       runAutoDetect();
       autoTimer = setInterval(runAutoDetect, 900);
     }
 
-    function stopAutoLive() {
+    function stopAutoLive(showMessage = true) {
       autoLive = false;
       captureReady = false;
-      const btn = document.getElementById('autoLiveBtn');
-      btn.textContent = 'Resume Live Detect';
-      btn.className = 'blue';
       clearInterval(autoTimer);
       autoTimer = null;
-      setStatus('Live detect paused. Tap Resume Live Detect to start searching again.');
+      autoLiveBtn.textContent = stream ? 'Resume Live Detect' : 'Start Live Detect';
+      autoLiveBtn.className = 'blue';
+      if (showMessage) setStatus(stream ? 'Live detect paused. Tap Resume Live Detect to start searching again.' : 'Start the camera first.');
     }
 
     function toggleAutoLive() {
-      if (autoLive) stopAutoLive();
-      else {
-        startAutoLive();
-        setStatus('Live detect resumed. Tap the camera screen when the lines look right to capture.');
-      }
+      if (autoLive) stopAutoLive(true);
+      else startAutoLive();
     }
 
     function runAutoDetect() {
-      if (!video.videoWidth) return;
-      autoScale = 0;
-      autoMarkerBox = null;
-      const markerFound = detectColorMarker();
-      const scale = getScale();
-      if (!scale) {
-        setStatus('Live detect is ON. Hold a bright red/orange 12-inch marker in view beside the pig.');
-        drawOverlay();
-        return;
-      }
-
-      const rect = cameraWrap.getBoundingClientRect();
-      const work = document.createElement('canvas');
-      const maxW = 320;
-      const ratio = video.videoHeight / video.videoWidth;
-      work.width = maxW;
-      work.height = Math.round(maxW * ratio);
-      const wctx = work.getContext('2d', { willReadFrequently: true });
-      wctx.drawImage(video, 0, 0, work.width, work.height);
-      const img = wctx.getImageData(0, 0, work.width, work.height);
-      const data = img.data;
-
-      const gray = new Uint8Array(work.width * work.height);
-      let sum = 0;
-      for (let i = 0, j = 0; i < data.length; i += 4, j++) {
-        const g = Math.round(data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
-        gray[j] = g;
-        sum += g;
-      }
-      const avg = sum / gray.length;
-      const mask = new Uint8Array(work.width * work.height);
-
-      for (let y = 2; y < work.height - 2; y++) {
-        for (let x = 2; x < work.width - 2; x++) {
-          const idx = y * work.width + x;
-          const gx = Math.abs(gray[idx - 1] - gray[idx + 1]);
-          const gy = Math.abs(gray[idx - work.width] - gray[idx + work.width]);
-          const edge = gx + gy;
-          const darkBody = gray[idx] < avg - 16;
-          if (darkBody || edge > 42) mask[idx] = 1;
+      if (!autoLive || isDetecting || !video.videoWidth || !overlayCssWidth || !overlayCssHeight) return;
+      isDetecting = true;
+      try {
+        autoScale = 0;
+        autoMarkerBox = null;
+        const frame = getFrameData(320);
+        if (!frame) return;
+        const markerFound = detectColorMarker(frame);
+        const scale = autoScale;
+        if (!scale) {
+          captureReady = false;
+          lastMeasure.marker = false;
+          updateLiveStats();
+          drawOverlay();
+          setStatus('Live detect is ON. Hold a bright red/orange 12-inch rod near the pig body center.');
+          return;
         }
+        detectAnimal(frame, markerFound, scale);
+      } finally {
+        isDetecting = false;
       }
-
-      dilateMask(mask, work.width, work.height, 2);
-      erodeMask(mask, work.width, work.height, 1);
-
-      const component = largestComponent(mask, work.width, work.height);
-      if (!component || component.count < 250) {
-        lastMeasure.confidence = 'low';
-        updateLiveStats();
-        setStatus('Searching for pig shape. Use side view and cleaner background.');
-        return;
-      }
-
-      outlinePoints = componentToOutline(component, rect.width / work.width, rect.height / work.height);
-      const bounds = getOutlineBounds(outlinePoints);
-      if (!bounds) return;
-
-      const centerY = bounds.minY + bounds.height * 0.52;
-      const centerX = bounds.minX + bounds.width * 0.50;
-      autoLengthLine = [{ x: bounds.minX, y: centerY }, { x: bounds.maxX, y: centerY }];
-      autoDepthLine = [{ x: centerX, y: bounds.minY }, { x: centerX, y: bounds.maxY }];
-
-      const length = bounds.width * scale;
-      const depth = bounds.height * scale;
-      const manualGirth = parseFloat(heartGirthEl.value);
-      const girth = manualGirth > 0 ? manualGirth : estimateHeartGirthFromDepth(depth);
-      const weight = calculateWeight(length, girth);
-      const ratio = component.width / Math.max(1, component.height);
-      const confidence = ratio > 1.25 && component.count > 400 ? 'good' : 'ok';
-
-      lastMeasure = { length, depth, girth, weight, confidence: markerFound ? confidence : 'no marker' };
-      captureReady = confidence !== 'low' && weight > 0;
-      weightOut.textContent = Math.round(weight);
-      updateLiveStats();
-      saveOutlineImage();
-      drawOverlay();
     }
 
-    function detectColorMarker() {
-      if (!video.videoWidth) return false;
-      const rect = cameraWrap.getBoundingClientRect();
+    function getFrameData(maxW) {
+      if (!video.videoWidth || !video.videoHeight) return null;
       const work = document.createElement('canvas');
-      const maxW = 320;
       const ratio = video.videoHeight / video.videoWidth;
       work.width = maxW;
-      work.height = Math.round(maxW * ratio);
+      work.height = Math.max(1, Math.round(maxW * ratio));
       const wctx = work.getContext('2d', { willReadFrequently: true });
       wctx.drawImage(video, 0, 0, work.width, work.height);
       const img = wctx.getImageData(0, 0, work.width, work.height);
-      const data = img.data;
+      return { data: img.data, width: work.width, height: work.height, sx: overlayCssWidth / work.width, sy: overlayCssHeight / work.height };
+    }
 
-      const mask = new Uint8Array(work.width * work.height);
-      for (let y = 0; y < work.height; y++) {
-        for (let x = 0; x < work.width; x++) {
-          const i = (y * work.width + x) * 4;
-          const r = data[i], g = data[i + 1], b = data[i + 2];
-          const isRedOrange = r > 135 && g > 35 && g < 180 && b < 120 && r > g * 1.1 && r > b * 1.55;
-          if (isRedOrange) mask[y * work.width + x] = 1;
+    function detectColorMarker(frame) {
+      const mask = new Uint8Array(frame.width * frame.height);
+      for (let y = 0; y < frame.height; y++) {
+        for (let x = 0; x < frame.width; x++) {
+          const i = (y * frame.width + x) * 4;
+          const r = frame.data[i];
+          const g = frame.data[i + 1];
+          const b = frame.data[i + 2];
+          if (isMarkerPixel(r, g, b)) mask[y * frame.width + x] = 1;
         }
       }
-
-      dilateMask(mask, work.width, work.height, 2);
-      const c = largestComponent(mask, work.width, work.height);
+      dilateMask(mask, frame.width, frame.height, 2);
+      const c = largestComponent(mask, frame.width, frame.height, 'area');
       if (!c || c.count < 35) return false;
-
-      const sx = rect.width / work.width;
-      const sy = rect.height / work.height;
-      const x = c.minX * sx;
-      const y = c.minY * sy;
-      const w = Math.max(1, c.width * sx);
-      const h = Math.max(1, c.height * sy);
+      const x = c.minX * frame.sx;
+      const y = c.minY * frame.sy;
+      const w = Math.max(1, c.width * frame.sx);
+      const h = Math.max(1, c.height * frame.sy);
       const longSidePx = Math.max(w, h);
-      const markerInches = parseFloat(markerInchesEl.value) || 12;
-
+      const markerInches = positiveNumber(markerInchesEl.value, 12);
       autoMarkerBox = { x, y, w, h };
       autoScale = markerInches / longSidePx;
       return true;
     }
 
-    function calculateWeight(length, girth) {
-      if (!length || !girth) return 0;
-      return (girth * girth * length) / 400;
+    function isMarkerPixel(r, g, b) {
+      return r > 135 && g > 30 && g < 185 && b < 125 && r > g * 1.1 && r > b * 1.55;
     }
 
-    function estimateHeartGirthFromDepth(depthIn) {
-      return depthIn * 2.65;
+    function detectAnimal(frame, markerFound, scale) {
+      const gray = new Uint8Array(frame.width * frame.height);
+      let sum = 0;
+      for (let i = 0, j = 0; i < frame.data.length; i += 4, j++) {
+        const r = frame.data[i];
+        const g = frame.data[i + 1];
+        const b = frame.data[i + 2];
+        const value = Math.round(r * 0.299 + g * 0.587 + b * 0.114);
+        gray[j] = value;
+        sum += value;
+      }
+      const avg = sum / gray.length;
+      const mask = new Uint8Array(frame.width * frame.height);
+      for (let y = 2; y < frame.height - 2; y++) {
+        for (let x = 2; x < frame.width - 2; x++) {
+          const idx = y * frame.width + x;
+          const i = idx * 4;
+          const r = frame.data[i];
+          const g = frame.data[i + 1];
+          const b = frame.data[i + 2];
+          if (isMarkerPixel(r, g, b)) continue;
+          const gx = Math.abs(gray[idx - 1] - gray[idx + 1]);
+          const gy = Math.abs(gray[idx - frame.width] - gray[idx + frame.width]);
+          const edge = gx + gy;
+          const darkBody = gray[idx] < avg - 16;
+          if (darkBody || edge > 42) mask[idx] = 1;
+        }
+      }
+      dilateMask(mask, frame.width, frame.height, 2);
+      erodeMask(mask, frame.width, frame.height, 1);
+      const component = largestComponent(mask, frame.width, frame.height, 'quarter');
+      if (!component || component.count < 250) {
+        captureReady = false;
+        lastMeasure = { length: 0, depth: 0, backWidth: 0, girth: 0, weight: 0, confidence: 'low', marker: markerFound };
+        weightOut.textContent = '0';
+        updateLiveStats();
+        drawOverlay();
+        setStatus('Searching for pig shape. Use slightly elevated front-quarter view with the full pig and back visible.');
+        return;
+      }
+      outlinePoints = componentToQuarterOutline(component, frame.sx, frame.sy);
+      const bounds = getOutlineBounds(outlinePoints);
+      if (!bounds) return;
+      const centerY = bounds.minY + bounds.height * 0.55;
+      const centerX = bounds.minX + bounds.width * 0.50;
+      const backY = bounds.minY + bounds.height * 0.23;
+      const backWidthPx = Math.max(bounds.height * 0.32, bounds.width * 0.18);
+      autoLengthLine = [{ x: bounds.minX, y: centerY }, { x: bounds.maxX, y: centerY }];
+      autoDepthLine = [{ x: centerX, y: bounds.minY + bounds.height * 0.08 }, { x: centerX, y: bounds.maxY }];
+      autoBackWidthLine = [{ x: centerX - backWidthPx / 2, y: backY }, { x: centerX + backWidthPx / 2, y: backY }];
+      const length = bounds.width * scale;
+      const depth = bounds.height * scale;
+      const backWidth = backWidthPx * scale;
+      const manualGirth = positiveNumber(heartGirthEl.value, 0);
+      const girth = manualGirth > 0 ? manualGirth : estimateGirthFromDepthAndWidth(depth, backWidth);
+      const weight = calculateWeight(length, girth, backWidth);
+      const bodyRatio = component.width / Math.max(1, component.height);
+      const backVisibleScore = backWidth > 0 && bodyRatio > 1.05;
+      const confidence = markerFound && backVisibleScore && component.count > 500 ? 'good' : 'ok';
+      lastMeasure = { length, depth, backWidth, girth, weight, confidence, marker: markerFound };
+      captureReady = weight > 0 && markerFound && confidence !== 'low';
+      weightOut.textContent = String(Math.round(weight));
+      updateLiveStats();
+      saveOutlineImage();
+      drawOverlay();
+    }
+
+    function calculateWeight(length, girth, backWidth) {
+      if (!Number.isFinite(length) || !Number.isFinite(girth) || length <= 0 || girth <= 0) return 0;
+      const tapeWeight = (girth * girth * length) / 400;
+      const volumeBoost = Number.isFinite(backWidth) && backWidth > 0 ? Math.min(1.12, Math.max(0.92, 1 + ((backWidth - girth * 0.28) / Math.max(1, girth)) * 0.25)) : 1;
+      return tapeWeight * volumeBoost;
+    }
+
+    function estimateGirthFromDepthAndWidth(depthIn, widthIn) {
+      const depthGirth = depthIn * 2.55;
+      const widthGirth = widthIn * 3.15;
+      if (!Number.isFinite(widthIn) || widthIn <= 0) return depthGirth;
+      return depthGirth * 0.65 + widthGirth * 0.35;
     }
 
     function updateLiveStats() {
-      measureInfo.textContent = `Length: ${lastMeasure.length.toFixed(1)} in · Depth: ${lastMeasure.depth.toFixed(1)} in · Girth: ${lastMeasure.girth.toFixed(1)} in · Confidence: ${lastMeasure.confidence} · Marker: ${autoScale ? 'found' : 'searching'}`;
+      measureInfo.textContent = `Length: ${lastMeasure.length.toFixed(1)} in · Depth: ${lastMeasure.depth.toFixed(1)} in · Back width: ${lastMeasure.backWidth.toFixed(1)} in · Girth: ${lastMeasure.girth.toFixed(1)} in · Confidence: ${lastMeasure.confidence} · Marker: ${lastMeasure.marker || autoScale ? 'found' : 'searching'}`;
     }
 
     function getOutlineBounds(points) {
@@ -559,8 +565,10 @@
       const xs = points.map(p => p.x);
       const ys = points.map(p => p.y);
       return {
-        minX: Math.min(...xs), maxX: Math.max(...xs),
-        minY: Math.min(...ys), maxY: Math.max(...ys),
+        minX: Math.min(...xs),
+        maxX: Math.max(...xs),
+        minY: Math.min(...ys),
+        maxY: Math.max(...ys),
         width: Math.max(...xs) - Math.min(...xs),
         height: Math.max(...ys) - Math.min(...ys)
       };
@@ -573,7 +581,7 @@
           for (let x = 1; x < w - 1; x++) {
             const i = y * w + x;
             if (copy[i]) continue;
-            if (copy[i - 1] || copy[i + 1] || copy[i - w] || copy[i + w]) mask[i] = 1;
+            if (copy[i - 1] || copy[i + 1] || copy[i - w] || copy[i + w] || copy[i - w - 1] || copy[i - w + 1] || copy[i + w - 1] || copy[i + w + 1]) mask[i] = 1;
           }
         }
       }
@@ -592,28 +600,33 @@
       }
     }
 
-    function largestComponent(mask, w, h) {
+    function largestComponent(mask, w, h, modeName) {
       const seen = new Uint8Array(w * h);
       let best = null;
-      const qx = [], qy = [];
-
+      const qx = [];
+      const qy = [];
       for (let y = 1; y < h - 1; y++) {
         for (let x = 1; x < w - 1; x++) {
           const start = y * w + x;
           if (!mask[start] || seen[start]) continue;
-
-          let minX = x, maxX = x, minY = y, maxY = y, count = 0;
-          qx.length = 0; qy.length = 0;
-          qx.push(x); qy.push(y); seen[start] = 1;
-
+          let minX = x;
+          let maxX = x;
+          let minY = y;
+          let maxY = y;
+          let count = 0;
+          qx.length = 0;
+          qy.length = 0;
+          qx.push(x);
+          qy.push(y);
+          seen[start] = 1;
           for (let qi = 0; qi < qx.length; qi++) {
-            const cx = qx[qi], cy = qy[qi];
+            const cx = qx[qi];
+            const cy = qy[qi];
             count++;
             if (cx < minX) minX = cx;
             if (cx > maxX) maxX = cx;
             if (cy < minY) minY = cy;
             if (cy > maxY) maxY = cy;
-
             const neighbors = [[cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]];
             for (const [nx, ny] of neighbors) {
               if (nx <= 0 || ny <= 0 || nx >= w - 1 || ny >= h - 1) continue;
@@ -625,78 +638,83 @@
               }
             }
           }
-
-          const width = maxX - minX;
-          const height = maxY - minY;
-          const sideScore = count * Math.min(3, width / Math.max(1, height));
-          if (!best || sideScore > best.score) best = { minX, maxX, minY, maxY, width, height, count, score: sideScore };
+          const width = maxX - minX + 1;
+          const height = maxY - minY + 1;
+          const ratio = width / Math.max(1, height);
+          const ratioScore = modeName === 'quarter' ? Math.min(3, Math.max(0.7, ratio)) : 1;
+          const score = count * ratioScore;
+          if (!best || score > best.score) best = { minX, maxX, minY, maxY, width, height, count, score };
         }
       }
       return best;
     }
 
-    function componentToOutline(c, sx, sy) {
+    function componentToQuarterOutline(c, sx, sy) {
       const padX = c.width * 0.04;
       const padY = c.height * 0.06;
-      const x1 = (c.minX - padX) * sx;
-      const x2 = (c.maxX + padX) * sx;
-      const y1 = (c.minY - padY) * sy;
-      const y2 = (c.maxY + padY) * sy;
+      const x1 = Math.max(0, (c.minX - padX) * sx);
+      const x2 = Math.min(overlayCssWidth, (c.maxX + padX) * sx);
+      const y1 = Math.max(0, (c.minY - padY) * sy);
+      const y2 = Math.min(overlayCssHeight, (c.maxY + padY) * sy);
       const w = x2 - x1;
       const h = y2 - y1;
       return [
-        { x: x1, y: y1 + h * 0.35 },
-        { x: x1 + w * 0.08, y: y1 + h * 0.18 },
-        { x: x1 + w * 0.22, y: y1 + h * 0.06 },
+        { x: x1, y: y1 + h * 0.42 },
+        { x: x1 + w * 0.10, y: y1 + h * 0.23 },
+        { x: x1 + w * 0.28, y: y1 + h * 0.07 },
         { x: x1 + w * 0.58, y: y1 },
-        { x: x1 + w * 0.85, y: y1 + h * 0.08 },
-        { x: x2, y: y1 + h * 0.30 },
+        { x: x1 + w * 0.82, y: y1 + h * 0.08 },
+        { x: x2, y: y1 + h * 0.34 },
         { x: x2 - w * 0.04, y: y1 + h * 0.70 },
-        { x: x1 + w * 0.80, y: y2 },
+        { x: x1 + w * 0.78, y: y2 },
         { x: x1 + w * 0.22, y: y2 },
-        { x: x1 + w * 0.04, y: y1 + h * 0.72 }
+        { x: x1 + w * 0.04, y: y1 + h * 0.75 }
       ];
     }
 
     function cropEarTag() {
       if (!video.videoWidth || earTagPoints.length < 2) return;
-      const rect = cameraWrap.getBoundingClientRect();
-      const p1 = earTagPoints[0], p2 = earTagPoints[1];
-      const x = Math.min(p1.x, p2.x), y = Math.min(p1.y, p2.y);
-      const w = Math.abs(p1.x - p2.x), h = Math.abs(p1.y - p2.y);
-      if (w < 10 || h < 10) return;
-      const scaleX = video.videoWidth / rect.width;
-      const scaleY = video.videoHeight / rect.height;
+      const p1 = earTagPoints[0];
+      const p2 = earTagPoints[1];
+      const x = Math.min(p1.x, p2.x);
+      const y = Math.min(p1.y, p2.y);
+      const w = Math.abs(p1.x - p2.x);
+      const h = Math.abs(p1.y - p2.y);
+      if (w < 10 || h < 10) {
+        setStatus('Ear tag area is too small. Tap two wider opposite corners around the tag.');
+        return;
+      }
+      const scaleX = video.videoWidth / overlayCssWidth;
+      const scaleY = video.videoHeight / overlayCssHeight;
       const canvas = document.createElement('canvas');
-      canvas.width = Math.round(w * scaleX);
-      canvas.height = Math.round(h * scaleY);
+      canvas.width = Math.max(1, Math.round(w * scaleX));
+      canvas.height = Math.max(1, Math.round(h * scaleY));
       const c = canvas.getContext('2d');
       c.drawImage(video, Math.round(x * scaleX), Math.round(y * scaleY), Math.round(w * scaleX), Math.round(h * scaleY), 0, 0, canvas.width, canvas.height);
       lastEarTagData = canvas.toDataURL('image/jpeg', 0.9);
-      setStatus('Ear tag image captured. Type the tag number if readable, then capture the record.');
+      mode = 'capture';
+      setStatus('Ear tag image captured. Type the tag number if readable, then tap the camera screen to capture the animal record.');
     }
 
     function takeSnapshot() {
+      if (!video.videoWidth) return;
       const canvas = document.getElementById('photoCanvas');
-      const w = video.videoWidth || 1280;
-      const h = video.videoHeight || 720;
-      canvas.width = w;
-      canvas.height = h;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
       const c = canvas.getContext('2d');
-      c.drawImage(video, 0, 0, w, h);
+      c.drawImage(video, 0, 0, canvas.width, canvas.height);
       lastPhotoData = canvas.toDataURL('image/jpeg', 0.85);
     }
 
     function saveOutlineImage() {
-      if (!video.videoWidth || outlinePoints.length < 3) return;
-      const rect = cameraWrap.getBoundingClientRect();
+      if (!video.videoWidth || outlinePoints.length < 3 || !overlayCssWidth || !overlayCssHeight) return;
       const canvas = document.createElement('canvas');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const c = canvas.getContext('2d');
       c.drawImage(video, 0, 0, canvas.width, canvas.height);
       c.save();
-      c.scale(canvas.width / rect.width, canvas.height / rect.height);
+      c.scale(canvas.width / overlayCssWidth, canvas.height / overlayCssHeight);
       c.beginPath();
       c.moveTo(outlinePoints[0].x, outlinePoints[0].y);
       for (let i = 1; i < outlinePoints.length; i++) c.lineTo(outlinePoints[i].x, outlinePoints[i].y);
@@ -704,30 +722,44 @@
       c.lineWidth = 8;
       c.strokeStyle = '#facc15';
       c.stroke();
+      c.strokeStyle = '#f472b6';
+      c.lineWidth = 5;
+      if (autoBackWidthLine.length === 2) {
+        c.beginPath();
+        c.moveTo(autoBackWidthLine[0].x, autoBackWidthLine[0].y);
+        c.lineTo(autoBackWidthLine[1].x, autoBackWidthLine[1].y);
+        c.stroke();
+      }
       c.restore();
       lastOutlineData = canvas.toDataURL('image/jpeg', 0.88);
     }
 
     function captureRecord() {
-      if (!lastMeasure.weight) {
+      if (!stream) {
+        setStatus('Start the camera first.');
+        return;
+      }
+      if (!captureReady || !lastMeasure.weight) {
         runAutoDetect();
-        if (!lastMeasure.weight) {
-          setStatus('No weight detected yet. Start Auto Detect Live and hold on the pig side view.');
+        if (!captureReady || !lastMeasure.weight) {
+          setStatus('No ready weight yet. Keep the orange rod and elevated front-quarter pig view in frame until marker is found and confidence is ok or good.');
           return;
         }
       }
       takeSnapshot();
       saveOutlineImage();
-
       const record = {
         date: new Date().toLocaleString(),
         pigId: document.getElementById('pigId').value.trim() || 'Unknown',
         earTag: document.getElementById('earTag').value.trim() || '',
-        length: lastMeasure.length,
-        depth: lastMeasure.depth,
-        girth: lastMeasure.girth,
+        length: round1(lastMeasure.length),
+        depth: round1(lastMeasure.depth),
+        backWidth: round1(lastMeasure.backWidth),
+        girth: round1(lastMeasure.girth),
         weight: Math.round(lastMeasure.weight),
         confidence: lastMeasure.confidence,
+        markerFound: lastMeasure.marker ? 'yes' : 'no',
+        viewMode: 'elevated-front-quarter',
         photo: lastPhotoData || '',
         outlinePhoto: lastOutlineData || '',
         earTagPhoto: lastEarTagData || ''
@@ -739,8 +771,12 @@
     }
 
     function getRecords() {
-      try { return JSON.parse(localStorage.getItem('pigWeightRecords') || '[]'); }
-      catch { return []; }
+      try {
+        const value = JSON.parse(localStorage.getItem('pigWeightRecords') || '[]');
+        return Array.isArray(value) ? value : [];
+      } catch {
+        return [];
+      }
     }
 
     function setRecords(records) {
@@ -753,7 +789,7 @@
       recordsBody.innerHTML = '';
       for (const r of records) {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${r.date}</td><td>${escapeHtml(r.pigId)}</td><td>${escapeHtml(r.earTag || '')}</td><td>${r.weight} lb</td>`;
+        tr.innerHTML = `<td>${escapeHtml(r.date || '')}</td><td>${escapeHtml(r.pigId || '')}</td><td>${escapeHtml(r.earTag || '')}</td><td>${escapeHtml(String(r.weight || 0))} lb</td>`;
         recordsBody.appendChild(tr);
       }
     }
@@ -764,12 +800,24 @@
         setStatus('No records to export yet.');
         return;
       }
-      const headers = ['date','animal_id','ear_tag','length_inches','body_depth_inches','heart_girth_inches','estimated_weight_lb','confidence','has_photo','has_outline_photo','has_ear_tag_photo'];
+      const headers = ['date','animal_id','ear_tag','view_mode','length_inches','body_depth_inches','back_width_inches','heart_girth_inches','estimated_weight_lb','confidence','marker_found','has_photo','has_outline_photo','has_ear_tag_photo'];
       const rows = [headers.join(',')];
       for (const r of records) {
         rows.push([
-          r.date, r.pigId, r.earTag || '', r.length, r.depth, r.girth, r.weight, r.confidence,
-          r.photo ? 'yes' : 'no', r.outlinePhoto ? 'yes' : 'no', r.earTagPhoto ? 'yes' : 'no'
+          r.date,
+          r.pigId,
+          r.earTag || '',
+          r.viewMode || '',
+          r.length,
+          r.depth,
+          r.backWidth || '',
+          r.girth,
+          r.weight,
+          r.confidence,
+          r.markerFound || '',
+          r.photo ? 'yes' : 'no',
+          r.outlinePhoto ? 'yes' : 'no',
+          r.earTagPhoto ? 'yes' : 'no'
         ].map(csvCell).join(','));
       }
       const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
@@ -777,8 +825,34 @@
       const a = document.createElement('a');
       a.href = url;
       a.download = 'pig_weight_records.csv';
+      document.body.appendChild(a);
       a.click();
+      a.remove();
       URL.revokeObjectURL(url);
+    }
+
+    function clearVisualsOnly() {
+      captureReady = false;
+      autoMarkerBox = null;
+      autoScale = 0;
+      outlinePoints = [];
+      autoLengthLine = [];
+      autoDepthLine = [];
+      autoBackWidthLine = [];
+      lastOutlineData = '';
+      lastMeasure = { length: 0, depth: 0, backWidth: 0, girth: 0, weight: 0, confidence: 'waiting', marker: false };
+      weightOut.textContent = '0';
+      updateLiveStats();
+      drawOverlay();
+    }
+
+    function clearCurrent() {
+      earTagPoints = [];
+      lastPhotoData = '';
+      lastEarTagData = '';
+      clearVisualsOnly();
+      mode = 'capture';
+      setStatus('Cleared. Use elevated front-quarter view and hold the orange 12-inch rod near the pig body center.');
     }
 
     function csvCell(v) {
@@ -788,27 +862,16 @@
     }
 
     function escapeHtml(str) {
-      return String(str).replace(/[&<>'"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[s]));
+      return String(str).replace(/[&<>'"]/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[s]));
     }
 
-    function clearCurrent() {
-      captureReady = false;
-      markerPoints = [];
-      autoMarkerBox = null;
-      autoScale = 0;
-      earTagPoints = [];
-      outlinePoints = [];
-      autoLengthLine = [];
-      autoDepthLine = [];
-      lastPhotoData = '';
-      lastEarTagData = '';
-      lastOutlineData = '';
-      lastMeasure = { length: 0, depth: 0, girth: 0, weight: 0, confidence: 'waiting' };
-      weightOut.textContent = '0';
-      updateLiveStats();
-      drawOverlay();
-      mode = 'marker';
-      setStatus('Cleared. Hold the red/orange 12-inch marker in view, or switch to Ear Tag Mode.');
+    function positiveNumber(value, fallback) {
+      const n = parseFloat(value);
+      return Number.isFinite(n) && n > 0 ? n : fallback;
+    }
+
+    function round1(value) {
+      return Math.round((Number(value) || 0) * 10) / 10;
     }
 
     document.getElementById('startBtn').addEventListener('click', startCamera);
@@ -817,21 +880,29 @@
       startCamera();
     });
     document.getElementById('earTagModeBtn').addEventListener('click', () => {
-      mode = mode === 'earTag' ? 'marker' : 'earTag';
-      setStatus(mode === 'earTag' ? 'Ear Tag Mode: tap two opposite corners around the ear tag.' : 'Live marker mode: hold the red/orange 12-inch marker in view.');
+      if (!stream) {
+        setStatus('Start the camera first.');
+        return;
+      }
+      mode = mode === 'earTag' ? 'capture' : 'earTag';
+      earTagPoints = [];
+      drawOverlay();
+      setStatus(mode === 'earTag' ? 'Ear Tag Mode: tap two opposite corners around the ear tag.' : 'Live capture mode. Tap the camera screen when the weight lines look right.');
     });
-    document.getElementById('autoLiveBtn').addEventListener('click', toggleAutoLive);
-    
+    autoLiveBtn.addEventListener('click', toggleAutoLive);
     document.getElementById('clearBtn').addEventListener('click', clearCurrent);
     document.getElementById('exportBtn').addEventListener('click', exportCSV);
     document.getElementById('clearRecordsBtn').addEventListener('click', () => {
       if (confirm('Clear all saved animal records on this browser?')) setRecords([]);
     });
 
-    overlay.addEventListener('click', handleTap);
-    overlay.addEventListener('touchstart', handleTap, { passive: false });
+    overlay.addEventListener('pointerdown', handlePointerDown);
     window.addEventListener('resize', () => { resizeOverlay(); drawOverlay(); });
     video.addEventListener('loadedmetadata', () => { resizeOverlay(); drawOverlay(); });
+    window.addEventListener('pagehide', () => {
+      stopAutoLive(false);
+      if (stream) stream.getTracks().forEach(track => track.stop());
+    });
 
     renderRecords();
   </script>
