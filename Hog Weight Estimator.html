@@ -86,6 +86,22 @@
       pointer-events: none;
     }
 
+    .camera-tag-badge {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      z-index: 5;
+      padding: 8px 11px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.68);
+      color: var(--warn);
+      border: 1px solid rgba(250,204,21,.55);
+      font-size: 13px;
+      font-weight: 900;
+      box-shadow: 0 8px 24px rgba(0,0,0,.35);
+      pointer-events: none;
+    }
+
     .status { margin-top: 10px; color: var(--muted); font-size: 13px; line-height: 1.35; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
@@ -159,9 +175,10 @@
         <video id="video" playsinline autoplay muted></video>
         <canvas id="overlay"></canvas>
         <div class="camera-weight-badge" id="cameraWeightBadge">0 lb</div>
+        <div class="camera-tag-badge" id="cameraTagBadge">Tag: searching</div>
       </div>
       <div class="status" id="status">
-        Tap <b>Start Camera</b>. Hold a red/orange 12-inch rod near the pig body center. Use a slightly elevated front-quarter view with the full body and back visible. Say <b>bacon</b> when the lines look right.
+        Tap <b>Start Camera</b>. Hold a red/orange 12-inch rod near the pig body center. Use a slightly elevated front-quarter view with the full body and back visible. Say <b>bacon</b> when the lines look right. The app also looks for a yellow ear tag and saves a tag crop automatically when found.
       </div>
 
       <div class="btn-row">
@@ -199,6 +216,10 @@
         <div>
           <label>Funny voice capture word</label>
           <input id="captureWord" value="bacon" autocomplete="off" />
+        </div>
+        <div>
+          <label>Ear tag color to auto-detect</label>
+          <input id="tagColorHint" value="yellow" autocomplete="off" />
         </div>
       </div>
       <div class="small" style="margin-top:8px;">
@@ -256,6 +277,8 @@
     const voiceBtn = document.getElementById('voiceBtn');
     const captureWordEl = document.getElementById('captureWord');
     const cameraWeightBadge = document.getElementById('cameraWeightBadge');
+    const cameraTagBadge = document.getElementById('cameraTagBadge');
+    const tagColorHintEl = document.getElementById('tagColorHint');
 
     let stream = null;
     let facingMode = 'environment';
@@ -276,11 +299,17 @@
     let autoLengthLine = [];
     let autoDepthLine = [];
     let autoBackWidthLine = [];
+    let autoEarTagBox = null;
 
     let lastPhotoData = '';
     let lastEarTagData = '';
+      autoEarTagCaptured = false;
+    let autoEarTagCaptured = false;
     let lastOutlineData = '';
     let lastMeasure = { length: 0, depth: 0, backWidth: 0, girth: 0, weight: 0, confidence: 'waiting', marker: false };
+      autoEarTagBox = null;
+      autoEarTagCaptured = false;
+      cameraTagBadge.textContent = 'Tag: searching';
 
     function setStatus(msg) {
       statusEl.innerHTML = msg;
@@ -393,6 +422,25 @@
       drawLine(autoDepthLine, '#fb7185', 'body depth');
       drawLine(autoBackWidthLine, '#f472b6', 'back width');
       drawLine(earTagPoints, '#facc15', 'ear tag');
+      drawAutoEarTagBox();
+    }
+
+    function drawAutoEarTagBox() {
+      if (!autoEarTagBox) return;
+      ctx.save();
+      ctx.strokeStyle = '#facc15';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([6, 4]);
+      ctx.strokeRect(autoEarTagBox.x, autoEarTagBox.y, autoEarTagBox.w, autoEarTagBox.h);
+      ctx.setLineDash([]);
+      const labelY = Math.max(0, autoEarTagBox.y - 23);
+      ctx.fillStyle = 'rgba(0,0,0,.68)';
+      ctx.fillRect(autoEarTagBox.x, labelY, 92, 20);
+      ctx.fillStyle = '#fff';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('ear tag', autoEarTagBox.x + 46, labelY + 14);
+      ctx.restore();
     }
 
     function handlePointerDown(e) {
@@ -446,6 +494,7 @@
         const frame = getFrameData(320);
         if (!frame) return;
         const markerFound = detectColorMarker(frame);
+        detectLiveEarTag(frame);
         const scale = autoScale;
         if (!scale) {
           captureReady = false;
@@ -471,6 +520,61 @@
       wctx.drawImage(video, 0, 0, work.width, work.height);
       const img = wctx.getImageData(0, 0, work.width, work.height);
       return { data: img.data, width: work.width, height: work.height, sx: overlayCssWidth / work.width, sy: overlayCssHeight / work.height };
+    }
+
+    function detectLiveEarTag(frame) {
+      autoEarTagBox = null;
+      const mask = new Uint8Array(frame.width * frame.height);
+      const hint = (tagColorHintEl.value || 'yellow').toLowerCase();
+      for (let y = 0; y < frame.height; y++) {
+        for (let x = 0; x < frame.width; x++) {
+          const i = (y * frame.width + x) * 4;
+          const r = frame.data[i];
+          const g = frame.data[i + 1];
+          const b = frame.data[i + 2];
+          if (isEarTagPixel(r, g, b, hint)) mask[y * frame.width + x] = 1;
+        }
+      }
+      dilateMask(mask, frame.width, frame.height, 1);
+      const c = largestComponent(mask, frame.width, frame.height, 'area');
+      if (!c || c.count < 18 || c.width < 3 || c.height < 3) {
+        cameraTagBadge.textContent = 'Tag: searching';
+        return false;
+      }
+      const x = c.minX * frame.sx;
+      const y = c.minY * frame.sy;
+      const w = Math.max(1, c.width * frame.sx);
+      const h = Math.max(1, c.height * frame.sy);
+      autoEarTagBox = { x, y, w, h };
+      cameraTagBadge.textContent = 'Tag: found';
+      captureAutoEarTag();
+      return true;
+    }
+
+    function isEarTagPixel(r, g, b, hint) {
+      if (hint.includes('orange')) return r > 145 && g > 70 && g < 190 && b < 130 && r > b * 1.45;
+      if (hint.includes('red')) return r > 145 && g < 120 && b < 120 && r > g * 1.25 && r > b * 1.5;
+      if (hint.includes('blue')) return b > 120 && g > 55 && r < 120 && b > r * 1.4;
+      if (hint.includes('green')) return g > 120 && r < 150 && b < 150 && g > r * 1.15;
+      return r > 145 && g > 120 && b < 95 && Math.abs(r - g) < 90;
+    }
+
+    function captureAutoEarTag() {
+      if (!autoEarTagBox || !video.videoWidth || autoEarTagCaptured) return;
+      const pad = 12;
+      const x = Math.max(0, autoEarTagBox.x - pad);
+      const y = Math.max(0, autoEarTagBox.y - pad);
+      const w = Math.min(overlayCssWidth - x, autoEarTagBox.w + pad * 2);
+      const h = Math.min(overlayCssHeight - y, autoEarTagBox.h + pad * 2);
+      const scaleX = video.videoWidth / overlayCssWidth;
+      const scaleY = video.videoHeight / overlayCssHeight;
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(w * scaleX));
+      canvas.height = Math.max(1, Math.round(h * scaleY));
+      const c = canvas.getContext('2d');
+      c.drawImage(video, Math.round(x * scaleX), Math.round(y * scaleY), Math.round(w * scaleX), Math.round(h * scaleY), 0, 0, canvas.width, canvas.height);
+      lastEarTagData = canvas.toDataURL('image/jpeg', 0.9);
+      autoEarTagCaptured = true;
     }
 
     function detectColorMarker(frame) {
@@ -522,7 +626,7 @@
           const r = frame.data[i];
           const g = frame.data[i + 1];
           const b = frame.data[i + 2];
-          if (isMarkerPixel(r, g, b)) continue;
+          if (isMarkerPixel(r, g, b) || isEarTagPixel(r, g, b, tagColorHintEl.value || 'yellow')) continue;
           const gx = Math.abs(gray[idx - 1] - gray[idx + 1]);
           const gy = Math.abs(gray[idx - frame.width] - gray[idx + frame.width]);
           const edge = gx + gy;
@@ -855,7 +959,8 @@
         viewMode: 'elevated-front-quarter',
         photo: lastPhotoData || '',
         outlinePhoto: lastOutlineData || '',
-        earTagPhoto: lastEarTagData || ''
+        earTagPhoto: lastEarTagData || '',
+        autoEarTagCaptured: autoEarTagCaptured ? 'yes' : 'no'
       };
       const records = getRecords();
       records.unshift(record);
@@ -893,7 +998,7 @@
         setStatus('No records to export yet.');
         return;
       }
-      const headers = ['date','animal_id','ear_tag','view_mode','length_inches','body_depth_inches','back_width_inches','heart_girth_inches','estimated_weight_lb','confidence','marker_found','has_photo','has_outline_photo','has_ear_tag_photo'];
+      const headers = ['date','animal_id','ear_tag','view_mode','length_inches','body_depth_inches','back_width_inches','heart_girth_inches','estimated_weight_lb','confidence','marker_found','has_photo','has_outline_photo','has_ear_tag_photo','auto_ear_tag_captured'];
       const rows = [headers.join(',')];
       for (const r of records) {
         rows.push([
@@ -910,7 +1015,8 @@
           r.markerFound || '',
           r.photo ? 'yes' : 'no',
           r.outlinePhoto ? 'yes' : 'no',
-          r.earTagPhoto ? 'yes' : 'no'
+          r.earTagPhoto ? 'yes' : 'no',
+          r.autoEarTagCaptured || ''
         ].map(csvCell).join(','));
       }
       const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
