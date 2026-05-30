@@ -70,6 +70,21 @@
       height: 100%;
     }
 
+    .camera-capture-btn {
+      position: absolute;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      z-index: 5;
+      padding: 14px 22px;
+      border-radius: 999px;
+      background: rgba(54,211,153,.92);
+      color: #02120b;
+      box-shadow: 0 8px 24px rgba(0,0,0,.35);
+      border: 2px solid rgba(255,255,255,.45);
+      min-width: 170px;
+    }
+
     .status { margin-top: 10px; color: var(--muted); font-size: 13px; line-height: 1.35; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
@@ -142,9 +157,10 @@
       <div class="camera-wrap" id="cameraWrap">
         <video id="video" playsinline autoplay muted></video>
         <canvas id="overlay"></canvas>
+        <button class="camera-capture-btn" id="screenCaptureBtn">Capture</button>
       </div>
       <div class="status" id="status">
-        Tap <b>Start Camera</b>. Hold a red/orange 12-inch rod near the pig body center. Use a slightly elevated front-quarter view with the full body and back visible. Tap the camera screen when the lines look right.
+        Tap <b>Start Camera</b>. Hold a red/orange 12-inch rod near the pig body center. Use a slightly elevated front-quarter view with the full body and back visible. Tap Capture or say <b>bacon</b> when the lines look right.
       </div>
 
       <div class="btn-row">
@@ -157,6 +173,7 @@
       </div>
       <div class="btn-row">
         <button class="secondary" id="clearBtn">Clear</button>
+        <button class="blue" id="voiceBtn">Voice Capture: Off</button>
       </div>
     </section>
 
@@ -177,6 +194,10 @@
         <div>
           <label>Manual girth override, inches</label>
           <input id="heartGirth" type="number" inputmode="decimal" placeholder="optional" min="1" step="0.1" />
+        </div>
+        <div>
+          <label>Funny voice capture word</label>
+          <input id="captureWord" value="bacon" autocomplete="off" />
         </div>
       </div>
       <div class="small" style="margin-top:8px;">
@@ -231,6 +252,8 @@
     const measureInfo = document.getElementById('measureInfo');
     const recordsBody = document.getElementById('recordsBody');
     const autoLiveBtn = document.getElementById('autoLiveBtn');
+    const voiceBtn = document.getElementById('voiceBtn');
+    const captureWordEl = document.getElementById('captureWord');
 
     let stream = null;
     let facingMode = 'environment';
@@ -239,6 +262,8 @@
     let autoLive = false;
     let autoTimer = null;
     let isDetecting = false;
+    let voiceOn = false;
+    let recognition = null;
     let overlayCssWidth = 0;
     let overlayCssHeight = 0;
 
@@ -273,7 +298,7 @@
         resizeOverlay();
         clearVisualsOnly();
         startAutoLive();
-        setStatus('Camera running and live detect is ON. Use a slightly elevated front-quarter view. Keep the orange 12-inch rod beside the pig body center, same distance from camera.');
+        setStatus('Camera running and live detect is ON. Use a slightly elevated front-quarter view. Tap Capture or say "' + getCaptureWord() + '" when the lines look right.');
       } catch (err) {
         setStatus('<b>Camera failed:</b> ' + escapeHtml(err.message) + '<br><br>On mobile, camera usually requires HTTPS or localhost.');
       }
@@ -734,6 +759,70 @@
       lastOutlineData = canvas.toDataURL('image/jpeg', 0.88);
     }
 
+    function getCaptureWord() {
+      const word = (captureWordEl.value || 'bacon').trim().toLowerCase();
+      return word || 'bacon';
+    }
+
+    function startVoiceCapture() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        setStatus('Voice capture is not supported in this browser. Chrome on Android usually works best.');
+        return;
+      }
+      if (recognition) {
+        try { recognition.stop(); } catch {}
+        recognition = null;
+      }
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      recognition.onresult = event => {
+        const word = getCaptureWord();
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const text = event.results[i][0].transcript.toLowerCase();
+          if (text.includes(word)) {
+            captureRecord();
+            break;
+          }
+        }
+      };
+      recognition.onerror = () => {
+        voiceOn = false;
+        voiceBtn.textContent = 'Voice Capture: Off';
+        voiceBtn.className = 'blue';
+      };
+      recognition.onend = () => {
+        if (voiceOn) {
+          try { recognition.start(); } catch {}
+        }
+      };
+      voiceOn = true;
+      voiceBtn.textContent = 'Listening: ' + getCaptureWord();
+      voiceBtn.className = 'danger';
+      try {
+        recognition.start();
+        setStatus('Voice capture is listening. Say "' + getCaptureWord() + '" to capture when the lines look right.');
+      } catch {
+        setStatus('Voice capture could not start. Make sure microphone permission is allowed.');
+      }
+    }
+
+    function stopVoiceCapture() {
+      voiceOn = false;
+      voiceBtn.textContent = 'Voice Capture: Off';
+      voiceBtn.className = 'blue';
+      if (recognition) {
+        try { recognition.stop(); } catch {}
+      }
+    }
+
+    function toggleVoiceCapture() {
+      if (voiceOn) stopVoiceCapture();
+      else startVoiceCapture();
+    }
+
     function captureRecord() {
       if (!stream) {
         setStatus('Start the camera first.');
@@ -890,6 +979,12 @@
       setStatus(mode === 'earTag' ? 'Ear Tag Mode: tap two opposite corners around the ear tag.' : 'Live capture mode. Tap the camera screen when the weight lines look right.');
     });
     autoLiveBtn.addEventListener('click', toggleAutoLive);
+    voiceBtn.addEventListener('click', toggleVoiceCapture);
+    document.getElementById('screenCaptureBtn').addEventListener('pointerdown', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      captureRecord();
+    });
     document.getElementById('clearBtn').addEventListener('click', clearCurrent);
     document.getElementById('exportBtn').addEventListener('click', exportCSV);
     document.getElementById('clearRecordsBtn').addEventListener('click', () => {
@@ -900,6 +995,7 @@
     window.addEventListener('resize', () => { resizeOverlay(); drawOverlay(); });
     video.addEventListener('loadedmetadata', () => { resizeOverlay(); drawOverlay(); });
     window.addEventListener('pagehide', () => {
+      stopVoiceCapture();
       stopAutoLive(false);
       if (stream) stream.getTracks().forEach(track => track.stop());
     });
